@@ -4328,6 +4328,11 @@ natural-compare@^1.4.0:
   resolved "https://verdaccio.nas.local.abbottland.io/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
+ngx-deploy-npm@5.2.0:
+  version "5.2.0"
+  resolved "https://verdaccio.nas.local.abbottland.io/ngx-deploy-npm/-/ngx-deploy-npm-5.2.0.tgz#723500ab44fa9e804c681fc51752a2bc1dac481e"
+  integrity sha512-+lsBNlDQ6Lr0fBN2eV+kbiExnPJwmuTK0cz1HBzvi+13DWu/AgAwy5o7bA+IkZL5pS6f4alJpjqY+TDMfGpubw==
+
 node-addon-api@^3.2.1:
   version "3.2.1"
   resolved "https://verdaccio.nas.local.abbottland.io/node-addon-api/-/node-addon-api-3.2.1.tgz#81325e0a2117789c0128dab65e7e38f07ceba161"
