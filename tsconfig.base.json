@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@home-web-apps/yaml-config": ["packages/yaml-config/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
