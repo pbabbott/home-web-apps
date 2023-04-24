@@ -39,6 +39,14 @@
       "executor": "ngx-deploy-npm:deploy",
       "options": {
         "access": "public"
+      },
+      "dependsOn": ["^build"]
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "preset": "conventional",
+        "baseBranch": "main"
       }
     }
   },
