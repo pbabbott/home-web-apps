@@ -13,6 +13,7 @@ trigger:
 
 steps:
   - name: Install packages with yarn
+    image: node:18
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
