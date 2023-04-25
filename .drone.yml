@@ -15,6 +15,8 @@ steps:
   - name: Install packages with yarn
     image: node:18
     environment:
+      NPM_REGISTRY_PROTO: https
+      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
