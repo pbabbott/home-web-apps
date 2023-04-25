@@ -1,0 +1,40 @@
+kind: pipeline
+name: release
+type: docker
+platform:
+  os: linux
+  arch: arm64
+trigger:
+  branch:
+    - main
+  ref:
+    exclude:
+      - refs/tags/*
+
+steps:
+  - name: Install packages with yarn
+    environment:
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
+    commands:
+    - yarn --frozen-lockfile
+
+
+# tages:
+#   - release
+
+# release:
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "master"
+#       when: manual
+#   stage: release
+#   image: node:16.13.2
+#   before_script:
+#     - git config --global user.name "GitLab Bot"
+#     - git config --global user.email "gituser@example.com"
+#     - git remote set-url origin http://gitlab-ci-token:${DEPLOY_KEY}@gitlab.com/org/project.git
+#   script:
+#     - yarn install --frozen-lockfile
+#     - yarn nx affected --target=version --base=last-release
+#     - git tag -f last-release
+#     - git push origin last-release --force -o ci.skip
