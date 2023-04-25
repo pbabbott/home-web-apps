@@ -39,9 +39,9 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "push": true,
+        "preset": "conventional",
         "allowEmptyRelease": true,
-        "postTargets": ["yaml-config:npm"]
-        
+        "postTargets": ["yaml-config:deploy", "yaml-config:github"]
       }
     },
     "github": {
@@ -51,11 +51,10 @@
         "notes": "${notes}"
       }
     },
-    "npm": {
+    "deploy": {
       "executor": "ngx-deploy-npm:deploy",
       "options": {
-        "access": "public",
-        "dryRun": "${dryRun}"
+        "access": "public"
       }
     }
   },
