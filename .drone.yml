@@ -12,7 +12,7 @@ trigger:
       - refs/tags/*
 
 steps:
-  - name: Install packages with yarn
+  - name: Semanticially Version packages based on affected changes
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.0.0
     environment:
       NPM_REGISTRY_PROTO: https
@@ -22,6 +22,7 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
+    - npm install --global nx@latest
     - yarn --frozen-lockfile
     - nx affected --target version 
 
