@@ -24,6 +24,8 @@ steps:
       NX_BASE: origin/main~1
       NX_HEAD: origin/main
     commands:
+    - git config user.name "Brandon Abbott"
+    - git config user.email "pbabbott@gmail.com"
     - yarn --frozen-lockfile
     - nx affected --target version 
 
