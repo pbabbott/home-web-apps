@@ -14,6 +14,9 @@ trigger:
 steps:
   - name: Semanticially Version packages based on affected changes
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: cache
+        path: /tmp/npm_cache
     environment:
       NPM_REGISTRY_PROTO: https
       NPM_REGISTRY: verdaccio.nas.local.abbottland.io
@@ -26,11 +29,18 @@ steps:
     commands:
     - git config user.name "Brandon Abbott"
     - git config user.email "pbabbott@gmail.com"
+    - yarn config set cache-folder /tmp/npm_cache
     - yarn --frozen-lockfile
     - nx affected --target version 
 
 image_pull_secrets:
-- REG_CRED
+  - REG_CRED
+
+volumes:
+  - name: cache
+    host:
+      path: /var/lib/cache
+
 
 # tages:
 #   - release
