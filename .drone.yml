@@ -31,6 +31,7 @@ steps:
     - git config user.email "pbabbott@gmail.com"
     - yarn config set cache-folder /tmp/npm_cache
     - yarn --frozen-lockfile
+    - yarn cache dir
     - nx affected --target version 
 
 image_pull_secrets:
