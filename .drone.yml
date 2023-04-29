@@ -13,7 +13,7 @@ trigger:
 
 steps:
   - name: Semanticially Version packages based on affected changes
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.0.0
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     environment:
       NPM_REGISTRY_PROTO: https
       NPM_REGISTRY: verdaccio.nas.local.abbottland.io
@@ -21,8 +21,9 @@ steps:
         from_secret: NPM_TOKEN
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
+      NX_BASE: origin/main~1
+      NX_HEAD: origin/main
     commands:
-    - npm install --global nx@latest
     - yarn --frozen-lockfile
     - nx affected --target version 
 
