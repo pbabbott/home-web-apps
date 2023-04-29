@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pbabbott/home-web-apps"
+    "url": "git@github.com:pbabbott/home-web-apps.git"
   },
   "devDependencies": {
     "@jscutlery/semver": "2.30.1",
