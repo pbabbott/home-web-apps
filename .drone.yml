@@ -27,8 +27,8 @@ steps:
       NX_BASE: origin/main~1
       NX_HEAD: origin/main
     commands:
-    - git config user.name "Brandon Abbott"
-    - git config user.email "pbabbott@gmail.com"
+    - git config --global user.name "Brandon Abbott"
+    - git config --global user.email "pbabbott@gmail.com"
     - yarn config set cache-folder /tmp/npm_cache
     - yarn --frozen-lockfile
     - yarn cache dir
