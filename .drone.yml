@@ -17,6 +17,11 @@ environment:
 steps:
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
     environment:
       NPM_REGISTRY: verdaccio.nas.local.abbottland.io
       NPM_TOKEN:
