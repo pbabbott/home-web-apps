@@ -12,12 +12,12 @@ trigger:
       - refs/tags/*
 
 steps:
-  - name: Setup git for publication
+  - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     commands:
-    - git remote remove origin
-    - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-    - git fetch
+    - yarn config set cache-folder /tmp/yarn_cache
+    - yarn --frozen-lockfile
+    
   - name: Semanticially Version packages based on affected changes
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     volumes:
@@ -33,8 +33,9 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
-    - yarn config set cache-folder /tmp/yarn_cache
-    - yarn --frozen-lockfile
+    - git remote remove origin
+    - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
+    - git fetch
     - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
 
 image_pull_secrets:
