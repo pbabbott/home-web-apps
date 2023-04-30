@@ -12,6 +12,7 @@ trigger:
       - refs/tags/*
 
 environment:
+  NPM_REGISTRY: verdaccio.nas.local.abbottland.io
   NPM_REGISTRY_PROTO: https
 
 steps:
@@ -23,7 +24,6 @@ steps:
       - name: node_module_cache
         path: /drone/src/node_modules
     environment:
-      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
@@ -38,7 +38,6 @@ steps:
       - name: node_module_cache
         path: /drone/src/node_modules
     environment:
-      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
       NPM_TOKEN:
         from_secret: NPM_TOKEN
       GITHUB_TOKEN:
@@ -47,7 +46,8 @@ steps:
     - git remote remove origin
     - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
     - git fetch
-    - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
+    - nx deploy yaml-config
+    # - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
 
 image_pull_secrets:
   - REG_CRED
