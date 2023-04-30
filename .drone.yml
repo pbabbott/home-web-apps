@@ -28,7 +28,7 @@ steps:
         from_secret: GITHUB_TOKEN
       NX_BASE: origin/main~1
       NX_HEAD: origin/main
-      GOPRIVATE: github.com
+      GOPRIVATE: 'github.com/*'
 
     commands:
     # - git config --global url."git@github.com:".insteadOf "https://github.com/"
