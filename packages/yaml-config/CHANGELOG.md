@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.12](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.11...yaml-config-0.0.12) (2023-04-30)
+
 ### [0.0.11](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.10...yaml-config-0.0.11) (2023-04-30)
 
 ### [0.0.10](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.9...yaml-config-0.0.10) (2023-04-30)
