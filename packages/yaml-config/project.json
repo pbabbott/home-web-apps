@@ -41,6 +41,7 @@
         "push": true,
         "preset": "conventional",
         "allowEmptyRelease": true,
+        "commitMessageFormat": "chore(${projectName}): release version ${version} [CI SKIP]",
         "postTargets": ["yaml-config:deploy", "yaml-config:github"]
       }
     },
