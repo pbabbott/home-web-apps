@@ -1,5 +1,5 @@
 
 
 export function yamlConfig(): string {
-  return 'yaml-config 123';
+  return 'yaml-config';
 }
