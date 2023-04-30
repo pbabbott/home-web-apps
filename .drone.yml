@@ -35,7 +35,7 @@ steps:
     # - git config --global --add url."git@github.com:".insteadOf "https://github.com/"
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
-    - nx run yaml-config:version --releaseAs=patch
+    - nx run yaml-config:version --releaseAs=patch --verbose
 
 image_pull_secrets:
   - REG_CRED
