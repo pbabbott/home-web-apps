@@ -32,6 +32,7 @@ steps:
 
     commands:
     # - git config --global url."git@github.com:".insteadOf "https://github.com/"
+    - git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
     - nx run yaml-config:version --releaseAs=patch --verbose
