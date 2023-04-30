@@ -29,6 +29,7 @@ steps:
     commands:
     - git remote remove origin
     - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
+    - git fetch
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
     - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
