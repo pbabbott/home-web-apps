@@ -31,7 +31,7 @@ steps:
     - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
-    - yarn nx affected --base=origin/main~1 --head=origin/main
+    - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
 
 image_pull_secrets:
   - REG_CRED
