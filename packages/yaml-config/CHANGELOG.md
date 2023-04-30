@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.2](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.1...yaml-config-0.0.2) (2023-04-30)
+
+
+### Bug Fixes
+
+* attempt to fix runaway pipeline ([d05f749](https://github.com/pbabbott/home-web-apps/commit/d05f749e569053327b99e886bd6992eef559bade))
+* touch yaml-config to test versioning ([fc1910d](https://github.com/pbabbott/home-web-apps/commit/fc1910d9ffeeeebb8f1d5625567f1683a663f0db))
+* touch yaml-config to test versioning ([271f8af](https://github.com/pbabbott/home-web-apps/commit/271f8af6326a2aec6bf0c053b4874fd6f8fc45e2))
+
 ### [0.0.22](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.21...yaml-config-0.0.22) (2023-04-30)
 
 ### [0.0.21](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.20...yaml-config-0.0.21) (2023-04-30)
