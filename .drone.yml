@@ -24,11 +24,12 @@ steps:
         from_secret: NPM_TOKEN
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
-      NX_BASE: origin/main~1
+      NX_BASE: last-release
       NX_HEAD: origin/main
     commands:
     - git config --global user.name "Brandon Abbott"
     - git config --global user.email "pbabbott@gmail.com"
+    - git remote set-url origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
     - yarn config set cache-folder /tmp/npm_cache
     - yarn --frozen-lockfile
     - yarn cache dir
@@ -42,21 +43,3 @@ volumes:
     host:
       path: /var/lib/cache
 
-
-# tages:
-#   - release
-# release:
-#   rules:
-#     - if: $CI_COMMIT_BRANCH == "master"
-#       when: manual
-#   stage: release
-#   image: node:16.13.2
-#   before_script:
-#     - git config --global user.name "GitLab Bot"
-#     - git config --global user.email "gituser@example.com"
-#     - git remote set-url origin http://gitlab-ci-token:${DEPLOY_KEY}@gitlab.com/org/project.git
-#   script:
-#     - yarn install --frozen-lockfile
-#     - yarn nx affected --target=version --base=last-release
-#     - git tag -f last-release
-#     - git push origin last-release --force -o ci.skip
