@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.2](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.1...yaml-config-0.0.2) (2023-04-30)
+
+
+### Bug Fixes
+
+* touch yaml-config to test versioning ([271f8af](https://github.com/pbabbott/home-web-apps/commit/271f8af6326a2aec6bf0c053b4874fd6f8fc45e2))
+
 ### 0.0.1 (2023-04-30)
 
 
@@ -15,4 +22,3 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 * touch yaml-config package to test semver ([93fdd82](https://github.com/pbabbott/home-web-apps/commit/93fdd82edb8812ebf7bc428a7f32c31ad94ff24e))
 * Touch yaml-config project to test versioning ([3bc3632](https://github.com/pbabbott/home-web-apps/commit/3bc3632fd15861e30d6c82b88cea81fb11ef3e82))
 * touch yaml-config to test semver ([45b3e81](https://github.com/pbabbott/home-web-apps/commit/45b3e8163cc6b3a585536e2611d3966ad7ee3488))
-
