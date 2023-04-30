@@ -1,5 +1,5 @@
 
 
 export function yamlConfig(): string {
-  return 'hello-world';
+  return 'hello-world 123';
 }
