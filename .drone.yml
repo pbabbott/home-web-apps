@@ -13,13 +13,14 @@ trigger:
 
 environment:
   NPM_REGISTRY_PROTO: https
-  NPM_REGISTRY: verdaccio.nas.local.abbottland.io
-  NPM_TOKEN:
-    from_secret: NPM_TOKEN
 
 steps:
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    environment:
+      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
     commands:
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
@@ -32,6 +33,9 @@ steps:
       - name: node_module_cache
         path: /drone/src/node_modules
     environment:
+      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
