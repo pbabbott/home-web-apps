@@ -46,8 +46,8 @@ steps:
     - git remote remove origin
     - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
     - git fetch
-    - nx deploy yaml-config
-    # - yarn nx affected --target=version --base=origin/main~1 --head=origin/main
+    # - nx deploy yaml-config
+    - nx affected --target=version --base=origin/main~1 --head=origin/main
 
 image_pull_secrets:
   - REG_CRED
