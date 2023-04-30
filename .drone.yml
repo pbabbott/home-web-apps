@@ -28,11 +28,10 @@ steps:
         from_secret: GITHUB_TOKEN
       NX_BASE: origin/main~1
       NX_HEAD: origin/main
+      GOPRIVATE: github.com
+
     commands:
-    # - git config --global user.name "Brandon Abbott"
-    # - git config --global user.email "pbabbott@gmail.com"
-    # - git remote set-url origin https://${GITHUB_TOKEN}@github.com/pbabbott/home-web-apps
-    # - git config --global --add url."git@github.com:".insteadOf "https://github.com/"
+    - git config --global url."git@github.com:".insteadOf "https://github.com/"
     - yarn config set cache-folder /tmp/yarn_cache
     - yarn --frozen-lockfile
     - nx run yaml-config:version --releaseAs=patch --verbose
