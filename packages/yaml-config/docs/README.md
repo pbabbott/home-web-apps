@@ -17,6 +17,12 @@
 This function looks for a config file in YAML format and a default config object.  
 The output will be a deeply merged object where the config file has higher priority than the default configuration
 
+**`Example`**
+
+```ts
+loadConfig('/etc/my-app/config.yml', { foo: 'default-value', bar: 'another-default-value' })
+```
+
 #### Type parameters
 
 | Name |
@@ -38,4 +44,4 @@ A strongly-typed object with all properties loaded.
 
 #### Defined in
 
-[lib/config.ts:11](https://github.com/pbabbott/home-web-apps/blob/716baa5/packages/yaml-config/src/lib/config.ts#L11)
+[lib/config.ts:15](https://github.com/pbabbott/home-web-apps/blob/8924fb2/packages/yaml-config/src/lib/config.ts#L15)

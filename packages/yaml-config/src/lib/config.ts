@@ -4,6 +4,10 @@ import { merge } from 'lodash'
 /**
  * This function looks for a config file in YAML format and a default config object.  
  * The output will be a deeply merged object where the config file has higher priority than the default configuration
+ * @example
+ * ```ts
+ * loadConfig('/etc/my-app/config.yml', { foo: 'default-value', bar: 'another-default-value' })
+ * ```
  * @param configFilePath The path to the YAML configuration file
  * @param defaultConfig The default configuration to use 
  * @returns A strongly-typed object with all properties loaded.
