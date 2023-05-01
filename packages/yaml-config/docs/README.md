@@ -14,20 +14,25 @@
 
 ▸ **loadConfig**<`T`\>(`configFilePath`, `defaultConfig`): `Promise`<`T`\>
 
-This function looks for a config file in YAML format and a default config object.  
-The output will be a deeply merged object where the config file has higher priority than the default configuration
+This function accepts a path to a config file in YAML format and a default config object.
+It will then combine these into a single output which will be a deeply merged object where the config file has a higher priority than the default configuration.
 
 **`Example`**
 
 ```ts
-loadConfig('/etc/my-app/config.yml', { foo: 'default-value', bar: 'another-default-value' })
+const pathToConfigFile = '/etc/my-app/config.yml'
+const defaultConfig = {
+  foo: 'default-value', 
+  bar: 'another-default-value' 
+}
+const config = await loadConfig(pathToConfigFile, defaultConfig)
 ```
 
 #### Type parameters
 
-| Name |
-| :------ |
-| `T` |
+| Name | Description |
+| :------ | :------ |
+| `T` | the type of the config file to return; should match defaultConfig |
 
 #### Parameters
 
@@ -44,4 +49,4 @@ A strongly-typed object with all properties loaded.
 
 #### Defined in
 
-[lib/config.ts:15](https://github.com/pbabbott/home-web-apps/blob/8924fb2/packages/yaml-config/src/lib/config.ts#L15)
+[lib/config.ts:21](https://github.com/pbabbott/home-web-apps/blob/2158a9a/packages/yaml-config/src/lib/config.ts#L21)

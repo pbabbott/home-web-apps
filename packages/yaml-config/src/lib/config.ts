@@ -2,14 +2,20 @@ import { fileExists, parseYAMLFile } from "./file"
 import { merge } from 'lodash'
 
 /**
- * This function looks for a config file in YAML format and a default config object.  
- * The output will be a deeply merged object where the config file has higher priority than the default configuration
+ * This function accepts a path to a config file in YAML format and a default config object.
+ * It will then combine these into a single output which will be a deeply merged object where the config file has a higher priority than the default configuration.
  * @example
  * ```ts
- * loadConfig('/etc/my-app/config.yml', { foo: 'default-value', bar: 'another-default-value' })
+ * const pathToConfigFile = '/etc/my-app/config.yml'
+ * const defaultConfig = {
+ *   foo: 'default-value', 
+ *   bar: 'another-default-value' 
+ * }
+ * const config = await loadConfig(pathToConfigFile, defaultConfig)
  * ```
  * @param configFilePath The path to the YAML configuration file
  * @param defaultConfig The default configuration to use 
+ * @typeParam T - the type of the config file to return; should match defaultConfig
  * @returns A strongly-typed object with all properties loaded.
  */
 export const loadConfig = async <T> (configFilePath: string, defaultConfig: T): Promise<T> => {
