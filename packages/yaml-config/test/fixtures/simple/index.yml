@@ -1,0 +1,10 @@
+
+
+oneCoolBoolean: true
+oneCoolNumber: 1234
+oneCoolString: hello world
+
+config:
+  oneCoolSubType: foo
+  anotherCoolSubType: bar
+  
