@@ -10,7 +10,7 @@ const StyledMyNewLib = styled.div`
 export function MyNewLib(props: MyNewLibProps) {
   return (
     <StyledMyNewLib>
-      <h1>Welcome to MyNewLib!</h1>
+      <h1>Welcome to MyNewLib 123!</h1>
     </StyledMyNewLib>
   );
 }
