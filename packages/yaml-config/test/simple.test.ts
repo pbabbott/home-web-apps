@@ -1,12 +1,23 @@
 import path from 'path'
-import { ProjectConfig } from "./fixtures/simple/type";
 import { parseConfig } from 'src/index'
 
-describe('simple.test.ts', () => {
+export type ProjectConfig = {
+    oneCoolBoolean: boolean
+    oneCoolNumber: number
+    oneCoolString: string
+    config: SectionConfig
+}
+
+export type SectionConfig = {
+    oneCoolSubType: string
+    anotherCoolSubType: string
+}
+
+describe('A simple config file hydration', () => {
     let sut: ProjectConfig
 
     beforeAll(() => {
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
         sut = parseConfig<ProjectConfig>(configPath)
     })
     it('should parse boolean', () => {
