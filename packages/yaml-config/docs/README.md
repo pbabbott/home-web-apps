@@ -32,4 +32,4 @@
 
 #### Defined in
 
-[services/file.ts:4](https://github.com/pbabbott/home-web-apps/blob/a57c481/packages/yaml-config/src/services/file.ts#L4)
+lib/file.ts:4

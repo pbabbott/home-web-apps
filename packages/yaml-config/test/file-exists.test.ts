@@ -1,5 +1,5 @@
 import path from 'path'
-import { fileExists } from 'src/services/file'
+import { fileExists } from 'src/lib/file'
 
 describe('Check if file exists', () => {
     it('Should detect a file exists', async () => {
@@ -9,9 +9,7 @@ describe('Check if file exists', () => {
     })
     it('Check if file does not exist', async () => {
         const configPath = path.resolve('./packages/yaml-config/test/fixtures/does-not-exist.yml')
-        console.log('configPath', configPath)
         const sut = await fileExists(configPath)
-        console.log('sut', sut)
         expect(sut).toBe(false)
     })
 })

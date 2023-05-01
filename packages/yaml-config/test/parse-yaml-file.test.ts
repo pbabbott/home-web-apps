@@ -1,5 +1,5 @@
 import path from 'path'
-import { parseYAMLFile } from 'src/services/file'
+import { parseYAMLFile } from 'src/lib/file'
 
 export type ProjectConfig = {
     oneCoolBoolean: boolean
