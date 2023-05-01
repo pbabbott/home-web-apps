@@ -9,3 +9,8 @@ Run `nx build yaml-config` to build the library.
 ## Running unit tests
 
 Run `nx test yaml-config` to execute the unit tests via [Jest](https://jestjs.io).
+
+
+## Generating Documentation
+
+Run `nx docs yaml-config` to generate documentation files explaining how this library works.

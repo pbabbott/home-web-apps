@@ -7,11 +7,19 @@
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
+      "dependsOn": ["docs"],
       "options": {
         "outputPath": "dist/packages/yaml-config",
         "main": "packages/yaml-config/src/index.ts",
         "tsConfig": "packages/yaml-config/tsconfig.lib.json",
         "assets": ["packages/yaml-config/*.md"]
+      }
+    },
+    "docs": {
+      "executor": "nx:run-script",
+      "options": {
+        "outputs": ["packages/yaml-config/docs"],
+        "script": "docs"
       }
     },
     "lint": {

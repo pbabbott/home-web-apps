@@ -1,5 +1,5 @@
 import path from 'path'
-import { parseConfig } from 'src/services/file'
+import { parseYAMLFile } from 'src/services/file'
 
 export type ProjectConfig = {
     oneCoolBoolean: boolean
@@ -18,7 +18,7 @@ describe('A simple config file hydration', () => {
 
     beforeAll(() => {
         const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
-        sut = parseConfig<ProjectConfig>(configPath)
+        sut = parseYAMLFile<ProjectConfig>(configPath)
     })
     it('should parse boolean', () => {
         expect(sut.oneCoolBoolean).toEqual(true);
@@ -46,7 +46,7 @@ describe('Hydrate a type even if there is extra stuff in the yaml file', () => {
 
     beforeAll(() => {
         const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
-        sut = parseConfig<SmallProjectConfig>(configPath)
+        sut = parseYAMLFile<SmallProjectConfig>(configPath)
     })
     it('should parse boolean', () => {
         expect(sut.oneCoolBoolean).toEqual(true);

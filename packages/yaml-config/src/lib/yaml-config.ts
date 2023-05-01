@@ -1,2 +1,2 @@
 
-export { parseConfig } from '../services/file'
+export { parseYAMLFile as parseConfig } from '../services/file'
