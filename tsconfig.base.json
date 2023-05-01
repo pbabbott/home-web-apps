@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@home-web-apps/fui-components": ["packages/fui-components/src/index.ts"],
       "@home-web-apps/yaml-config": ["packages/yaml-config/src/index.ts"]
     }
   },
