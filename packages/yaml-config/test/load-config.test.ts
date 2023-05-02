@@ -1,36 +1,28 @@
 import path from 'path'
 import { loadConfig } from 'src/lib/config'
 
-export type ProjectConfig = {
-    oneCoolBoolean: boolean
-    oneCoolNumber: number
-    oneCoolString: string
-    config: SectionConfig
+export class ProjectConfig {
+    oneCoolBoolean: boolean = false
+    oneCoolNumber: number = 4321
+    oneCoolString: string = 'goodbye'
+    section = new SectionConfig()
 }
 
-export type SectionConfig = {
-    oneCoolSubType: string
-    anotherCoolSubType: string
-    oneMoreSubType: string
+export class SectionConfig {
+    oneCoolSubType: string = 'bingo'
+    anotherCoolSubType: string = 'bango'
+    oneMoreSubType: string = 'bongo'
 }
 
-const defaultConfig: ProjectConfig = {
-    oneCoolBoolean: false,
-    oneCoolNumber: 4321,
-    oneCoolString: 'goodbye',
-    config: {
-        oneCoolSubType: 'bingo',
-        anotherCoolSubType: 'bango',
-        oneMoreSubType: 'bongo'
-    }
-}
+const defaultConfig = new ProjectConfig()
 
 describe('Load configuration from file and default', () => {
     let sut: ProjectConfig
 
     beforeAll(async () => {
         const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
-        sut = await loadConfig(configPath, defaultConfig)
+        
+        sut = await loadConfig(defaultConfig, configPath)
     })
 
     it('should parse boolean from file', () => {
@@ -43,12 +35,12 @@ describe('Load configuration from file and default', () => {
         expect(sut.oneCoolString).toEqual('hello world')
     })
     it('should parse sub type 1 from file', () => {
-        expect(sut.config.oneCoolSubType).toEqual('foo')
+        expect(sut.section.oneCoolSubType).toEqual('foo')
     })
     it('should parse sub type 2 from file', () => {
-        expect(sut.config.anotherCoolSubType).toEqual('bar')
+        expect(sut.section.anotherCoolSubType).toEqual('bar')
     })
     it('should parse sub type 3 from default', () => {
-        expect(sut.config.oneMoreSubType).toEqual(defaultConfig.config.oneMoreSubType)
+        expect(sut.section.oneMoreSubType).toEqual(defaultConfig.section.oneMoreSubType)
     })
 })

@@ -5,7 +5,7 @@ export type ProjectConfig = {
     oneCoolBoolean: boolean
     oneCoolNumber: number
     oneCoolString: string
-    config: SectionConfig
+    section: SectionConfig
 }
 
 export type SectionConfig = {
@@ -30,10 +30,10 @@ describe('A simple config file hydration', () => {
         expect(sut.oneCoolString).toEqual('hello world')
     })
     it('should parse sub type 1', () => {
-        expect(sut.config.oneCoolSubType).toEqual('foo')
+        expect(sut.section.oneCoolSubType).toEqual('foo')
     })
     it('should parse sub type 2', () => {
-        expect(sut.config.anotherCoolSubType).toEqual('bar')
+        expect(sut.section.anotherCoolSubType).toEqual('bar')
     })
 })
 

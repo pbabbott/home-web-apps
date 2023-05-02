@@ -12,6 +12,8 @@
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
     "test/**/*.test.ts",
-    "test/**/*.spec.ts"
+    "test/**/*.spec.ts",
+    "test/fixtures/**/*.ts"
+
   ]
 }
