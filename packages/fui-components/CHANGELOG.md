@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.5](https://github.com/pbabbott/home-web-apps/compare/fui-components-0.0.4...fui-components-0.0.5) (2023-05-03)
+
 ### [0.0.4](https://github.com/pbabbott/home-web-apps/compare/fui-components-0.0.3...fui-components-0.0.4) (2023-05-03)
 
 ### [0.0.3](https://github.com/pbabbott/home-web-apps/compare/fui-components-0.0.2...fui-components-0.0.3) (2023-05-03)
