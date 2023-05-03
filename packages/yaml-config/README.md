@@ -18,6 +18,10 @@ Application Configuration management using TypeScript, YAML files, and Environme
     - [1. Setup Typescript Class with Decorators](#1-setup-typescript-class-with-decorators)
     - [2. Set Environment Variables](#2-set-environment-variables)
     - [3. Load the configuration](#3-load-the-configuration-1)
+  - [Example with All Features](#example-with-all-features)
+    - [1. Setup a Typescript Class](#1-setup-a-typescript-class-1)
+    - [2. Set Environment Variables \& YAML File](#2-set-environment-variables--yaml-file)
+    - [3. Load the configuration](#3-load-the-configuration-2)
 - [Contributing](#contributing)
   - [Building](#building)
   - [Running unit tests](#running-unit-tests)
@@ -89,6 +93,7 @@ import { loadConfig } from '@home-web-apps/yaml-config'
 
 const pathToConfigFile = './config.yml'
 const defaultConfig = new ApplicationConfig()
+
 const config = await loadConfig(defaultConfig, pathToConfigFile)
 ```
 
@@ -103,11 +108,13 @@ The resulting config will be:
 
 ## Example with Environment Variables
 
+Here is a very similar example of how to load config from environment variables instead of a YAML file.
+
 ### 1. Setup Typescript Class with Decorators
 
-Here is where you can specify default values for your configuration. 
+Similar to the previous example, this is where you can specify default values for your configuration. 
 
-Also you can choose which variables are able to be loaded via environment variables.  It is also possible to override the default environment variable names by adding a `variableName:` to the decorator.
+You can also choose which properties of your configuration can be loaded via environment variables.  
 
 ```ts
 import { EnvironmentVariable } from '@home-web-apps/yaml-config'
@@ -119,6 +126,7 @@ class ApplicationConfig {
     @EnvironmentVariable()
     oneCoolNumber = 123
     
+    // More on this in the next section!
     @EnvironmentVariable({ variableName: "CUSTOM_ENVIRONMENT_VARIABLE" })
     oneCoolString = 'hello world'
 }
@@ -130,9 +138,11 @@ Environment variables are detected by converting the `camelCasePropertyName` to 
 
 That is, to specify an environment variable to be loaded into `oneCoolNumber` you would just need to set `ONE_COOL_NUMBER`
 
-Example environment:
+It is also possible to override the default environment variable names by adding a `variableName:` to the decorator.
+
 ```env
-# .env file
+# .env
+
 ONE_COOL_NUMBER=100
 CUSTOM_ENVIRONMENT_VARIABLE='AWESOME'
 ```
@@ -143,7 +153,9 @@ Put it together just as before.
 
 ```ts
 import { loadConfig } from '@home-web-apps/yaml-config'
+import * as dotenv from 'dotenv'
 
+dotenv.config()
 const defaultConfig = new ApplicationConfig()
 const config = await loadConfig(defaultConfig)
 ```
@@ -156,6 +168,14 @@ The resulting config will be:
     oneCoolString: 'AWESOME' // loaded from YAML file
 }
 ```
+
+## Example with All Features
+
+### 1. Setup a Typescript Class
+### 2. Set Environment Variables & YAML File
+### 3. Load the configuration
+
+
 
 # Contributing
 
