@@ -2,6 +2,8 @@
 
 # Enumeration: EnvironmentVariableType
 
+Enum to help with loading environment variables into TypeScript into the proper type
+
 ## Table of contents
 
 ### Enumeration Members
@@ -16,9 +18,11 @@
 
 • **BOOLEAN** = ``2``
 
+Environment variable should be as a Boolean.
+
 #### Defined in
 
-[lib/decorators.ts:33](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L33)
+[lib/decorators.ts:74](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L74)
 
 ___
 
@@ -26,9 +30,11 @@ ___
 
 • **NUMBER** = ``1``
 
+Environment variable should be treated as a Number().
+
 #### Defined in
 
-[lib/decorators.ts:32](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L32)
+[lib/decorators.ts:68](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L68)
 
 ___
 
@@ -36,6 +42,8 @@ ___
 
 • **STRING** = ``0``
 
+Environment variable should be treated as a String.  This is the default option.
+
 #### Defined in
 
-[lib/decorators.ts:31](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L31)
+[lib/decorators.ts:63](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L63)
