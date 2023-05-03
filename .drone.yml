@@ -28,6 +28,19 @@ steps:
       - yarn config set cache-folder /tmp/yarn_cache
       - yarn --frozen-lockfile
 
+  - name: Run Tests
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    environment:
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
+    commands:
+      - nx affected --target test
+
 volumes:
   - name: yarn_cache
     host:
