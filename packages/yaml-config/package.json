@@ -1,6 +1,6 @@
 {
   "name": "@home-web-apps/yaml-config",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "commonjs",
   "scripts": {
     "docs": "typedoc --plugin typedoc-plugin-markdown --out docs --githubPages false --readme none ./src/index.ts"
