@@ -11,7 +11,7 @@ describe('Project Config with Section Prefixes Tests', () => {
     
     beforeAll(async () => {
         setEnvironmentVariables()
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/sections.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/config-sections/index.yml')
         sut = await loadConfig(defaultConfig, configPath)
     })
 

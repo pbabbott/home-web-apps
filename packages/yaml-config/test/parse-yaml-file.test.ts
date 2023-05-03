@@ -17,7 +17,7 @@ describe('A simple config file hydration', () => {
     let sut: ProjectConfig
 
     beforeAll(() => {
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
         sut = parseYAMLFile<ProjectConfig>(configPath)
     })
     it('should parse boolean', () => {
@@ -45,7 +45,7 @@ describe('Hydrate a type even if there is extra stuff in the yaml file', () => {
     let sut: SmallProjectConfig
 
     beforeAll(() => {
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
         sut = parseYAMLFile<SmallProjectConfig>(configPath)
     })
     it('should parse boolean', () => {

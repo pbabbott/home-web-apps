@@ -1,7 +1,5 @@
-import path from 'path'
 import { getEnvConfig } from 'src/lib/environment'
-import { ProjectConfig, expectedData, setEnvironmentVariables } from './fixtures/environment'
-import exp from 'constants'
+import { ProjectConfig, expectedData, setEnvironmentVariables } from './fixtures/simple'
 
 describe('Environment Variable Test', () => {
 

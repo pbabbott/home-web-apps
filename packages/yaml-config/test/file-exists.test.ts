@@ -3,7 +3,7 @@ import { fileExists } from 'src/lib/file'
 
 describe('Check if file exists', () => {
     it('Should detect a file exists', async () => {
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
         const sut = await fileExists(configPath)
         expect(sut).toBe(true)
     })

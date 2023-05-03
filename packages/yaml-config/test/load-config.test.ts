@@ -20,7 +20,7 @@ describe('Load configuration from file and default', () => {
     let sut: ProjectConfig
 
     beforeAll(async () => {
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
         
         sut = await loadConfig(defaultConfig, configPath)
     })

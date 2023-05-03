@@ -1,6 +1,6 @@
 import path from 'path'
 import { loadConfig } from 'src/lib/config'
-import { ProjectConfig, expectedData, setEnvironmentVariables } from './fixtures/environment'
+import { ProjectConfig, expectedData, setEnvironmentVariables } from './fixtures/simple'
 describe('Environment Variable Test', () => {
 
     let sut: ProjectConfig
@@ -9,7 +9,7 @@ describe('Environment Variable Test', () => {
     
     beforeAll(async () => {
         setEnvironmentVariables()
-        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple.yml')
+        const configPath = path.resolve('./packages/yaml-config/test/fixtures/simple/index.yml')
         sut = await loadConfig(defaultConfig, configPath)
     })
 
