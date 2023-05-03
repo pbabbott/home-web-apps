@@ -16,6 +16,14 @@ export type AppConfigOptions = {
 /**
  * Use this decorator on the root class that manages your application config.  
  * Presently this is only used to set a prefix for environment variables.
+ * @example 
+ * ```ts
+ * @AppConfig({ appPrefix: 'YAML_CONFIG' })
+ * class ApplicationConfig {
+ *   @EnvironmentVariable()
+ *   foo = 'default-value',
+ * }
+ * ```
  * @param options Options to configure a prefix for environment variables
  * @returns ClassDecorator
  */
@@ -40,6 +48,21 @@ export type ConfigSectionOptions = {
 /**
  * Use this Property Decorator to mark sub-sections of your configuration.  
  * Without this decorator, environment variables will not be loaded for this section.
+ * @example 
+ * ```ts
+ * class SectionConfig {
+ *    @EnvironmentVariable()
+ *    baz = 'default-value-goes-here'
+ * }
+ * 
+ * @AppConfig({appPrefix: 'YAML_CONFIG' })
+ * class ApplicationConfig {
+ *   foo = 'default-value',
+ * 
+ *   @ConfigSection()
+ *   bar = new SectionConfig()
+ * }
+ * ```
  * @param options Options to configure a prefix for environment variables for just this section.
  * @returns PropertyDecorator 
  */
@@ -89,6 +112,16 @@ export type EnvironmentVariableOptions = {
 
 /**
  * Use this decorator to mark a property in your application configuration as a field that can be provided via environment variable
+ * @example 
+ * ```ts
+ * class ApplicationConfig {
+ *   @EnvironmentVariable()
+ *   foo = 'default-value',
+ *  
+ *   @EnvironmentVariable({  variableType: EnvironmentVariableType.NUMBER })
+ *   bar = 123
+ * }
+ * ```
  * @param options Options to set aspects of how this environment variable is loaded
  * @returns PropertyDecorator
  */

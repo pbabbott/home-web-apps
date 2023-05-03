@@ -37,7 +37,7 @@ These are options that affect the entire application configuration
 
 #### Defined in
 
-[lib/decorators.ts:8](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L8)
+[lib/decorators.ts:8](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L8)
 
 ___
 
@@ -55,7 +55,7 @@ These are options that affect just one section of the application configuration
 
 #### Defined in
 
-[lib/decorators.ts:32](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L32)
+[lib/decorators.ts:40](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L40)
 
 ___
 
@@ -74,7 +74,7 @@ These are options that affect just one environment variable of your application 
 
 #### Defined in
 
-[lib/decorators.ts:80](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L80)
+[lib/decorators.ts:103](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L103)
 
 ## Functions
 
@@ -84,6 +84,16 @@ These are options that affect just one environment variable of your application 
 
 Use this decorator on the root class that manages your application config.  
 Presently this is only used to set a prefix for environment variables.
+
+**`Example`**
+
+```ts
+@AppConfig({ appPrefix: 'YAML_CONFIG' })
+class ApplicationConfig {
+  @EnvironmentVariable()
+  foo = 'default-value',
+}
+```
 
 #### Parameters
 
@@ -99,7 +109,7 @@ ClassDecorator
 
 #### Defined in
 
-[lib/decorators.ts:22](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L22)
+[lib/decorators.ts:30](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L30)
 
 ___
 
@@ -109,6 +119,23 @@ ___
 
 Use this Property Decorator to mark sub-sections of your configuration.  
 Without this decorator, environment variables will not be loaded for this section.
+
+**`Example`**
+
+```ts
+class SectionConfig {
+   @EnvironmentVariable()
+   baz = 'default-value-goes-here'
+}
+
+@AppConfig({appPrefix: 'YAML_CONFIG' })
+class ApplicationConfig {
+  foo = 'default-value',
+
+  @ConfigSection()
+  bar = new SectionConfig()
+}
+```
 
 #### Parameters
 
@@ -124,7 +151,7 @@ PropertyDecorator
 
 #### Defined in
 
-[lib/decorators.ts:46](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L46)
+[lib/decorators.ts:69](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L69)
 
 ___
 
@@ -133,6 +160,18 @@ ___
 ▸ **EnvironmentVariable**(`options?`): `PropertyDecorator`
 
 Use this decorator to mark a property in your application configuration as a field that can be provided via environment variable
+
+**`Example`**
+
+```ts
+class ApplicationConfig {
+  @EnvironmentVariable()
+  foo = 'default-value',
+ 
+  @EnvironmentVariable({  variableType: EnvironmentVariableType.NUMBER })
+  bar = 123
+}
+```
 
 #### Parameters
 
@@ -148,7 +187,7 @@ PropertyDecorator
 
 #### Defined in
 
-[lib/decorators.ts:95](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/decorators.ts#L95)
+[lib/decorators.ts:128](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/decorators.ts#L128)
 
 ___
 
@@ -193,4 +232,4 @@ A strongly-typed object with all properties loaded.
 
 #### Defined in
 
-[lib/config.ts:24](https://github.com/pbabbott/home-web-apps/blob/904c19d/packages/yaml-config/src/lib/config.ts#L24)
+[lib/config.ts:24](https://github.com/pbabbott/home-web-apps/blob/a4a406a/packages/yaml-config/src/lib/config.ts#L24)

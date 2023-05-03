@@ -22,10 +22,13 @@ Application Configuration management using TypeScript, YAML files, and Environme
     - [1. Setup a Typescript Class](#1-setup-a-typescript-class-1)
     - [2. Set Environment Variables \& YAML File](#2-set-environment-variables--yaml-file)
     - [3. Load the configuration](#3-load-the-configuration-2)
+- [API Documentation](#api-documentation)
 - [Contributing](#contributing)
+  - [Initial Setup](#initial-setup)
   - [Building](#building)
   - [Running unit tests](#running-unit-tests)
   - [Generating Documentation](#generating-documentation)
+  - [Other Commands](#other-commands)
 
 *Note:* This Table of Contents is managed by the VS Code Extension: `yzhang.markdown-all-in-one`
 
@@ -264,8 +267,38 @@ The resulting config will be:
     }
 }
 ```
+# API Documentation
+
+All exports of this library are documented with TypeDoc.  
+
+[Click here](./docs) to go to the TypeDoc documentation for this project!
+
 
 # Contributing
+
+All commands should be run from the root of this monorepo using NX.
+
+## Initial Setup
+First, ensure you have `nx` installed globally
+
+```bash
+npm install -g nx@latest
+```
+
+Next, authenticate to private registry by setting the following environment variables:
+```env
+NPM_REGISTRY_PROTO='https'
+NPM_REGISTRY='verdaccio.nas.local.abbottland.io'
+NPM_TOKEN='ASK_PEER_DEVELOPER_FOR_THIS_VALUE'
+```
+
+Then, restore packages with `yarn`
+
+```bash
+yarn
+```
+
+Now you are ready to start developing on this project. 🎉
 
 ## Building
 
@@ -275,7 +308,10 @@ Run `nx build yaml-config` to build the library.
 
 Run `nx test yaml-config` to execute the unit tests via [Jest](https://jestjs.io).
 
-
 ## Generating Documentation
 
 Run `nx docs yaml-config` to generate documentation files explaining how this library works.
+
+## Other Commands
+
+Other NX commands you can run are documented in the `project.json` file. Versioning and deployment is handled by CI.
