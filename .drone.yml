@@ -60,7 +60,7 @@ name: release
 type: docker
 
 depends_on:
-  - update-files
+  - ci
 
 platform:
   os: linux
