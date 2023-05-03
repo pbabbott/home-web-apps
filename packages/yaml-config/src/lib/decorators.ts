@@ -6,12 +6,10 @@ export type AppConfigOptions = {
     appPrefix?: string,
 }
 
-export const AppConfig = (options?: AppConfigOptions): ClassDecorator => {
-   return (target: object) => {
-        if (options && options.appPrefix){
-            Reflect.defineMetadata(appConfigKey, options.appPrefix, target);
-        }
-        
+export const AppConfig = (options: AppConfigOptions = {}): ClassDecorator => {
+   return (constructor) => {
+        const metadata = options.appPrefix ? options.appPrefix : ''
+        Reflect.defineMetadata(appConfigKey, metadata, constructor.prototype, "class")
    }
 }
 
