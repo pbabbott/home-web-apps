@@ -10,15 +10,50 @@
 
 ### Type Aliases
 
+- [AppConfigOptions](README.md#appconfigoptions)
+- [ConfigSectionOptions](README.md#configsectionoptions)
 - [EnvironmentVariableOptions](README.md#environmentvariableoptions)
 
 ### Functions
 
+- [AppConfig](README.md#appconfig)
 - [ConfigSection](README.md#configsection)
 - [EnvironmentVariable](README.md#environmentvariable)
 - [loadConfig](README.md#loadconfig)
 
 ## Type Aliases
+
+### AppConfigOptions
+
+Ƭ **AppConfigOptions**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `appPrefix?` | `string` |
+
+#### Defined in
+
+[lib/decorators.ts:5](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L5)
+
+___
+
+### ConfigSectionOptions
+
+Ƭ **ConfigSectionOptions**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `sectionPrefix?` | `string` |
+
+#### Defined in
+
+[lib/decorators.ts:18](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L18)
+
+___
 
 ### EnvironmentVariableOptions
 
@@ -33,19 +68,39 @@
 
 #### Defined in
 
-[lib/decorators.ts:20](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L20)
+[lib/decorators.ts:38](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L38)
 
 ## Functions
 
-### ConfigSection
+### AppConfig
 
-▸ **ConfigSection**(`variableName?`): `PropertyDecorator`
+▸ **AppConfig**(`options?`): `ClassDecorator`
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `variableName?` | `string` |
+| `options?` | [`AppConfigOptions`](README.md#appconfigoptions) |
+
+#### Returns
+
+`ClassDecorator`
+
+#### Defined in
+
+[lib/decorators.ts:9](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L9)
+
+___
+
+### ConfigSection
+
+▸ **ConfigSection**(`options?`): `PropertyDecorator`
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `options` | [`ConfigSectionOptions`](README.md#configsectionoptions) |
 
 #### Returns
 
@@ -53,7 +108,7 @@
 
 #### Defined in
 
-[lib/decorators.ts:6](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L6)
+[lib/decorators.ts:22](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L22)
 
 ___
 
@@ -73,7 +128,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:25](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L25)
+[lib/decorators.ts:43](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L43)
 
 ___
 
@@ -125,4 +180,4 @@ A strongly-typed object with all properties loaded.
 
 #### Defined in
 
-[lib/config.ts:23](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/config.ts#L23)
+[lib/config.ts:23](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/config.ts#L23)

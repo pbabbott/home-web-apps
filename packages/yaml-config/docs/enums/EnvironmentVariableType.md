@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[lib/decorators.ts:17](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L17)
+[lib/decorators.ts:35](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L35)
 
 ___
 
@@ -28,7 +28,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:16](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L16)
+[lib/decorators.ts:34](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L34)
 
 ___
 
@@ -38,4 +38,4 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:15](https://github.com/pbabbott/home-web-apps/blob/2a3a32f/packages/yaml-config/src/lib/decorators.ts#L15)
+[lib/decorators.ts:33](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L33)

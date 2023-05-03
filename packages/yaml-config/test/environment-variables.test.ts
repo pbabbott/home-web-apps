@@ -13,7 +13,6 @@ describe('Environment Variable Test', () => {
         sut = await loadConfig(defaultConfig, configPath)
     })
 
-
     it('Should respect default variables', () => {
         expect(sut.section.oneMoreSubType).toBe('bongo')
     })

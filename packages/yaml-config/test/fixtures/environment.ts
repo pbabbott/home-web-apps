@@ -1,8 +1,6 @@
 import { EnvironmentVariable, ConfigSection, EnvironmentVariableType } from 'src/lib/decorators'
 
-
 export class ProjectConfig {
-
     @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
     oneCoolBoolean: boolean = false
 

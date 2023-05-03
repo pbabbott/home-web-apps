@@ -114,16 +114,16 @@ Here is a very similar example of how to load config from environment variables 
 
 Similar to the previous example, this is where you can specify default values for your configuration. 
 
-You can also choose which properties of your configuration can be loaded via environment variables.  
+You can also choose which properties of your configuration can be loaded via environment variables. 
 
 ```ts
 import { EnvironmentVariable } from '@home-web-apps/yaml-config'
 
 class ApplicationConfig {
-    @EnvironmentVariable()
+    @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
     oneCoolBoolean = false
 
-    @EnvironmentVariable()
+    @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
     oneCoolNumber = 123
     
     // More on this in the next section!
@@ -131,6 +131,8 @@ class ApplicationConfig {
     oneCoolString = 'hello world'
 }
 ```
+
+*Note:* By default, all properties are treated as `string`, if you want to make sure your environment variables are loaded with the proper type, be sure to specify it!
 
 ### 2. Set Environment Variables
 
