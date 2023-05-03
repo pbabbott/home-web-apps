@@ -2,9 +2,11 @@
 kind: pipeline
 name: ci
 type: docker
+
 platform:
   os: linux
   arch: arm64
+
 trigger:
   event:
     - push
@@ -14,7 +16,7 @@ environment:
   NPM_REGISTRY_PROTO: https
 
 steps:
-  - name: fetch
+  - name: git fetch
     image: alpine/git
     commands:
       - git fetch --tags
@@ -52,12 +54,18 @@ volumes:
       path: /var/lib/cache/node_modules
 
 ---
+
 kind: pipeline
 name: release
 type: docker
+
+depends_on:
+  - update-files
+
 platform:
   os: linux
   arch: arm64
+
 trigger:
   branch:
     - main
