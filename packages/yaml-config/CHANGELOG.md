@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.0](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.3...yaml-config-0.1.0) (2023-05-03)
+
+
+### Features
+
+* Add file exists function to yaml-config library ([a57c481](https://github.com/pbabbott/home-web-apps/commit/a57c481095bb42d62733f21b1c00e2a59097a917))
+* Enable config file parsing in yaml-config ([725c858](https://github.com/pbabbott/home-web-apps/commit/725c858737f12834d48904b1d565de46535669f3))
+* Setup decorators for AppConfig and ConfigSection ([c8b4c9f](https://github.com/pbabbott/home-web-apps/commit/c8b4c9fa1a17c9c3dc877843ea9386ee24b0e768))
+* setup environment variable decorators ([09b5310](https://github.com/pbabbott/home-web-apps/commit/09b5310b890da7816d80b77d657dd754f310405e))
+* setup loadConfig as primary export out of library ([716baa5](https://github.com/pbabbott/home-web-apps/commit/716baa5e535eb8a7baf493abe79543ff89702f02))
+
+
+### Bug Fixes
+
+* ensure environment loads app and section prefixes correctly ([5ce6a19](https://github.com/pbabbott/home-web-apps/commit/5ce6a1920a1e4665339eab05e4b21adc4e8a0498))
+
 ### [0.0.3](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.2...yaml-config-0.0.3) (2023-05-01)
 
 ### [0.0.2](https://github.com/pbabbott/home-web-apps/compare/yaml-config-0.0.1...yaml-config-0.0.2) (2023-05-01)
