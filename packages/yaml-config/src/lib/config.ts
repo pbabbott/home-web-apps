@@ -5,13 +5,14 @@ import { merge } from 'lodash'
 /**
  * This function accepts a default config object and optionally a path to a config file in YAML format.
  * It will then combine these into a single output which will be a deeply merged object where the config file has a higher priority than the default configuration.
- * In addition, it will respect properties marked by @EnvironmentVariable and @ConfigSection to load in values via environment variables with the highest priority.
+ * In addition, it will respect properties marked by `@EnvironmentVariable` and `@ConfigSection` to load in values via environment variables with the highest priority.
  * @example
  * ```ts
  * const pathToConfigFile = '/etc/my-app/config.yml'
- * const defaultConfig = {
- *   foo: 'default-value', 
- *   bar: 'another-default-value' 
+ * 
+ * class ApplicationConfig {
+ *   foo = 'default-value',
+ *   bar = 'another-default-value'
  * }
  * const config = await loadConfig(pathToConfigFile, defaultConfig)
  * ```

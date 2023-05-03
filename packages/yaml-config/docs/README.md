@@ -35,7 +35,7 @@
 
 #### Defined in
 
-[lib/decorators.ts:5](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L5)
+[lib/decorators.ts:5](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L5)
 
 ___
 
@@ -51,7 +51,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:18](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L18)
+[lib/decorators.ts:16](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L16)
 
 ___
 
@@ -68,7 +68,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:38](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L38)
+[lib/decorators.ts:36](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L36)
 
 ## Functions
 
@@ -80,7 +80,7 @@ ___
 
 | Name | Type |
 | :------ | :------ |
-| `options?` | [`AppConfigOptions`](README.md#appconfigoptions) |
+| `options` | [`AppConfigOptions`](README.md#appconfigoptions) |
 
 #### Returns
 
@@ -88,7 +88,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:9](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L9)
+[lib/decorators.ts:9](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L9)
 
 ___
 
@@ -108,7 +108,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:22](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L22)
+[lib/decorators.ts:20](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L20)
 
 ___
 
@@ -128,7 +128,7 @@ ___
 
 #### Defined in
 
-[lib/decorators.ts:43](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/decorators.ts#L43)
+[lib/decorators.ts:41](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/decorators.ts#L41)
 
 ___
 
@@ -180,4 +180,4 @@ A strongly-typed object with all properties loaded.
 
 #### Defined in
 
-[lib/config.ts:23](https://github.com/pbabbott/home-web-apps/blob/1b7448b/packages/yaml-config/src/lib/config.ts#L23)
+[lib/config.ts:23](https://github.com/pbabbott/home-web-apps/blob/4d7b713/packages/yaml-config/src/lib/config.ts#L23)

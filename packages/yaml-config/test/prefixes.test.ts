@@ -2,7 +2,6 @@ import path from 'path'
 import { loadConfig } from 'src/lib/config'
 import { ProjectConfig, expectedData, setEnvironmentVariables } from './fixtures/config-sections'
 
-
 describe('Project Config with Section Prefixes Tests', () => {
 
     let sut: ProjectConfig
