@@ -7,17 +7,17 @@ Application Configuration management using TypeScript, YAML files, and Environme
 - [yaml-config](#yaml-config)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Installing](#installing)
+- [Installing](#installing)
     - [Package Manager](#package-manager)
-  - [Examples](#examples)
-    - [Basic Example with YAML file](#basic-example-with-yaml-file)
-      - [1. Setup Typescript Class](#1-setup-typescript-class)
-      - [2. Setup a YAML file](#2-setup-a-yaml-file)
-      - [3. Load the configuration](#3-load-the-configuration)
-    - [Example with Environment Variables](#example-with-environment-variables)
-      - [1. Setup Typescript Class with Decorators](#1-setup-typescript-class-with-decorators)
-      - [2. Set Environment Variables](#2-set-environment-variables)
-      - [3. Load the configuration](#3-load-the-configuration-1)
+- [Examples](#examples)
+  - [Basic Example with YAML file](#basic-example-with-yaml-file)
+    - [1. Setup a Typescript Class](#1-setup-a-typescript-class)
+    - [2. Setup a YAML file](#2-setup-a-yaml-file)
+    - [3. Load the configuration](#3-load-the-configuration)
+  - [Example with Environment Variables](#example-with-environment-variables)
+    - [1. Setup Typescript Class with Decorators](#1-setup-typescript-class-with-decorators)
+    - [2. Set Environment Variables](#2-set-environment-variables)
+    - [3. Load the configuration](#3-load-the-configuration-1)
 - [Contributing](#contributing)
   - [Building](#building)
   - [Running unit tests](#running-unit-tests)
@@ -35,7 +35,7 @@ Application Configuration management using TypeScript, YAML files, and Environme
 - Use your own TypeScript `class` to manage application configuration with strongly typed properties.
 - Load config from a `YAML` file right into an instance of a TypeScript `class`.
 
-## Installing
+# Installing
 
 ### Package Manager
 
@@ -48,17 +48,17 @@ $ npm install @home-web-apps/yaml-config
 $ yarn add @home-web-apps/yaml-config
 ```
 
-Once the package is installed, you can import the library using import or require approach:
+Once the package is installed, you can import aspects of the library using import or require approach:
 
 ```ts
 import { loadConfig } from '@home-web-apps/yaml-config'
 ```
 
-## Examples
+# Examples
 
-### Basic Example with YAML file
+## Basic Example with YAML file
 
-#### 1. Setup Typescript Class
+### 1. Setup a Typescript Class
 
 Here is where you can specify default values for your configuration.
 
@@ -70,15 +70,17 @@ class ApplicationConfig {
 }
 ```
 
-#### 2. Setup a YAML file
+### 2. Setup a YAML file
 Items in this file will take precedence over the default configuration
 
 ```yaml
+# config.yml
+
 oneCoolNumber: 100
 oneCoolString: 'AWESOME'
 ```
 
-#### 3. Load the configuration
+### 3. Load the configuration
 
 Put it all together like this!
 
@@ -99,9 +101,9 @@ The resulting config will be:
 }
 ```
 
-### Example with Environment Variables
+## Example with Environment Variables
 
-#### 1. Setup Typescript Class with Decorators
+### 1. Setup Typescript Class with Decorators
 
 Here is where you can specify default values for your configuration. 
 
@@ -122,7 +124,7 @@ class ApplicationConfig {
 }
 ```
 
-#### 2. Set Environment Variables
+### 2. Set Environment Variables
 
 Environment variables are detected by converting the `camelCasePropertyName` to `UPPER_CASE_SNAKE_CASE`
 
@@ -135,7 +137,7 @@ ONE_COOL_NUMBER=100
 CUSTOM_ENVIRONMENT_VARIABLE='AWESOME'
 ```
 
-#### 3. Load the configuration
+### 3. Load the configuration
 
 Put it together just as before.
 
