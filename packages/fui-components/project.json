@@ -49,7 +49,8 @@
         "preset": "conventional",
         "allowEmptyRelease": true,
         "commitMessageFormat": "chore(${projectName}): release version ${version} [CI SKIP]",
-        "postTargets": ["fui-components:deploy", "fui-components:github"]
+        "postTargets": ["fui-components:deploy", "fui-components:github"],
+        "skipCommitTypes": ["ci"]
       }
     },
     "github": {
