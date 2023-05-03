@@ -1,9 +1,71 @@
+
 kind: pipeline
-name: release
+name: ci
 type: docker
+
 platform:
   os: linux
   arch: arm64
+
+trigger:
+  event:
+    - push
+
+environment:
+  NPM_REGISTRY: verdaccio.nas.local.abbottland.io
+  NPM_REGISTRY_PROTO: https
+
+steps:
+  - name: git fetch
+    image: alpine/git
+    commands:
+      - git fetch --tags
+
+  - name: Restore packages with Yarn
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    environment:
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
+    commands:
+      - yarn config set cache-folder /tmp/yarn_cache
+      - yarn --frozen-lockfile
+
+  - name: Run Tests
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    commands:
+      - nx affected --target test --base=origin/main
+
+volumes:
+  - name: yarn_cache
+    host:
+      path: /var/lib/cache/yarn
+  - name: node_module_cache
+    host:
+      path: /var/lib/cache/node_modules
+
+---
+
+kind: pipeline
+name: release
+type: docker
+
+depends_on:
+  - update-files
+
+platform:
+  os: linux
+  arch: arm64
+
 trigger:
   branch:
     - main
@@ -27,8 +89,8 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-    - yarn config set cache-folder /tmp/yarn_cache
-    - yarn --frozen-lockfile
+      - yarn config set cache-folder /tmp/yarn_cache
+      - yarn --frozen-lockfile
     
   - name: Semanticially Version packages based on affected changes
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
@@ -43,10 +105,10 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
-    - git remote remove origin
-    - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-    - git fetch
-    - nx affected --target=version --base=origin/main~1 --head=origin/main --parallel=false
+      - git remote remove origin
+      - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
+      - git fetch
+      - nx affected --target=version --base=origin/main~1 --head=origin/main --parallel=false
 
 image_pull_secrets:
   - REG_CRED

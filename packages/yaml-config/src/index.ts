@@ -1,1 +1,5 @@
-export * from './lib/yaml-config';
+
+export { loadConfig } from './lib/config'
+
+export * from './lib/decorators'
+
