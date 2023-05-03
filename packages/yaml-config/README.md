@@ -166,18 +166,104 @@ The resulting config will be:
 ```ts
 {
     oneCoolBoolean: false,    // default value
-    oneCoolNumber: 100,      // loaded from YAML file
-    oneCoolString: 'AWESOME' // loaded from YAML file
+    oneCoolNumber: 100,       // loaded from YAML file
+    oneCoolString: 'AWESOME'  // loaded from YAML file
 }
 ```
 
 ## Example with All Features
 
 ### 1. Setup a Typescript Class
+
+```ts
+@AppConfig({ appPrefix: 'YAML_CONFIG'})
+export class ProjectConfig {
+    @EnvironmentVariable()
+    oneCoolString = 'hello'
+
+    // Override the variable name so that values can be provided via: YAML_CONFIG_LOGS_VAR_NAME
+    // Instead of the default which would normally be: YAML_CONFIG_LOGGING_VAR_NAME
+    @ConfigSection({ sectionPrefix: "LOGS" })
+    logging = new LoggingConfig()
+
+    @ConfigSection()
+    weather = new WeatherConfig()
+}
+
+export class LoggingConfig {
+    @EnvironmentVariable()
+    apiKey = ''
+
+    @EnvironmentVariable()
+    level = 'debug'
+
+    format = 'json'
+}
+
+export class WeatherConfig {
+    @EnvironmentVariable()
+    apiKey = ''
+
+    desiredWeather = 'sunny'
+
+    updateFrequency = 'weekly'
+}
+```
+
 ### 2. Set Environment Variables & YAML File
+
+Environment Variables:
+```env
+# .env
+
+YAML_CONFIG_ONE_COOL_STRING='AWESOME'
+YAML_CONFIG_LOGS_API_KEY='superSecretKey!'
+YAML_CONFIG_LOGS_LEVEL='info'
+YAML_CONFIG_WEATHER_API_KEY='password123'
+```
+
+YAML File
+```yaml
+# config.yml
+
+oneCoolString: 'pretty neat'
+
+logging:
+  level: silly
+  format: console
+
+weather:
+  updateFrequency: 'daily'
+```
+
+
 ### 3. Load the configuration
 
+```ts
+import { loadConfig } from '@home-web-apps/yaml-config'
+import * as dotenv from 'dotenv'
 
+dotenv.config()
+const defaultConfig = new ApplicationConfig()
+const config = await loadConfig(defaultConfig)
+```
+
+The resulting config will be:
+```ts
+{
+    oneCoolString: 'AWESOME',     // loaded from env 
+    logging: {
+      apiKey: 'superSecretKey!',  // loaded from env 
+      level: 'info',              // loaded from env 
+      format: 'console'           // loaded from YAML file
+    },
+    weather: {
+      apiKey: 'password123',      // loaded from env
+      desiredWeather: 'sunny',    // default value
+      updateFrequency: 'daily',   // loaded from YAML file
+    }
+}
+```
 
 # Contributing
 
