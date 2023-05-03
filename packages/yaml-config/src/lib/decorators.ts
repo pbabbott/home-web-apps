@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { camelToSnakeCase } from './utilities';
+import { camelToUpperCaseSnakeCase } from './utilities';
 import { configSectionKey, environmentVariableKey, environmentVariableTypeKey, appConfigKey } from './constants';
 
 export type AppConfigOptions = {
@@ -21,7 +21,7 @@ export const ConfigSection = (options: ConfigSectionOptions = {}): PropertyDecor
     return (target: object, propertyKey: string | symbol) => {
 
         const { sectionPrefix } = options
-        const metadata = sectionPrefix ? sectionPrefix : camelToSnakeCase(propertyKey as string)
+        const metadata = sectionPrefix ? sectionPrefix : camelToUpperCaseSnakeCase(propertyKey as string)
 
         Reflect.defineMetadata(configSectionKey, metadata, target, propertyKey);
     }
@@ -44,7 +44,7 @@ export const EnvironmentVariable = (options: EnvironmentVariableOptions = { vari
         const { variableName, variableType} = options
         
         // Define the environment variable name
-        const metadata = variableName ? variableName : camelToSnakeCase(propertyKey as string)
+        const metadata = variableName ? variableName : camelToUpperCaseSnakeCase(propertyKey as string)
         Reflect.defineMetadata(environmentVariableKey, metadata, target, propertyKey);
 
         // Define the type of the property using the enum
