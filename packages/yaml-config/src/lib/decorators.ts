@@ -2,14 +2,12 @@ import 'reflect-metadata'
 import { camelToSnakeCase } from './utilities';
 import { configSectionKey, environmentVariableKey, environmentVariableTypeKey } from './constants';
 
-
 export const ConfigSection = (variableName?: string): PropertyDecorator => {
     return (target: object, propertyKey: string | symbol) => {
         const metadata = variableName ? variableName : camelToSnakeCase(propertyKey as string)
         Reflect.defineMetadata(configSectionKey, metadata, target, propertyKey);
     }
 };
-
 
 export enum EnvironmentVariableType {
     STRING = 0,

@@ -7,7 +7,7 @@ export class ProjectConfig {
     oneCoolBoolean: boolean = false
 
     @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
-    public oneCoolNumber: number = 4321
+    oneCoolNumber: number = 4321
 
     @EnvironmentVariable()
     oneCoolString: string = 'goodbye'
