@@ -38,7 +38,12 @@ steps:
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
+      GITHUB_TOKEN:
+        from_secret: GITHUB_TOKEN
     commands:
+      - git remote remove origin
+      - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
+      - git fetch
       - nx affected --target test
 
 volumes:
