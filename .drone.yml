@@ -41,10 +41,7 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
-      - git remote remove origin
-      - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-      - git fetch
-      - nx affected --target test
+      - nx affected --target test --base=origin/main
 
 volumes:
   - name: yarn_cache
