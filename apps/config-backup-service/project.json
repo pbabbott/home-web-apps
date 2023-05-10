@@ -54,9 +54,9 @@
       "dependsOn": ["build"],
       "options": {
         "engine": "docker",
+        "push": true,
         "metadata": {
           "images": ["registry.nas.local.abbottland.io/home-web-apps/config-backup-service"],
-          "push": true,
           "load": true,
           "tags": [
             "type=schedule",
