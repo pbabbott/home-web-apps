@@ -19,11 +19,11 @@ steps:
 
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
+    # volumes:
+    #   - name: yarn_cache
+    #     path: /tmp/yarn_cache
+    #   - name: node_module_cache
+    #     path: /drone/src/node_modules
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
@@ -32,20 +32,20 @@ steps:
       - yarn --frozen-lockfile
   - name: Run Tests
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
+    # volumes:
+    #   - name: yarn_cache
+    #     path: /tmp/yarn_cache
+    #   - name: node_module_cache
+    #     path: /drone/src/node_modules
     commands:
       - nx affected --target test --base=origin/main
   - name: Run Build
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
+    # volumes:
+    #   - name: yarn_cache
+    #     path: /tmp/yarn_cache
+    #   - name: node_module_cache
+    #     path: /drone/src/node_modules
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
@@ -56,13 +56,13 @@ steps:
 
 
 
-volumes:
-  - name: yarn_cache
-    host:
-      path: /var/lib/cache/yarn
-  - name: node_module_cache
-    host:
-      path: /var/lib/cache/node_modules
+# volumes:
+#   - name: yarn_cache
+#     host:
+#       path: /var/lib/cache/yarn
+#   - name: node_module_cache
+#     host:
+#       path: /var/lib/cache/node_modules
 
 ---
 
