@@ -7,7 +7,8 @@ import { join } from 'path';
 
 
 export default defineConfig({
-  // cacheDir: '../../node_modules/.vite/fui-components',
+  // TODO: figure out how to set this up to work in CI
+  // cacheDir: '../../.vite/fui-components',
 
   plugins: [
     dts({
