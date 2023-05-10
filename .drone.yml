@@ -54,9 +54,6 @@ steps:
     commands:
       - nx affected --target test --base=origin/main
 
-
-
-
 volumes:
   - name: yarn_cache
     host:
