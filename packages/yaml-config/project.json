@@ -7,7 +7,6 @@
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
-      "dependsOn": ["docs"],
       "options": {
         "outputPath": "dist/packages/yaml-config",
         "main": "packages/yaml-config/src/index.ts",
@@ -17,18 +16,10 @@
     },
     "docs": {
       "executor": "nx:run-commands",
-      "defaultConfiguration": "production",
-      "configurations": {
-        "production": {
-          "outputPath": "../../dist/packages/yaml-config/docs",
-          "cwd": "packages/yaml-config/",
-          "command": "typedoc --plugin typedoc-plugin-markdown --out ../../dist/packages/yaml-config/docs --githubPages false --readme none ./src/index.ts"
-        },
-        "development": {
-          "outputPath": "./packages/yaml-config/docs",
-          "cwd": "packages/yaml-config/",
-          "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
-        }
+      "options": {
+        "outputPath": "./packages/yaml-config/docs",
+        "cwd": "packages/yaml-config/",
+        "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
       }
     },
     "lint": {
