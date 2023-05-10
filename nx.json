@@ -40,11 +40,6 @@
     "appsDir": "apps",
     "libsDir": "packages"
   },
-  "pluginsConfig": {
-    "@nx/js": {
-      "analyzeSourceFiles": true
-    }
-  },
   "generators": {
     "@nx/react": {
       "application": {
