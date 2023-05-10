@@ -44,7 +44,7 @@ steps:
     commands:
       - node -v
       - yarn -v
-      - nx affected --target build --base=origin/main
+      - nx affected --target build --base=origin/main --skip-nx-cache
 
   - name: Run Tests
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
