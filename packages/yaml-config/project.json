@@ -17,10 +17,18 @@
     },
     "docs": {
       "executor": "nx:run-commands",
-      "options": {
-        "outputPath": "./packages/yaml-config/docs",
-        "cwd": "packages/yaml-config/",
-        "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
+      "defaultConfiguration": "production",
+      "configurations": {
+        "production": {
+          "outputPath": "../../dist/packages/yaml-config/docs",
+          "cwd": "packages/yaml-config/",
+          "command": "typedoc --plugin typedoc-plugin-markdown --out ../../dist/packages/yaml-config/docs --githubPages false --readme none ./src/index.ts"
+        },
+        "development": {
+          "outputPath": "./packages/yaml-config/docs",
+          "cwd": "packages/yaml-config/",
+          "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
+        }
       }
     },
     "lint": {
