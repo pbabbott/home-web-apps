@@ -74,8 +74,6 @@ steps:
         path: /drone/src/node_modules
     commands:
       - nx affected --target test --base=origin/main
-
-
       
 
 volumes:
