@@ -1,7 +1,6 @@
 kind: pipeline
 name: ci
 type: docker
-
 platform:
   os: linux
   arch: arm64
