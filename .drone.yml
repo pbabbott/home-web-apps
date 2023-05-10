@@ -27,10 +27,8 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-      - ls -al /drone/src/
-      - echo $NPM_REGISTRY_PROTO
       - yarn config set cache-folder /tmp/yarn_cache
-      - yarn
+      - yarn --frozen-lockfile
 
   - name: Run Build
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
