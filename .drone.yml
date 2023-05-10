@@ -6,9 +6,12 @@ platform:
   arch: arm64
 
 trigger:
-  event:
-    - push
-
+  branch:
+    - "*"
+  ref:
+    exclude:
+      - refs/tags/*
+      
 environment:
     NPM_REGISTRY: verdaccio.nas.local.abbottland.io
     NPM_REGISTRY_PROTO: https
