@@ -57,6 +57,8 @@ steps:
       - name: docker_daemon
         path: /var/run/docker.sock
     environment:
+      # As per the troubleshooting guide on github: nx-tools/nx-container
+      CI_CONTEXT_FALLBACK_TO_LOCAL: true
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
