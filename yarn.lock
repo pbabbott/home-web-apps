@@ -1847,7 +1847,7 @@
     tmp "~0.2.1"
     tslib "^2.3.0"
 
-"@nx/eslint-plugin@16.1.4", "@nx/eslint-plugin@^18":
+"@nx/eslint-plugin@16.1.4", "@nx/eslint-plugin@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/eslint-plugin/-/eslint-plugin-16.1.4.tgz#c341ee83d8a6049e338f9be5572b2c3688525c01"
   integrity sha512-bZs9dakxxgCn3nsMJbVSmdsUZuuYozxj5OqkVm6FiIejFklSd+Dn0TxDWXMpPUKqI8Izu26YSQmwIBD+IY7/Nw==
@@ -1861,7 +1861,7 @@
     confusing-browser-globals "^1.0.9"
     semver "7.3.4"
 
-"@nx/express@16.1.4", "@nx/express@^18":
+"@nx/express@16.1.4", "@nx/express@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/express/-/express-16.1.4.tgz#a0fff7c0914532506bbef475fe1388b0e00eff3f"
   integrity sha512-SYuttlfdgKcqHvp7WsyIY6pU8/cM1mEciKUW2XbErlRP0xWyqpLITc1QZaeQfNjcHFi6TL/1Q1qYhtAlJErogQ==
@@ -1870,7 +1870,7 @@
     "@nx/devkit" "16.1.4"
     "@nx/node" "16.1.4"
 
-"@nx/jest@16.1.4", "@nx/jest@^18":
+"@nx/jest@16.1.4", "@nx/jest@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/jest/-/jest-16.1.4.tgz#879b1ac58f6d8ffb6f82aa99ae0a04c46f8b509e"
   integrity sha512-lHuREK0luQMBbpp2jYNsE/VFsoy0tqW94QifT5EgsFTjL2L+yw1I7WbRTfemiBijgqmNsyWAXMsItSSr2tlrcA==
@@ -1948,7 +1948,7 @@
     tree-kill "1.2.2"
     tslib "^2.3.0"
 
-"@nx/js@16.1.4", "@nx/js@^18.0.3":
+"@nx/js@16.1.4", "@nx/js@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/js/-/js-16.1.4.tgz#3d85f549fceeaf9148edbc82abeec46d34731c80"
   integrity sha512-LYPKvV7AjYvj25p7SVKny22DKVpGVfZ1y+EkmmqWEMvFSEmf7miOCjZEyZGv30CcxFRVDoZ7JZ16TB3S+Zy/gQ==
@@ -1977,7 +1977,7 @@
     tree-kill "1.2.2"
     tslib "^2.3.0"
 
-"@nx/linter@16.1.4", "@nx/linter@^18":
+"@nx/linter@16.1.4", "@nx/linter@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/linter/-/linter-16.1.4.tgz#5cfdcac3f5e9b5ef48e400ed6dbbfd2c0b9301d5"
   integrity sha512-wxgyOvQJuBUCU0n6YY7QSgCFGUPTqoGp/zXfrcpDYOZZPYEygENw3Y7NPDrffXvJOcNh2Wb5z0ZaVH5sp2LYNw==
@@ -1989,7 +1989,7 @@
     tmp "~0.2.1"
     tslib "^2.3.0"
 
-"@nx/node@16.1.4", "@nx/node@^18.0.3":
+"@nx/node@16.1.4", "@nx/node@^16.0.3":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/node/-/node-16.1.4.tgz#c34a699d451d1754beb5dbfc71c9d5f0281eb4bf"
   integrity sha512-wmKfFsJSoXnjOJCclwhVwdp6MLwlUdWRohsKy99iMkDX1kRSI50w68lPyVmawGwL4+XivT89dkFm0bJsy0GdyQ==
@@ -2137,7 +2137,7 @@
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/nx-win32-x64-msvc/-/nx-win32-x64-msvc-16.1.4.tgz#4aa82ecb3bb24aa40e18818c7d7d3764b800445c"
   integrity sha512-s+H59UBB/dtdvZ+KWCe2PrVWZyoxsl6Vx+hzdUvCwI8f+cZmLRblTThLhUaBgdWLVqzFPemTkWIUasiRx/+3PQ==
 
-"@nx/react@16.1.4", "@nx/react@^18":
+"@nx/react@16.1.4", "@nx/react@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/react/-/react-16.1.4.tgz#cf6734626b019afa18a9b7c4551bafd9a8963c73"
   integrity sha512-juQ6xCiChZQMMmSz2iu58zxlj9r8RiJyhCEgKySgaYpeNdO2kxRva2HcpdhngC6/Hvy24tctFTyGA4IBkvIZ0A==
@@ -2279,7 +2279,7 @@
     yargs "^17.6.2"
     yargs-parser "21.1.1"
 
-"@nx/workspace@16.1.4", "@nx/workspace@^18":
+"@nx/workspace@16.1.4", "@nx/workspace@^16.1.4":
   version "16.1.4"
   resolved "https://verdaccio.nas.local.abbottland.io/@nx/workspace/-/workspace-16.1.4.tgz#771c90ae8f158620d6c8b0b6e73c9b8d834592bd"
   integrity sha512-FjzCmbitepS1pH8fqK2I2W3pbJ20+om8rFAQhMUkdJEtio+AXgHdyRfrkjlmNWXME1E0qZc7R0GzD6tILFb0Ew==
