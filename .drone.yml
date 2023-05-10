@@ -47,16 +47,6 @@ steps:
       - nx graph --file=output.json
       - nx affected --target build --base=origin/main
 
-  - name: Run Tests
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
-    commands:
-      - nx affected --target test --base=origin/main
-
   - name: Container Builds
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
@@ -71,7 +61,19 @@ steps:
         from_secret: NPM_TOKEN
     commands:
       - nx graph --file=output.json
-      - nx affected --target container --base=origin/main
+      - nx affected --target container --base=origin/main --verbose
+
+  - name: Run Tests
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    commands:
+      - nx affected --target test --base=origin/main
+
+
       
 
 volumes:
