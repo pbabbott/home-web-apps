@@ -30,7 +30,15 @@ steps:
     commands:
       - yarn config set cache-folder /tmp/yarn_cache
       - yarn --frozen-lockfile
-
+  - name: Run Tests
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    commands:
+      - nx affected --target test --base=origin/main
   - name: Run Build
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     volumes:
@@ -46,15 +54,7 @@ steps:
       - yarn -v
       - nx affected --target build --base=origin/main --skip-nx-cache
 
-  - name: Run Tests
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
-    commands:
-      - nx affected --target test --base=origin/main
+
 
 volumes:
   - name: yarn_cache
