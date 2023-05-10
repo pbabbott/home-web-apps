@@ -6,8 +6,11 @@ platform:
   arch: arm64
 
 trigger:
-  event:
-    - push
+  branch:
+    - "*"
+  ref:
+    exclude:
+      - refs/tags/*
 
 environment:
     NPM_REGISTRY: verdaccio.nas.local.abbottland.io
@@ -44,7 +47,6 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-      - nx graph --file=output.json
       - nx affected --target build --base=origin/main
 
   - name: Container Builds
@@ -61,8 +63,10 @@ steps:
       CI_CONTEXT_FALLBACK_TO_LOCAL: true
       NPM_TOKEN:
         from_secret: NPM_TOKEN
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
     commands:
-      - nx graph --file=output.json
+      - echo "$REGISTRY_PASSWORD" | docker login -u pbabbott --password-stdin registry.nas.local.abbottland.io
       - nx affected --target container --base=origin/main --verbose
 
   - name: Run Tests
@@ -74,7 +78,6 @@ steps:
         path: /drone/src/node_modules
     commands:
       - nx affected --target test --base=origin/main
-      
 
 volumes:
   - name: yarn_cache
@@ -144,7 +147,7 @@ steps:
     commands:
       - git remote remove origin
       - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-      - git fetch
+      - git fetch --tags
       - nx affected --target=version --base=refs/tags/last-release --head=origin/main --parallel=false
       - git tag -f last-release
       - git push origin last-release --force
