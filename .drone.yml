@@ -62,6 +62,9 @@ volumes:
     host:
       path: /var/lib/cache/node_modules
 
+image_pull_secrets:
+  - REG_CRED
+
 ---
 
 kind: pipeline
