@@ -13,7 +13,6 @@
     "react-is": "18.2.0",
     "reflect-metadata": "^0.1.13",
     "styled-components": "5.3.6",
-    "tslib": "^2.3.0",
     "yaml": "^2.2.2"
   },
   "repository": {
