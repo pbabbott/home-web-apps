@@ -16,10 +16,11 @@
       }
     },
     "docs": {
-      "executor": "nx:run-script",
+      "executor": "nx:run-commands",
       "options": {
-        "outputs": ["packages/yaml-config/docs"],
-        "script": "docs"
+        "outputPath": "./packages/yaml-config/docs",
+        "cwd": "packages/yaml-config/",
+        "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
       }
     },
     "lint": {

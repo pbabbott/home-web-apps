@@ -22,7 +22,7 @@ Environment variable should be as a Boolean.
 
 #### Defined in
 
-[lib/decorators.ts:97](https://github.com/pbabbott/home-web-apps/blob/d11c773/packages/yaml-config/src/lib/decorators.ts#L97)
+[lib/decorators.ts:97](https://github.com/pbabbott/home-web-apps/blob/96c47b3/packages/yaml-config/src/lib/decorators.ts#L97)
 
 ___
 
@@ -34,7 +34,7 @@ Environment variable should be treated as a Number().
 
 #### Defined in
 
-[lib/decorators.ts:91](https://github.com/pbabbott/home-web-apps/blob/d11c773/packages/yaml-config/src/lib/decorators.ts#L91)
+[lib/decorators.ts:91](https://github.com/pbabbott/home-web-apps/blob/96c47b3/packages/yaml-config/src/lib/decorators.ts#L91)
 
 ___
 
@@ -46,4 +46,4 @@ Environment variable should be treated as a String.  This is the default option.
 
 #### Defined in
 
-[lib/decorators.ts:86](https://github.com/pbabbott/home-web-apps/blob/d11c773/packages/yaml-config/src/lib/decorators.ts#L86)
+[lib/decorators.ts:86](https://github.com/pbabbott/home-web-apps/blob/96c47b3/packages/yaml-config/src/lib/decorators.ts#L86)
