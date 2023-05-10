@@ -14,7 +14,6 @@
         "outputPath": "dist/apps/config-backup-service",
         "main": "apps/config-backup-service/src/main.ts",
         "tsConfig": "apps/config-backup-service/tsconfig.app.json",
-        "assets": ["apps/config-backup-service/src/assets"],
         "isolatedConfig": true,
         "webpackConfig": "apps/config-backup-service/webpack.config.js"
       },
