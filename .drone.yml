@@ -18,7 +18,6 @@ steps:
     image: alpine/git
     commands:
       - git fetch --tags
-
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     volumes:
