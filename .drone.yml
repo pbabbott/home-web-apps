@@ -42,6 +42,8 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
+      - node -v
+      - yarn -v
       - nx affected --target build --base=origin/main
 
   - name: Run Tests
