@@ -63,7 +63,10 @@ steps:
       CI_CONTEXT_FALLBACK_TO_LOCAL: true
       NPM_TOKEN:
         from_secret: NPM_TOKEN
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
     commands:
+      - echo "$REGISTRY_PASSWORD" | docker login -u pbabbott --password-stdin registry.nas.local.abbottland.io
       - nx affected --target container --base=origin/main --verbose
 
   - name: Run Tests
