@@ -18,11 +18,11 @@ steps:
       - git fetch --tags
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
-    volumes:
-      - name: yarn_cache
-        path: /tmp/yarn_cache
-      - name: node_module_cache
-        path: /drone/src/node_modules
+    # volumes:
+    #   - name: yarn_cache
+    #     path: /tmp/yarn_cache
+    #   - name: node_module_cache
+    #     path: /drone/src/node_modules
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
