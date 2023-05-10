@@ -47,7 +47,6 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-      - nx graph --file=output.json
       - nx affected --target build --base=origin/main
 
   - name: Container Builds
@@ -76,7 +75,6 @@ steps:
         path: /drone/src/node_modules
     commands:
       - nx affected --target test --base=origin/main
-      
 
 volumes:
   - name: yarn_cache
@@ -146,7 +144,7 @@ steps:
     commands:
       - git remote remove origin
       - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-      - git fetch
+      - git fetch --tags
       - nx affected --target=version --base=refs/tags/last-release --head=origin/main --parallel=false
       - git tag -f last-release
       - git push origin last-release --force
