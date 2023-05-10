@@ -9,10 +9,6 @@ trigger:
   event:
     - push
 
-environment:
-  NPM_REGISTRY: verdaccio.nas.local.abbottland.io
-  NPM_REGISTRY_PROTO: https
-
 steps:
   - name: git fetch
     image: alpine/git
@@ -26,6 +22,8 @@ steps:
       - name: node_module_cache
         path: /drone/src/node_modules
     environment:
+      NPM_REGISTRY: verdaccio.nas.local.abbottland.io
+      NPM_REGISTRY_PROTO: https
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
