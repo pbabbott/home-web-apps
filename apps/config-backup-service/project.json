@@ -4,24 +4,17 @@
   "sourceRoot": "apps/config-backup-service/src",
   "projectType": "application",
   "targets": {
+
     "build": {
-      "executor": "@nx/webpack:webpack",
+      "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
         "outputPath": "dist/apps/config-backup-service",
-        "main": "apps/config-backup-service/src/main.ts",
-        "tsConfig": "apps/config-backup-service/tsconfig.app.json",
-        "isolatedConfig": true,
-        "webpackConfig": "apps/config-backup-service/webpack.config.js"
-      },
-      "configurations": {
-        "development": {},
-        "production": {}
+        "main": "apps/config-backup-service/src/controllers/main.ts",
+        "tsConfig": "apps/config-backup-service/tsconfig.app.json"
       }
     },
+
     "serve": {
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
@@ -60,6 +53,7 @@
     },
     "container": {
       "executor": "@nx-tools/nx-container:build",
+      "dependsOn": ["build"],
       "options": {
         "engine": "docker",
         "metadata": {
