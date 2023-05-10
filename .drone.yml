@@ -11,7 +11,7 @@ trigger:
   ref:
     exclude:
       - refs/tags/*
-      
+
 environment:
     NPM_REGISTRY: verdaccio.nas.local.abbottland.io
     NPM_REGISTRY_PROTO: https
@@ -65,7 +65,6 @@ steps:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
     commands:
-      - nx graph --file=output.json
       - nx affected --target container --base=origin/main --verbose
 
   - name: Run Tests
