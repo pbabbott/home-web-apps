@@ -1,7 +1,6 @@
 kind: pipeline
 name: ci
 type: docker
-
 platform:
   os: linux
   arch: arm64
@@ -11,8 +10,8 @@ trigger:
     - push
 
 environment:
-  NPM_REGISTRY: verdaccio.nas.local.abbottland.io
-  NPM_REGISTRY_PROTO: https
+    NPM_REGISTRY: verdaccio.nas.local.abbottland.io
+    NPM_REGISTRY_PROTO: https
 
 steps:
   - name: git fetch
@@ -21,7 +20,7 @@ steps:
       - git fetch --tags
 
   - name: Restore packages with Yarn
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
       - name: yarn_cache
         path: /tmp/yarn_cache
@@ -34,8 +33,40 @@ steps:
       - yarn config set cache-folder /tmp/yarn_cache
       - yarn --frozen-lockfile
 
+  - name: Run Build
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+    environment:
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
+    commands:
+      - nx graph --file=output.json
+      - nx affected --target build --base=origin/main
+
+  - name: Container Builds
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
+    volumes:
+      - name: yarn_cache
+        path: /tmp/yarn_cache
+      - name: node_module_cache
+        path: /drone/src/node_modules
+      - name: docker_daemon
+        path: /var/run/docker.sock
+    environment:
+      # As per the troubleshooting guide on github: nx-tools/nx-container
+      CI_CONTEXT_FALLBACK_TO_LOCAL: true
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
+    commands:
+      - nx graph --file=output.json
+      - nx affected --target container --base=origin/main --verbose
+
   - name: Run Tests
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
       - name: yarn_cache
         path: /tmp/yarn_cache
@@ -43,6 +74,7 @@ steps:
         path: /drone/src/node_modules
     commands:
       - nx affected --target test --base=origin/main
+      
 
 volumes:
   - name: yarn_cache
@@ -51,6 +83,12 @@ volumes:
   - name: node_module_cache
     host:
       path: /var/lib/cache/node_modules
+  - name: docker_daemon
+    host:
+      path: /var/run/docker.sock
+
+image_pull_secrets:
+  - REG_CRED
 
 ---
 
@@ -78,7 +116,7 @@ environment:
 
 steps:
   - name: Restore packages with Yarn
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
       - name: yarn_cache
         path: /tmp/yarn_cache
@@ -92,7 +130,7 @@ steps:
       - yarn --frozen-lockfile
           
   - name: Semanticially Version packages based on affected changes
-    image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
+    image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
       - name: yarn_cache
         path: /tmp/yarn_cache

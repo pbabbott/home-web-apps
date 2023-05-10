@@ -5,8 +5,10 @@ import viteTsConfigPaths from 'vite-tsconfig-paths';
 import dts from 'vite-plugin-dts';
 import { join } from 'path';
 
+
 export default defineConfig({
-  cacheDir: '../../node_modules/.vite/fui-components',
+  // TODO: figure out how to set this up to work in CI
+  // cacheDir: '../../.vite/fui-components',
 
   plugins: [
     dts({
