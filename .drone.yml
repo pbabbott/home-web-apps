@@ -16,6 +16,7 @@ steps:
     image: alpine/git
     commands:
       - git fetch --tags
+
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:1.1.0
     volumes:
@@ -37,6 +38,9 @@ steps:
         path: /tmp/yarn_cache
       - name: node_module_cache
         path: /drone/src/node_modules
+    environment:
+      NPM_TOKEN:
+        from_secret: NPM_TOKEN
     commands:
       - nx affected --target build --base=origin/main
 
