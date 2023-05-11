@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.13](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.12...config-backup-service-0.0.13) (2023-05-11)
+
+
+### Bug Fixes
+
+* try to run docker push always from main ([f811b3d](https://github.com/pbabbott/home-web-apps/commit/f811b3d49414f85794ecc06c0e1471dc9482a3a3))
+
 ### [0.0.12](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.11...config-backup-service-0.0.12) (2023-05-11)
 
 
