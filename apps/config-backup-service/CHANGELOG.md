@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.11](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.10...config-backup-service-0.0.11) (2023-05-11)
+
+
+### Bug Fixes
+
+* remove git commands from docker push ([6325435](https://github.com/pbabbott/home-web-apps/commit/63254352041d53d3f4b840f219b6ccb482e5f98e))
+
 ### [0.0.10](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.9...config-backup-service-0.0.10) (2023-05-11)
 
 
