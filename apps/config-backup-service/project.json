@@ -68,11 +68,17 @@
         }
       }
     },
-
+    "hello":{
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo ${tag}"
+      }
+    },
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "postTargets": ["config-backup-service:github"]
+        "postTargets": ["config-backup-service:hello", "config-backup-service:github"],
+        "dryRun": true
       }
     },
     "github": {}
