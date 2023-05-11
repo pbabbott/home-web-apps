@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.14](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.13...config-backup-service-0.0.14) (2023-05-11)
+
+
+### Bug Fixes
+
+* ensure docker volume is setup ([b8f4b28](https://github.com/pbabbott/home-web-apps/commit/b8f4b28d2de79d54c5cb2b41a1f2f3fc7dbe6039))
+
 ### [0.0.13](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.12...config-backup-service-0.0.13) (2023-05-11)
 
 
