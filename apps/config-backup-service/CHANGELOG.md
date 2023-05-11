@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.12](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.11...config-backup-service-0.0.12) (2023-05-11)
+
+
+### Bug Fixes
+
+* try to run docker push from main without tag trigger ([4323e59](https://github.com/pbabbott/home-web-apps/commit/4323e59bb7cd4e5a737b4dafbbbf8339aa6291e3))
+
 ### [0.0.11](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.10...config-backup-service-0.0.11) (2023-05-11)
 
 
