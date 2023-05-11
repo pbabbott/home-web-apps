@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.3](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.2...config-backup-service-0.0.3) (2023-05-11)
+
+
+### Bug Fixes
+
+* Attempt to publish to cr ([c4dd1b7](https://github.com/pbabbott/home-web-apps/commit/c4dd1b7b528863676c29f042986f95197fee1b57))
+
 ### [0.0.2](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.1...config-backup-service-0.0.2) (2023-05-11)
 
 
