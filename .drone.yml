@@ -177,6 +177,9 @@ trigger:
   ref:
     - refs/tags/config-backup-service-*
 
+clone:
+  depth: 50
+
 environment:
   NPM_REGISTRY: verdaccio.nas.local.abbottland.io
   NPM_REGISTRY_PROTO: https

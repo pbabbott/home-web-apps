@@ -57,7 +57,8 @@
         "build": {
         },
         "push": {
-          "push": true
+          "push": true,
+          "verbose": true
         }
       },
       "options": {
