@@ -115,6 +115,10 @@ environment:
   NPM_REGISTRY_PROTO: https
 
 steps:
+  - name: git fetch
+    image: alpine/git
+    commands:
+      - git fetch --tags
   - name: Restore packages with Yarn
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
     volumes:
