@@ -174,11 +174,13 @@ platform:
   arch: arm64
 
 trigger:
-  ref:
-    - refs/tags/config-backup-service-*
+  branch:
+    - config-backup-service
+  # ref:
+  #   - refs/tags/config-backup-service-*
 
-clone:
-  depth: 50
+# clone:
+#   depth: 50
 
 environment:
   NPM_REGISTRY: verdaccio.nas.local.abbottland.io
