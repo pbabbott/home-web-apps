@@ -4,6 +4,7 @@
   "sourceRoot": "apps/config-backup-service/src",
   "projectType": "application",
   "targets": {
+    
     "build": {
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
@@ -13,21 +14,19 @@
         "tsConfig": "apps/config-backup-service/tsconfig.app.json"
       }
     },
-    "serve": {
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
+
+    "dev": {
+      "executor": "nx:run-commands",
       "options": {
-        "buildTarget": "config-backup-service:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "config-backup-service:build:development"
-        },
-        "production": {
-          "buildTarget": "config-backup-service:build:production"
-        }
+        "commands": [
+          "tsx watch ./src/index.ts"
+        ],
+        "cwd": "apps/config-backup-service",
+        "parallel": false
       }
     },
+
+
     "lint": {
       "executor": "@nx/linter:eslint",
       "outputs": ["{options.outputFile}"],

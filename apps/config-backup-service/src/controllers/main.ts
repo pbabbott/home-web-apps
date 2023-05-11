@@ -5,5 +5,5 @@ export const healthz = (_, res: Express.Response) => {
 }
 
 export const api = (_, res: Express.Response) => {
-    res.send({ message: 'Welcome to config-backup-service!' })
+    res.send({ message: 'Welcome to config-backup-service!!!' })
 }
