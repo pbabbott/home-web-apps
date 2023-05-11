@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.8](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.7...config-backup-service-0.0.8) (2023-05-11)
+
+
+### Bug Fixes
+
+* touch cbs and drone to try and push to cr ([78ace02](https://github.com/pbabbott/home-web-apps/commit/78ace02d66312151467c15da6e801c720760d0d9))
+
 ### [0.0.7](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.6...config-backup-service-0.0.7) (2023-05-11)
 
 
