@@ -139,6 +139,8 @@ steps:
         path: /tmp/yarn_cache
       - name: node_module_cache
         path: /drone/src/node_modules
+      - name: docker_daemon
+        path: /var/run/docker.sock
     environment:
       NPM_TOKEN:
         from_secret: NPM_TOKEN
@@ -162,4 +164,7 @@ volumes:
   - name: node_module_cache
     host:
       path: /var/lib/cache/node_modules
+  - name: docker_daemon
+    host:
+      path: /var/run/docker.sock
 
