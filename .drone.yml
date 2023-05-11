@@ -144,6 +144,8 @@ steps:
         path: /var/run/docker.sock
     environment:
       CI_CONTEXT_FALLBACK_TO_LOCAL: true
+      REGISTRY_PASSWORD:
+        from_secret: REGISTRY_PASSWORD
       NPM_TOKEN:
         from_secret: NPM_TOKEN
       GITHUB_TOKEN:
