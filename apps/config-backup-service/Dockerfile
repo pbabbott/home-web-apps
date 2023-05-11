@@ -6,7 +6,6 @@ COPY dist/apps/config-backup-service/package*.json ./
 
 RUN yarn --production
 
-
 # Production image, copy all the files and run nest
 # FROM docker.io/node:lts-alpine as runner
 # RUN apk add --no-cache dumb-init

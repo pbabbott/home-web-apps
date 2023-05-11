@@ -217,9 +217,9 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_TOKEN
     commands:
-      - git remote remove origin
-      - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
-      - git fetch --tags
+      # - git remote remove origin
+      # - git remote add origin https://$GITHUB_TOKEN@github.com/pbabbott/home-web-apps
+      # - git fetch --tags
       - echo "$REGISTRY_PASSWORD" | docker login -u pbabbott --password-stdin registry.nas.local.abbottland.io
       - nx run-many -t container --configuration=push
 
