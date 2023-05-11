@@ -70,21 +70,18 @@
             "type=ref,event=branch",
             "type=ref,event=tag",
             "type=ref,event=pr",
-            "type=sha,prefix=sha-"
+            "type=semver,pattern={{version}}",
+            "type=semver,pattern={{major}}.{{minor}}",
+            "type=semver,pattern={{major}}",
+            "type=sha"
           ]
         }
-      }
-    },
-    "hello":{
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "echo ${tag}"
       }
     },
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "postTargets": ["config-backup-service:container:push", "config-backup-service:github"]
+        "postTargets": ["config-backup-service:github"]
       }
     },
     "github": {}
