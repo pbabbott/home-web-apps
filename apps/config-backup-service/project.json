@@ -67,13 +67,8 @@
           "images": ["registry.nas.local.abbottland.io/home-web-apps/config-backup-service"],
           "load": true,
           "tags": [
-            "type=schedule",
-            "type=ref,event=branch",
-            "type=ref,event=tag",
-            "type=ref,event=pr",
-            "type=semver,pattern={{version}}",
-            "type=semver,pattern={{major}}.{{minor}}",
-            "type=semver,pattern={{major}}",
+            "registry.nas.local.abbottland.io/home-web-apps/config-backup-service:${version}",
+            "registry.nas.local.abbottland.io/home-web-apps/config-backup-service:latest",
             "type=sha"
           ]
         }
@@ -82,7 +77,7 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "postTargets": ["config-backup-service:github"]
+        "postTargets": ["config-backup-service:github", "config-backup-service:container:push"]
       }
     },
     "github": {}
