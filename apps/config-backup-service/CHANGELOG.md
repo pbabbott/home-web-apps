@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.10](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.9...config-backup-service-0.0.10) (2023-05-11)
+
+
+### Bug Fixes
+
+* increase clone depth to try and fix docker push ([782018f](https://github.com/pbabbott/home-web-apps/commit/782018f4600331578616a26876a6e8cb3be23b0f))
+
 ### [0.0.9](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.8...config-backup-service-0.0.9) (2023-05-11)
 
 
