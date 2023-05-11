@@ -52,9 +52,16 @@
     "container": {
       "executor": "@nx-tools/nx-container:build",
       "dependsOn": ["build"],
+      "defaultConfiguration": "build",
+      "configurations": {
+        "build": {
+        },
+        "push": {
+          "push": true
+        }
+      },
       "options": {
         "engine": "docker",
-        "push": true,
         "metadata": {
           "images": ["registry.nas.local.abbottland.io/home-web-apps/config-backup-service"],
           "load": true,
@@ -77,7 +84,7 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "postTargets": ["config-backup-service:hello", "config-backup-service:github"]
+        "postTargets": ["config-backup-service:container:push", "config-backup-service:github"]
       }
     },
     "github": {}
