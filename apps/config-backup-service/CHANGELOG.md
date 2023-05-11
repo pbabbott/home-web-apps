@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.16](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.15...config-backup-service-0.0.16) (2023-05-11)
+
+
+### Bug Fixes
+
+* attempt to run docker push after semver via nx ([4674f71](https://github.com/pbabbott/home-web-apps/commit/4674f71038f2121c395345b977a66e264ce3b678))
+
 ### [0.0.15](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.14...config-backup-service-0.0.15) (2023-05-11)
 
 ### [0.0.14](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.13...config-backup-service-0.0.14) (2023-05-11)
