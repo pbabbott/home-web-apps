@@ -106,9 +106,9 @@ platform:
 trigger:
   branch:
     - main
-  # ref:
-  #   exclude:
-  #     - refs/tags/*
+  ref:
+    exclude:
+      - refs/tags/*
 
 environment:
   NPM_REGISTRY: verdaccio.nas.local.abbottland.io
@@ -155,9 +155,6 @@ steps:
 
   - name: Push docker containers to registry
     image: registry.nas.local.abbottland.io/drone-node-gh-cli:2.1
-    when:
-      ref:
-        - refs/tags/config-backup-service-*
     volumes:
       - name: yarn_cache
         path: /tmp/yarn_cache
