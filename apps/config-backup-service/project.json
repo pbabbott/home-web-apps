@@ -54,22 +54,34 @@
       "defaultConfiguration": "build",
       "configurations": {
         "build": {
+          "metadata": {
+            "tags": [
+              "dev"
+            ]
+          }
         },
         "push": {
           "push": true,
-          "verbose": true
+          "verbose": true,
+          "metadata": {
+            "tags": [
+              "${version}",
+              "latest",
+              "type=sha"
+            ]
+          }
         }
       },
       "options": {
         "engine": "docker",
+        "network": "host",
+        "build-args":[
+          "DOCKER_NPM_TOKEN=${DOCKER_NPM_TOKEN}",
+          "DOCKER_NPM_REGISTRY=${DOCKER_NPM_REGISTRY}",
+          "DOCKER_NPM_REGISTRY_PROTO=${DOCKER_NPM_REGISTRY_PROTO}"
+        ],
         "metadata": {
-          "images": ["registry.nas.local.abbottland.io/home-web-apps/config-backup-service"],
-          "load": true,
-          "tags": [
-            "${version}",
-            "latest",
-            "type=sha"
-          ]
+          "images": ["registry.nas.local.abbottland.io/home-web-apps/config-backup-service"]
         }
       }
     },

@@ -1,35 +1,35 @@
 # home-config-backup-service 
-# # Single stage - Dev Runtime
-# FROM node:18-lts
+# Single stage - Dev Runtime
+FROM node:18-lts
 
-# WORKDIR /app
+WORKDIR /app
 
-# ADD package.json yarn.lock ./
+ADD package.json yarn.lock ./
 
-# ENV NODE_ENV development
+ENV NODE_ENV development
 
-# RUN yarn --frozen-lockfile 
+RUN yarn --frozen-lockfile 
 
-# COPY . .
+COPY . .
 
-# CMD [ "yarn", "start:dev" ]
+CMD [ "yarn", "start:dev" ]
 
 
 # Dockerfile.prod
-# # Stage 1 - Use dev image to do a build
-# ARG BASE_IMAGE
-# FROM $BASE_IMAGE as build
+# Stage 1 - Use dev image to do a build
+ARG BASE_IMAGE
+FROM $BASE_IMAGE as build
 
-# RUN yarn build
+RUN yarn build
 
-# # Stage 2 - Production Runtime
-# FROM gcr.io/distroless/nodejs18-lts
+# Stage 2 - Production Runtime
+FROM gcr.io/distroless/nodejs18-lts
 
-# WORKDIR /app
+WORKDIR /app
 
-# COPY --from=build /app/package.json ./
+COPY --from=build /app/package.json ./
 
-# ARG PORT
-# EXPOSE PORT
+ARG PORT
+EXPOSE PORT
 
-# CMD ["lib/index.js"]
+CMD ["lib/index.js"]

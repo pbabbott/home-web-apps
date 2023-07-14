@@ -1,17 +1,16 @@
-import express from 'express'
-import { router } from './router';
+import { loadConfig } from '@home-web-apps/yaml-config';
+import { defaultConfig, setConfig, config } from './config';
+import { configureExpressApp } from './express';
 
-const app = express()
+const main = async () => {
+  // Load configuration
+  const config = await loadConfig(defaultConfig)
+  setConfig(config)
 
-app.use(router)
+  // Start the express app
+  configureExpressApp()
 
-const port = process.env.PORT || 3333;
+  // Start monitoring directories via CRON
+}
 
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
-});
-
-server.on('error', console.error);
-
-
-
+main()
