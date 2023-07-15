@@ -81,14 +81,30 @@ module.exports = {
         'future_z':['Future Z', 'sans-serif']
       },
       fontSize: {
-        'header1': '48px',
-        'header2': '32px',
-        'header3': '68px',
-        'header4': '56px',
-        'header5': '40px',
-        'header6': '36px',
-        'body1': '32px',
-        'body2': '28px',
+        'header-1': ['48px', {
+          lineHeight: '48px',
+        }],
+        'header-2': ['32px', {
+          lineHeight: '32px',
+        }],
+        'header-3': ['68px', {
+          lineHeight: '40px',
+        }],
+        'header-4': ['56px', {
+          lineHeight: '32px',
+        }],
+        'header-5': ['40px', {
+          lineHeight: '24px',
+        }],
+        'header-6': ['36px', {
+          lineHeight: '24px',
+        }],
+        'body-1': ['32px', {
+          lineHeight: '32px',
+        }],
+        'body-2': ['28px', {
+          lineHeight: '28px',
+        }],
         'button': ['28px', {
             lineHeight: '28px',
             letterSpacing: '0.10em'
