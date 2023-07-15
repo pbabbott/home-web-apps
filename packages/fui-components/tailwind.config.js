@@ -13,6 +13,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        "slate": {
+          50: "#F8F8F8",
+          100: "#F2FCFF",
+          200: "#DFEDF2",
+          300: "#C8D9DE",
+          400: "#ADD2DE",
+          500: "#8DABB5",
+          600: "#728A92",
+          700: "#3D4A4F",
+          800: "#2E373B",
+          900: "#23272B",
+          1000: "#171819",
+        },
         "primary": {
           50: "#EDFFFE",
           300: "#3AFCFF",
@@ -62,6 +75,33 @@ module.exports = {
           700: "#a62a38",
           900: "#772432",
         },
+      },
+      fontFamily: {
+        'monobit': ['Monobit', 'monospace'],
+        'future_z':['Future Z', 'sans-serif']
+      },
+      fontSize: {
+        'header1': '48px',
+        'header2': '32px',
+        'header3': '68px',
+        'header4': '56px',
+        'header5': '40px',
+        'header6': '36px',
+        'body1': '32px',
+        'body2': '28px',
+        'button': ['28px', {
+            lineHeight: '28px',
+            letterSpacing: '0.10em'
+          }
+        ],
+        'caption': ['18px', {
+            letterSpacing: '0.05em'
+          },
+        ],
+        'small': ['16px', {
+          letterSpacing: '0.05em'
+        },
+      ],
       }
     },
   },
