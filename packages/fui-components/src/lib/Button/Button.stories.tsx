@@ -15,10 +15,13 @@ export const Primary: Story = {
   args: {
     type: 'primary',
     label: 'button',
+    disabled: false,
   },
   argTypes: {
     label: {
       control: 'text',
-    }
+      defaultValue: 'primary'
+    },
+    onClick: { action: 'clicked' }
   }
 };
