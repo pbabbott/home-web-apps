@@ -17,10 +17,10 @@
     "docs": {
       "executor": "nx:run-commands",
       "options": {
-        "outputPath": "./packages/yaml-config/docs",
         "cwd": "packages/yaml-config/",
         "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
-      }
+      },
+      "outputs": ["{workspaceRoot}/packages/yaml-config/docs"]
     },
     "lint": {
       "executor": "@nx/linter:eslint",
