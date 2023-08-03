@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.20](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.19...config-backup-service-0.0.20) (2023-08-03)
+
 ### [0.0.19](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.18...config-backup-service-0.0.19) (2023-07-25)
 
 ### [0.0.18](https://github.com/pbabbott/home-web-apps/compare/config-backup-service-0.0.17...config-backup-service-0.0.18) (2023-05-11)
