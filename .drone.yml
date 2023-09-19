@@ -185,7 +185,6 @@ steps:
   #     - nx run-many -t container --configuration=push
 
 
-
 image_pull_secrets:
   - REG_CRED
 
@@ -253,7 +252,7 @@ volumes:
 
 ---
 kind: pipeline
-name: ci
+name: devcontainer
 type: docker
 
 platform:
