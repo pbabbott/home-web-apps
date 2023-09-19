@@ -25,3 +25,5 @@ USER ${USER}
 WORKDIR /home/${USER}
 COPY .zshrc /home/${USER}/.zshrc
 
+RUN yarn global add nx@latest
+
