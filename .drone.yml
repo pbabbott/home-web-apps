@@ -273,6 +273,8 @@ steps:
         from_secret: REGISTRY_PASSWORD
       mirror: https://registry-mirror.nas.local.abbottland.io
       repo: registry.nas.local.abbottland.io/home-web-apps-dev
-      auto_tag: true
+      tags:
+        - latest
+        - "${DRONE_TAG##v}"
       dockerfile: ./.devcontainer/Dockerfile.dev
       context: ./.devcontainer/
