@@ -8,7 +8,13 @@
             "oderwat.indent-rainbow",
             "redhat.vscode-yaml",
             "Gruntfuggly.todo-tree",
-            "yzhang.markdown-all-in-one"
+            "yzhang.markdown-all-in-one",
+            "nrwl.angular-console",
+            "naumovs.color-highlight",
+            "dbaeumer.vscode-eslint",
+            "firsttris.vscode-jest-runner",
+            "esbenp.prettier-vscode",
+            "bradlc.vscode-tailwindcss"
         ]
       }
     }
