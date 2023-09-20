@@ -25,5 +25,6 @@ USER ${USER}
 WORKDIR /home/${USER}
 COPY .zshrc /home/${USER}/.zshrc
 
-RUN yarn global add nx@latest
+ENV PATH="${PATH}:/home/${USER}/.config/yarn/global/node_modules/.bin"
 
+RUN yarn global add nx@latest
