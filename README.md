@@ -1,20 +1,10 @@
-# Turborepo Docker starter
+# home-web-apps
 
-This is an official Docker starter Turborepo.
+This is a monorepo set up with devspaces and turbo repo to manage all of my home web applications
 
-## Using this example
+# What's inside?
 
-Run the following command:
-
-```sh
-npx create-turbo@latest -e with-docker
-```
-
-## What's inside?
-
-This Turborepo includes the following:
-
-### Apps and Packages
+## Apps and Packages
 
 - `web`: a [Next.js](https://nextjs.org/) app
 - `api`: an [Express](https://expressjs.com/) server
@@ -26,42 +16,51 @@ This Turborepo includes the following:
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-### Docker
+# Contributing
 
-This repo is configured to be built with Docker, and Docker compose. To build all apps in this repo:
+## Install tools
 
-```
-# Create a network, which allows containers to communicate
-# with each other, by using their container name as a hostname
-docker network create app_network
+### `pnpm`
 
-# Build prod using new BuildKit engine
-COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose -f docker-compose.yml build
+https://pnpm.io/installation
 
-# Start prod in detached mode
-docker-compose -f docker-compose.yml up -d
+```sh
+curl -fsSL https://get.pnpm.io/install.sh | sh -
 ```
 
-Open http://localhost:3000.
+### `devspace`
 
-To shutdown all running containers:
+https://github.com/devspace-sh/devspace
 
+```sh
+pnpm install devspace --global
 ```
-# Stop all running containers
-docker kill $(docker ps -q) && docker rm $(docker ps -a -q)
+
+### `turbo`
+
+https://turbo.build/repo/docs/getting-started/installation
+
+```sh
+pnpm install turbo --global
 ```
 
-### Remote Caching
+## Key Commands
 
-This example includes optional remote caching. In the Dockerfiles of the apps, uncomment the build arguments for `TURBO_TEAM` and `TURBO_TOKEN`. Then, pass these build arguments to your Docker build.
+```sh
+# Local development
+turbo dev
 
-You can test this behavior using a command like:
+# Local build with pnpm
+turbo run build
+```
 
-`docker build -f apps/web/Dockerfile . --build-arg TURBO_TEAM=“your-team-name” --build-arg TURBO_TOKEN=“your-token“ --no-cache`
+## VS Code Extensions
 
-### Utilities
+- `esbenp.prettier-vscode` - prettier
 
-This Turborepo has some additional tools already setup for you:
+# Reference
+
+This Turborepo has some tools setup for use:
 
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
