@@ -1,0 +1,72 @@
+version: v2beta1
+name: remote-dev
+
+localRegistry:
+  enabled: false
+
+vars:
+  DEVSPACE_ENV_FILE: ".env"
+  KANIKO: '{ "pullSecret": "regcred", "nodeSelector": { "kubernetes.io/arch": "amd64" } }'
+
+pullSecrets:
+  harbor:
+    registry: harbor.local.abbottland.io
+    secret: regcred
+
+pipelines:
+  dev:
+    run: |-
+      start_dev --all
+  deploy: 
+    run: |-
+      run_dependencies --all
+      ensure_pull_secrets --all
+      run_pipelines build
+      create_deployments --all
+  build:
+    run: |-
+      run_dependencies --all --pipeline build
+      build_images node-18-pnpm
+      build_images gluetun-sync-installer
+      build_images gluetun-sync
+
+images:
+  node-18-pnpm:
+    image: harbor.local.abbottland.io/library/node-18-pnpm
+    dockerfile: ./docker/node-18-pnpm.Dockerfile
+    kaniko: '$(echo $KANIKO)'
+    tags:
+      - latest
+
+  gluetun-sync-installer:
+    image: harbor.local.abbottland.io/library/gluetun-sync-installer
+    dockerfile: ./docker/turbo-express.Dockerfile
+    buildArgs:
+      BASE_IMAGE: harbor.local.abbottland.io/library/node-18-pnpm
+      APP_NAME: gluetun-sync
+    kaniko: '$(echo $KANIKO)'
+    tags:
+      - latest
+
+  gluetun-sync:
+    image: harbor.local.abbottland.io/library/gluetun-sync
+    dockerfile: apps/gluetun-sync/Dockerfile
+    buildArgs:
+      BASE_IMAGE: harbor.local.abbottland.io/library/gluetun-sync-installer
+    kaniko: '$(echo $KANIKO)'
+    tags:
+      - latest
+
+dev:
+  gluetun-sync:
+    sync:
+      - path: ./apps/gluetun-sync/src:/app/apps/gluetun-sync/src
+    logs:
+      enabled: true
+    labelSelector:
+      app: gluetun
+    container: gluetun-sync
+    namespace: media
+    devImage: harbor.local.abbottland.io/library/gluetun-sync-installer
+    command: ["turbo"]
+    args: ["dev", "--filter=gluetun-sync", "--log-prefix=none"]

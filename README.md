@@ -46,12 +46,35 @@ pnpm install turbo --global
 
 ## Key Commands
 
+### Turborepo
 ```sh
 # Local development
 turbo dev
 
 # Local build with pnpm
 turbo run build
+```
+
+### devspace
+
+develop the project in kubernetes
+
+```sh
+devspace use namespace brandon-dev
+```
+
+```sh
+# remote development
+devspace dev
+
+# remote build with kaniko
+devspace build 
+```
+
+```sh
+ # delete everything from cluster
+devspace purge
+devspace cleanup local-registry
 ```
 
 ## VS Code Extensions
@@ -66,3 +89,16 @@ This Turborepo has some tools setup for use:
 - [ESLint](https://eslint.org/) for code linting
 - [Jest](https://jestjs.io) test runner for all things JavaScript
 - [Prettier](https://prettier.io) for code formatting
+
+## Bootstrap commands
+
+Initial setup of turbo repo
+```sh
+pnpm dlx create-turbo@latest --example with-docker
+```
+
+Dev Space initialization
+
+```sh
+pnpm dlx devspace init
+```
