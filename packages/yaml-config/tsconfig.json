@@ -1,0 +1,16 @@
+{
+  "extends": "@abbottland/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["ES2015", "DOM"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": ["jest", "node"],
+    "paths": {
+      "@src/*": ["./src/*"]
+    },
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

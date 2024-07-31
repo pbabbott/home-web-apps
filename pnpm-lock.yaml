@@ -15,9 +15,9 @@ importers:
         specifier: ^2.0.9
         version: 2.0.9
 
-  apps/api:
+  apps/gluetun-sync:
     dependencies:
-      '@repo/logger':
+      '@abbottland/logger':
         specifier: workspace:*
         version: link:../../packages/logger
       body-parser:
@@ -33,13 +33,13 @@ importers:
         specifier: ^1.10.0
         version: 1.10.0
     devDependencies:
-      '@repo/eslint-config':
+      '@abbottland/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/jest-presets':
+      '@abbottland/jest-presets':
         specifier: workspace:*
         version: link:../../packages/jest-presets
-      '@repo/typescript-config':
+      '@abbottland/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/body-parser':
@@ -63,6 +63,9 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.2
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
       esbuild:
         specifier: ^0.20.1
         version: 0.20.2
@@ -100,15 +103,15 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
     devDependencies:
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@abbottland/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@next/eslint-plugin-next':
         specifier: ^14.1.1
         version: 14.2.5
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
       '@types/node':
         specifier: ^20.11.24
         version: 20.14.13
@@ -157,13 +160,13 @@ importers:
 
   packages/logger:
     devDependencies:
-      '@repo/eslint-config':
+      '@abbottland/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/jest-presets':
+      '@abbottland/jest-presets':
         specifier: workspace:*
         version: link:../jest-presets
-      '@repo/typescript-config':
+      '@abbottland/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/jest':
@@ -190,10 +193,10 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1
     devDependencies:
-      '@repo/eslint-config':
+      '@abbottland/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/typescript-config':
+      '@abbottland/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/react':
@@ -205,6 +208,46 @@ importers:
       eslint:
         specifier: ^8.57.0
         version: 8.57.0
+      typescript:
+        specifier: ^5.3.3
+        version: 5.5.4
+
+  packages/yaml-config:
+    dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      yaml:
+        specifier: ^2.5.0
+        version: 2.5.0
+    devDependencies:
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@abbottland/jest-presets':
+        specifier: workspace:*
+        version: link:../jest-presets
+      '@abbottland/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/jest':
+        specifier: ^29.5.12
+        version: 29.5.12
+      '@types/lodash':
+        specifier: ^4.17.7
+        version: 4.17.7
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.14.13
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.0
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.14.13)
       typescript:
         specifier: ^5.3.3
         version: 5.5.4
@@ -798,6 +841,9 @@ packages:
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+
+  '@types/lodash@4.17.7':
+    resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
 
   '@types/methods@1.1.4':
     resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
@@ -1446,6 +1492,10 @@ packages:
 
   dotenv@16.0.3:
     resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+
+  dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
 
   eastasianwidth@0.2.0:
@@ -2792,6 +2842,9 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
+
   reflect.getprototypeof@1.0.6:
     resolution: {integrity: sha512-fmfw4XgoDke3kdI6h4xcUz1dG8uaiv5q9gcEwLS4Pnth2kxT+GZ7YehS1JTMGBQmtV7Y4GFGbs2re2NqhdozUg==}
     engines: {node: '>= 0.4'}
@@ -3335,6 +3388,11 @@ packages:
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
+
+  yaml@2.5.0:
+    resolution: {integrity: sha512-2wWLbGbYDiSqqIKoPjar3MPgB94ErzCtrNE1FdqGuaO0pi2JGjmE8aW8TDZwzU7vuxcGRdL/4gPQwQ7hD5AMSw==}
+    engines: {node: '>= 14'}
+    hasBin: true
 
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
@@ -4007,6 +4065,8 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
+
+  '@types/lodash@4.17.7': {}
 
   '@types/methods@1.1.4': {}
 
@@ -4795,6 +4855,8 @@ snapshots:
       esutils: 2.0.3
 
   dotenv@16.0.3: {}
+
+  dotenv@16.4.5: {}
 
   eastasianwidth@0.2.0: {}
 
@@ -6514,6 +6576,8 @@ snapshots:
     dependencies:
       picomatch: 2.3.1
 
+  reflect-metadata@0.2.2: {}
+
   reflect.getprototypeof@1.0.6:
     dependencies:
       call-bind: 1.0.7
@@ -7105,6 +7169,8 @@ snapshots:
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
+
+  yaml@2.5.0: {}
 
   yargs-parser@21.1.1: {}
 

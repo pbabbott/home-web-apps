@@ -9,10 +9,10 @@ This is a monorepo set up with devspaces and turbo repo to manage all of my home
 - `web`: a [Next.js](https://nextjs.org/) app
 - `api`: an [Express](https://expressjs.com/) server
 - `@repo/ui`: a React component library
-- `@repo/logger`: Isomorphic logger (a small wrapper around console.log)
-- `@repo/eslint-config`: ESLint presets
-- `@repo/typescript-config`: tsconfig.json's used throughout the monorepo
-- `@repo/jest-presets`: Jest configurations
+- `@abbottland/logger`: Isomorphic logger (a small wrapper around console.log)
+- `@abbottland/eslint-config`: ESLint presets
+- `@abbottland/typescript-config`: tsconfig.json's used throughout the monorepo
+- `@abbottland/jest-presets`: Jest configurations
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 

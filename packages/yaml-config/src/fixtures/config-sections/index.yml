@@ -1,0 +1,8 @@
+oneCoolString: 'pretty neat'
+
+logging:
+  level: silly
+  format: console
+
+weather:
+  updateFrequency: 'daily'

@@ -1,0 +1,56 @@
+{
+  "name": "yaml-config",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/yaml-config/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/yaml-config",
+        "main": "packages/yaml-config/src/index.ts",
+        "tsConfig": "packages/yaml-config/tsconfig.lib.json",
+        "assets": ["packages/yaml-config/*.md"]
+      }
+    },
+    "docs": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/yaml-config/",
+        "command": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
+      },
+      "outputs": ["{workspaceRoot}/packages/yaml-config/docs"]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/yaml-config/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/yaml-config/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    },
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "postTargets": ["yaml-config:deploy", "yaml-config:github"]
+      }
+    },
+    "github": {},
+    "deploy": {}
+  },
+  "tags": []
+}
