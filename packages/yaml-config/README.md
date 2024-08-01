@@ -48,17 +48,17 @@ Application Configuration management using TypeScript, YAML files, and Environme
 
 Using npm:
 ```bash
-$ npm install @home-web-apps/yaml-config
+$ npm install @abbottland/yaml-config
 ```
 
 ```bash
-$ yarn add @home-web-apps/yaml-config
+$ yarn add @abbottland/yaml-config
 ```
 
 Once the package is installed, you can import aspects of the library using import or require approach:
 
 ```ts
-import { loadConfig } from '@home-web-apps/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config'
 ```
 
 # Examples
@@ -92,7 +92,7 @@ oneCoolString: 'AWESOME'
 Put it all together like this!
 
 ```ts
-import { loadConfig } from '@home-web-apps/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config'
 
 const pathToConfigFile = './config.yml'
 const defaultConfig = new ApplicationConfig()
@@ -120,7 +120,7 @@ Similar to the previous example, this is where you can specify default values fo
 You can also choose which properties of your configuration can be loaded via environment variables. 
 
 ```ts
-import { EnvironmentVariable } from '@home-web-apps/yaml-config'
+import { EnvironmentVariable } from '@abbottland/yaml-config'
 
 class ApplicationConfig {
     @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
@@ -157,7 +157,7 @@ CUSTOM_ENVIRONMENT_VARIABLE='AWESOME'
 Put it together just as before.
 
 ```ts
-import { loadConfig } from '@home-web-apps/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config'
 import * as dotenv from 'dotenv'
 
 dotenv.config()
@@ -243,7 +243,7 @@ weather:
 ### 3. Load the configuration
 
 ```ts
-import { loadConfig } from '@home-web-apps/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config'
 import * as dotenv from 'dotenv'
 
 dotenv.config()

@@ -1,26 +1,25 @@
-import { getIpAddress } from "./api/ip/ipify";
-import { createServer } from "./server";
+import 'reflect-metadata'
+import { initConfig, validateConfig } from './config'
+import { startServer } from "./server";
+import { showPublicIp } from './services/publicIpService';
+import { getForwardedPort } from './api/gluetun/gluetun';
+import { getApplicationPreferences, login } from './api/qbittorrent';
 
-const showIp = async () => {
-  const nodeEnv = process.env.NODE_ENV;
-  if (nodeEnv === "production") {
-    const ipAddress = await getIpAddress();
-    if (ipAddress != null) {
-      console.info(`IP Address is: ${ipAddress.ip}`);
-    }
-  } else {
-    console.debug(`Not showing IP address as NODE_ENV=${nodeEnv}`);
-  }
-};
+const start = async () => {
+  await initConfig()
+  validateConfig();
 
-const start = () => {
-  const port = process.env.PORT || 3001;
-  const server = createServer();
-  server.listen(port, () => {
-    console.log(`gluetun-sync running on ${port}`);
-  });
+  showPublicIp();
+  startServer();
+  
+  const gluetunPort = await getForwardedPort()
+  console.log('gluetunPort', gluetunPort)
 
-  showIp();
+  const qbitTorrentLoginResult = await login()
+  console.log('qbittorrent login', qbitTorrentLoginResult)
+
+  if (qbitTorrentLoginResult !== null)
+    await getApplicationPreferences(qbitTorrentLoginResult)
 };
 
 start();

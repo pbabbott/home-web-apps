@@ -23,37 +23,45 @@ pipelines:
       ensure_pull_secrets --all
       run_pipelines build
       create_deployments --all
+  build-base:
+    run: |-
+      build_images node-18-pnpm-turbo
   build:
     run: |-
       run_dependencies --all --pipeline build
-      build_images node-18-pnpm
-      build_images gluetun-sync-installer
+      run_pipelines build-base
+      build_images gluetun-sync-builder
       build_images gluetun-sync
 
 images:
-  node-18-pnpm:
-    image: harbor.local.abbottland.io/library/node-18-pnpm
-    dockerfile: ./docker/node-18-pnpm.Dockerfile
+  node-18-pnpm-turbo:
+    image: harbor.local.abbottland.io/library/node-18-pnpm-turbo
+    target: base
+    dockerfile: ./docker/medium.Dockerfile
+    context: ./docker/
     kaniko: '$(echo $KANIKO)'
+    createPullSecret: false
     tags:
       - latest
 
-  gluetun-sync-installer:
-    image: harbor.local.abbottland.io/library/gluetun-sync-installer
-    dockerfile: ./docker/turbo-express.Dockerfile
+  gluetun-sync-builder:
+    image: harbor.local.abbottland.io/library/gluetun-sync-builder
+    dockerfile: ./docker/medium.Dockerfile
+    target: builder
     buildArgs:
-      BASE_IMAGE: harbor.local.abbottland.io/library/node-18-pnpm
-      APP_NAME: gluetun-sync
+      PROJECT: "@abbottland/gluetun-sync"
     kaniko: '$(echo $KANIKO)'
+    createPullSecret: false
     tags:
       - latest
 
   gluetun-sync:
     image: harbor.local.abbottland.io/library/gluetun-sync
-    dockerfile: apps/gluetun-sync/Dockerfile
+    dockerfile: ./docker/medium.Dockerfile
     buildArgs:
-      BASE_IMAGE: harbor.local.abbottland.io/library/gluetun-sync-installer
+      PROJECT: "@abbottland/gluetun-sync"
     kaniko: '$(echo $KANIKO)'
+    createPullSecret: false
     tags:
       - latest
 
@@ -67,6 +75,15 @@ dev:
       app: gluetun
     container: gluetun-sync
     namespace: media
-    devImage: harbor.local.abbottland.io/library/gluetun-sync-installer
+    devImage: harbor.local.abbottland.io/library/gluetun-sync-builder
     command: ["turbo"]
-    args: ["dev", "--filter=gluetun-sync", "--log-prefix=none"]
+    args: ["dev", "--filter=@abbottland/gluetun-sync", "--log-prefix=none", "--env-mode=loose"]
+    env:
+      - name: GLUETUN_API_HOST
+        value: http://localhost:8000
+      - name: QBITTORRENT_API_HOST
+        value: http://localhost:8080
+      - name: QBITTORRENT_USERNAME
+        value: admin
+      - name: QBITTORRENT_PASSWORD
+        value: taMb9W2hP

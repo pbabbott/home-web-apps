@@ -1,7 +1,5 @@
 // https://www.ipify.org/
 // curl 'https://api.ipify.org?format=json'
-
-// TODO: call this only in production
 export type IpAddressResult =
 {
     ip: string

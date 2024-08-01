@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { EnvironmentVariable, ConfigSection, EnvironmentVariableType } from '../../lib/decorators'
 
 export class ProjectConfig {

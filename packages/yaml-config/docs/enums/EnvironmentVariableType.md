@@ -1,4 +1,4 @@
-[@home-web-apps/yaml-config](../README.md) / EnvironmentVariableType
+[@abbottland/yaml-config](../README.md) / EnvironmentVariableType
 
 # Enumeration: EnvironmentVariableType
 

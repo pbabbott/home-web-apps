@@ -1,18 +1,19 @@
 # Root directory
-.git
-.devspace
-.vscode
-.turbo
-docker
-node_modules
-.dockerignore
-.env*
-devspace.yaml
-docker-compose.yml
-README.md
+**.git
+**.devspace
+**.vscode
+**.turbo
+**docker
+**node_modules
+**.dockerignore
+**.env*
+**.env
+**devspace.yaml
+**docker-compose.yml
+**README.md
 
 # Sub directories
-dist
-Dockerfile
-.next
+**dist
+**Dockerfile
+**.next
 

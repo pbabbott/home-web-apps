@@ -1,6 +1,6 @@
-@home-web-apps/yaml-config
+@abbottland/yaml-config
 
-# @home-web-apps/yaml-config
+# @abbottland/yaml-config
 
 ## Table of contents
 

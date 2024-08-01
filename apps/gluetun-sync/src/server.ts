@@ -2,6 +2,7 @@ import { json, urlencoded } from "body-parser";
 import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import { config } from './config'
 
 export const createServer = (): Express => {
   const app = express();
@@ -17,3 +18,14 @@ export const createServer = (): Express => {
 
   return app;
 };
+
+export const startServer = () => {
+  const port = config.port;
+
+  const server = createServer();
+  server.listen(port, () => {
+    console.log(`gluetun-sync running on ${port}`);
+  });
+
+}
+

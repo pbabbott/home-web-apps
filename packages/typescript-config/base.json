@@ -9,6 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "inlineSources": false,
     "isolatedModules": true,
+    "experimentalDecorators": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noUnusedLocals": false,

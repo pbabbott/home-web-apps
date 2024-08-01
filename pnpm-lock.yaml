@@ -20,6 +20,9 @@ importers:
       '@abbottland/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@abbottland/yaml-config':
+        specifier: workspace:*
+        version: link:../../packages/yaml-config
       body-parser:
         specifier: ^1.20.2
         version: 1.20.2
@@ -32,6 +35,9 @@ importers:
       morgan:
         specifier: ^1.10.0
         version: 1.10.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
     devDependencies:
       '@abbottland/eslint-config':
         specifier: workspace:*
