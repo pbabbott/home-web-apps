@@ -4,6 +4,7 @@ import {
   login,
   setApplicationPreference,
 } from "../api/qbittorrent";
+import { logAttempt, logFailure, logSuccess, SyncCaller } from "../data";
 
 const logLocation = "services:sync";
 
@@ -17,15 +18,20 @@ export type SyncResult = {
 };
 
 const failure = (message: string): SyncResult => {
+  logFailure(message)
   return { success: false, validationMessage: message };
 };
 
 const success = (message: string): SyncResult => {
+  logSuccess()
   return { success: true, validationMessage: message };
 };
-export const syncPorts = async (): Promise<SyncResult> => {
-  // TODO: move this to a route
+export const syncPorts = async (callerIdentity: SyncCaller): Promise<SyncResult> => {
   try {
+
+    // Log the attempt in the DB
+    logAttempt(callerIdentity)
+
     // Get Gluetun port
     log(`Getting port from gluetun...`);
     const gluetunPort = await getForwardedPort();

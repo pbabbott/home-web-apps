@@ -1,19 +1,17 @@
 import 'reflect-metadata'
 import { initConfig, validateConfig } from './config'
 import { startServer } from "./server";
-import { showPublicIp } from './services/publicIpService';
-import { syncPorts } from './services/syncService';
+import { cronJob, startCron } from './cron';
 
 const start = async () => {
   await initConfig()
   validateConfig();
 
-  // TODO: move this to a route
-  showPublicIp();
+  startCron();
   startServer();
 
-  const result = await syncPorts();
-  console.log(`Success=${result.success} : ${result.validationMessage}`)
+  // Run cron once at the start after 10 seconds
+  setTimeout(cronJob, 1000*10)
     
 };
 

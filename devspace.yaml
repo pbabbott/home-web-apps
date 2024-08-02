@@ -77,7 +77,7 @@ dev:
     namespace: media
     devImage: harbor.local.abbottland.io/library/gluetun-sync-builder
     command: ["turbo"]
-    args: ["dev", "--filter=@abbottland/gluetun-sync", "--log-prefix=none", "--env-mode=loose"]
+    args: ["--filter=@abbottland/gluetun-sync", "--log-prefix=none", "--env-mode=loose", "dev"]
     env:
       - name: GLUETUN_API_HOST
         value: http://localhost:8000
@@ -85,5 +85,5 @@ dev:
         value: http://localhost:8080
       - name: QBITTORRENT_USERNAME
         value: admin
-      - name: QBITTORRENT_PASSWORD
-        value: taMb9W2hP
+      - name: SHOW_CONFIG
+        value: true

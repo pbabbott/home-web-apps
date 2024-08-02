@@ -3,7 +3,8 @@ import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import { config } from "./config";
-import { sync } from "./controllers/sync";
+import { doSync } from "./controllers/sync";
+import { getPublicIp, getStatus } from "./controllers/status";
 
 export const createServer = (): Express => {
   const app = express();
@@ -16,7 +17,9 @@ export const createServer = (): Express => {
     .get("/healthz", (_, res) => {
       return res.json({ ok: true });
     })
-    .get("/sync", sync);
+    .post("/sync", doSync)
+    .get("/status", getStatus)
+    .get("/status/public-ip", getPublicIp);
 
   return app;
 };
