@@ -2,7 +2,8 @@ import { json, urlencoded } from "body-parser";
 import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
-import { config } from './config'
+import { config } from "./config";
+import { sync } from "./controllers/sync";
 
 export const createServer = (): Express => {
   const app = express();
@@ -12,9 +13,10 @@ export const createServer = (): Express => {
     .use(urlencoded({ extended: true }))
     .use(json())
     .use(cors())
-    .get("/status", (_, res) => {
+    .get("/healthz", (_, res) => {
       return res.json({ ok: true });
-    });
+    })
+    .get("/sync", sync);
 
   return app;
 };
@@ -26,6 +28,4 @@ export const startServer = () => {
   server.listen(port, () => {
     console.log(`gluetun-sync running on ${port}`);
   });
-
-}
-
+};

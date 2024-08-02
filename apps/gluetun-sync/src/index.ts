@@ -2,24 +2,19 @@ import 'reflect-metadata'
 import { initConfig, validateConfig } from './config'
 import { startServer } from "./server";
 import { showPublicIp } from './services/publicIpService';
-import { getForwardedPort } from './api/gluetun/gluetun';
-import { getApplicationPreferences, login } from './api/qbittorrent';
+import { syncPorts } from './services/syncService';
 
 const start = async () => {
   await initConfig()
   validateConfig();
 
+  // TODO: move this to a route
   showPublicIp();
   startServer();
-  
-  const gluetunPort = await getForwardedPort()
-  console.log('gluetunPort', gluetunPort)
 
-  const qbitTorrentLoginResult = await login()
-  console.log('qbittorrent login', qbitTorrentLoginResult)
-
-  if (qbitTorrentLoginResult !== null)
-    await getApplicationPreferences(qbitTorrentLoginResult)
+  const result = await syncPorts();
+  console.log(`Success=${result.success} : ${result.validationMessage}`)
+    
 };
 
 start();

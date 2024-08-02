@@ -12,10 +12,15 @@ export type ForwardedPortResult =
 export const getForwardedPort = async () => {
     // https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md
 
-    const relativeUrl = '/v1/openvpn/portforwarded'
-    const uri = path.join(config.gluetun.apiHost, relativeUrl)
-    const response = await fetch(uri)
-    const data = await response.json();
-    return data as ForwardedPortResult
+    try{
+        const relativeUrl = '/v1/openvpn/portforwarded'
+        const uri = path.join(config.gluetun.apiHost, relativeUrl)
+        const response = await fetch(uri)
+        const data = await response.json();
+        return data as ForwardedPortResult
+    }catch (err){
+        console.error('Error getting forwareded port from gluetun: ', err)
+        return null
+    }
      
 }
