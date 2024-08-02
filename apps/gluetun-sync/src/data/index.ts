@@ -10,6 +10,7 @@ export type StatusRecord = {
     lastFailureMessage?: string
     lastAttempt?: Date,
     lastAttemptBy?: SyncCaller
+    mostRecentAttemptSuccessful?: boolean
 }
 
 export enum SyncCaller {
@@ -29,10 +30,12 @@ export const logAttempt = (callerIdentity: SyncCaller) => {
 
 export const logSuccess = () => {
     myDb.lastSuccess = new Date()
+    myDb.mostRecentAttemptSuccessful = true
 }
 export const logFailure = (lastFailureMessage: string) => {
     myDb.lastFailure = new Date()
     myDb.lastFailureMessage = lastFailureMessage
+    myDb.mostRecentAttemptSuccessful = false
 }
 
 export const logCronStart = () => {

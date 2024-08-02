@@ -1,14 +1,10 @@
 import { getIpAddress } from "../api/ip/ipify";
-
 export const showPublicIp = async () => {
-  // TODO: try catch here
-  const nodeEnv = process.env.NODE_ENV;
-  if (nodeEnv === "production") {
+  try {
     const ipAddress = await getIpAddress();
-    if (ipAddress != null) {
-      console.info(`IP Address is: ${ipAddress.ip}`);
-    }
-  } else {
-    console.debug(`Not showing IP address as NODE_ENV=${nodeEnv}`);
+    return ipAddress;
+  } catch (err) {
+    console.log("Could not get ip address", err);
+    return null;
   }
 };

@@ -4,7 +4,7 @@ import morgan from "morgan";
 import cors from "cors";
 import { config } from "./config";
 import { doSync } from "./controllers/sync";
-import { getPublicIp, getStatus } from "./controllers/status";
+import { getPorts, getPublicIp, getStatus } from "./controllers/status";
 
 export const createServer = (): Express => {
   const app = express();
@@ -19,7 +19,8 @@ export const createServer = (): Express => {
     })
     .post("/sync", doSync)
     .get("/status", getStatus)
-    .get("/status/public-ip", getPublicIp);
+    .get("/status/public-ip", getPublicIp)
+    .get("/status/ports", getPorts)
 
   return app;
 };
