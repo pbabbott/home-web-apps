@@ -1,6 +1,4 @@
-import React from 'react';
-
-import { Button } from './Button';
+import { Button } from '../Button/Button';
 import './header.css';
 
 type User = {
@@ -16,7 +14,7 @@ export interface HeaderProps {
 
 export const Header = ({ user, onLogin, onLogout, onCreateAccount }: HeaderProps) => (
   <header>
-    <div className="storybook-header">
+    <div className="storybook-header bg-brand-primary text-brand-accent">
       <div>
         <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
           <g fill="none" fillRule="evenodd">

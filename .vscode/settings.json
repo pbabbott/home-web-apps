@@ -22,5 +22,8 @@
     "markdown",
     "json",
     "jsonc"
+  ],
+  "cSpell.words": [
+    "tailwindcss"
   ]
 }
