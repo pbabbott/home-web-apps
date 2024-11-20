@@ -2,11 +2,11 @@ import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
-import { FuiButton } from './FuiButton';
+import { Button } from './Button';
 
 const meta = {
-  title: 'Example/FuiButton',
-  component: FuiButton,
+  title: 'Example/Button',
+  component: Button,
   parameters: {
     layout: 'centered',
   },
@@ -32,7 +32,7 @@ const meta = {
     onClick: fn(),
     children: 'Button Text' // Default text for all stories
   },
-} satisfies Meta<typeof FuiButton>;
+} satisfies Meta<typeof Button>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -113,9 +113,9 @@ export const AccentFalcon: Story = {
 export const AllVariants: Story = {
   render: (args) => (
     <div className="flex gap-4">
-      <FuiButton {...args} variant="contained">Contained</FuiButton>
-      <FuiButton {...args} variant="outlined">Outlined</FuiButton>
-      <FuiButton {...args} variant="text">Text</FuiButton>
+      <Button {...args} variant="contained">Contained</Button>
+      <Button {...args} variant="outlined">Outlined</Button>
+      <Button {...args} variant="text">Text</Button>
     </div>
   )
 };
@@ -124,13 +124,13 @@ export const AllVariants: Story = {
 export const ColorShowcase: Story = {
   render: (args) => (
     <div className="grid grid-cols-2 gap-4">
-      <FuiButton {...args} color="primary">Primary</FuiButton>
-      <FuiButton {...args} color="secondary">Secondary</FuiButton>
-      <FuiButton {...args} color="success">Success</FuiButton>
-      <FuiButton {...args} color="error">Error</FuiButton>
-      <FuiButton {...args} color="warning">Warning</FuiButton>
-      <FuiButton {...args} color="accent-purple">Accent Purple</FuiButton>
-      <FuiButton {...args} color="accent-falcon">Accent Falcon</FuiButton>
+      <Button {...args} color="primary">Primary</Button>
+      <Button {...args} color="secondary">Secondary</Button>
+      <Button {...args} color="success">Success</Button>
+      <Button {...args} color="error">Error</Button>
+      <Button {...args} color="warning">Warning</Button>
+      <Button {...args} color="accent-purple">Accent Purple</Button>
+      <Button {...args} color="accent-falcon">Accent Falcon</Button>
     </div>
   )
 };

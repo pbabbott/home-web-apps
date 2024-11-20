@@ -1,3 +1,3 @@
 // TODO: export components here
 
-export { FuiButton, type FuiButtonProps } from './components/FuiButton/FuiButton';
+export { Button, type ButtonProps } from './components/Button/Button';
