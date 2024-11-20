@@ -1,3 +1,4 @@
+import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
@@ -95,7 +96,7 @@ export const Warning: Story = {
 export const AccentPurple: Story = {
   args: {
     variant: 'contained',
-    color: 'accentPurple',
+    color: 'accent-purple',
     children: 'Accent Purple'
   }
 };
@@ -103,33 +104,33 @@ export const AccentPurple: Story = {
 export const AccentFalcon: Story = {
   args: {
     variant: 'contained',
-    color: 'accentFalcon',
+    color: 'accent-falcon',
     children: 'Accent Falcon'
   }
 };
 
-// // Example showing all variants for a color
-// export const AllVariants: Story = {
-//   render: (args) => (
-//     <div className="flex gap-4">
-//       <FuiButton {...args} variant="contained">Contained</FuiButton>
-//       <FuiButton {...args} variant="outlined">Outlined</FuiButton>
-//       <FuiButton {...args} variant="text">Text</FuiButton>
-//     </div>
-//   )
-// };
+// Example showing all variants for a color
+export const AllVariants: Story = {
+  render: (args) => (
+    <div className="flex gap-4">
+      <FuiButton {...args} variant="contained">Contained</FuiButton>
+      <FuiButton {...args} variant="outlined">Outlined</FuiButton>
+      <FuiButton {...args} variant="text">Text</FuiButton>
+    </div>
+  )
+};
 
-// // Example showing all colors in a grid
-// export const ColorShowcase: Story = {
-//   render: (args) => (
-//     <div className="grid grid-cols-2 gap-4">
-//       <FuiButton {...args} color="primary">Primary</FuiButton>
-//       <FuiButton {...args} color="secondary">Secondary</FuiButton>
-//       <FuiButton {...args} color="success">Success</FuiButton>
-//       <FuiButton {...args} color="error">Error</FuiButton>
-//       <FuiButton {...args} color="warning">Warning</FuiButton>
-//       <FuiButton {...args} color="accentPurple">Accent Purple</FuiButton>
-//       <FuiButton {...args} color="accentFalcon">Accent Falcon</FuiButton>
-//     </div>
-//   )
-// };
+// Example showing all colors in a grid
+export const ColorShowcase: Story = {
+  render: (args) => (
+    <div className="grid grid-cols-2 gap-4">
+      <FuiButton {...args} color="primary">Primary</FuiButton>
+      <FuiButton {...args} color="secondary">Secondary</FuiButton>
+      <FuiButton {...args} color="success">Success</FuiButton>
+      <FuiButton {...args} color="error">Error</FuiButton>
+      <FuiButton {...args} color="warning">Warning</FuiButton>
+      <FuiButton {...args} color="accent-purple">Accent Purple</FuiButton>
+      <FuiButton {...args} color="accent-falcon">Accent Falcon</FuiButton>
+    </div>
+  )
+};
