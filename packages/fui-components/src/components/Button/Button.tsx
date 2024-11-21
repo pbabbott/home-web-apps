@@ -60,7 +60,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
 
-  const baseClasses = 'px-4 py-2 transition-colors';
+  const baseClasses = 'px-4 py-2 transition-colors font-monobit text-button uppercase tracking-[.1em]';
   const variantClasses = {
     contained: 'text-white',
     outlined: 'border',
