@@ -1,4 +1,5 @@
 import React from "react";
+import { extendedTwMerge } from '../../utils/extendTwMerge';
 
 type TypographyVariant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'body1' | 'body2' | 'button' | 'caption' | 'small'
 type TypographyComponent = 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'span' | 'div'
@@ -29,9 +30,10 @@ export const Typography: React.FC<TypographyProps> = ({
         'small': 'font-monobit  text-small uppercase tracking-[.05em]',
     }
 
+    const classes = extendedTwMerge(baseClasses, variantClasses[variant], className)
     return (
         <Component 
-            className={`${baseClasses} ${variantClasses[variant]} ${className || ''}`}
+            className={classes}
             {...rest}
         />
     )

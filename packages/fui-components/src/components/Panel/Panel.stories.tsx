@@ -1,20 +1,19 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
 
 import { Panel } from "./Panel";
+import { ReactNode } from "react";
 
 const meta = {
-  title: "Example/Panel",
+  title: "Surfaces/Panel",
   component: Panel,
   parameters: {
     layout: "centered",
   },
-  tags: ["autodocs"],
   argTypes: {
     variant: {
       control: "select",
-      options: ["transparent", "outlined"],
+      options: ["transparent", "outlined", "dots"],
       description: "The variant of the panel",
     },
     color: {
@@ -47,76 +46,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const PanelContent = ({ children }) => {
-  return <div className="m-20">{children}</div>;
+const PanelContent = ({ children }: {children: ReactNode}) => {
+  return <div className="m-20 text-body2">{children}</div>;
 };
 
-export const Primary: Story = {
+export const Default: Story = {
   args: {
-    variant: "transparent",
-    color: "primary",
-    children: <PanelContent>Primary Panel</PanelContent>,
-  },
-};
-
-export const Secondary: Story = {
-  args: {
-    variant: "transparent",
-    color: "secondary",
-    children: <PanelContent>Secondary Panel</PanelContent>,
-  },
-};
-
-export const Outlined: Story = {
-  args: {
-    variant: "outlined",
-    color: "primary",
-    children: <PanelContent>Outlined Panel</PanelContent>,
-  },
-};
-
-export const Success: Story = {
-  args: {
-    variant: "transparent",
-    color: "success",
-    children: <PanelContent>Success Panel</PanelContent>,
-  },
-};
-
-export const Error: Story = {
-  args: {
-    variant: "transparent",
-    color: "error",
-    children: <PanelContent>Error</PanelContent>,
-  },
-};
-
-export const Warning: Story = {
-  args: {
-    variant: "transparent",
-    color: "warning",
-    children: <PanelContent>Warning</PanelContent>,
-  },
-};
-
-export const AccentPurple: Story = {
-  args: {
-    variant: "transparent",
-    color: "accent-purple",
-    children: <PanelContent>Accent Purple</PanelContent>,
-  },
-};
-
-export const AccentFalcon: Story = {
-  args: {
-    variant: "transparent",
-    color: "accent-falcon",
     children: <PanelContent>Accent Falcon</PanelContent>,
   },
 };
 
 // Example showing all variants for a single color
-export const AllVariants: Story = {
+export const VariantShowcase: Story = {
   render: (args) => (
     <div className="flex gap-4">
       <Panel {...args} variant="transparent">
@@ -125,6 +66,9 @@ export const AllVariants: Story = {
       <Panel {...args} variant="outlined">
         <PanelContent>Outlined</PanelContent>
       </Panel>
+      <Panel {...args} variant="dots">
+        <PanelContent>Dots</PanelContent>
+      </Panel>
     </div>
   ),
 };
@@ -132,7 +76,7 @@ export const AllVariants: Story = {
 // Example showing all colors in a grid
 export const ColorShowcase: Story = {
   render: (args) => (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-6">
       <Panel {...args} color="default">
         <PanelContent>Default</PanelContent>
       </Panel>

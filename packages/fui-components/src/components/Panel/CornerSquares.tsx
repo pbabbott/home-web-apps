@@ -3,7 +3,7 @@ import { PanelColor } from "./types";
 
 const getSquareColorClass = (color: PanelColor) => {
   const colors = {
-    default: "fill-neutral-600",
+    default: "fill-neutral-500",
     white: "fill-neutral-50",
     primary: "fill-primary-300",
     secondary: "fill-secondary-200",

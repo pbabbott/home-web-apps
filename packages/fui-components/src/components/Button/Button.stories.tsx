@@ -1,16 +1,14 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
-import { Button } from './Button';
+import { Button, ButtonProps } from './Button';
 
 const meta = {
-  title: 'Example/Button',
+  title: 'Inputs/Button',
   component: Button,
   parameters: {
     layout: 'centered',
   },
-  tags: ['autodocs'],
   argTypes: {
     variant: {
       control: 'select',
@@ -37,87 +35,64 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const ButtonVariants = (args: ButtonProps) => (
+  <div className="flex gap-4">
+    <Button {...args} variant="contained">Contained</Button>
+    <Button {...args} variant="outlined">Outlined</Button>
+    <Button {...args} variant="text">Text</Button>
+  </div>
+)
+
 export const Primary: Story = {
+  name: 'Color: Primary',
   args: {
-    variant: 'contained',
-    color: 'primary',
-    children: 'Primary Button'
-  }
+    color: 'primary'
+  },
+  render: ButtonVariants
 };
-
 export const Secondary: Story = {
+  name: 'Color: Secondary',
   args: {
-    variant: 'contained',
-    color: 'secondary',
-    children: 'Secondary Button'
-  }
+    color: 'secondary'
+  },
+  render: ButtonVariants
 };
-
-export const Outlined: Story = {
-  args: {
-    variant: 'outlined',
-    color: 'primary',
-    children: 'Outlined Button'
-  }
-};
-
-export const TextVariant: Story = {
-  args: {
-    variant: 'text',
-    color: 'primary',
-    children: 'Text Button'
-  }
-};
-
 export const Success: Story = {
+  name: 'Color: Success',
   args: {
-    variant: 'contained',
-    color: 'success',
-    children: 'Success Button'
-  }
+    color: 'success'
+  },
+  render: ButtonVariants
 };
 
 export const Error: Story = {
+  name: 'Color: Error',
   args: {
-    variant: 'contained',
-    color: 'error',
-    children: 'Delete'
-  }
+    color: 'error'
+  },
+  render: ButtonVariants
 };
 
 export const Warning: Story = {
+  name: 'Color: Warning',
   args: {
-    variant: 'contained',
-    color: 'warning',
-    children: 'Warning'
-  }
+    color: 'warning'
+  },
+  render: ButtonVariants
 };
-
-export const AccentPurple: Story = {
+export const Purple: Story = {
+  name: 'Color: Accent - Purple',
   args: {
-    variant: 'contained',
-    color: 'accent-purple',
-    children: 'Accent Purple'
-  }
+    color: 'accent-purple'
+  },
+  render: ButtonVariants
 };
-
 export const AccentFalcon: Story = {
+  name: 'Color: Accent - Falcon',
   args: {
-    variant: 'contained',
-    color: 'accent-falcon',
-    children: 'Accent Falcon'
-  }
-};
-
-// Example showing all variants for a color
-export const AllVariants: Story = {
-  render: (args) => (
-    <div className="flex gap-4">
-      <Button {...args} variant="contained">Contained</Button>
-      <Button {...args} variant="outlined">Outlined</Button>
-      <Button {...args} variant="text">Text</Button>
-    </div>
-  )
+    color: 'accent-falcon'
+  },
+  render: ButtonVariants
 };
 
 // Example showing all colors in a grid

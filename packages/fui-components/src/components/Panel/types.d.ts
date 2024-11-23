@@ -8,4 +8,4 @@ export type PanelColor =
   | "warning"
   | "accent-purple"
   | "accent-falcon";
-export type PanelVariant = "transparent" | "outlined";
+export type PanelVariant = "transparent" | "outlined" | "dots";
