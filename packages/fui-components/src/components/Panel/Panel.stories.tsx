@@ -52,6 +52,8 @@ const PanelContent = ({ children }: {children: ReactNode}) => {
 
 export const Default: Story = {
   args: {
+    color: "primary",
+    variant: "dots",
     children: <PanelContent>Accent Falcon</PanelContent>,
   },
 };

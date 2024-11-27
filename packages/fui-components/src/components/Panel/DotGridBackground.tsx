@@ -18,8 +18,11 @@ const getDotColorClass = (color: PanelColor) => {
 
 const DotGridBackground = ({ color }: { color: PanelColor }) => {
   // These values can be adjusted to match your desired appearance
-  const dotSize = 0.4;
-  const spacing = 10;
+  const dotSize = 0.8;
+  const spacing = 14;
+
+  const patternOffset = (spacing / 2) + -2
+
   const dotColorClassName = getDotColorClass(color);
   const patternId = `dot-pattern-${color}`;
 
@@ -28,13 +31,11 @@ const DotGridBackground = ({ color }: { color: PanelColor }) => {
       <svg
         className="w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-        viewBox={`0 0 100 100`}
       >
         <pattern
           id={patternId}
-          x="0"
-          y="0"
+          x={-patternOffset}
+          y={-patternOffset}
           width={spacing}
           height={spacing}
           patternUnits="userSpaceOnUse"
