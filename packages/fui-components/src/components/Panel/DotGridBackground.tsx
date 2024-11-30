@@ -45,6 +45,7 @@ const DotGridBackground = ({ color }: { color: PanelColor }) => {
             cy={spacing / 2}
             r={dotSize}
             className={dotColorClassName}
+            shapeRendering="crispEdges"
           />
         </pattern>
         <rect width="100%" height="100%" fill={`url(#${patternId})`} />

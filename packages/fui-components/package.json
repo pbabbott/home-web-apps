@@ -15,6 +15,7 @@
     "react-dom": "^18.0.0"
   },
   "dependencies": {
+    "animejs": "^3.2.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.4"
@@ -31,6 +32,7 @@
     "@storybook/react": "^8.4.4",
     "@storybook/react-vite": "^8.4.4",
     "@storybook/test": "^8.4.4",
+    "@types/animejs": "^3.1.12",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",

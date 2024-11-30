@@ -166,6 +166,9 @@ importers:
 
   packages/fui-components:
     dependencies:
+      animejs:
+        specifier: ^3.2.2
+        version: 3.2.2
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -209,6 +212,9 @@ importers:
       '@storybook/test':
         specifier: ^8.4.4
         version: 8.4.4(storybook@8.4.4(prettier@3.3.3))
+      '@types/animejs':
+        specifier: ^3.1.12
+        version: 3.1.12
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.12
@@ -1625,6 +1631,9 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
+  '@types/animejs@3.1.12':
+    resolution: {integrity: sha512-fpdH+ZtlO0kqjTOqRaBdsEmvpRNOayI8k4EVkEtitL5l6wducDOXk0rgQgfZqWf/ZX9DzXrHf257S5i9xTcISQ==}
+
   '@types/argparse@1.0.38':
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
 
@@ -2126,6 +2135,9 @@ packages:
 
   ajv@8.13.0:
     resolution: {integrity: sha512-PRA911Blj99jR5RMeTunVbNXMF6Lp4vZXnk5GQjcnUWUTsrXtekg/pnmFFI2u/I36Y/2bITGS30GZCXei6uNkA==}
+
+  animejs@3.2.2:
+    resolution: {integrity: sha512-Ao95qWLpDPXXM+WrmwcKbl6uNlC5tjnowlaRYtuVDHHoygjtIPfDUoK9NthrlZsQSKjZXlmji2TrBUAVbiH0LQ==}
 
   ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
@@ -6587,6 +6599,8 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.0
 
+  '@types/animejs@3.1.12': {}
+
   '@types/argparse@1.0.38': {}
 
   '@types/aria-query@5.0.4': {}
@@ -7286,6 +7300,8 @@ snapshots:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
       uri-js: 4.4.1
+
+  animejs@3.2.2: {}
 
   ansi-escapes@4.3.2:
     dependencies:

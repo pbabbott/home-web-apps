@@ -35,6 +35,7 @@ const Cross = ({
         y2={halfSize}
         strokeWidth={crossWidth}
         className={lineClasses}
+        shapeRendering="crispEdges" 
       />
       <line
         x1={halfSize}
@@ -43,6 +44,7 @@ const Cross = ({
         y2={crossSize}
         strokeWidth={crossWidth}
         className={lineClasses}
+        shapeRendering="crispEdges"
       />
     </svg>
   );
