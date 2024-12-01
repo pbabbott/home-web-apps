@@ -1,17 +1,10 @@
-import React, { useState, InputHTMLAttributes, FocusEvent } from "react";
+import React, { useState, FocusEvent } from "react";
 import ActiveOrnament from "./ActiveOrnament";
 import { extendedTwMerge } from "../../utils/extendTwMerge";
+import { InputColor } from "./types";
+import { getSvgColorClasses } from "./ColorHelpers";
 
-const useRefs = () => {
-  const refsByKey = useRef<Record<string,HTMLElement | null>>({})
 
-  const setRef = (element: HTMLElement | null, key: string) => {
-    refsByKey.current[key] = element;
-  }
-
-  return {refsByKey: refsByKey.current, setRef};
-}
-export type InputColor = "primary" | "default";
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   color: InputColor;
@@ -58,6 +51,8 @@ export const Input: React.FC<InputProps> = ({
   const containerColorClasses = getContainerColorClasses(color);
   const inputColorClasses = getInputColorClasses(color);
 
+  const svgColorClasses = getSvgColorClasses(color)
+
   const svgHeight = 4;
 
   return (
@@ -77,12 +72,12 @@ export const Input: React.FC<InputProps> = ({
           y1="2"
           x2="100%"
           y2="2"
-          className="stroke-2 stroke-primary-300"
+          className={extendedTwMerge("stroke-2", svgColorClasses.line)}
           shapeRendering="crispEdges"
         />
       </svg>
       {isActive && (
-        <ActiveOrnament />
+        <ActiveOrnament color={color} />
       )}
     </div>
   );

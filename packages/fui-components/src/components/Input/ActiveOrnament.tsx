@@ -1,21 +1,25 @@
-import { useRef, useEffect, useMemo, useState, createRef } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { extendedTwMerge } from "../../utils/extendTwMerge";
 import anime from "animejs";
+import { InputColor } from "./types";
+import { getSvgColorClasses } from "./ColorHelpers";
 
-const useRefs = () => {
-  const refsByKey = useRef<Record<string,SVGElement | null>>({})
+const useRefs = <T extends SVGElement | HTMLElement>() => {
+  const refsByKey = useRef<Record<string, T | null>>({})
 
-  const setRef = (element: SVGElement | null, key: string) => {
+  const setRef = (element: T | null, key: string) => {
     refsByKey.current[key] = element;
   }
   return {refsByKey: refsByKey.current, setRef};
 }
 
-const ActiveOrnament = () => {
+const ActiveOrnament = ({color}: {color: InputColor}) => {
   const svgHeight = 4;
 
-  const lineClasses = "stroke-2 stroke-primary-300";
-  const innerCircleClasses = extendedTwMerge(lineClasses, "fill-primary-300");
+  const colorClasses = getSvgColorClasses(color)
+
+  const lineClasses = extendedTwMerge("stroke-2", colorClasses.line);
+  const innerCircleClasses = extendedTwMerge(lineClasses, colorClasses.circle);
 
   const lineCount = 5;
   const lineSpacing = 5;
@@ -34,8 +38,7 @@ const ActiveOrnament = () => {
   const outerCircle = useRef<SVGCircleElement | null>(null);
   const innerCircle = useRef<SVGCircleElement | null>(null);
 
-  const {refsByKey, setRef} = useRefs()
-
+  const {refsByKey, setRef} = useRefs<SVGElement>()
 
   const diagonalStartCoordinate = {
     x: "50%",
