@@ -1,22 +1,9 @@
-module.exports = {
-  extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
-  ],
-  env: {
-    node: true,
-    es6: true,
-  },
-  parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module",
-  },
-  overrides: [
-    {
-      files: ["**/__tests__/**/*"],
-      env: {
-        jest: true,
-      },
-    },
-  ],
-};
+import baseConfigs from './base.js';
+/**
+ * A shared ESLint configuration for the repository.
+ *
+ * @type {import("eslint").Linter.Config}
+ * */
+export default [
+  ...baseConfigs
+];
