@@ -1,3 +1,4 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
 import { EnvironmentVariable, ConfigSection, AppConfig } from '../../lib/decorators'
 
 @AppConfig({ appPrefix: 'YAML_CONFIG'})

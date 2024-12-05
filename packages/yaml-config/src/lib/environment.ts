@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EnvironmentVariableType } from "./decorators";
 import { appConfigKey, configSectionKey, environmentVariableKey, environmentVariableTypeKey } from './constants'
 
@@ -41,7 +42,7 @@ export const getEnvConfig = (defaultConfig: any, configSectionPrefix = ""): obje
         if (configSectionMetadata) {
             // Next, recurse down the object for properties marked by @ConfigSection
             const nextPrefix = getNextName(prefix, configSectionMetadata)
-            result[key] = getEnvConfig(defaultConfig[key], nextPrefix)
+            result[key] = getEnvConfig(defaultConfig[key] as any, nextPrefix)
         }
 
     })

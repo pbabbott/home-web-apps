@@ -83,20 +83,17 @@ export enum EnvironmentVariableType {
     /**
      * Environment variable should be treated as a String.  This is the default option.
      */
-    // eslint-disable-next-line no-unused-vars
     STRING,
 
     /**
      * Environment variable should be treated as a Number(). 
      */
-    // eslint-disable-next-line no-unused-vars
     NUMBER,
 
 
     /**
      * Environment variable should be as a Boolean.
      */
-    // eslint-disable-next-line no-unused-vars
     BOOLEAN
 }
 

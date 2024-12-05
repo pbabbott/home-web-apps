@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getEnvConfig } from '../lib/environment'
 import { ProjectConfig, expectedData, setEnvironmentVariables } from '../fixtures/simple'
 
