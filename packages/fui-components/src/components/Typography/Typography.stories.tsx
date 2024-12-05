@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import type { Meta, StoryObj } from "@storybook/react";
 import { Typography } from "./Typography";
 

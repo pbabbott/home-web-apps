@@ -111,7 +111,7 @@ const ActiveOrnament = ({color}: {color: InputColor}) => {
           "-=150"
         );
 
-      [...Array(lineCount)].forEach((n, i) => {
+      [...Array(lineCount)].forEach((_, i) => {
         // Delay is reduced with more lines
         const delayMultiplier = ((lineCount-i)/lineCount)
         const delay = (i*10)*delayMultiplier
