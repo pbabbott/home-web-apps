@@ -1,9 +1,9 @@
 {
   "eslint.workingDirectories": [
-    {
-      "mode": "auto"
-    }
+    { "pattern": "apps/*/" },
+    { "pattern": "packages/*/" }
   ],
+  
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -11,7 +11,6 @@
     "typescriptreact"
   ],
   "eslint.probe": [
-    "astro",
     "javascript",
     "javascriptreact",
     "typescript",
@@ -24,7 +23,12 @@
     "jsonc"
   ],
   "cSpell.words": [
+    "animejs",
+    "cronstrue",
+    "gluetun",
     "monobit",
-    "tailwindcss"
-  ]
+    "tailwindcss",
+    "tseslint"
+  ],
+  "eslint.useFlatConfig": true
 }
