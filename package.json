@@ -8,11 +8,12 @@
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
-    "test": "turbo run test", 
-    "storybook": "turbo run storybook"
+    "test": "turbo run test",
+    "storybook": "turbo run storybook",
+    "graph": "turbo graph"
   },
-  "dependencies": {},
   "devDependencies": {
+    "eslint": "^9.16.0",
     "prettier": "^3.2.5",
     "turbo": "^2.0.9"
   },
