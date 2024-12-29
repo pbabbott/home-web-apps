@@ -35,5 +35,7 @@
 				"typescript.tsdk": "node_modules/typescript/lib"
 			}
         }
-    }
+    },
+	"containerUser": "vscode"
+	// "postStartCommand": "docker buildx create --use --name mybuilder --driver docker-container || true"
 }

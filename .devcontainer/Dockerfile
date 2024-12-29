@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     zsh \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
 USER vscode
-# COPY .zprofile /home/vscode/.zprofile
-# COPY .zshrc /home/vscode/.zshrc
-# RUN chown vscode:vscode /home/vscode/.zprofile /home/vscode/.zshrc
+
