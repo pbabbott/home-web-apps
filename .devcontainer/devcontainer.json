@@ -1,0 +1,39 @@
+{
+    "name": "Node.js Development Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "18"
+		},
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"configureZshAsDefaultShell": true,
+			"installOhMyZsh": true,
+			"upgradePackages": true
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"mounts": [
+		"type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+	],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "yzhang.markdown-all-in-one",
+				"aaron-bond.better-comments",
+				"vscode-icons-team.vscode-icons",
+				"streetsidesoftware.code-spell-checker",
+				"bierner.markdown-mermaid",
+				"mikestead.dotenv",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "github.copilot"
+            ],
+            "settings": {
+				"typescript.tsdk": "node_modules/typescript/lib"
+			}
+        }
+    }
+}
