@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "docker:build": "DOCKER_BUILDKIT=1 docker buildx build --builder mybuilder --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from=type=local,src=.docker/cache --cache-to=type=local,dest=.docker/cache -t abbottland/gluetun-sync .",
+    "docker:build": "./docker-build.sh",
     "build": "tsc",
     "clean": "rm -rf dist",
     "dev:gluetun": "nodemon --exec \"node -r esbuild-register ./src/index.ts\" -e .ts",

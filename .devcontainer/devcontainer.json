@@ -13,11 +13,13 @@
 			"installOhMyZsh": true,
 			"upgradePackages": true
 		},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/itsmechlark/features/1password:1": {}
 	},
 	"mounts": [
 		"type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
 	],
+	"runArgs": ["--env-file",".devcontainer/.env"],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -32,10 +34,12 @@
                 "github.copilot"
             ],
             "settings": {
-				"typescript.tsdk": "node_modules/typescript/lib"
+				"typescript.tsdk": "node_modules/typescript/lib",
+				"debug.javascript.autoAttachFilter": "disabled"
 			}
         }
     },
-	"containerUser": "vscode"
-	// "postStartCommand": "docker buildx create --use --name mybuilder --driver docker-container || true"
+	"containerUser": "vscode",
+	"postStartCommand": "/workspaces/home-web-apps/.devcontainer/init-script.sh"
+
 }
