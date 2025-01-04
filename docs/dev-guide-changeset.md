@@ -30,5 +30,9 @@ This will do the following
 ## Issue publication
 
 ```sh
-
+pnpm changeset publish
 ```
+
+This is basically the same as going into each package and running `pnpm publish --registry=https://verdaccio.local.abbottland.io`
+
+It will check to see if the package exists in the remote registry, and if it does not, it will try to push it to remote.
