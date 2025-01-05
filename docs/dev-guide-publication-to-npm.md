@@ -9,7 +9,7 @@ The purpose of this document is to demonstrate how one can publish a new version
 
 ### Step 1 - Issue version
 
-This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Versioning](./dev-guide-versioning.md) first.
+This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Publication - Versioning](./dev-guide-publication-semver.md) first.
 
 ###  Step 2 - Build
 
