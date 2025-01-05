@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.0.2
+
+### Patch Changes
+
+- Testing patch version to test docker push process
+
 ## 0.0.1
 
 ### Patch Changes
