@@ -10,11 +10,12 @@ Alternatively, you can run `cd [project-dir]/[project-name]` and then run `pnpm 
 
 ## Setup
 
-Each package should have a script named `docker:build` and it should call a shell script located in  `scripts/docker-build.sh` 
+Each package should have a script named `docker:build` and `docker:push` and it should call a shell script located in  `scripts/docker-build.sh` (or `scripts/docker-push.sh`)
 
 Abstract example:
 ```json
 "docker:build": "../../scripts/docker-build.sh [project-dir] [project-name]",
+"docker:push": "../../scripts/docker-push.sh [project-dir] [project-name]",
 ```
 
 Tangible example:
@@ -22,4 +23,5 @@ Tangible example:
 ```json
 // Notice the empty space between "apps/" and "gluetun-sync"
 "docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
+"docker:push": "../../scripts/docker-push.sh apps/ gluetun-sync",
 ```
