@@ -9,7 +9,12 @@ The purpose of this document is to explain how one can publish versioned package
 
 ### Step 1 - Issue version
 
-TODO: fix me
+This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Publication - Versioning](./dev-guide-publication-semver.md) first.
+
+###  Step 2 - Publish
+
+Be sure to run a build so that various `dist/` directories are up-to-date.
+
 
 ### Step N - Push all docker images to remote
 

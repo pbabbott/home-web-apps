@@ -16,7 +16,8 @@
       "outputs": []
     },
     "docker:push": {
-      "dependsOn": ["^docker:build"]
+      "dependsOn": ["^docker:build"],
+      "cache": false
     },
     "docs": {
       "dependsOn": ["^build"],
