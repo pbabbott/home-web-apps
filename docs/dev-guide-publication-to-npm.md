@@ -9,7 +9,7 @@ The purpose of this document is to demonstrate how one can publish a new version
 
 ### Step 1 - Issue version
 
-This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Publication - Versioning](./dev-guide-publication-semver.md) first.
+This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Publication - Versioning](./dev-guide-publicgation-semver.md) first.
 
 ###  Step 2 - Build
 
@@ -28,5 +28,5 @@ This is basically the same as going into each package and running `pnpm publish 
 
 The only difference is that it will check to see if the package exists in the remote registry, and if it does not, it will try to push it to remote.
 
-> [!TIP]
+> [!NOTE]
 > This command works because there is an environment variable called `npm_config_registry` set in the `.devcontainer/.env` indicating which registry we should publish to.
