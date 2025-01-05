@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     zsh \
     wget \
     dnsutils \
+    expect \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode

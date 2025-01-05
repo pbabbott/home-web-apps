@@ -42,6 +42,7 @@ RUN rm -rf ./**/*/src
 # Final image
 FROM alpine AS runner
 ARG PROJECT
+ARG PROJECT_DIR
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
@@ -49,7 +50,7 @@ USER nodejs
 
 WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app .
-WORKDIR /app/apps/${PROJECT}
+WORKDIR /app/${PROJECT_DIR}}/${PROJECT}
 
 ARG PORT=8080
 ENV PORT=${PORT}

@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo run build",
     "docker:build": "turbo run docker:build",
+    "docker:push": "turbo run docker:push",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",

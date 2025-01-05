@@ -7,11 +7,11 @@ The purpose of this document is to explain how one can setup a connection to a p
 ### Step 1 - update .env file
 
 > [!TIP]
-> This step is optional. If you don't want to track down values, then simply sign-into one password
+> This step is optional. If you don't want to track down values, then simply [sign into 1password](./dev-env-op.md), and values will be fetched automatically
 
 `DOCKER_REGISTRY` - This value should be set to the registry URL: `harbor.local.abbottland.io`
 
-`DOCKER_USERNAME` - This is the username to be used for `docker login`
+`DOCKER_USERNAME` - This is the username to be used with `docker login`
 
 `DOCKER_PASSWORD` - This is the password to be used with `docker login`
 

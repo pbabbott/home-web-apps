@@ -15,6 +15,9 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "docker:push": {
+      "dependsOn": ["^docker:build"]
+    },
     "docs": {
       "dependsOn": ["^build"],
       "outputs": ["docs/**"]
@@ -28,8 +31,6 @@
     },
     "clean": {
       "cache": false
-    },
-    "storybook": {
     }
   }
 }

@@ -22,10 +22,16 @@ All apps and packages are built with Typescript!
 
 ## Configure your dev environment
 - Step 1 - [Configure your Dev Environment](./docs/dev-env-main.md)
+  - [Dev Environment - Docker](./docs/dev-env-docker.md)
+  - [Dev Environment - NPM](./docs/dev-env-npm.md)
+  - [Dev Environment - 1Password](./docs/dev-env-op.md)
 - Step 2 - Use VS Code to open this repository in a devcontainer
 
 ## Developer guides
 
 - [Build with Docker](./docs/dev-guide-build-with-docker.md) - How to build any package in this project with `docker`
 - [Build with Typescript](./docs/dev-guide-build-with-typescript.md) - How to build any package in this project with `typescript`
-- [Linting](./docs/dev-guide-linting.md) - How does linting work in this repository?
+- [Linting](./docs/dev-guide-linting.md) - How linting is set up with `eslint` in this repository.
+- [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
+- [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
+- [Publication to NPM](./docs/dev-guide-publication-to-npm.md) - How to push new packages to the remote `npm` registry.
