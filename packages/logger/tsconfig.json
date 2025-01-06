@@ -1,5 +1,5 @@
 {
-  "extends": "@abbottland/typescript-config/base.json",
+  "extends": "@abbottland/typescript-config/old-base.json",
   "compilerOptions": {
     "lib": ["ES2015", "DOM"],
     "outDir": "./dist",

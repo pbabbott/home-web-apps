@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "docker:publish": "pnpm run docker:build && pnpm run docker:push",
     "docker:build": "turbo run docker:build",
     "docker:push": "turbo run docker:push",
     "clean": "turbo run clean",

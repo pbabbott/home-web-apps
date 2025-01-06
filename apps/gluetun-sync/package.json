@@ -2,15 +2,14 @@
   "name": "@abbottland/gluetun-sync",
   "version": "0.0.5",
   "private": true,
-  "type": "module",
   "scripts": {
     "docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
     "docker:push": "../../scripts/docker-push.sh apps/ gluetun-sync",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "dev:gluetun": "nodemon --exec \"node -r esbuild-register ./src/index.ts\" -e .ts",
+    "dev": "tsc-watch --onSuccess \"node ./dist/index.js\"",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
-    "start": "node -r esbuild-register ./src/index.ts",
+    "start": "node ./dist/index.js",
     "test": "jest --detectOpenHandles"
   },
   "jest": {
@@ -40,11 +39,9 @@
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
-    "esbuild": "^0.20.1",
-    "esbuild-register": "^3.5.0",
     "jest": "^29.7.0",
-    "nodemon": "^3.1.0",
     "supertest": "^6.3.3",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2",
+    "tsc-watch": "^6.2.1"
   }
 }
