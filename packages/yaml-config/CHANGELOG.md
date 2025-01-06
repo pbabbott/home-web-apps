@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+### Patch Changes
+
+- Testing a release of yaml-config and gluetun-sync
+
 ## 0.2.2
 
 ### Patch Changes

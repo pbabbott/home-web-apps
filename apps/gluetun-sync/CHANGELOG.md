@@ -1,5 +1,14 @@
 # @abbottland/gluetun-sync
 
+## 0.0.8
+
+### Patch Changes
+
+- Testing a release of yaml-config and gluetun-sync
+
+- Updated dependencies []:
+  - @abbottland/yaml-config@0.2.3
+
 ## 0.0.7
 
 ### Patch Changes

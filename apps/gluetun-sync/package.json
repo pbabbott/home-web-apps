@@ -1,6 +1,6 @@
 {
   "name": "@abbottland/gluetun-sync",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "scripts": {
     "docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
