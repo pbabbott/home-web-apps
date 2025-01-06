@@ -7,6 +7,6 @@
       "declarationMap": true,
       "strict": true,
       "emitDecoratorMetadata": true,
-      "composite": true,
+      "composite": false,
     },
 }
