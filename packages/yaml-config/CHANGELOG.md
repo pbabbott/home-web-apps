@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- Rework build process for gluetun-sync and yaml-config packages to handle modules better
+
 ## 0.2.0
 
 ### Minor Changes

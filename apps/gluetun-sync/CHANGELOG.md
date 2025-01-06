@@ -1,5 +1,14 @@
 # @abbottland/gluetun-sync
 
+## 0.0.6
+
+### Patch Changes
+
+- Rework build process for gluetun-sync and yaml-config packages to handle modules better
+
+- Updated dependencies []:
+  - @abbottland/yaml-config@0.2.1
+
 ## 0.0.5
 
 ### Patch Changes
