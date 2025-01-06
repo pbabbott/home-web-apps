@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.0.5
+
+### Patch Changes
+
+- Remove bogus parenthesis
+
 ## 0.0.4
 
 ### Patch Changes

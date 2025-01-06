@@ -50,7 +50,7 @@ USER nodejs
 
 WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app .
-WORKDIR /app/${PROJECT_DIR}}/${PROJECT}
+WORKDIR /app/${PROJECT_DIR}/${PROJECT}
 
 ARG PORT=8080
 ENV PORT=${PORT}
