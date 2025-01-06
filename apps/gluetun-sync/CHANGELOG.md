@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.0.3
+
+### Patch Changes
+
+- Testing another patch to gluetun-sync for flux
+
 ## 0.0.2
 
 ### Patch Changes
