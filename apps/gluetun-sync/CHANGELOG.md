@@ -1,5 +1,14 @@
 # @abbottland/gluetun-sync
 
+## 0.0.7
+
+### Patch Changes
+
+- Removed composite flag from yaml-config, retrying a patch for yaml-config and gluetun-sync
+
+- Updated dependencies []:
+  - @abbottland/yaml-config@0.2.2
+
 ## 0.0.6
 
 ### Patch Changes

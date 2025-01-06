@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+### Patch Changes
+
+- Removed composite flag from yaml-config, retrying a patch for yaml-config and gluetun-sync
+
 ## 0.2.1
 
 ### Patch Changes
