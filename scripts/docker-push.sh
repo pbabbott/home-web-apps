@@ -19,7 +19,6 @@ if docker manifest inspect $IMAGE:$VERSION > /dev/null 2>&1; then
   exit 0
 fi
 
-
 docker push $IMAGE:$VERSION
 
 # Tag the image with latest

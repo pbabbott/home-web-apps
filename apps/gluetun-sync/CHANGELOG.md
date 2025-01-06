@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.0.9
+
+### Patch Changes
+
+- Issuing patch of gluetun-sync to test flux automation
+
 ## 0.0.8
 
 ### Patch Changes
