@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.0.10
+
+### Patch Changes
+
+- Testing a patch version with james on a demo
+
 ## 0.0.9
 
 ### Patch Changes

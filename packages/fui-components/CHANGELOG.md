@@ -1,5 +1,11 @@
 # fui-components
 
+## 0.1.2
+
+### Patch Changes
+
+- Testing a patch version with james on a demo
+
 ## 0.1.1
 
 ### Patch Changes
