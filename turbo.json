@@ -7,7 +7,7 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "outputs": ["coverage/**"],
+      "outputs": ["coverage/**",  "test-results/**"],
       "dependsOn": []
     },
     "docker:build": {
