@@ -2,7 +2,7 @@ name: build packages
 on: workflow_dispatch
 jobs:
   build:
-    runs-on: [self-hosted, ubuntu]
+    runs-on: [self-hosted]
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
