@@ -5,9 +5,15 @@ if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ] || [ -z "$DOCKER_REGIS
     echo "Environment variables DOCKER_USERNAME, DOCKER_PASSWORD, and DOCKER_REGISTRY are not set"
     echo "Fetching values from 1Password..."
     # Fetch docker username and password from 1Password
-    DOCKER_USERNAME=$(op item get "harbor.local.abbottland.io - pbabbott" --field username)
-    DOCKER_PASSWORD=$(op item get "harbor.local.abbottland.io - pbabbott" --field password --reveal)
-    DOCKER_REGISTRY=$(op item get "harbor.local.abbottland.io - pbabbott" --field registry)    
+    mkdir -p ./temp
+    TEMP_FILE=./temp/harbor.json
+    op item get "harbor.local.abbottland.io" --format=json --vault=Homelab > $TEMP_FILE
+
+    DOCKER_USERNAME=$(jq -r '.fields[] | select(.id=="username") | .value' $TEMP_FILE)
+    DOCKER_PASSWORD=$(jq -r '.fields[] | select(.id=="password") | .value' $TEMP_FILE)
+    DOCKER_REGISTRY=https://harbor.local.abbottland.io
+
+    rm $TEMP_FILE
 else
     echo "Environment variables DOCKER_USERNAME, DOCKER_PASSWORD, and DOCKER_REGISTRY are set"
 fi

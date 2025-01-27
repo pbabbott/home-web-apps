@@ -31,7 +31,8 @@
 				"mikestead.dotenv",
                 "dbaeumer.vscode-eslint",
                 "esbenp.prettier-vscode",
-                "github.copilot"
+                "github.copilot",
+				"github.vscode-github-actions"
             ],
             "settings": {
 				"typescript.tsdk": "node_modules/typescript/lib",

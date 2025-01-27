@@ -6,9 +6,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.tsserver.watchOptions": {
     "watchFile": "useFsEvents",
-    
     "configFile": {
-
       "src/**/*.ts": "tsconfig.json",
       "**/*.test.ts": "tsconfig.test.json"
     }

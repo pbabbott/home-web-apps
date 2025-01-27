@@ -4,6 +4,8 @@
 
 # Setup a docker builder in-case of wanting to use buildx
 # Check if the builder named 'mybuilder' exists, if not, create it
-if ! docker buildx inspect mybuilder > /dev/null 2>&1; then
-    docker buildx create --use --name mybuilder --driver docker-container
-fi
+
+# TODO: fix this code
+# if ! docker buildx inspect mybuilder > /dev/null 2>&1; then
+#     docker buildx create --use --name mybuilder --driver docker-container
+# fi
