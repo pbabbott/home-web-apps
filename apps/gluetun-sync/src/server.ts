@@ -29,6 +29,7 @@ export const startServer = () => {
   const port = config.port;
 
   const server = createServer();
+  
   server.listen(port, () => {
     console.log(`gluetun-sync running on ${port}`);
   });

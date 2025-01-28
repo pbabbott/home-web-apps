@@ -8,7 +8,7 @@ jest.mock("../../src/api/gluetun/gluetun");
 jest.mock("../../src/api/qbittorrent");
 
 describe("GET /status", () => {
-  it.only("status check returns 200", async () => {
+  it("status check returns 200", async () => {
     await supertest(createServer())
       .get("/status")
       .expect(200)
@@ -34,7 +34,6 @@ describe("GET /status/ports (mocked api responses)", () => {
       .expect(200)
       .then((res) => {
         result = res.body.result;
-        console.log(res.body);
       });
   });
 

@@ -1,9 +1,8 @@
 import supertest from "supertest";
-import { createServer } from "../../src/server";
 
 describe("GET /healthz", () => {
   it("status check returns 200", async () => {
-    await supertest(createServer())
+    await supertest('http://localhost:3000')
       .get("/healthz")
       .expect(200)
       .then((res) => {

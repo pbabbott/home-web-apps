@@ -10,7 +10,10 @@
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
     "start": "node ./dist/index.js",
-    "test": "tsc -p tsconfig.test.json && jest --detectOpenHandles"
+    "test": "pnpm run test:unit && pnpm run test:int",
+    "test:build": "tsc -p tsconfig.test.json",
+    "test:unit": "pnpm run test:build && jest --config jest.unit.config.js",
+    "test:int": "pnpm run test:build && jest --config jest.integration.config.js"
   },
   "jest": {
     "preset": "@abbottland/jest-presets/node",
