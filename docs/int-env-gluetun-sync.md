@@ -40,3 +40,24 @@ Next up, you can go directly to gluetun-sync to develop the app.
 cd ./apps/gluetun-sync
 pnpm dev
 ```
+
+## Testing Procedure
+
+Both integration and unit tests are set up for `gluetun-sync`!
+
+### Unit Tests
+
+To run the unit tests, you don't need to do much. Just change directory to `apps/gluetun-sync` and run `pnpm test:unit`
+
+### Integration Tests
+
+Follow steps 1-3 for the development procedure that way you will  have:
+- an `.env` file in the project root for media services
+- `docker compose` media stack is running
+- `.env` file for gluetun-sync
+
+Once these things have been accomplished, you can run this command: `pnpm test:int`
+
+## Automation
+
+*Coming soon!*
