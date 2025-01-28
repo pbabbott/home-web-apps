@@ -13,14 +13,14 @@ IMAGE=harbor.local.abbottland.io/library/$PROJECT
 
 docker build \
   -t $IMAGE:$VERSION \
-  -f ../../docker/medium.Dockerfile \
+  -f ../../docker/node-18-pnpm-turbo.Dockerfile \
   --build-arg PROJECT_DIR=$PROJECT_DIR \
   --build-arg PROJECT=$PROJECT \
   --progress=plain \
   ../../
 
-# TODO: determine whether i want to use .docker/cache with turborepo
-# Docker layer caching is pretty fast, but it's not as fast as turborepo
+# TODO: determine whether to use .docker/cache with turborepo
+# Docker layer caching is pretty fast, but it's not as fast as turborepo's caching system
 # DOCKER_BUILDKIT=1
 # docker buildx build
 # --builder mybuilder \

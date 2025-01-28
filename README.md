@@ -35,3 +35,9 @@ All apps and packages are built with Typescript!
 - [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
 - [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
 - [Publication to NPM](./docs/dev-guide-publication-to-npm.md) - How to push new packages to the remote `npm` registry.
+
+## Integration Environments
+
+This section explains one can develop or test each application within this monorepo.
+
+- [Integration Environment: gluetun-sync](./docs/int-env-gluetun-sync.md)
