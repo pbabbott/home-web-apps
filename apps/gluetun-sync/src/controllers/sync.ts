@@ -2,7 +2,7 @@ import { SyncCaller } from "../data"
 import { syncPorts } from "../services/syncService"
 import { Request, Response } from 'express'
 
-export const doSync = async (req: Request, res: Response) => {
+export const doSync = async (_: Request, res: Response) => {
 
     try{
         const result = await syncPorts(SyncCaller.API)
