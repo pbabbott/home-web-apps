@@ -1,4 +1,4 @@
-name: lint packages
+name: tests
 on: 
   workflow_dispatch: {}
   push:
@@ -8,7 +8,7 @@ on:
     branches:
       - main
 jobs:
-  lint:
+  unit-tests:
     uses: ./.github/workflows/reusable-pnpm-script.yml
     with:
-      pnpm-script: lint
+      pnpm-script: test:unit
