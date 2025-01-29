@@ -3,8 +3,6 @@ description: "A composite action to run pnpm install"
 runs:
   using: "composite"
   steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
 
     - name: Setup PNPM
       uses: pnpm/action-setup@v4
