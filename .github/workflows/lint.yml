@@ -1,7 +1,7 @@
-name: build packages
+name: lint packages
 on: workflow_dispatch
 jobs:
-  build:
+  lint:
     runs-on: [self-hosted]
     steps:
       - name: Checkout Repo
