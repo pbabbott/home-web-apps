@@ -9,11 +9,15 @@ on:
       - main
 jobs:
   build:
-    runs-on: [self-hosted, amd64-runner]
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-      - name: pnpm install
-        uses: ./.github/actions/pnpm-install
-      - name: Build packages
-        run: pnpm build
+    uses: ./.github/workflows/reusable-pnpm-script.yml
+    with:
+      pnpm-script: build
+
+    # runs-on: [self-hosted, amd64-runner]
+    # steps:
+    #   - name: Checkout Repo
+    #     uses: actions/checkout@v4
+    #   - name: pnpm install
+    #     uses: ./.github/actions/pnpm-install
+    #   - name: Build packages
+    #     run: pnpm build
