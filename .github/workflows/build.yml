@@ -11,6 +11,14 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9.15.4
+          
+      - name: Cache Node.js
+        uses: actions/cache@v3
+        with:
+          path: ~/.nvm/versions/node
+          key: ${{ runner.os }}-node-${{ hashFiles('**/.nvmrc') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install Node.js
         uses: actions/setup-node@v4
