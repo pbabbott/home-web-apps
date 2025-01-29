@@ -1,0 +1,14 @@
+name: tests
+on: 
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/reusable-pnpm-script.yml
+    with:
+      pnpm-script: test:unit

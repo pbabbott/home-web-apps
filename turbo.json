@@ -6,7 +6,11 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "public/dist/**"],
       "dependsOn": ["^build"]
     },
-    "test": {
+    "test:int": {
+      "outputs": ["coverage/**",  "test-results/**"],
+      "dependsOn": []
+    },
+    "test:unit": {
       "outputs": ["coverage/**",  "test-results/**"],
       "dependsOn": []
     },

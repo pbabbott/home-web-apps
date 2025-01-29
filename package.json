@@ -11,7 +11,8 @@
     "dev": "turbo run dev",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "lint": "turbo run lint",
-    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:int": "turbo run test:int",
     "storybook": "turbo run storybook",
     "graph": "turbo graph"
   },
