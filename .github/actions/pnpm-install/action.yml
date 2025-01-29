@@ -3,7 +3,6 @@ description: "A composite action to run pnpm install"
 runs:
   using: "composite"
   steps:
-
     - name: Setup PNPM
       uses: pnpm/action-setup@v4
       with:
@@ -33,3 +32,4 @@ runs:
 
     - name: Install dependencies
       run: pnpm install
+      shell: bash
