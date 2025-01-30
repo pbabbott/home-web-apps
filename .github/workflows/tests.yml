@@ -26,15 +26,16 @@ jobs:
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
-      - name: Build environment file
+      - name: Build environment files
         run: |
           ./scripts/env-media.sh
+          ./scripts/env-gluetun-sync.sh
         env: 
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
 
       - name: Run media services
-        run: docker compose -f ./docker-compose.media.yml up -d
+        run: docker compose -f ./docker-compose.media.yml -d --quiet-pull up 
 
       - name: pnpm install composite action
         uses: ./.github/actions/pnpm-install
