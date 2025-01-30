@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - ci
   pull_request:
     branches:
       - main
@@ -20,7 +21,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build environment file
+        run: |
+          ./scripts/env-media.sh
+        env: 
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
 
       - name: Run media services
         run: docker compose -f ./docker-compose.media.yml up -d
