@@ -1,4 +1,5 @@
 import library from '@abbottland/eslint-config/library.js';
+import tseslint from 'typescript-eslint';
  
 /** @type {import("eslint").Linter.Config} */
-export default library;
+export default tseslint.config(library);
