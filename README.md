@@ -11,6 +11,7 @@ All apps and packages are built with Typescript!
 - `@abbottland/gluetun-sync` - An express.js application which keeps a qBitTorrent port in sync with a dynamically assigned Gluetun vpn public port to ensure my home IP is not leaked during torrent downloads.
 
 ## Packages
+
 - `@abbottland/eslint-config`: ESLint presets.
 - `@abbottland/fui-components`: React Fantasy UI component library written with Storybook
 - `@abbottland/jest-presets`: Jest configurations
@@ -21,6 +22,7 @@ All apps and packages are built with Typescript!
 # Contributing
 
 ## Configure your dev environment
+
 - Step 1 - [Configure your Dev Environment](./docs/dev-env-main.md)
   - [Dev Environment - Docker](./docs/dev-env-docker.md)
   - [Dev Environment - NPM](./docs/dev-env-npm.md)

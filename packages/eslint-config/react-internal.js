@@ -1,8 +1,8 @@
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginReact from "eslint-plugin-react";
-import reactRefresh from 'eslint-plugin-react-refresh'
-import globals from "globals";
-import baseConfigs from "./base.js";
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginReact from 'eslint-plugin-react';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
+import baseConfigs from './base.js';
 
 /**
  * A custom ESLint configuration for libraries that use React.
@@ -22,10 +22,10 @@ export default [
   },
   {
     plugins: {
-      "react-hooks": pluginReactHooks,
-      "react-refresh": reactRefresh,
+      'react-hooks': pluginReactHooks,
+      'react-refresh': reactRefresh,
     },
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: 'detect' } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
@@ -33,7 +33,7 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
-      "react/react-in-jsx-scope": "off",
+      'react/react-in-jsx-scope': 'off',
     },
   },
 ];

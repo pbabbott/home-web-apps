@@ -4,23 +4,23 @@
 
 @layer base {
   @font-face {
-    font-family: "ethnocentric";
-    src: url("../src/assets/fonts/ethnocentric_rg.otf") format("opentype");
+    font-family: 'ethnocentric';
+    src: url('../src/assets/fonts/ethnocentric_rg.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
   }
   @font-face {
-    font-family: "monobit";
-    src: url("../src/assets/fonts/monobit.ttf") format("truetype");
+    font-family: 'monobit';
+    src: url('../src/assets/fonts/monobit.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
   html {
-    font-family: "monobit", system-ui, sans-serif;
+    font-family: 'monobit', system-ui, sans-serif;
     font-size: 16px;
   }
   body {
     font-size: 1.75rem;
-    letter-spacing: 0
+    letter-spacing: 0;
   }
 }

@@ -1,24 +1,24 @@
-import { useRef, useEffect, useMemo } from "react";
-import { extendedTwMerge } from "../../utils/extendTwMerge";
-import anime from "animejs";
-import { InputColor } from "./types";
-import { getSvgColorClasses } from "./ColorHelpers";
+import { useRef, useEffect, useMemo } from 'react';
+import { extendedTwMerge } from '../../utils/extendTwMerge';
+import anime from 'animejs';
+import { InputColor } from './types';
+import { getSvgColorClasses } from './ColorHelpers';
 
 const useRefs = <T extends SVGElement | HTMLElement>() => {
-  const refsByKey = useRef<Record<string, T | null>>({})
+  const refsByKey = useRef<Record<string, T | null>>({});
 
   const setRef = (element: T | null, key: string) => {
     refsByKey.current[key] = element;
-  }
-  return {refsByKey: refsByKey.current, setRef};
-}
+  };
+  return { refsByKey: refsByKey.current, setRef };
+};
 
-const ActiveOrnament = ({color}: {color: InputColor}) => {
+const ActiveOrnament = ({ color }: { color: InputColor }) => {
   const svgHeight = 4;
 
-  const colorClasses = getSvgColorClasses(color)
+  const colorClasses = getSvgColorClasses(color);
 
-  const lineClasses = extendedTwMerge("stroke-2", colorClasses.line);
+  const lineClasses = extendedTwMerge('stroke-2', colorClasses.line);
   const innerCircleClasses = extendedTwMerge(lineClasses, colorClasses.circle);
 
   const lineCount = 5;
@@ -38,10 +38,10 @@ const ActiveOrnament = ({color}: {color: InputColor}) => {
   const outerCircle = useRef<SVGCircleElement | null>(null);
   const innerCircle = useRef<SVGCircleElement | null>(null);
 
-  const {refsByKey, setRef} = useRefs<SVGElement>()
+  const { refsByKey, setRef } = useRefs<SVGElement>();
 
   const diagonalStartCoordinate = {
-    x: "50%",
+    x: '50%',
     y: ornamentSvgHeight - 2,
   };
 
@@ -66,64 +66,64 @@ const ActiveOrnament = ({color}: {color: InputColor}) => {
     ) {
       const timeline = anime
         .timeline({
-          easing: "easeOutExpo",
+          easing: 'easeOutExpo',
           duration: 550,
         })
         .add({
           targets: underlineRef.current,
           strokeDashoffset: [anime.setDashoffset, 0],
-          easing: "easeInOutSine",
+          easing: 'easeInOutSine',
           duration: 200,
         })
         .add(
           {
             targets: underlineExtension.current,
             strokeDashoffset: [anime.setDashoffset, 0],
-            easing: "easeInOutSine",
+            easing: 'easeInOutSine',
             duration: 50,
           },
-          "-=50"
+          '-=50',
         )
         .add({
           targets: diagonalLine.current,
           strokeDashoffset: [anime.setDashoffset, 0],
-          easing: "easeInOutSine",
+          easing: 'easeInOutSine',
           duration: 150,
         })
         .add(
           {
             targets: outerCircle.current,
-            cx: diagonalEndCoordinate.x + "px",
-            cy: diagonalEndCoordinate.y + "px",
-            r: outerCircleRadius + "px",
+            cx: diagonalEndCoordinate.x + 'px',
+            cy: diagonalEndCoordinate.y + 'px',
+            r: outerCircleRadius + 'px',
             duration: 150,
           },
-          "-=150"
+          '-=150',
         )
         .add(
           {
             targets: innerCircle.current,
-            cx: diagonalEndCoordinate.x + "px",
-            cy: diagonalEndCoordinate.y + "px",
-            r: innerCircleRadius + "px",
+            cx: diagonalEndCoordinate.x + 'px',
+            cy: diagonalEndCoordinate.y + 'px',
+            r: innerCircleRadius + 'px',
             duration: 150,
           },
-          "-=150"
+          '-=150',
         );
 
       [...Array(lineCount)].forEach((_, i) => {
         // Delay is reduced with more lines
-        const delayMultiplier = ((lineCount-i)/lineCount)
-        const delay = (i*10)*delayMultiplier
+        const delayMultiplier = (lineCount - i) / lineCount;
+        const delay = i * 10 * delayMultiplier;
         timeline.add(
           {
             targets: refsByKey[i],
             strokeDashoffset: [anime.setDashoffset, 0],
-            easing: "easeInOutQuad",
+            easing: 'easeInOutQuad',
             duration: 250,
-            delay
+            delay,
           },
-          "-=200"
+          '-=200',
         );
       });
     }
@@ -174,7 +174,7 @@ const ActiveOrnament = ({color}: {color: InputColor}) => {
             r={circleStartRadius}
             ref={outerCircle}
             shapeRendering="crispEdges"
-            className={extendedTwMerge(lineClasses, "fill-none")}
+            className={extendedTwMerge(lineClasses, 'fill-none')}
           />
           <circle
             cx={circleCoordinate.x}
@@ -188,21 +188,19 @@ const ActiveOrnament = ({color}: {color: InputColor}) => {
           {/* Accent lines */}
           <>
             {[...Array(lineCount)].map((_, index) => {
-                
-                return(
-                  <line
-                    key={index}
-                    ref={element => setRef(element, '' + index)}
-                    className={lineClasses}
-                    shapeRendering="crispEdges"
-                    x2={ornamentXOffset + index * lineSpacing}
-                    x1={ornamentXOffset + index * lineSpacing}
-                    y2={ornamentSvgHeight * (0.15 * index)}
-                    y1={ornamentSvgHeight - 2}
-                  />
-                )
-            }
-          )}
+              return (
+                <line
+                  key={index}
+                  ref={(element) => setRef(element, '' + index)}
+                  className={lineClasses}
+                  shapeRendering="crispEdges"
+                  x2={ornamentXOffset + index * lineSpacing}
+                  x1={ornamentXOffset + index * lineSpacing}
+                  y2={ornamentSvgHeight * (0.15 * index)}
+                  y1={ornamentSvgHeight - 2}
+                />
+              );
+            })}
           </>
         </svg>
       </div>

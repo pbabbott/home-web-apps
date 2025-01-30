@@ -1,5 +1,3 @@
+export { loadConfig } from './lib/config';
 
-export { loadConfig } from './lib/config'
-
-export * from './lib/decorators'
-
+export * from './lib/decorators';

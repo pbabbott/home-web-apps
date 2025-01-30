@@ -1,5 +1,5 @@
 name: tests
-on: 
+on:
   workflow_dispatch: {}
   push:
     branches:
@@ -30,7 +30,7 @@ jobs:
         run: |
           ./scripts/env-media.sh
           ./scripts/env-gluetun-sync.sh
-        env: 
+        env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
 
@@ -39,6 +39,6 @@ jobs:
 
       - name: pnpm install composite action
         uses: ./.github/actions/pnpm-install
-      
+
       - name: Run integration tests
         run: pnpm test:int

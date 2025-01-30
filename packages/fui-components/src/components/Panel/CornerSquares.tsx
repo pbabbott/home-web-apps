@@ -1,19 +1,19 @@
-import React from "react";
-import { PanelColor } from "./types";
+import React from 'react';
+import { PanelColor } from './types';
 
 const getSquareColorClass = (color: PanelColor) => {
   const colors = {
-    default: "fill-neutral-500",
-    white: "fill-neutral-50",
-    primary: "fill-primary-300",
-    secondary: "fill-secondary-200",
-    success: "fill-success-100",
-    error: "fill-error-200",
-    warning: "fill-warning-100",
-    "accent-purple": "fill-accent-purple-100",
-    "accent-falcon": "fill-accent-falcon-200",
+    default: 'fill-neutral-500',
+    white: 'fill-neutral-50',
+    primary: 'fill-primary-300',
+    secondary: 'fill-secondary-200',
+    success: 'fill-success-100',
+    error: 'fill-error-200',
+    warning: 'fill-warning-100',
+    'accent-purple': 'fill-accent-purple-100',
+    'accent-falcon': 'fill-accent-falcon-200',
   };
-  return colors[color] || "";
+  return colors[color] || '';
 };
 
 export interface CornerSquaresProps {

@@ -7,11 +7,11 @@
       "dependsOn": ["^build"]
     },
     "test:int": {
-      "outputs": ["coverage/**",  "test-results/**"],
+      "outputs": ["coverage/**", "test-results/**"],
       "dependsOn": ["build"]
     },
     "test:unit": {
-      "outputs": ["coverage/**",  "test-results/**"],
+      "outputs": ["coverage/**", "test-results/**"],
       "dependsOn": ["build"]
     },
     "docker:build": {

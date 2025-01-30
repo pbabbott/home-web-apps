@@ -1,0 +1,5 @@
+# Ignore artifacts:
+build
+coverage
+packages/yaml-config/docs
+pnpm-lock.yaml

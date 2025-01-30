@@ -5,6 +5,4 @@ import baseConfigs from './base.js';
  * @type {import("eslint").Linter.Config}
  * */
 
-export default [
-  ...baseConfigs,
-];
+export default [...baseConfigs];
