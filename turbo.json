@@ -8,7 +8,7 @@
     },
     "test:int": {
       "outputs": ["coverage/**",  "test-results/**"],
-      "dependsOn": []
+      "dependsOn": ["build"]
     },
     "test:unit": {
       "outputs": ["coverage/**",  "test-results/**"],
