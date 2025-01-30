@@ -35,7 +35,7 @@ jobs:
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
 
       - name: Run media services
-        run: docker compose -f ./docker-compose.media.yml -d --quiet-pull up 
+        run: docker compose -f ./docker-compose.media.yml up -d --quiet-pull
 
       - name: pnpm install composite action
         uses: ./.github/actions/pnpm-install
