@@ -12,3 +12,21 @@ jobs:
     uses: ./.github/workflows/reusable-pnpm-script.yml
     with:
       pnpm-script: test:unit
+
+  integration-tests:
+    runs-on: [self-hosted, amd64-runner, dind-runner]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Run media services
+        run: docker-compose up -f ./docker-compose.media.yml -d
+
+      - name: pnpm install composite action
+        uses: ./.github/actions/pnpm-install
+      
+      - name: Run integration tests
+        run: pnpm test:int
