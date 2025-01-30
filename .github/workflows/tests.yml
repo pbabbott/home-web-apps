@@ -23,7 +23,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Run media services
-        run: docker-compose up -f ./docker-compose.media.yml -d
+        run: docker compose -f ./docker-compose.media.yml up -d
 
       - name: pnpm install composite action
         uses: ./.github/actions/pnpm-install
