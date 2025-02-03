@@ -17,7 +17,7 @@ const Cross = ({
 
   return (
     <svg
-      className={`absolute`}
+      className="absolute"
       width={crossSize}
       height={crossSize}
       viewBox={`0 0 ${crossSize} ${crossSize}`}

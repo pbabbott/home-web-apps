@@ -34,19 +34,19 @@ export const syncPorts = async (
     logAttempt(callerIdentity);
 
     // Get Gluetun port
-    log(`Getting port from gluetun...`);
+    log('Getting port from gluetun...');
     const gluetunPort = await getForwardedPort();
     if (gluetunPort === null) return failure('Could not get port from gluetun');
     log(`Found gluetun port: ${gluetunPort?.port}`);
 
     // Login to QbitTorrent
-    log(`Logging into QbitTorrent...`);
+    log('Logging into QbitTorrent...');
     const qbitTorrentLoginResult = await login();
     if (qbitTorrentLoginResult === null)
       return failure('Could not log into qbittorrent');
 
     // Get Qbit preferences
-    log(`Getting port from QbitTorrent...`);
+    log('Getting port from QbitTorrent...');
     const preferences = await getApplicationPreferences(qbitTorrentLoginResult);
     if (preferences === null)
       return failure('Could not get perferences from qbittorrent');
