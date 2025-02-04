@@ -1,6 +1,9 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
-  "changelog": ["@changesets/changelog-github", { "repo": "pbabbott/home-web-apps" }],
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "pbabbott/home-web-apps" }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],

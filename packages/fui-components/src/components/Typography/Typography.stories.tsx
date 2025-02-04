@@ -1,30 +1,30 @@
 /* eslint-disable react/no-unescaped-entities */
-import type { Meta, StoryObj } from "@storybook/react";
-import { Typography } from "./Typography";
+import type { Meta, StoryObj } from '@storybook/react';
+import { Typography } from './Typography';
 
 const meta: Meta<typeof Typography> = {
-  title: "Data Display/Typography",
+  title: 'Data Display/Typography',
   component: Typography,
   argTypes: {
     variant: {
-      control: "select",
+      control: 'select',
       options: [
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "h5",
-        "h6",
-        "body1",
-        "body2",
-        "caption",
-        "small",
-        "button",
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'body1',
+        'body2',
+        'caption',
+        'small',
+        'button',
       ],
     },
     component: {
-      control: "select",
-      options: ["p", "h1", "h2", "h3", "h4", "h5", "h6", "span", "div"],
+      control: 'select',
+      options: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'],
     },
   },
 };
@@ -35,9 +35,9 @@ type Story = StoryObj<typeof Typography>;
 
 export const Default: Story = {
   args: {
-    variant: "body1",
-    component: "p",
-    children: "Customizable Typography",
+    variant: 'body1',
+    component: 'p',
+    children: 'Customizable Typography',
   },
 };
 export const VariantShowcase: Story = {

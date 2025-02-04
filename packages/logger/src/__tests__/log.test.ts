@@ -1,10 +1,10 @@
-import { log } from "..";
+import { log } from '..';
 
-jest.spyOn(global.console, "log");
+jest.spyOn(global.console, 'log');
 
-describe("@abbottland/logger", () => {
-  it("prints a message", () => {
-    log("hello");
+describe('@abbottland/logger', () => {
+  it('prints a message', () => {
+    log('hello');
     expect(console.log).toHaveBeenCalled();
   });
 });

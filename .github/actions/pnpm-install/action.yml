@@ -1,13 +1,13 @@
-name: "pnpm install"
-description: "A composite action to run pnpm install"
+name: 'pnpm install'
+description: 'A composite action to run pnpm install'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Setup PNPM
       uses: pnpm/action-setup@v4
       with:
         version: 9.15.4
-            
+
     - name: Ensure Node.js directory exists
       run: mkdir -p ~/.nvm/versions/node
       shell: bash
@@ -36,7 +36,7 @@ runs:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          ${{ runner.os }}-pnpm-store-
 
     - name: Install dependencies
       run: pnpm install

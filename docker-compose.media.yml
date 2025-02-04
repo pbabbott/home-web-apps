@@ -3,10 +3,10 @@ services:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
     ports:
-      - "8000:8000"
-      - "8888:8888"
-      - "8388:8388/tcp"
-      - "8388:8388/udp"
+      - '8000:8000'
+      - '8888:8888'
+      - '8388:8388/tcp'
+      - '8388:8388/udp'
     environment:
       - TZ=America/Chicago
       - VPN_SERVICE_PROVIDER=private internet access
@@ -24,16 +24,14 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - QBITTORRENT_USERNAME=admin
       - QBITTORRENT_API_HOST=http://localhost:8080
       - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD}
     volumes:
-    # Default password in this configuration is set to Password123
-    - ./docker/conf/qBittorrent/qBittorrent.conf:/config/qBittorrent/qBittorrent.conf
-    
-
+      # Default password in this configuration is set to Password123
+      - ./docker/conf/qBittorrent/qBittorrent.conf:/config/qBittorrent/qBittorrent.conf
 # gluetun-sync config
 # PORT: "4000"
 # GLUETUN_API_HOST: http://localhost:8000

@@ -8,7 +8,7 @@ Application Configuration management using TypeScript, YAML files, and Environme
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
 - [Installing](#installing)
-    - [Package Manager](#package-manager)
+  - [Package Manager](#package-manager)
 - [Examples](#examples)
   - [Basic Example with YAML file](#basic-example-with-yaml-file)
     - [1. Setup a Typescript Class](#1-setup-a-typescript-class)
@@ -30,14 +30,14 @@ Application Configuration management using TypeScript, YAML files, and Environme
   - [Generating Documentation](#generating-documentation)
   - [Other Commands](#other-commands)
 
-*Note:* This Table of Contents is managed by the VS Code Extension: `yzhang.markdown-all-in-one`
+_Note:_ This Table of Contents is managed by the VS Code Extension: `yzhang.markdown-all-in-one`
 
 ## Features
 
 - A `loadConfig()` function to flexibly load application configuration with graduating priority
-  1. Environment Variables *(highest priority)*
-  2. YAML config file 
-  3. Default config defined in TypeScript class *(lowest priority)*
+  1. Environment Variables _(highest priority)_
+  2. YAML config file
+  3. Default config defined in TypeScript class _(lowest priority)_
 - TypeScript Decorators `@EnvironmentVariable` and `@ConfigSection` to help load config from environment variables
 - Use your own TypeScript `class` to manage application configuration with strongly typed properties.
 - Load config from a `YAML` file right into an instance of a TypeScript `class`.
@@ -47,6 +47,7 @@ Application Configuration management using TypeScript, YAML files, and Environme
 ### Package Manager
 
 Using npm:
+
 ```bash
 $ npm install @abbottland/yaml-config
 ```
@@ -58,7 +59,7 @@ $ yarn add @abbottland/yaml-config
 Once the package is installed, you can import aspects of the library using import or require approach:
 
 ```ts
-import { loadConfig } from '@abbottland/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config';
 ```
 
 # Examples
@@ -71,13 +72,14 @@ Here is where you can specify default values for your configuration.
 
 ```ts
 class ApplicationConfig {
-    oneCoolBoolean = false
-    oneCoolNumber = 123
-    oneCoolString = 'hello world'
+  oneCoolBoolean = false;
+  oneCoolNumber = 123;
+  oneCoolString = 'hello world';
 }
 ```
 
 ### 2. Setup a YAML file
+
 Items in this file will take precedence over the default configuration
 
 ```yaml
@@ -92,15 +94,16 @@ oneCoolString: 'AWESOME'
 Put it all together like this!
 
 ```ts
-import { loadConfig } from '@abbottland/yaml-config'
+import { loadConfig } from '@abbottland/yaml-config';
 
-const pathToConfigFile = './config.yml'
-const defaultConfig = new ApplicationConfig()
+const pathToConfigFile = './config.yml';
+const defaultConfig = new ApplicationConfig();
 
-const config = await loadConfig(defaultConfig, pathToConfigFile)
+const config = await loadConfig(defaultConfig, pathToConfigFile);
 ```
 
 The resulting config will be:
+
 ```ts
 {
     oneCoolBoolean: false,    // default value
@@ -115,27 +118,27 @@ Here is a very similar example of how to load config from environment variables 
 
 ### 1. Setup Typescript Class with Decorators
 
-Similar to the previous example, this is where you can specify default values for your configuration. 
+Similar to the previous example, this is where you can specify default values for your configuration.
 
-You can also choose which properties of your configuration can be loaded via environment variables. 
+You can also choose which properties of your configuration can be loaded via environment variables.
 
 ```ts
-import { EnvironmentVariable } from '@abbottland/yaml-config'
+import { EnvironmentVariable } from '@abbottland/yaml-config';
 
 class ApplicationConfig {
-    @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
-    oneCoolBoolean = false
+  @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
+  oneCoolBoolean = false;
 
-    @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
-    oneCoolNumber = 123
-    
-    // More on this in the next section!
-    @EnvironmentVariable({ variableName: "CUSTOM_ENVIRONMENT_VARIABLE" })
-    oneCoolString = 'hello world'
+  @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
+  oneCoolNumber = 123;
+
+  // More on this in the next section!
+  @EnvironmentVariable({ variableName: 'CUSTOM_ENVIRONMENT_VARIABLE' })
+  oneCoolString = 'hello world';
 }
 ```
 
-*Note:* By default, all properties are treated as `string`, if you want to make sure your environment variables are loaded with the proper type, be sure to specify it!
+_Note:_ By default, all properties are treated as `string`, if you want to make sure your environment variables are loaded with the proper type, be sure to specify it!
 
 ### 2. Set Environment Variables
 
@@ -157,15 +160,16 @@ CUSTOM_ENVIRONMENT_VARIABLE='AWESOME'
 Put it together just as before.
 
 ```ts
-import { loadConfig } from '@abbottland/yaml-config'
-import * as dotenv from 'dotenv'
+import { loadConfig } from '@abbottland/yaml-config';
+import * as dotenv from 'dotenv';
 
-dotenv.config()
-const defaultConfig = new ApplicationConfig()
-const config = await loadConfig(defaultConfig)
+dotenv.config();
+const defaultConfig = new ApplicationConfig();
+const config = await loadConfig(defaultConfig);
 ```
 
 The resulting config will be:
+
 ```ts
 {
     oneCoolBoolean: false,    // default value
@@ -179,43 +183,44 @@ The resulting config will be:
 ### 1. Setup a Typescript Class
 
 ```ts
-@AppConfig({ appPrefix: 'YAML_CONFIG'})
+@AppConfig({ appPrefix: 'YAML_CONFIG' })
 export class ProjectConfig {
-    @EnvironmentVariable()
-    oneCoolString = 'hello'
+  @EnvironmentVariable()
+  oneCoolString = 'hello';
 
-    // Override the variable name so that values can be provided via: YAML_CONFIG_LOGS_VAR_NAME
-    // Instead of the default which would normally be: YAML_CONFIG_LOGGING_VAR_NAME
-    @ConfigSection({ sectionPrefix: "LOGS" })
-    logging = new LoggingConfig()
+  // Override the variable name so that values can be provided via: YAML_CONFIG_LOGS_VAR_NAME
+  // Instead of the default which would normally be: YAML_CONFIG_LOGGING_VAR_NAME
+  @ConfigSection({ sectionPrefix: 'LOGS' })
+  logging = new LoggingConfig();
 
-    @ConfigSection()
-    weather = new WeatherConfig()
+  @ConfigSection()
+  weather = new WeatherConfig();
 }
 
 export class LoggingConfig {
-    @EnvironmentVariable()
-    apiKey = ''
+  @EnvironmentVariable()
+  apiKey = '';
 
-    @EnvironmentVariable()
-    level = 'debug'
+  @EnvironmentVariable()
+  level = 'debug';
 
-    format = 'json'
+  format = 'json';
 }
 
 export class WeatherConfig {
-    @EnvironmentVariable()
-    apiKey = ''
+  @EnvironmentVariable()
+  apiKey = '';
 
-    desiredWeather = 'sunny'
+  desiredWeather = 'sunny';
 
-    updateFrequency = 'weekly'
+  updateFrequency = 'weekly';
 }
 ```
 
 ### 2. Set Environment Variables & YAML File
 
 Environment Variables:
+
 ```env
 # .env
 
@@ -226,6 +231,7 @@ YAML_CONFIG_WEATHER_API_KEY='password123'
 ```
 
 YAML File
+
 ```yaml
 # config.yml
 
@@ -239,25 +245,25 @@ weather:
   updateFrequency: 'daily'
 ```
 
-
 ### 3. Load the configuration
 
 ```ts
-import { loadConfig } from '@abbottland/yaml-config'
-import * as dotenv from 'dotenv'
+import { loadConfig } from '@abbottland/yaml-config';
+import * as dotenv from 'dotenv';
 
-dotenv.config()
-const defaultConfig = new ApplicationConfig()
-const config = await loadConfig(defaultConfig)
+dotenv.config();
+const defaultConfig = new ApplicationConfig();
+const config = await loadConfig(defaultConfig);
 ```
 
 The resulting config will be:
+
 ```ts
 {
-    oneCoolString: 'AWESOME',     // loaded from env 
+    oneCoolString: 'AWESOME',     // loaded from env
     logging: {
-      apiKey: 'superSecretKey!',  // loaded from env 
-      level: 'info',              // loaded from env 
+      apiKey: 'superSecretKey!',  // loaded from env
+      level: 'info',              // loaded from env
       format: 'console'           // loaded from YAML file
     },
     weather: {
@@ -267,18 +273,19 @@ The resulting config will be:
     }
 }
 ```
+
 # API Documentation
 
-All exports of this library are documented with TypeDoc.  
+All exports of this library are documented with TypeDoc.
 
 [Click here](./docs) to go to the TypeDoc documentation for this project!
-
 
 # Contributing
 
 All commands should be run from the root of this monorepo using NX.
 
 ## Initial Setup
+
 First, ensure you have `nx` installed globally
 
 ```bash
@@ -286,6 +293,7 @@ npm install -g nx@latest
 ```
 
 Next, authenticate to private registry by setting the following environment variables:
+
 ```env
 NPM_REGISTRY_PROTO='https'
 NPM_REGISTRY='verdaccio.nas.local.abbottland.io'

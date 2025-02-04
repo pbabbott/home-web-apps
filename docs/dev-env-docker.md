@@ -15,7 +15,6 @@ The purpose of this document is to explain how one can setup a connection to a p
 
 `DOCKER_PASSWORD` - This is the password to be used with `docker login`
 
-
 > [!NOTE]
 > Be sure to restart the devcontainer if you change any of these values
 

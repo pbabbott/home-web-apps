@@ -9,8 +9,10 @@
     "docker:push": "turbo run docker:push",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format:check": "prettier . --check",
+    "format:fix": "prettier . --write",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint --fix",
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
     "storybook": "turbo run storybook",
@@ -20,7 +22,7 @@
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.11",
     "eslint": "^9.16.0",
-    "prettier": "^3.2.5",
+    "prettier": "^3.4.2",
     "turbo": "^2.0.9"
   },
   "engines": {

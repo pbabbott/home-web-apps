@@ -1,6 +1,4 @@
-
-
 export const errorExit = () => {
-    console.error('Program Terminated.')
-    process.exit(1)
-}
+  console.error('Program Terminated.');
+  process.exit(1);
+};

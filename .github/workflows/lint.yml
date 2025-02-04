@@ -1,5 +1,5 @@
 name: lint packages
-on: 
+on:
   workflow_dispatch: {}
   push:
     branches:
@@ -12,3 +12,7 @@ jobs:
     uses: ./.github/workflows/reusable-pnpm-script.yml
     with:
       pnpm-script: lint
+  format:
+    uses: ./.github/workflows/reusable-pnpm-script.yml
+    with:
+      pnpm-script: format:check

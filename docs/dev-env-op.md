@@ -4,7 +4,7 @@ The purpose of this document is to explain what is needed to setup 1password (`o
 
 ## Overview
 
-Most all secrets that are needed have been set up in 1Password.  In my homelab, there is a 1Password connect server that is able to provide secrets given that you have a token.  Before I had set up this connect server, I was using the `"Setup another device"` strategy which does not work well with devcontainers, as anytime the container rebuilds, you have to go through a bunch of steps to add another device.
+Most all secrets that are needed have been set up in 1Password. In my homelab, there is a 1Password connect server that is able to provide secrets given that you have a token. Before I had set up this connect server, I was using the `"Setup another device"` strategy which does not work well with devcontainers, as anytime the container rebuilds, you have to go through a bunch of steps to add another device.
 
 # Procedure
 
@@ -23,5 +23,4 @@ This token is set up to work in tandem with `OP_CONNECT_HOST`
 
 ### Step 3 - Run other scripts
 
-Run other scripts that may require 1Password.  Environment variables are now automatically set with values from the vault!
-
+Run other scripts that may require 1Password. Environment variables are now automatically set with values from the vault!

@@ -1,3 +1,5 @@
-const { integrationTestPreset } = require("@abbottland/jest-presets/node/jest-preset");
+const {
+  integrationTestPreset,
+} = require('@abbottland/jest-presets/node/jest-preset');
 
-module.exports = integrationTestPreset
+module.exports = integrationTestPreset;

@@ -1,1 +1,1 @@
-export type InputColor = "primary" | "default";
+export type InputColor = 'primary' | 'default';

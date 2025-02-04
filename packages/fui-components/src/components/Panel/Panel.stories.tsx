@@ -1,59 +1,59 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
+import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
 
-import { Panel } from "./Panel";
-import { ReactNode } from "react";
+import { Panel } from './Panel';
+import { ReactNode } from 'react';
 
 const meta = {
-  title: "Surfaces/Panel",
+  title: 'Surfaces/Panel',
   component: Panel,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   argTypes: {
     variant: {
-      control: "select",
-      options: ["transparent", "outlined", "dots"],
-      description: "The variant of the panel",
+      control: 'select',
+      options: ['transparent', 'outlined', 'dots'],
+      description: 'The variant of the panel',
     },
     color: {
-      control: "select",
+      control: 'select',
       options: [
-        "default",
-        "white",
-        "primary",
-        "secondary",
-        "success",
-        "error",
-        "warning",
-        "accent-purple",
-        "accent-falcon",
+        'default',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'error',
+        'warning',
+        'accent-purple',
+        'accent-falcon',
       ],
-      description: "The color scheme of the panel",
+      description: 'The color scheme of the panel',
     },
     children: {
-      control: "text",
-      description: "The content of the panel",
+      control: 'text',
+      description: 'The content of the panel',
     },
-    onClick: { action: "clicked" },
+    onClick: { action: 'clicked' },
   },
   args: {
     onClick: fn(),
-    children: "Panel content", // Default text for all stories
+    children: 'Panel content', // Default text for all stories
   },
 } satisfies Meta<typeof Panel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const PanelContent = ({ children }: {children: ReactNode}) => {
+const PanelContent = ({ children }: { children: ReactNode }) => {
   return <div className="m-20 text-body2">{children}</div>;
 };
 
 export const Default: Story = {
   args: {
-    color: "primary",
-    variant: "dots",
+    color: 'primary',
+    variant: 'dots',
     children: <PanelContent>Accent Falcon</PanelContent>,
   },
 };

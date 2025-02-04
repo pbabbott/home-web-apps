@@ -13,22 +13,30 @@ const meta = {
     variant: {
       control: 'select',
       options: ['contained', 'outlined', 'text'],
-      description: 'The variant of the button'
+      description: 'The variant of the button',
     },
     color: {
       control: 'select',
-      options: ['primary', 'secondary', 'success', 'error', 'warning', 'accentPurple', 'accentFalcon'],
-      description: 'The color scheme of the button'
+      options: [
+        'primary',
+        'secondary',
+        'success',
+        'error',
+        'warning',
+        'accentPurple',
+        'accentFalcon',
+      ],
+      description: 'The color scheme of the button',
     },
     children: {
       control: 'text',
-      description: 'The content of the button'
+      description: 'The content of the button',
     },
-    onClick: { action: 'clicked' }
+    onClick: { action: 'clicked' },
   },
-  args: { 
+  args: {
     onClick: fn(),
-    children: 'Button Text' // Default text for all stories
+    children: 'Button Text', // Default text for all stories
   },
 } satisfies Meta<typeof Button>;
 
@@ -37,75 +45,95 @@ type Story = StoryObj<typeof meta>;
 
 const ButtonVariants = (args: ButtonProps) => (
   <div className="flex gap-4">
-    <Button {...args} variant="contained">Contained</Button>
-    <Button {...args} variant="outlined">Outlined</Button>
-    <Button {...args} variant="text">Text</Button>
+    <Button {...args} variant="contained">
+      Contained
+    </Button>
+    <Button {...args} variant="outlined">
+      Outlined
+    </Button>
+    <Button {...args} variant="text">
+      Text
+    </Button>
   </div>
-)
+);
 
 export const Primary: Story = {
   name: 'Color: Primary',
   args: {
-    color: 'primary'
+    color: 'primary',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 export const Secondary: Story = {
   name: 'Color: Secondary',
   args: {
-    color: 'secondary'
+    color: 'secondary',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 export const Success: Story = {
   name: 'Color: Success',
   args: {
-    color: 'success'
+    color: 'success',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 
 export const Error: Story = {
   name: 'Color: Error',
   args: {
-    color: 'error'
+    color: 'error',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 
 export const Warning: Story = {
   name: 'Color: Warning',
   args: {
-    color: 'warning'
+    color: 'warning',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 export const Purple: Story = {
   name: 'Color: Accent - Purple',
   args: {
-    color: 'accent-purple'
+    color: 'accent-purple',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 export const AccentFalcon: Story = {
   name: 'Color: Accent - Falcon',
   args: {
-    color: 'accent-falcon'
+    color: 'accent-falcon',
   },
-  render: ButtonVariants
+  render: ButtonVariants,
 };
 
 // Example showing all colors in a grid
 export const ColorShowcase: Story = {
   render: (args) => (
     <div className="grid grid-cols-2 gap-4">
-      <Button {...args} color="primary">Primary</Button>
-      <Button {...args} color="secondary">Secondary</Button>
-      <Button {...args} color="success">Success</Button>
-      <Button {...args} color="error">Error</Button>
-      <Button {...args} color="warning">Warning</Button>
-      <Button {...args} color="accent-purple">Accent Purple</Button>
-      <Button {...args} color="accent-falcon">Accent Falcon</Button>
+      <Button {...args} color="primary">
+        Primary
+      </Button>
+      <Button {...args} color="secondary">
+        Secondary
+      </Button>
+      <Button {...args} color="success">
+        Success
+      </Button>
+      <Button {...args} color="error">
+        Error
+      </Button>
+      <Button {...args} color="warning">
+        Warning
+      </Button>
+      <Button {...args} color="accent-purple">
+        Accent Purple
+      </Button>
+      <Button {...args} color="accent-falcon">
+        Accent Falcon
+      </Button>
     </div>
-  )
+  ),
 };

@@ -9,9 +9,9 @@ The purpose of this document is to explain how one can publish versioned package
 
 ### Step 1 - Issue version
 
-This procedure is based on the `changeset` tool. Be sure to follow the steps in  [Dev Guide - Publication - Versioning](./dev-guide-publication-semver.md) first.
+This procedure is based on the `changeset` tool. Be sure to follow the steps in [Dev Guide - Publication - Versioning](./dev-guide-publication-semver.md) first.
 
-###  Step 2 - Docker Build
+### Step 2 - Docker Build
 
 Be sure to run a docker build by following steps for the [Docker build process](./dev-guide-build-with-docker.md)
 
@@ -25,7 +25,7 @@ pnpm docker:push
 
 ## Setup
 
-Each package should have a script named `docker:push` and it should call a shell script located in  `scripts/docker-push.sh`
+Each package should have a script named `docker:push` and it should call a shell script located in `scripts/docker-push.sh`
 
 Abstract example:
 

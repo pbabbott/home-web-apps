@@ -1,8 +1,5 @@
 {
-  "cSpell.words": [
-    "gluetun",
-    "monobit"
-  ],
+  "cSpell.words": ["gluetun", "monobit"],
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.tsserver.watchOptions": {
     "watchFile": "useFsEvents",
@@ -10,5 +7,7 @@
       "src/**/*.ts": "tsconfig.json",
       "**/*.test.ts": "tsconfig.test.json"
     }
-  }
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }

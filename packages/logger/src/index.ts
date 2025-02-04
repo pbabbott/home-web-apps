@@ -1,4 +1,3 @@
-
 export const log = (str: string) => {
-  console.log("logger: " + str);
+  console.log('logger: ' + str);
 };
