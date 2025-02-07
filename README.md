@@ -24,6 +24,7 @@ All apps and packages are built with Typescript!
 ## Configure your dev environment
 
 - Step 1 - [Configure your Dev Environment](./docs/dev-env-main.md)
+  - [Dev Environment - Cluster Access](./docs/dev-env-cluster-access.md)
   - [Dev Environment - Docker](./docs/dev-env-docker.md)
   - [Dev Environment - NPM](./docs/dev-env-npm.md)
   - [Dev Environment - 1Password](./docs/dev-env-op.md)
