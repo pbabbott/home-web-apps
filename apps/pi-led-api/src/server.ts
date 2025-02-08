@@ -3,9 +3,6 @@ import {
   configureBaseServerMiddleware,
   configureHealthRoute,
 } from '@abbottland/express';
-import { config } from './config';
-import { doSync } from './controllers/sync';
-import { getPorts, getPublicIp, getStatus } from './controllers/status';
 
 export const createServer = (): Express => {
   const app = express();
@@ -13,17 +10,10 @@ export const createServer = (): Express => {
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
 
-  app
-    .post('/sync', doSync)
-    .get('/status', getStatus)
-    .get('/status/public-ip', getPublicIp)
-    .get('/status/ports', getPorts);
-
   return app;
 };
-
 export const startServer = () => {
-  const port = config.port;
+  const port = 4001;
 
   const server = createServer();
 

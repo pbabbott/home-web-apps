@@ -26,30 +26,88 @@ importers:
 
   apps/gluetun-sync:
     dependencies:
+      '@abbottland/express':
+        specifier: workspace:*
+        version: link:../../packages/express
       '@abbottland/logger':
         specifier: workspace:*
         version: link:../../packages/logger
       '@abbottland/yaml-config':
         specifier: workspace:*
         version: link:../../packages/yaml-config
-      body-parser:
-        specifier: ^1.20.2
-        version: 1.20.3
-      cors:
-        specifier: ^2.8.5
-        version: 2.8.5
       cronstrue:
         specifier: ^2.50.0
         version: 2.52.0
       express:
         specifier: ^4.18.3
         version: 4.21.1
-      morgan:
-        specifier: ^1.10.0
-        version: 1.10.0
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+    devDependencies:
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@abbottland/jest-presets':
+        specifier: workspace:*
+        version: link:../../packages/jest-presets
+      '@abbottland/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/jest':
+        specifier: ^29.5.12
+        version: 29.5.14
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.17.9
+      '@types/node-cron':
+        specifier: ^3.0.11
+        version: 3.0.11
+      '@types/supertest':
+        specifier: ^6.0.2
+        version: 6.0.2
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.7
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.17.9)
+      jest-junit:
+        specifier: ^16.0.0
+        version: 16.0.0
+      supertest:
+        specifier: ^6.3.3
+        version: 6.3.4
+      tsc-watch:
+        specifier: ^6.2.1
+        version: 6.2.1(typescript@5.7.2)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.7.2
+      typescript-eslint:
+        specifier: ^8.17.0
+        version: 8.17.0(eslint@9.16.0(jiti@1.21.6))(typescript@5.7.2)
+
+  apps/pi-led-api:
+    dependencies:
+      '@abbottland/express':
+        specifier: workspace:*
+        version: link:../../packages/express
+      '@abbottland/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
+      '@abbottland/yaml-config':
+        specifier: workspace:*
+        version: link:../../packages/yaml-config
+      express:
+        specifier: ^4.18.3
+        version: 4.21.1
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -141,6 +199,61 @@ importers:
       typescript-eslint:
         specifier: ^8.17.0
         version: 8.17.0(eslint@9.16.0(jiti@1.21.6))(typescript@5.5.4)
+
+  packages/express:
+    dependencies:
+      body-parser:
+        specifier: ^1.20.2
+        version: 1.20.3
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      express:
+        specifier: ^4.18.3
+        version: 4.21.1
+      morgan:
+        specifier: ^1.10.0
+        version: 1.10.0
+    devDependencies:
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@abbottland/jest-presets':
+        specifier: workspace:*
+        version: link:../jest-presets
+      '@abbottland/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/body-parser':
+        specifier: ^1.19.5
+        version: 1.19.5
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
+      '@types/jest':
+        specifier: ^29.5.12
+        version: 29.5.14
+      '@types/morgan':
+        specifier: ^1.9.9
+        version: 1.9.9
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.17.9
+      eslint:
+        specifier: ^9.16.0
+        version: 9.16.0(jiti@1.21.6)
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.17.9)
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
+      typescript-eslint:
+        specifier: ^8.17.0
+        version: 8.17.0(eslint@9.16.0(jiti@1.21.6))(typescript@5.6.3)
 
   packages/fui-components:
     dependencies:
