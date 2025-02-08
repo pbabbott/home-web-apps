@@ -121,21 +121,12 @@ importers:
       '@abbottland/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      '@types/body-parser':
-        specifier: ^1.19.5
-        version: 1.19.5
-      '@types/cors':
-        specifier: ^2.8.17
-        version: 2.8.17
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
       '@types/jest':
         specifier: ^29.5.12
         version: 29.5.14
-      '@types/morgan':
-        specifier: ^1.9.9
-        version: 1.9.9
       '@types/node':
         specifier: ^20.11.24
         version: 20.17.9
