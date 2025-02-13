@@ -11,3 +11,5 @@ mkdir -p ~/.kube
 cp $TEMP_FILE ~/.kube/config
 
 echo "Kubeconfig file written to ~/.kube/config"
+
+kubens brandon-dev
