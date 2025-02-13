@@ -1,0 +1,7 @@
+{
+  "description": "Typescript configuration for VS Code",
+  "extends": "@abbottland/typescript-config/ts-server.json",
+  "compilerOptions": {
+    "types": ["jest"]
+  }
+}

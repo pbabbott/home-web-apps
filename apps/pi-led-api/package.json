@@ -1,19 +1,15 @@
 {
-  "name": "@abbottland/gluetun-sync",
+  "name": "@abbottland/pi-led-api",
   "version": "0.0.10",
   "private": true,
   "scripts": {
-    "docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
-    "docker:push": "../../scripts/docker-push.sh apps/ gluetun-sync",
+    "docker:build": "../../scripts/docker-build.sh apps/ pi-led-api",
+    "docker:push": "../../scripts/docker-push.sh apps/ pi-led-api",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
-    "start": "node ./dist/index.js",
-    "test": "pnpm run test:unit && pnpm run test:int",
-    "test:build": "tsc -p tsconfig.test.json",
-    "test:unit": "pnpm run test:build && jest --config jest.unit.config.js",
-    "test:int": "pnpm run test:build && jest --config jest.integration.config.js"
+    "start": "node ./dist/index.js"
   },
   "jest": {
     "preset": "@abbottland/jest-presets/node",
@@ -32,9 +28,7 @@
     "@abbottland/express": "workspace:*",
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
-    "cronstrue": "^2.50.0",
     "express": "^4.18.3",
-    "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
