@@ -10,4 +10,5 @@
 #     docker buildx create --use --name mybuilder --driver docker-container
 # fi
 
+# This allows for cross-platform docker builds (amd64, arm, etc)
 docker run --privileged --rm tonistiigi/binfmt --install all
