@@ -1,7 +1,7 @@
 ###############################################################
 # Alpine base
 ###############################################################
-ARG NODE_VERSION=18
+ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-alpine AS alpine
 RUN apk update
 RUN apk add --no-cache libc6-compat

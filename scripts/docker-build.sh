@@ -13,7 +13,7 @@ IMAGE=harbor.local.abbottland.io/library/$PROJECT
 
 docker build \
   -t $IMAGE:$VERSION \
-  -f ../../docker/node-18-pnpm-turbo.Dockerfile \
+  -f ../../docker/pnpm-turbo.Dockerfile \
   --build-arg PROJECT_DIR=$PROJECT_DIR \
   --build-arg PROJECT=$PROJECT \
   --progress=plain \
