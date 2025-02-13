@@ -16,4 +16,5 @@
 **dist
 **Dockerfile
 **.next
-
+**skaffold.yaml
+**k8s
