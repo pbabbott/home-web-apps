@@ -24,9 +24,9 @@ COPY . .
 RUN turbo prune --scope=@abbottland/${PROJECT} --docker
 
 ###############################################################
-# Build the project
+# Build the project (suitable for development)
 ###############################################################
-FROM base AS builder
+FROM base AS development
 ARG PROJECT
 
 WORKDIR /app
@@ -43,6 +43,14 @@ RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfi
 COPY --from=pruner /app/out/full/ .
 
 RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
+
+CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
+
+###############################################################
+# Prune npm packages and remove source code
+###############################################################
+FROM development AS builder
+
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
 RUN rm -rf ./**/*/src
 
