@@ -16,9 +16,8 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/itsmechlark/features/1password:1": {},
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
-      "installMinikube": false,
-      "installHelm": false,
-      "installKubectl": true
+      "helm": "none",
+      "minikube": "none"
     },
     "ghcr.io/rio/features/skaffold:2": {},
     "ghcr.io/devcontainers-contrib/features/kubectx-kubens:1": {}

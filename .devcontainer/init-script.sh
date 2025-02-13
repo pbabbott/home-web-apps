@@ -9,3 +9,5 @@
 # if ! docker buildx inspect mybuilder > /dev/null 2>&1; then
 #     docker buildx create --use --name mybuilder --driver docker-container
 # fi
+
+docker run --privileged --rm tonistiigi/binfmt --install all
