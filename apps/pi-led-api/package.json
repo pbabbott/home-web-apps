@@ -3,7 +3,7 @@
   "version": "0.0.10",
   "private": true,
   "scripts": {
-    "docker:build": "../../scripts/docker-build.sh apps/ pi-led-api",
+    "docker:build": "../../scripts/docker-build.sh apps/ pi-led-api \"../../docker/pnpm-turbo.Dockerfile\" \"harbor.local.abbottland.io/library/node-22-dev:1.0.0\"",
     "docker:push": "../../scripts/docker-push.sh apps/ pi-led-api",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
