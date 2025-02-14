@@ -1,0 +1,34 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: pi-led-api
+build:
+  platforms: ['linux/arm64']
+  tagPolicy:
+    gitCommit:
+      variant: AbbrevCommitSha
+  local:
+    useBuildkit: true
+    push: true
+  artifacts:
+    - image: pi-led-api
+      context: ./
+      docker:
+        buildArgs:
+          PROJECT_DIR: apps/
+          PROJECT: pi-led-api
+        dockerfile: ./docker/node-18-pnpm-turbo-dev.Dockerfile
+      sync:
+        infer:
+          - './apps/pi-led-api/src/**/*.ts'
+
+manifests:
+  rawYaml:
+    - ./apps/pi-led-api/k8s/deployment.yaml
+
+portForward:
+  - resourceType: deployment
+    resourceName: pi-led-api
+    namespace: brandon-dev
+    port: 4001
+    localPort: 4001

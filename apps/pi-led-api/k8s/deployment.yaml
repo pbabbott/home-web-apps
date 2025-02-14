@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pi-led-api
+  namespace: brandon-dev
+  labels:
+    app: pi-led-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pi-led-api
+  template:
+    metadata:
+      labels:
+        app: pi-led-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      nodeSelector:
+        kubernetes.io/hostname: dumbledore
+      hostPID: true
+      volumes:
+        - name: dumbledore-bin
+          hostPath:
+            path: /usr/local/bin
+            type: Directory
+        - name: dumbledore-opt
+          hostPath:
+            path: /opt/pironman
+            type: Directory
+        - name: dumbledore-boot
+          hostPath:
+            path: /boot/
+            type: Directory
+      containers:
+        - name: pi-led-api
+          image: pi-led-api
+          ports:
+            - containerPort: 4001
+          volumeMounts:
+            - mountPath: /dumbledore/bin
+              name: dumbledore-bin
+            - mountPath: /opt/pironman
+              name: dumbledore-opt
+            - mountPath: /boot/
+              name: dumbledore-boot
+          resources:
+            limits:
+              cpu: '1000m'
+              memory: '1024Mi'
+            requests:
+              cpu: '250m'
+              memory: '128Mi'
