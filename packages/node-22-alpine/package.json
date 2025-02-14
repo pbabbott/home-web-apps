@@ -1,0 +1,13 @@
+{
+  "name": "@abbottland/node-22-alpine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docker:build": "../../scripts/docker-build.sh packages/ node-22-alpine ./Dockerfile",
+    "docker:push": "../../scripts/docker-push.sh packages/ node-22-alpine"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

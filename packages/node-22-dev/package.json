@@ -1,0 +1,13 @@
+{
+  "name": "@abbottland/node-22-dev",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docker:build": "../../scripts/docker-build.sh packages/ node-22-dev ./Dockerfile",
+    "docker:push": "../../scripts/docker-push.sh packages/ node-22-dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
