@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "docker:build": "../../scripts/docker-build.sh packages/ node-22-alpine ./Dockerfile",
-    "docker:push": "../../scripts/docker-push.sh packages/ node-22-alpine"
+    "docker:build": "abctl-docker-build",
+    "docker:push": "abctl-docker-publish"
+  },
+  "devDependencies": {
+    "@abbottland/abctl": "workspace:*"
   },
   "keywords": [],
   "author": "",
