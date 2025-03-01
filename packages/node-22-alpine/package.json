@@ -2,10 +2,9 @@
   "name": "@abbottland/node-22-alpine",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "docker:build": "abctl-docker-build",
-    "docker:push": "abctl-docker-publish"
+    "docker:push": "abctl-docker-push"
   },
   "devDependencies": {
     "@abbottland/abctl": "workspace:*"
