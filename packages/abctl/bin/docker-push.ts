@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { dockerPublish } from '../src/docker';
+import { abctlDockerPublish } from '../src/docker';
 
 async function main() {
-  await dockerPublish();
+  await abctlDockerPublish();
 }
 
 main();

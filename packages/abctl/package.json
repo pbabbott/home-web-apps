@@ -5,13 +5,13 @@
   "main": "index.js",
   "bin": {
     "abctl-docker-build": "dist/bin/docker-build.js",
-    "abctl-docker-publish": "dist/bin/docker-publish.js"
+    "abctl-docker-push": "dist/bin/docker-push.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "test:build": "tsc -p tsconfig.test.json",
-    "dev": "tsc -w",
+    "dev": "tsc -w -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
     "test:unit": "pnpm run test:build && jest --config jest.unit.config.js"
   },
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "commander": "^13.1.0",
-    "execa": "^9.5.2"
+    "execa": "^9.5.2",
+    "@abbottland/yaml-config": "workspace:*"
   }
 }

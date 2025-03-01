@@ -1,5 +1,6 @@
 import { ExecaError } from 'execa';
-import { executeCommand } from './shell';
+import { executeCommand } from '../shell';
+import { DockerBuildSettings } from './build-settings';
 
 export const dockerTag = async (
   imageWithTag: string,
@@ -56,29 +57,40 @@ export const checkRemoteImageExists = async (
   }
 };
 
-export async function dockerBuildXBuild(image: string, push: boolean = false) {
+export async function dockerBuild(settings: DockerBuildSettings) {
   try {
-    const command = 'docker';
-    const args = [
-      'buildx',
-      'build',
-      '-t',
+    const {
       image,
-      '--progress=plain',
-      '--platform',
-      'linux/amd64,linux/arm64',
-    ];
+      context,
+      buildArgs = {},
+      dockerfile,
+      push,
+      platform,
+    } = settings;
+    const command = 'docker';
+    const args = ['buildx', 'build'];
+
+    args.push('--progress=plain');
+    args.push('-t', image);
+    args.push('-f', dockerfile ?? './Dockerfile');
+
+    Object.entries(buildArgs).forEach(([key, value]) => {
+      args.push('--build-arg', `${key}=${value}`);
+    });
+
+    if (platform) {
+      args.push('--platform', platform);
+    }
 
     if (push) {
       args.push('--push');
     }
-    args.push('.');
+
+    args.push(context ?? '.');
 
     await executeCommand(command, args);
 
-    console.log(
-      `✅  Docker build ${push ? 'and push ' : ''}completed successfully.`,
-    );
+    console.log(`✅  Docker build completed successfully.`);
   } catch (error) {
     console.error('❌  Docker build failed:', error);
     process.exit(1);
