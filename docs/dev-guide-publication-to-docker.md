@@ -23,22 +23,39 @@ This command will run `docker:push` across all packages, and will avoid overwrit
 pnpm docker:push
 ```
 
-## Setup
-
-Each package should have a script named `docker:push` and it should call a shell script located in `scripts/docker-push.sh`
-
-Abstract example:
-
-```json
-"docker:push": "../../scripts/docker-push.sh [project-dir] [project-name]",
-```
-
-Tangible example:
-
-```json
-// Notice the empty space between "apps/" and "gluetun-sync"
-"docker:push": "../../scripts/docker-push.sh apps/ gluetun-sync",
-```
-
 > [!NOTE]
 > This process is highly similar to the npm process where remote versions in the artifact repository will not be overwritten.
+
+## Setup
+
+### 1 - Dependency on `abctl`
+
+Be sure to list `abctl` as a `devDependency`
+
+```json
+"devDependencies": {
+    "@abbottland/abctl": "workspace:*",
+}
+```
+
+### 2 - Set docker:build script
+
+Each package needing docker support should have a script named `docker:push`. This can just be a call to an `abctl` binary
+
+```json
+"scripts": {
+    "docker:push": "abctl-docker-push"
+}
+```
+
+### 3 - Configure `abctl`
+
+In case you want to configure the docker build & push settings further, you can make an `abctl.yml` file to fine-tune the configuration.
+
+For example in `apps/gluetun-sync` there exists a file `abctl.yml`
+
+```yml
+buildPreset: pnpm-turbo-docker-build
+```
+
+For more information, please see the [`abctl` README](../packages/abctl/README.md).

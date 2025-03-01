@@ -10,17 +10,34 @@ Alternatively, you can run `cd [project-dir]/[project-name]` and then run `pnpm 
 
 ## Setup
 
-Each package should have a script named `docker:build` and it should call a shell script located in `scripts/docker-build.sh`
+### 1 - Dependency on `abctl`
 
-Abstract example:
-
-```json
-"docker:build": "../../scripts/docker-build.sh [project-dir] [project-name]",
-```
-
-Tangible example:
+Be sure to list `abctl` as a `devDependency`
 
 ```json
-// Notice the empty space between "apps/" and "gluetun-sync"
-"docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
+"devDependencies": {
+    "@abbottland/abctl": "workspace:*",
+}
 ```
+
+### 2 - Set docker:build script
+
+Each package needing docker support should have a script named `docker:build`. This can just be a call to an `abctl` binary
+
+```json
+"scripts": {
+    "docker:build": "abctl-docker-build"
+}
+```
+
+### 3 - Configure `abctl`
+
+In case you want to configure the docker build settings further, you can make an `abctl.yml` file to fine-tune the configuration.
+
+For example in `apps/gluetun-sync` there exists a file `abctl.yml`
+
+```yml
+buildPreset: pnpm-turbo-docker-build
+```
+
+For more information, please see the [`abctl` README](../packages/abctl/README.md).
