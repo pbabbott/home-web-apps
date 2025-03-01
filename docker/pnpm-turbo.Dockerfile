@@ -21,7 +21,7 @@ RUN turbo prune --scope=@abbottland/${PROJECT} --docker
 ###############################################################
 FROM base AS development
 ARG PROJECT
-
+ENV PROJECT=${PROJECT}
 WORKDIR /app
 
 # Copy lockfile and package.json's of isolated subworkspace
