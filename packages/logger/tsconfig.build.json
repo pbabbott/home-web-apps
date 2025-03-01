@@ -1,6 +1,6 @@
 {
   "description": "Typescript configuration for building the project",
-  "extends": "@abbottland/typescript-config/ts-server.json",
+  "extends": "@abbottland/typescript-config/ts-lib.json",
   "compilerOptions": {
     "types": ["node"],
     "outDir": "./dist",

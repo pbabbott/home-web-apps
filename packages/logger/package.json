@@ -10,9 +10,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
+    "test:build": "tsc -p tsconfig.test.json",
     "dev": "tsc -w",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
-    "test:build": "tsc -p tsconfig.test.json",
     "test:unit": "pnpm run test:build && jest --config jest.unit.config.js"
   },
   "jest": {
