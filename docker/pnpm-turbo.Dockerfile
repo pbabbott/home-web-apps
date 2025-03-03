@@ -14,29 +14,33 @@ ARG PROJECT
 
 WORKDIR /app
 COPY . .
+
 RUN turbo prune --scope=@abbottland/${PROJECT} --docker
 
 ###############################################################
-# Build the project (suitable for development)
+# Install packages
 ###############################################################
-FROM base AS development
+FROM base AS npm
 ARG PROJECT
 ENV PROJECT=${PROJECT}
 WORKDIR /app
 
 # Copy lockfile and package.json's of isolated subworkspace
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/out/json/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /app/out/json/ .
 
 # First install the dependencies (as they change less often)
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
 
+###############################################################
+# Build the project (suitable for development)
+###############################################################
+FROM npm AS development
+
 # Copy source code of isolated subworkspace
-COPY --from=pruner /app/out/full/ .
-
+COPY --from=pruner /app/out/full .
 RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
-
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
 ###############################################################
