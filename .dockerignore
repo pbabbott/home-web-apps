@@ -18,3 +18,11 @@
 **.next
 **skaffold.yaml
 **k8s
+
+.pnpm-store
+.turbo
+node_modules
+
+**temp
+temp
+temp/dev.log
