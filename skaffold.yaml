@@ -14,7 +14,7 @@ build:
   local:
     useBuildkit: true
     push: true
-    # tryImportMissing: true # caution: this can import a stale image from the registry
+    tryImportMissing: true # caution: this can import a stale image from the registry
   artifacts:
     - image: pi-led-api
       context: ./

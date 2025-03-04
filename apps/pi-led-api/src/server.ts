@@ -14,6 +14,7 @@ export const createServer = (): Express => {
   configureHealthRoute(app);
 
   app.get('/status', getStatus);
+  // TODO: setup opt logs and monitor logs endpoints
   app.get('/logs', getLogs);
   app.post('/color', postColor);
 
@@ -25,6 +26,6 @@ export const startServer = () => {
   const server = createServer();
 
   server.listen(port, () => {
-    console.log(`pi-led-api running on port: ${port}`);
+    console.log(`pi-led-api running on port: ${port}!`);
   });
 };

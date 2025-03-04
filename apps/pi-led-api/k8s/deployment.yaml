@@ -23,7 +23,7 @@ spec:
       volumes:
         - name: home-monitor
           hostPath:
-            path: /pironman_monitor
+            path: /home/albus/pironman_monitor
             type: Directory
         - name: opt-pironman
           hostPath:
@@ -40,7 +40,7 @@ spec:
             - containerPort: 4001
           volumeMounts:
             - name: home-monitor
-              mountPath: /home/albus/pironman_monitor
+              mountPath: /pironman_monitor
             - name: opt-pironman
               mountPath: /opt/pironman
             - name: var-log-pironman
