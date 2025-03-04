@@ -24,7 +24,7 @@ build:
         buildArgs:
           PROJECT_DIR: apps/
           PROJECT: pi-led-api
-          BASE_IMAGE: harbor.local.abbottland.io/library/node-22-dev:1.0.0
+          BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
 
       sync:
         manual:
