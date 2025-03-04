@@ -1,4 +1,4 @@
-import { DockerBuildConfig } from '../../config/AbctlConfig';
+import { DockerBuildConfig } from '../../config/abctl-config';
 import { ProjectMetadata } from '../project';
 
 export type DockerBuildSettings = {

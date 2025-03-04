@@ -1,4 +1,4 @@
-import { DockerBuildConfig } from './AbctlConfig';
+import { DockerBuildConfig } from './abctl-config';
 import { config } from './config-loader';
 
 export type DockerBuildPreset = '' | 'default' | 'pnpm-turbo-docker-build';

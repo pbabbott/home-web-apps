@@ -1,5 +1,5 @@
 import { loadConfig } from '@abbottland/yaml-config';
-import { AbctlConfig } from './AbctlConfig';
+import { AbctlConfig } from './abctl-config';
 
 export let config = new AbctlConfig();
 

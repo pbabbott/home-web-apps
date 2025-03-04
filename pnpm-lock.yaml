@@ -179,9 +179,15 @@ importers:
       '@abbottland/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      '@types/jest':
+        specifier: ^29.5.12
+        version: 29.5.14
       '@types/node':
         specifier: ^20.11.24
         version: 20.17.9
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.17.9)
       typescript:
         specifier: ^5.7.3
         version: 5.7.3

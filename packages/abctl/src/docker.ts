@@ -10,7 +10,7 @@ import {
   getMergedBuildConfig,
 } from './config/build-presets';
 import { makeBuildSettings } from './services/docker-service/build-settings';
-import { AbctlConfig } from './config/AbctlConfig';
+import { AbctlConfig } from './config/abctl-config';
 
 const getBuiltSettings = (
   config: AbctlConfig,
