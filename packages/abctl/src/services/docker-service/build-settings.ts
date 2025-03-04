@@ -15,7 +15,7 @@ export const makeBuildSettings = (
   dockerBuildConfig: DockerBuildConfig,
   projectMetadata: ProjectMetadata,
 ): DockerBuildSettings => {
-  const { baseImage, context, dockerfile } = dockerBuildConfig;
+  const { baseImage, context, dockerfile, platform } = dockerBuildConfig;
 
   const buildArgs: Record<string, string> = {};
 
@@ -35,5 +35,6 @@ export const makeBuildSettings = (
     context,
     dockerfile,
     buildArgs,
+    platform,
   };
 };

@@ -21,17 +21,17 @@ spec:
         kubernetes.io/hostname: dumbledore
       hostPID: true
       volumes:
-        - name: dumbledore-bin
+        - name: home-monitor
           hostPath:
-            path: /usr/local/bin
+            path: /pironman_monitor
             type: Directory
-        - name: dumbledore-opt
+        - name: opt-pironman
           hostPath:
             path: /opt/pironman
             type: Directory
-        - name: dumbledore-boot
+        - name: var-log-pironman
           hostPath:
-            path: /boot/
+            path: /var/log/pironman
             type: Directory
       containers:
         - name: pi-led-api
@@ -39,12 +39,12 @@ spec:
           ports:
             - containerPort: 4001
           volumeMounts:
-            - mountPath: /dumbledore/bin
-              name: dumbledore-bin
-            - mountPath: /opt/pironman
-              name: dumbledore-opt
-            - mountPath: /boot/
-              name: dumbledore-boot
+            - name: home-monitor
+              mountPath: /home/albus/pironman_monitor
+            - name: opt-pironman
+              mountPath: /opt/pironman
+            - name: var-log-pironman
+              mountPath: /var/log/pironman
           resources:
             limits:
               cpu: '1000m'

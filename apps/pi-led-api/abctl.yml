@@ -1,0 +1,3 @@
+buildPreset: pnpm-turbo-docker-build
+build:
+  platform: linux/arm64

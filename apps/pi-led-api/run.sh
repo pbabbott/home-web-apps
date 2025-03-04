@@ -1,1 +1,0 @@
-docker run --rm -it -p 4001:4001 pi-led-api

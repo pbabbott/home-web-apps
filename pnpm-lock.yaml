@@ -115,6 +115,9 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
     devDependencies:
+      '@abbottland/abctl':
+        specifier: workspace:*
+        version: link:../../packages/abctl
       '@abbottland/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config

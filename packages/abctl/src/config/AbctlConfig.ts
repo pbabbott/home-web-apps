@@ -16,4 +16,6 @@ export class DockerBuildConfig {
   context = '';
 
   dockerfile = '';
+
+  platform = '';
 }
