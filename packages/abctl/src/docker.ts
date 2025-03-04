@@ -64,7 +64,7 @@ export const abctlDockerPublish = async () => {
 
   const remoteImageExists = await checkRemoteImageExists(imageWithVersion);
   if (remoteImageExists) {
-    console.log(`⚠️  Nothing to do. Skipping push. Program terminated.`);
+    console.log('⚠️  Nothing to do. Skipping push. Program terminated.');
     return;
   }
 

@@ -18,9 +18,8 @@ export const getBuildConfigFromPresetName = (
         platform: 'linux/amd64,linux/arm64',
       };
     case 'pnpm-turbo-docker-build':
-      const { repository } = config;
       return {
-        baseImage: `${repository}/node-22-alpine:1.0.0`,
+        baseImage: `${config.repository}/node-22-alpine:1.0.0`,
         context: '../../',
         dockerfile: '../../docker/pnpm-turbo.Dockerfile',
         platform: 'linux/amd64,linux/arm64',

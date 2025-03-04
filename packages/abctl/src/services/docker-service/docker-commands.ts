@@ -90,7 +90,7 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     await executeCommand(command, args);
 
-    console.log(`✅  Docker build completed successfully.`);
+    console.log('✅  Docker build completed successfully.');
   } catch (error) {
     console.error('❌  Docker build failed:', error);
     process.exit(1);
