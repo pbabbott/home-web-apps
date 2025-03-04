@@ -32,5 +32,5 @@ This will do the following:
   - As specified in the changeset markdown file.
 - Write data to each `package-name/CHANGELOG.md`
 
-> [!NOTE]
+> [!IMPORTANT]
 > A commit is not made for this process, so you'll want to commit and push using `git`
