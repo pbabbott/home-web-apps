@@ -15,7 +15,7 @@ export const createServer = (): Express => {
 
   app.get('/status', getStatus);
   // TODO: setup opt logs and monitor logs endpoints
-  app.get('/logs', getLogs);
+  app.get('/logs/opt', getLogs);
   app.post('/color', postColor);
 
   return app;
