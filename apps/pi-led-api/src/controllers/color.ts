@@ -1,25 +1,18 @@
 import { Request, Response } from 'express';
-import { exec } from 'child_process';
+import { writeFile } from 'fs/promises';
 
 export const postColor = async (req: Request, res: Response) => {
   const color = req.query.color;
 
   if (!color) {
-    res.status(400).json({ error: 'color query param is required' });
+    return res.status(400).json({ error: 'color query param is required' });
   }
 
-  const command = `bash /dumbledore/bin/pironman -rc ${color}`;
-
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Exec error: ${error.message}`);
-      return res.status(500).json({ error: error.message });
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return res.status(500).json({ error: stderr });
-    }
-    console.log(`stdout: ${stdout}`);
-    res.json({ stdout });
-  });
+  try {
+    await writeFile('/pironman_monitor/color.txt', color as string, 'utf8');
+    res.json({ message: 'Color written to file successfully' });
+  } catch (error) {
+    console.error(`File write error: ${error.message}`);
+    res.status(500).json({ error: error.message });
+  }
 };

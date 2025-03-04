@@ -1,0 +1,15 @@
+{
+  "name": "@abbottland/node-22-alpine",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "docker:build": "abctl-docker-build",
+    "docker:push": "abctl-docker-push"
+  },
+  "devDependencies": {
+    "@abbottland/abctl": "workspace:*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

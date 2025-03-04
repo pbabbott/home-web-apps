@@ -1,15 +1,8 @@
 ###############################################################
-# Alpine base
-###############################################################
-ARG NODE_VERSION=18
-FROM node:${NODE_VERSION}-alpine AS alpine
-RUN apk update
-RUN apk add --no-cache libc6-compat
-
-###############################################################
 # Setup pnpm and turbo on the alpine base
 ###############################################################
-FROM alpine AS base
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS base
 RUN npm install pnpm turbo --global
 RUN pnpm config set store-dir ~/.pnpm-store
 
@@ -21,29 +14,33 @@ ARG PROJECT
 
 WORKDIR /app
 COPY . .
+
 RUN turbo prune --scope=@abbottland/${PROJECT} --docker
 
 ###############################################################
-# Build the project (suitable for development)
+# Install packages
 ###############################################################
-FROM base AS development
+FROM base AS npm
 ARG PROJECT
-
+ENV PROJECT=${PROJECT}
 WORKDIR /app
 
 # Copy lockfile and package.json's of isolated subworkspace
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=pruner /app/out/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/out/json/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /app/out/json/ .
 
 # First install the dependencies (as they change less often)
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
 
+###############################################################
+# Build the project (suitable for development)
+###############################################################
+FROM npm AS development
+
 # Copy source code of isolated subworkspace
-COPY --from=pruner /app/out/full/ .
-
+COPY --from=pruner /app/out/full .
 RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
-
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
 ###############################################################

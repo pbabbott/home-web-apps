@@ -3,8 +3,8 @@
   "version": "0.0.10",
   "private": true,
   "scripts": {
-    "docker:build": "../../scripts/docker-build.sh apps/ gluetun-sync",
-    "docker:push": "../../scripts/docker-push.sh apps/ gluetun-sync",
+    "docker:build": "abctl-docker-build",
+    "docker:push": "abctl-docker-push",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
@@ -38,6 +38,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",

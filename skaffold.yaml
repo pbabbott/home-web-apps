@@ -1,0 +1,45 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: pi-led-api
+deploy:
+  kubectl:
+    defaultNamespace: brandon-dev
+build:
+  platforms: ['linux/arm64']
+  tagPolicy:
+    gitCommit:
+      variant: AbbrevCommitSha
+      ignoreChanges: true
+  local:
+    useBuildkit: true
+    push: true
+    tryImportMissing: true # caution: this can import a stale image from the registry
+  artifacts:
+    - image: pi-led-api
+      context: ./
+      docker:
+        target: development
+        dockerfile: ./docker/pnpm-turbo.Dockerfile
+        buildArgs:
+          PROJECT_DIR: apps/
+          PROJECT: pi-led-api
+          BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
+
+      sync:
+        manual:
+          # NOTE: src path must start with apps and not ./apps
+          - src: 'apps/pi-led-api/src/**/*.ts'
+            dest: '/app/apps/pi-led-api/src'
+            strip: 'apps/pi-led-api/src'
+
+manifests:
+  rawYaml:
+    - ./apps/pi-led-api/k8s/deployment.yaml
+
+portForward:
+  - resourceType: deployment
+    resourceName: pi-led-api
+    namespace: brandon-dev
+    port: 4001
+    localPort: 4001

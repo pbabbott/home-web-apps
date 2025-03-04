@@ -1,23 +1,23 @@
 {
-  "name": "@abbottland/logger",
-  "version": "0.0.0",
-  "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist/**"
-  ],
+  "name": "@abbottland/abctl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "abctl-docker-build": "dist/bin/docker-build.js",
+    "abctl-docker-push": "dist/bin/docker-push.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "test:build": "tsc -p tsconfig.test.json",
-    "dev": "tsc -w",
+    "dev": "tsc -w -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
     "test:unit": "pnpm run test:build && jest --config jest.unit.config.js"
   },
-  "jest": {
-    "preset": "@abbottland/jest-presets/node"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
@@ -26,7 +26,12 @@
     "@types/node": "^20.11.24",
     "eslint": "^9.16.0",
     "jest": "^29.7.0",
-    "typescript": "~5.6.3",
+    "typescript": "^5.7.3",
     "typescript-eslint": "^8.17.0"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "execa": "^9.5.2",
+    "@abbottland/yaml-config": "workspace:*"
   }
 }
