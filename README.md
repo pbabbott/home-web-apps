@@ -41,10 +41,11 @@ All apps and packages are built with Typescript!
 
 ## Integration Environments
 
-This section explains one can develop or test each application or package within this monorepo.
+Each application or package in this monorepo may have unique requirements for development and testing. Below are the specific guides for setting up and working with different integration environments:
 
-- [Integration Environment: gluetun-sync](./docs/int-env-gluetun-sync.md)
-- [Integration Environment: abctl](./docs/int-env-abctl.md)
+- [packages/abctl](./docs/int-env-abctl.md)
+- [apps/gluetun-sync](./docs/int-env-gluetun-sync.md)
+- [apps/pi-led-api](./docs/int-env-pi-led-api.md)
 
 ## GH Actions
 
