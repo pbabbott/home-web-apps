@@ -21,6 +21,12 @@ Then, find the secret called `Production Access Token: Kubernetes`
 Now, with the token, you can set the value in `.devcontainer/.env` finding the value `OP_CONNECT_TOKEN`
 This token is set up to work in tandem with `OP_CONNECT_HOST`
 
-### Step 3 - Run other scripts
+## Step 3 - Run other scripts
 
 Run other scripts that may require 1Password. Environment variables are now automatically set with values from the vault!
+
+# Reference
+
+## Connect Server Information
+
+For more information on this secret `OP_CONNECT_TOKEN` please refer the repository [pbabbott/home-kubernetes](https://github.com/pbabbott/home-kubernetes) as its rotation instructions are co-located with information on the connect server.
