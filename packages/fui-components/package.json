@@ -28,7 +28,7 @@
     "@storybook/addon-themes": "^8.4.4",
     "@storybook/blocks": "^8.4.4",
     "@storybook/react": "^8.6.4",
-    "@storybook/react-vite": "^8.4.4",
+    "@storybook/react-vite": "^8.6.4",
     "@storybook/test": "^8.4.4",
     "@types/animejs": "^3.1.13",
     "@types/react": "^18.3.12",
