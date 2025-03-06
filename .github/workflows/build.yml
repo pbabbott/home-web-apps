@@ -1,4 +1,4 @@
-name: build packages
+name: Typescript Build
 on:
   workflow_dispatch: {}
   pull_request_target:

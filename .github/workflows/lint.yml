@@ -1,4 +1,4 @@
-name: lint packages
+name: Lint Codebase
 on:
   workflow_dispatch: {}
   pull_request_target:
