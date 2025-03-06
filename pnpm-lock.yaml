@@ -341,8 +341,8 @@ importers:
         specifier: ^8.4.4
         version: 8.4.6(storybook@8.4.6(prettier@3.4.2))
       '@types/animejs':
-        specifier: ^3.1.12
-        version: 3.1.12
+        specifier: ^3.1.13
+        version: 3.1.13
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.12
@@ -1682,8 +1682,8 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
-  '@types/animejs@3.1.12':
-    resolution: {integrity: sha512-fpdH+ZtlO0kqjTOqRaBdsEmvpRNOayI8k4EVkEtitL5l6wducDOXk0rgQgfZqWf/ZX9DzXrHf257S5i9xTcISQ==}
+  '@types/animejs@3.1.13':
+    resolution: {integrity: sha512-yWg9l1z7CAv/TKpty4/vupEh24jDGUZXv4r26StRkpUPQm04ztJaftgpto8vwdFs8SiTq6XfaPKCSI+wjzNMvQ==}
 
   '@types/argparse@1.0.38':
     resolution: {integrity: sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==}
@@ -6080,7 +6080,7 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.0
 
-  '@types/animejs@3.1.12': {}
+  '@types/animejs@3.1.13': {}
 
   '@types/argparse@1.0.38': {}
 
