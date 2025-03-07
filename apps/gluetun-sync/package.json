@@ -32,7 +32,7 @@
     "@abbottland/express": "workspace:*",
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
-    "cronstrue": "^2.50.0",
+    "cronstrue": "^2.56.0",
     "express": "^4.21.2",
     "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2"
