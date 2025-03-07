@@ -15,7 +15,7 @@
   "dependencies": {
     "animejs": "^3.2.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.0.0",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@storybook/test": "^8.6.4",
     "@types/animejs": "^3.1.13",
     "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitejs/plugin-react-swc": "^3.8.0",
     "autoprefixer": "^10.4.20",
