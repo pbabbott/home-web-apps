@@ -54,7 +54,7 @@ RUN rm -rf ./**/*/src
 ###############################################################
 # Final Image
 ###############################################################
-FROM alpine AS runner
+FROM node:22-alpine AS runner
 ARG PROJECT
 ARG PROJECT_DIR
 
