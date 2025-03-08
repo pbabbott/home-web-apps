@@ -1,8 +1,8 @@
 # Integration Environment - Gluetun Sync
 
-The purpose of this document is to explain how the application gluetun-sync can be developed within an integration environment.
+The purpose of this document is to explain how the application `gluetun-sync` can be developed within an integration environment.
 
-# Overview
+## Overview
 
 The gluetun-sync application requires two services to be running so that it may be developed: `qbittorrent` and `gluetun`. `gluetun-sync` is meant to facilitate communication among these services so it makes sense that having these services running will enable a robust development or test environment.
 
