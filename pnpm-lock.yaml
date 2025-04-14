@@ -36,8 +36,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/yaml-config
       cronstrue:
-        specifier: ^2.50.0
-        version: 2.52.0
+        specifier: ^2.59.0
+        version: 2.59.0
       express:
         specifier: ^4.21.2
         version: 4.21.2
@@ -2374,8 +2374,8 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
 
-  cronstrue@2.52.0:
-    resolution: {integrity: sha512-NKgHbWkSZXJUcaBHSsyzC8eegD6bBd4O0oCI6XMIJ+y4Bq3v4w7sY3wfWoKPuVlq9pQHRB6od0lmKpIqi8TlKA==}
+  cronstrue@2.59.0:
+    resolution: {integrity: sha512-YKGmAy84hKH+hHIIER07VCAHf9u0Ldelx1uU6EBxsRPDXIA1m5fsKmJfyC3xBhw6cVC/1i83VdbL4PvepTrt8A==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -7427,7 +7427,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  cronstrue@2.52.0: {}
+  cronstrue@2.59.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
