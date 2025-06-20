@@ -13,10 +13,10 @@ All apps and packages are built with Typescript!
 ## Packages
 
 - `@abbottland/eslint-config`: ESLint presets.
-- `@abbottland/fui-components`: React Fantasy UI component library written with Storybook
-- `@abbottland/jest-presets`: Jest configurations
+- `@abbottland/fui-components`: React Fantasy UI component library written with Storybook.
+- `@abbottland/jest-presets`: Jest configurations.
 - `@abbottland/logger`: Placeholder code, not yet used.
-- `@abbottland/typescript-config`: `tsconfig.json`'s used throughout the monorepo
+- `@abbottland/typescript-config`: `tsconfig.json`'s used throughout the monorepo.
 - `@abbottland/yaml-config`: Custom helper library to read `yaml` files or environment variables as configuration into application memory.
 
 # Contributing
