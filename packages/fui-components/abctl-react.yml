@@ -2,3 +2,4 @@ buildPreset: pnpm-turbo-docker-build
 build:
   target: builder
   repository: abctl-react-builder
+  platform: linux/amd64
