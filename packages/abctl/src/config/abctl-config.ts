@@ -36,4 +36,7 @@ export class DockerBuildConfig {
   platform = '';
 
   target = '';
+
+  /** Should --load be set during the build process? */
+  load = 'false';
 }

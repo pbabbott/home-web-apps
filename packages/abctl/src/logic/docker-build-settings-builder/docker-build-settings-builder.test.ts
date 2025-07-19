@@ -11,6 +11,7 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
     dockerfile: '../../docker/pnpm-turbo.Dockerfile',
     platform: 'linux/arm64',
     repository: 'one-cool-app',
+    load: 'false',
     tag: 'latest',
     target: 'builder',
   };

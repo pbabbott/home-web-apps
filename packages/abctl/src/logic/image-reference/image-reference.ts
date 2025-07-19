@@ -5,20 +5,22 @@ import { ProjectMetadata } from '../project-metadata';
 const getImage = (
   projectMetadata: ProjectMetadata,
   combinedBuildConfig: DockerBuildConfig,
-  version: string,
+  tag: string,
 ): string => {
   const { projectName } = projectMetadata;
   const { repository } = combinedBuildConfig;
 
   const repositoryName = repository == '' ? projectName : repository;
-  return `${config.registryWithNamespace}/${repositoryName}:${version}`;
+  return `${config.registryWithNamespace}/${repositoryName}:${tag}`;
 };
 
 export const getImageWithVersion = (
   projectMetadata: ProjectMetadata,
   combinedBuildConfig: DockerBuildConfig,
-): string =>
-  getImage(projectMetadata, combinedBuildConfig, projectMetadata.version);
+): string => {
+  const tag = combinedBuildConfig.tag || projectMetadata.version;
+  return getImage(projectMetadata, combinedBuildConfig, tag);
+};
 
 export const getImageAsLatest = (
   projectMetadata: ProjectMetadata,

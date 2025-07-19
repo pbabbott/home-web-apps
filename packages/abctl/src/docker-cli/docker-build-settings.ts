@@ -4,6 +4,7 @@ export type DockerBuildSettings = {
   dockerfile?: string;
   buildArgs?: Record<string, string>;
   push?: boolean;
+  load?: boolean;
   platform?: string;
   target?: string;
 };

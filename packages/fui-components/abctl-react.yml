@@ -1,5 +1,6 @@
 buildPreset: pnpm-turbo-docker-build
 build:
   target: builder
-  repository: abctl-react-builder
+  repository: fui-components-storybook-builder
   platform: linux/amd64
+  tag: latest

@@ -65,6 +65,7 @@ export async function dockerBuild(settings: DockerBuildSettings) {
       buildArgs = {},
       dockerfile,
       push,
+      load,
       platform,
       target,
     } = settings;
@@ -85,6 +86,10 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     if (push) {
       args.push('--push');
+    }
+
+    if (load) {
+      args.push('--load');
     }
 
     if (target) {

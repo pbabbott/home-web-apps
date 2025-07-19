@@ -11,6 +11,7 @@ describe('@abbottland/abctl/build-config-merger getMergedBuildConfig', () => {
     tag: '',
     baseImage: '',
     context: '',
+    load: '',
     target: '',
     dockerfile: './custom.Dockerfile',
     platform: 'linux/arm64',

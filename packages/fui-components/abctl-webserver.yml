@@ -1,0 +1,4 @@
+build:
+  dockerfile: Dockerfile
+  context: .
+  baseImage: harbor.local.abbottland.io/library/fui-components-storybook-builder:latest
