@@ -1,6 +1,6 @@
 {
   "name": "@abbottland/fui-components",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "docker:build": "pnpm run docker:build:storybook && pnpm run docker:push:storybook && pnpm run docker:build:webserver",
