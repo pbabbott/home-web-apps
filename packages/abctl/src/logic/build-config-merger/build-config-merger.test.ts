@@ -1,16 +1,17 @@
-import {
-  getBuildConfigFromPresetName,
-  getMergedBuildConfig,
-} from './build-presets';
-import { DockerBuildConfig } from './abctl-config';
+import { DockerBuildConfig } from '../../config/abctl-config';
+import { getBuildConfigFromPresetName } from '../build-presets';
+import { getMergedBuildConfig } from './build-config-merger';
 
 // jest.spyOn(global.console, 'log');
 
-describe('@abbottland/abctl/build-presets getMergedBuildConfig', () => {
+describe('@abbottland/abctl/build-config-merger getMergedBuildConfig', () => {
   const presetConfig = getBuildConfigFromPresetName('');
   const userConfig: DockerBuildConfig = {
+    repository: '',
+    tag: '',
     baseImage: '',
     context: '',
+    target: '',
     dockerfile: './custom.Dockerfile',
     platform: 'linux/arm64',
   };

@@ -30,8 +30,8 @@
     "typescript-eslint": "^8.26.0"
   },
   "dependencies": {
+    "@abbottland/yaml-config": "workspace:*",
     "commander": "^13.1.0",
-    "execa": "^9.5.2",
-    "@abbottland/yaml-config": "workspace:*"
+    "execa": "^9.5.2"
   }
 }

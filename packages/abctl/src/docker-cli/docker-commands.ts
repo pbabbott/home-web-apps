@@ -1,6 +1,6 @@
 import { ExecaError } from 'execa';
-import { executeCommand } from '../shell';
-import { DockerBuildSettings } from './build-settings';
+import { executeCommand } from './shell';
+import { DockerBuildSettings } from './docker-build-settings';
 
 export const dockerTag = async (
   imageWithTag: string,
@@ -66,6 +66,7 @@ export async function dockerBuild(settings: DockerBuildSettings) {
       dockerfile,
       push,
       platform,
+      target,
     } = settings;
     const command = 'docker';
     const args = ['buildx', 'build'];
@@ -84,6 +85,10 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     if (push) {
       args.push('--push');
+    }
+
+    if (target) {
+      args.push('--target', target);
     }
 
     args.push(context ?? '.');
