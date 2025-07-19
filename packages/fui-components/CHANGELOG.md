@@ -1,5 +1,11 @@
 # fui-components
 
+## 0.2.0
+
+### Minor Changes
+
+- Initial release with docker
+
 ## 0.1.2
 
 ### Patch Changes

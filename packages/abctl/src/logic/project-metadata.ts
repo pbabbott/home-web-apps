@@ -1,6 +1,5 @@
 import { readFileSync } from 'fs';
 import path from 'path';
-import { config } from '../config/config-loader';
 
 export type ProjectMetadata = {
   projectName: string;
@@ -41,13 +40,4 @@ export const getProjectMetadata = (): ProjectMetadata => {
     parentDirName,
     version,
   };
-};
-
-export const getImageWithVersion = (projectName: string, version: string) => {
-  const { repository } = config;
-  return `${repository}/${projectName}:${version}`;
-};
-
-export const getImageAsLatest = (projectName: string) => {
-  return getImageWithVersion(projectName, 'latest');
 };

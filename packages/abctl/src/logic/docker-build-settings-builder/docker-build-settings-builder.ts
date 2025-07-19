@@ -1,21 +1,12 @@
+import { ProjectMetadata } from '../project-metadata';
+import { DockerBuildSettings } from '../../docker-cli/docker-build-settings';
 import { DockerBuildConfig } from '../../config/abctl-config';
-import { ProjectMetadata } from '../project';
-
-export type DockerBuildSettings = {
-  image: string;
-  context?: string;
-  dockerfile?: string;
-  buildArgs?: Record<string, string>;
-  push?: boolean;
-  platform?: string;
-};
-
 export const makeBuildSettings = (
   image: string,
   dockerBuildConfig: DockerBuildConfig,
   projectMetadata: ProjectMetadata,
 ): DockerBuildSettings => {
-  const { baseImage, context, dockerfile, platform } = dockerBuildConfig;
+  const { baseImage, context, dockerfile, load, ...rest } = dockerBuildConfig;
 
   const buildArgs: Record<string, string> = {};
 
@@ -35,6 +26,7 @@ export const makeBuildSettings = (
     context,
     dockerfile,
     buildArgs,
-    platform,
+    load: load === 'true',
+    ...rest,
   };
 };

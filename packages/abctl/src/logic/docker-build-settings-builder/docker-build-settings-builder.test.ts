@@ -1,15 +1,19 @@
-import { ProjectMetadata } from '../project';
-import { makeBuildSettings } from './build-settings';
+import { DockerBuildConfig } from '../../config/abctl-config';
+import { ProjectMetadata } from '../project-metadata';
+import { makeBuildSettings } from './docker-build-settings-builder';
 
-// jest.spyOn(global.console, 'log');
-
-describe('@abbottland/abctl/build-settings makeBuildSettings', () => {
+describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', () => {
   const image = 'one_cool_image';
-  const dockerBuildConfig = {
+
+  const dockerBuildConfig: DockerBuildConfig = {
     baseImage: 'node:22-alpine',
     context: '../../',
     dockerfile: '../../docker/pnpm-turbo.Dockerfile',
     platform: 'linux/arm64',
+    repository: 'one-cool-app',
+    load: 'false',
+    tag: 'latest',
+    target: 'builder',
   };
   const projectMetadata: ProjectMetadata = {
     parentDirName: 'apps',
@@ -18,6 +22,7 @@ describe('@abbottland/abctl/build-settings makeBuildSettings', () => {
   };
   const sut = makeBuildSettings(image, dockerBuildConfig, projectMetadata);
 
+  // TODO: Add tests for the build settings
   it('should set image', () => {
     expect(sut.image).toBe(image);
   });
@@ -29,6 +34,9 @@ describe('@abbottland/abctl/build-settings makeBuildSettings', () => {
   });
   it('should set platform', () => {
     expect(sut.platform).toBe(dockerBuildConfig.platform);
+  });
+  it('should set target', () => {
+    expect(sut.target).toBe(dockerBuildConfig.target);
   });
   it('should set build args', () => {
     expect(sut.buildArgs).toEqual({
