@@ -68,7 +68,7 @@ const getColorClasses = (variant: ButtonVariant, color: ButtonColor) => {
   return colors[color][variant as keyof (typeof colors)[typeof color]] || '';
 };
 
-export const Button: React.FC<ButtonProps> = ({
+const Button: React.FC<ButtonProps> = ({
   variant = 'contained',
   color = 'primary',
   children,
@@ -94,3 +94,5 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
+
+export default Button;
