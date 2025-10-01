@@ -4,6 +4,7 @@
     "dockerfile": "Dockerfile"
   },
   "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
     },
@@ -38,6 +39,7 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "github.copilot",
+        "github.copilot-chat",
         "github.vscode-github-actions"
       ],
       "settings": {
