@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TS Server",
+  "extends": "./ts-lib-base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["jest", "node"]
+  }
+}

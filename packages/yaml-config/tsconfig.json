@@ -1,11 +1,7 @@
 {
-  "extends": "@abbottland/typescript-config/ts-lib.json",
+  "description": "Typescript configuration for VS Code",
+  "extends": "@abbottland/typescript-config/ts-lib-base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-
-    /* This makes sure that the output files are placed in the same directory as the source files */
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+    "types": ["jest", "node"]
+  }
 }
