@@ -28,7 +28,7 @@
     "@abbottland/express": "workspace:*",
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
-    "express": "^4.21.2",
+    "express": "catalog:",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
@@ -36,7 +36,7 @@
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
-    "@types/express": "^4.17.21",
+    "@types/express": "catalog:",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@types/node-cron": "^3.0.11",
@@ -46,7 +46,6 @@
     "jest-junit": "^16.0.0",
     "supertest": "^7.0.0",
     "tsc-watch": "^6.2.1",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.26.0"
+    "typescript": "catalog:"
   }
 }

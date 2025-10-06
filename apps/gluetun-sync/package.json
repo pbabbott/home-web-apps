@@ -33,7 +33,7 @@
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
     "cronstrue": "^2.59.0",
-    "express": "^4.21.2",
+    "express": "catalog:",
     "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2"
   },
@@ -42,17 +42,16 @@
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
-    "@types/express": "^4.17.21",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
+    "@types/express": "catalog:",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.19",
     "@types/node-cron": "^3.0.11",
-    "@types/supertest": "^6.0.2",
-    "dotenv": "^16.4.5",
+    "@types/supertest": "^6.0.3",
+    "dotenv": "^16.6.1",
     "jest": "^29.7.0",
     "jest-junit": "^16.0.0",
-    "supertest": "^7.0.0",
-    "tsc-watch": "^6.2.1",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.26.0"
+    "supertest": "^7.1.4",
+    "tsc-watch": "^6.3.1",
+    "typescript": "catalog:"
   }
 }

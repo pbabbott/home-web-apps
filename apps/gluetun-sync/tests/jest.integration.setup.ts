@@ -11,7 +11,7 @@ beforeAll(async () => {
 
   const app = createServer();
   await new Promise<void>((resolve) => {
-    server = app.listen(3000, resolve);
+    server = app.listen(3000, () => resolve());
   });
 });
 
