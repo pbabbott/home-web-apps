@@ -46,7 +46,6 @@
     "jest-junit": "^16.0.0",
     "supertest": "^7.0.0",
     "tsc-watch": "^6.2.1",
-    "typescript": "catalog:",
-    "typescript-eslint": "^8.26.0"
+    "typescript": "catalog:"
   }
 }

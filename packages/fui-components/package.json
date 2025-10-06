@@ -12,7 +12,6 @@
     "build": "pnpm run build:storybook && pnpm run build:npm",
     "build:npm": "tsc -b && vite build",
     "build:storybook": "storybook build",
-    "lint": "eslint .",
     "dev": "storybook dev -p 6006"
   },
   "peerDependencies": {
