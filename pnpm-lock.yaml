@@ -207,7 +207,7 @@ importers:
         specifier: workspace:*
         version: link:../typescript-config
       '@types/jest':
-        specifier: ^29.5.12
+        specifier: 'catalog:'
         version: 29.5.14
       '@types/node':
         specifier: 'catalog:'
@@ -216,8 +216,11 @@ importers:
         specifier: ^9.16.0
         version: 9.16.0(jiti@1.21.6)
       jest:
-        specifier: ^29.7.0
+        specifier: 'catalog:'
         version: 29.7.0(@types/node@22.18.8)(ts-node@10.9.2(@swc/core@1.11.7)(@types/node@22.18.8)(typescript@5.9.3))
+      ts-node:
+        specifier: 'catalog:'
+        version: 10.9.2(@swc/core@1.11.7)(@types/node@22.18.8)(typescript@5.9.3)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

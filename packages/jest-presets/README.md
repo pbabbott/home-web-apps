@@ -54,7 +54,7 @@ export default config;
 
 ```json
 "scripts": {
-    "test:unit": "jest --config jest.config.ts --selectProject unit-tests"
+    "test:unit": "jest --config jest.config.ts --selectProjects unit-tests"
 }
 ```
 
@@ -75,7 +75,7 @@ describe('@abbottland/logger', () => {
 });
 ```
 
-## 5 - Setup Integration Tests
+## 5 - Setup Integration Tests (optional)
 
 ### 5a. Add Preset
 
@@ -101,7 +101,7 @@ export default config;
 ```json
 {
   "scripts": {
-    "test:int": "jest --config jest.config.ts --selectProject integration-tests"
+    "test:int": "jest --config jest.config.ts --selectProjects integration-tests"
   }
 }
 ```
