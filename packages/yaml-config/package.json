@@ -22,18 +22,18 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "reflect-metadata": "^0.2.2",
-    "yaml": "^2.5.0"
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
-    "@types/jest": "^29.5.12",
-    "@types/lodash": "^4.17.7",
-    "@types/node": "^20.11.24",
+    "@types/jest": "^29.5.14",
+    "@types/lodash": "^4.17.20",
+    "@types/node": "catalog:",
     "jest": "^29.7.0",
-    "typedoc": "^0.27.3",
-    "typedoc-plugin-markdown": "^4.3.1",
+    "typedoc": "^0.28.13",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "catalog:"
   }
 }

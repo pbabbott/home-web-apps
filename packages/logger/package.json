@@ -23,7 +23,7 @@
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
+    "@types/node": "catalog:",
     "eslint": "^9.16.0",
     "jest": "^29.7.0",
     "typescript": "catalog:"

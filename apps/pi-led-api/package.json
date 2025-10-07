@@ -38,7 +38,7 @@
     "@abbottland/typescript-config": "workspace:*",
     "@types/express": "catalog:",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
+    "@types/node": "catalog:",
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
