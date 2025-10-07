@@ -1,0 +1,1 @@
+i have come up with a new way to setup unit tests in my project and the step-by-step instructions are in @README.md - can you apply this pattern to `packages/abctl` -- assume that all tests are unit tests. be sure to rename the files, update the package.json dev dep to match the readme, and make sure the package.json scripts are set correctly too
