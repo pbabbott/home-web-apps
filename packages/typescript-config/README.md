@@ -60,11 +60,18 @@ Be sure to set `outDir` and `rootDir` in `compilerOptions` as well as `include` 
 }
 ```
 
-Add the build script to your `package.json`.
+Add the build script, and devDependencies to your `package.json`.
 
 ```jsonc
-"scripts": {
+{
+  "scripts": {
     "build": "tsc -p tsconfig.build.json",
+  },
+  "devDependencies": {
+    "@abbottland/typescript-config": "workspace:*",
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+  },
 }
 ```
 

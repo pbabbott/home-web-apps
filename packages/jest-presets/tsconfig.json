@@ -1,0 +1,7 @@
+{
+  "description": "Typescript configuration for IDE support",
+  "extends": "@abbottland/typescript-config/ts-lib-base.json",
+  "compilerOptions": {
+    "types": ["jest", "node"]
+  }
+}

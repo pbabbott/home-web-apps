@@ -1,3 +1,3 @@
-const { unitTestPreset } = require('@abbottland/jest-presets/node/jest-preset');
+import { unitTestPreset } from '@abbottland/jest-presets';
 
-module.exports = unitTestPreset;
+export default unitTestPreset;

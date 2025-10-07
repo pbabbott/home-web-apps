@@ -1,4 +1,6 @@
-const basePreset = {
+import type { Config } from 'jest';
+
+const basePreset: Config = {
   roots: ['<rootDir>'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
@@ -13,21 +15,21 @@ const basePreset = {
   detectOpenHandles: true,
 };
 
-const unitTestPreset = {
+const unitTestPreset: Config = {
   ...basePreset,
   // Add or override unit-test-specific configurations
   displayName: 'unit-tests',
-  testPathIgnorePatterns: ['/tests/integration/'], // Ignore integration tests
+  testMatch: ['**/*.unit.test.[jt]s?(x)'],
 };
 
-const integrationTestPreset = {
+const integrationTestPreset: Config = {
   ...basePreset,
   setupFilesAfterEnv: ['<rootDir>/tests/jest.integration.setup.ts'], // Add global setup for integration tests
   displayName: 'integration-tests',
-  testMatch: ['**/tests/integration/**/*.[jt]s?(x)'], // Only include integration tests
+  testMatch: ['**/*.integration.test.[jt]s?(x)'],
 };
 
-module.exports = {
+export {
   basePreset,
   unitTestPreset,
   integrationTestPreset,
