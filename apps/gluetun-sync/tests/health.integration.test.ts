@@ -1,9 +1,8 @@
-import supertest from 'supertest';
-import { serverUrl } from '../jest.integration.setup';
+import { getRequest } from './jest.integration.setup';
 
 describe('GET /healthz', () => {
   it('status check returns 200', async () => {
-    await supertest(serverUrl)
+    await getRequest()
       .get('/healthz')
       .expect(200)
       .then((res) => {
