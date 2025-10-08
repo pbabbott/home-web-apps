@@ -8,14 +8,17 @@
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
-    "dev:deps": "docker-compose -f ./docker-compose.yaml up -d",
-    "dev:deps:down": "docker-compose -f ./docker-compose.yaml down -v",
     "secrets:generate": "abctl-secrets-generate-env",
+    "dev:deps": "docker compose -f ./docker-compose.yaml up -d",
+    "dev:deps:down": "docker compose -f ./docker-compose.yaml down -v",
+    "e2e:deps": "docker compose -f ./docker-compose.yaml --profile e2e up -d",
+    "e2e:deps:down": "docker compose -f ./docker-compose.yaml --profile e2e down -v",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
     "start": "node ./dist/index.js",
     "test": "pnpm run test:unit && pnpm run test:int",
     "test:unit": "jest --config jest.config.ts --selectProjects unit",
-    "test:int": "jest --config jest.config.ts --selectProjects integration"
+    "test:int": "jest --config jest.config.ts --selectProjects integration",
+    "test:e2e": "jest --config jest.config.ts --selectProjects e2e"
   },
   "dependencies": {
     "@abbottland/express": "workspace:*",
