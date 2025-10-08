@@ -6,7 +6,7 @@ describe('GET /healthz', () => {
       .get('/healthz')
       .expect(200)
       .then((res) => {
-        expect(res.body.ok).toBe(true);
+        expect(res.body.status).toBe('ok');
       });
   });
 });

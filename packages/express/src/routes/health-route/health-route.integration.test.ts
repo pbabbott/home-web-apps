@@ -12,10 +12,10 @@ describe('Health Route Integration Tests', () => {
   });
 
   describe('GET /healthz', () => {
-    it('should return 200 status with ok: true', async () => {
+    it('should return 200 status with status: ok', async () => {
       const response = await request(app).get('/healthz').expect(200);
 
-      expect(response.body).toEqual({ ok: true });
+      expect(response.body).toEqual({ status: 'ok' });
     });
 
     it('should return JSON content type', async () => {
@@ -33,7 +33,7 @@ describe('Health Route Integration Tests', () => {
       const responses = await Promise.all(promises);
 
       responses.forEach((response) => {
-        expect(response.body).toEqual({ ok: true });
+        expect(response.body).toEqual({ status: 'ok' });
       });
     });
 
@@ -43,7 +43,7 @@ describe('Health Route Integration Tests', () => {
 
       const healthResponse = await request(app).get('/healthz').expect(200);
 
-      expect(healthResponse.body).toEqual({ ok: true });
+      expect(healthResponse.body).toEqual({ status: 'ok' });
 
       // The other route should still work
       const otherResponse = await request(app).get('/other').expect(200);

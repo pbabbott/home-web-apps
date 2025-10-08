@@ -3,7 +3,7 @@ import {
   configureBaseServerMiddleware,
   configureHealthRoute,
 } from '@abbottland/express';
-import { getStatus } from './controllers/status';
+import { getStatus } from './controllers/status/status';
 import { postColor } from './controllers/color';
 import { getLogs } from './controllers/logs';
 
