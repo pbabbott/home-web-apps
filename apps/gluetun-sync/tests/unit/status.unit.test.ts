@@ -1,11 +1,11 @@
 import supertest from 'supertest';
-import { createServer } from '../src/server';
-import { PortsResult } from '../src/controllers/status';
-import * as gluetunApi from '../src/api/gluetun/gluetun';
-import * as qbittorrentApi from '../src/api/qbittorrent';
+import { createServer } from '../../src/server';
+import { PortsResult } from '../../src/controllers/status';
+import * as gluetunApi from '../../src/api/gluetun/gluetun';
+import * as qbittorrentApi from '../../src/api/qbittorrent';
 
-jest.mock('../src/api/gluetun/gluetun');
-jest.mock('../src/api/qbittorrent');
+jest.mock('../../src/api/gluetun/gluetun');
+jest.mock('../../src/api/qbittorrent');
 
 describe('GET /status', () => {
   it('status check returns 200', async () => {

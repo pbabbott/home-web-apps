@@ -1,4 +1,4 @@
-import { getRequest } from './jest.integration.setup';
+import { getRequest } from '../jest.integration.setup';
 
 describe('GET /healthz', () => {
   it('status check returns 200', async () => {
