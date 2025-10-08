@@ -3,13 +3,13 @@ import {
   checkRemoteImageExists,
   dockerBuild,
 } from '../docker-cli/docker-commands';
-import { combineBuildConfigs } from '../logic/build-config-merger/build-config-merger';
-import { makeBuildSettings } from '../logic/docker-build-settings-builder/docker-build-settings-builder';
+import { combineBuildConfigs } from '../build-logic/build-config-merger/build-config-merger';
+import { makeBuildSettings } from '../build-logic/docker-build-settings-builder/docker-build-settings-builder';
 import {
   getImageAsLatest,
   getImageWithVersion,
-} from '../logic/image-reference/image-reference';
-import { getProjectMetadata } from '../logic/project-metadata';
+} from '../build-logic/image-reference/image-reference';
+import { getProjectMetadata } from '../build-logic/project-metadata';
 
 export const abctlDockerBuild = async () => {
   console.log('🏎️  Starting docker build process...');
