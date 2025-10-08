@@ -16,16 +16,6 @@ const config: Config = {
     },
     e2eTestPreset,
   ],
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        outputDirectory: './test-results/junit',
-        outputName: 'results.xml',
-      },
-    ],
-  ],
 };
 
 export default config;

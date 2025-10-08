@@ -7,13 +7,18 @@
       "dependsOn": ["^build"]
     },
     "test:int": {
-      "outputs": ["coverage/**", "test-results/**"],
+      "outputs": ["test-results/integration/**"],
       "dependsOn": ["build"]
     },
     "test:unit": {
-      "outputs": ["coverage/**", "test-results/**"],
+      "outputs": ["test-results/unit/**"],
       "dependsOn": ["build"]
     },
+    "test:e2e": {
+      "outputs": ["test-results/e2e/**"],
+      "dependsOn": ["build"]
+    },
+
     "docker:build": {
       "cache": false,
       "dependsOn": ["^build"],
