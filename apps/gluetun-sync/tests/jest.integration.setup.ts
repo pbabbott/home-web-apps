@@ -1,25 +1,15 @@
 import { createServer } from '../src/server';
 import { initConfig, validateConfig } from '../src/config';
+import request from 'supertest';
 
-let server;
+let app;
 
 beforeAll(async () => {
-  // Create the server and store the instance
-
+  // Initialize config and create the app instance
   await initConfig();
   validateConfig();
 
-  const app = createServer();
-  await new Promise<void>((resolve) => {
-    server = app.listen(3000, () => resolve());
-  });
+  app = createServer();
 });
 
-afterAll(() => {
-  // Gracefully close the server after all tests are done
-  return new Promise((resolve) => {
-    server.close(resolve);
-  });
-});
-
-export const serverUrl = 'http://localhost:3000';
+export const getRequest = () => request(app);

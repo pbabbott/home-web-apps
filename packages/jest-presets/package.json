@@ -3,10 +3,25 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "main": "./dist/jest-presets.js",
+  "types": "./dist/jest-presets.d.ts",
   "files": [
-    "node/jest-preset.js"
+    "dist/**"
   ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
   "dependencies": {
-    "ts-jest": "^29.2.6"
+    "ts-node": "catalog:"
+  },
+  "peerDependencies": {
+    "jest": "catalog:"
+  },
+  "devDependencies": {
+    "@abbottland/typescript-config": "workspace:*",
+    "@types/jest": "catalog:",
+    "typescript": "catalog:",
+    "ts-jest": "catalog:",
+    "@types/node": "catalog:"
   }
 }

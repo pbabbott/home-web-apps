@@ -1,10 +1,9 @@
-import supertest from 'supertest';
-import { serverUrl } from '../jest.integration.setup';
+import { getRequest } from '../jest.integration.setup';
 
 describe('sync', () => {
   describe('pre-sync', () => {
     it('should return empty object for GET /status', async () => {
-      await supertest(serverUrl)
+      await getRequest()
         .get('/status')
         .expect(200)
         .then((res) => {
@@ -16,7 +15,7 @@ describe('sync', () => {
   describe('do sync', () => {
     it('should return 200 for POST /sync', async () => {
       // This will test connectivity to both Gluetun and qBitTorrent
-      await supertest(serverUrl)
+      await getRequest()
         .post('/sync')
         .expect(200)
         .then((res) => {
@@ -26,7 +25,7 @@ describe('sync', () => {
     });
     it('should return a sensible response for GET /status', async () => {
       // This will verify that the port sync was successful
-      await supertest(serverUrl)
+      await getRequest()
         .get('/status')
         .expect(200)
         .then((res) => {
