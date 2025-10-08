@@ -1,13 +1,13 @@
 import { Express } from 'express';
 import request from 'supertest';
-import express from 'express';
 import { configureHealthRoute } from './health-route';
+import { createTestApp } from '../../test-setup/integration-test-setup';
 
-describe('Health Route', () => {
+describe('Health Route Integration Tests', () => {
   let app: Express;
 
   beforeEach(() => {
-    app = express();
+    app = createTestApp();
     configureHealthRoute(app);
   });
 
@@ -35,21 +35,6 @@ describe('Health Route', () => {
       responses.forEach((response) => {
         expect(response.body).toEqual({ ok: true });
       });
-    });
-  });
-
-  describe('configureHealthRoute', () => {
-    it('should configure the health endpoint on the provided Express app', () => {
-      const mockApp = {
-        get: jest.fn(),
-      } as unknown as Express;
-
-      configureHealthRoute(mockApp);
-
-      expect(mockApp.get).toHaveBeenCalledWith(
-        '/healthz',
-        expect.any(Function),
-      );
     });
 
     it('should not interfere with other routes', async () => {

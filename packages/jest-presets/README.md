@@ -54,7 +54,7 @@ export default config;
 
 ```json
 "scripts": {
-    "test:unit": "jest --config jest.config.ts --selectProjects unit-tests"
+    "test:unit": "jest --config jest.config.ts --selectProjects unit"
 }
 ```
 
@@ -101,7 +101,7 @@ export default config;
 ```json
 {
   "scripts": {
-    "test:int": "jest --config jest.config.ts --selectProjects integration-tests"
+    "test:int": "jest --config jest.config.ts --selectProjects integration"
   }
 }
 ```

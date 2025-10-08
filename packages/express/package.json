@@ -12,7 +12,8 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
-    "test:unit": "jest --config jest.config.ts --selectProjects unit-tests"
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
+    "test:int": "jest --config jest.config.ts --selectProjects integration"
   },
   "dependencies": {
     "body-parser": "^2.2.0",

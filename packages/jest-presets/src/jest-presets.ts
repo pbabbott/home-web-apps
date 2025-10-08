@@ -18,19 +18,14 @@ const basePreset: Config = {
 const unitTestPreset: Config = {
   ...basePreset,
   // Add or override unit-test-specific configurations
-  displayName: 'unit-tests',
+  displayName: 'unit',
   testMatch: ['**/*.unit.test.[jt]s?(x)'],
 };
 
 const integrationTestPreset: Config = {
   ...basePreset,
-  setupFilesAfterEnv: ['<rootDir>/tests/jest.integration.setup.ts'], // Add global setup for integration tests
-  displayName: 'integration-tests',
+  displayName: 'integration',
   testMatch: ['**/*.integration.test.[jt]s?(x)'],
 };
 
-export {
-  basePreset,
-  unitTestPreset,
-  integrationTestPreset,
-};
+export { basePreset, unitTestPreset, integrationTestPreset };
