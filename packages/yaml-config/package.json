@@ -12,12 +12,8 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
-    "test:build": "tsc -p tsconfig.test.json",
-    "test:unit": "pnpm run test:build && jest --config jest.unit.config.js",
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
-  },
-  "jest": {
-    "preset": "@abbottland/jest-presets/node"
   },
   "dependencies": {
     "lodash": "^4.17.21",
@@ -28,10 +24,11 @@
     "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "catalog:",
     "@types/lodash": "^4.17.20",
     "@types/node": "catalog:",
-    "jest": "^29.7.0",
+    "jest": "catalog:",
+    "ts-node": "catalog:",
     "typedoc": "^0.28.13",
     "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "catalog:"

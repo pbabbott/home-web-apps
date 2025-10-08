@@ -507,7 +507,7 @@ importers:
         specifier: workspace:*
         version: link:../typescript-config
       '@types/jest':
-        specifier: ^29.5.14
+        specifier: 'catalog:'
         version: 29.5.14
       '@types/lodash':
         specifier: ^4.17.20
@@ -516,8 +516,11 @@ importers:
         specifier: 'catalog:'
         version: 22.18.8
       jest:
-        specifier: ^29.7.0
+        specifier: 'catalog:'
         version: 29.7.0(@types/node@22.18.8)(ts-node@10.9.2(@swc/core@1.11.7)(@types/node@22.18.8)(typescript@5.9.3))
+      ts-node:
+        specifier: 'catalog:'
+        version: 10.9.2(@swc/core@1.11.7)(@types/node@22.18.8)(typescript@5.9.3)
       typedoc:
         specifier: ^0.28.13
         version: 0.28.13(typescript@5.9.3)
