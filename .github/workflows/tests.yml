@@ -48,6 +48,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Build environment files
         run: pnpm env:generate
         env:
