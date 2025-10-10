@@ -42,6 +42,7 @@
       "cache": false
     },
     "env:generate": {
+      "dependsOn": ["^build"],
       "outputs": [".env"],
       "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"]
     },
