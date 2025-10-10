@@ -44,6 +44,10 @@ jobs:
       - name: pnpm install composite action
         uses: ./.github/actions/pnpm-install
 
+      # Run the build here so that links to abctl bin dir is available
+      - name: Build
+        run: pnpm build
+
       - name: Build environment files
         run: pnpm env:generate
         env:
