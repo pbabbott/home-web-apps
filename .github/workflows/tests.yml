@@ -1,4 +1,4 @@
-name: Unit and Integration Tests
+name: Unit, Integration, and E2E Tests
 on:
   workflow_dispatch: {}
   pull_request_target:
