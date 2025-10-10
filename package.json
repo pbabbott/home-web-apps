@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "docker:publish": "pnpm run docker:build && pnpm run docker:push",
     "docker:build": "turbo run docker:build",
     "docker:push": "turbo run docker:push",
+    "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "format:check": "prettier . --check",
@@ -16,7 +16,9 @@
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
     "storybook": "turbo run storybook",
-    "graph": "turbo graph"
+    "graph": "turbo graph",
+    "e2e:deps": "turbo run e2e:deps",
+    "e2e:deps:down": "turbo run e2e:deps:down"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",

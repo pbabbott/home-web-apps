@@ -38,13 +38,14 @@ All apps and packages are built with Typescript!
 - [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
 - [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
 - [Publication to NPM](./docs/dev-guide-publication-to-npm.md) - How to push new packages to the remote `npm` registry.
+- [Test Automation](./docs/dev-guide-test-automation.md) - Explains how the `unit`, `integration`, and `e2e` tests are set up to run automatically in this project.
 
-## Integration Environments
+## Development Environments
 
-Each application or package in this monorepo may have unique requirements for development and testing. Below are the specific guides for setting up and working with different integration environments:
+Each application or package in this monorepo may have unique requirements for development and testing. Below are the specific guides for setting up and working with different development environments:
 
 - [packages/abctl](./docs/int-env-abctl.md)
-- [apps/gluetun-sync](./docs/int-env-gluetun-sync.md)
+- [apps/gluetun-sync](./apps/gluetun-sync/README.md)
 - [apps/pi-led-api](./docs/int-env-pi-led-api.md)
 
 ## GH Actions

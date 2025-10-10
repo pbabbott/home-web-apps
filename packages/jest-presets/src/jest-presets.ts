@@ -13,18 +13,6 @@ const createBasePreset = (testType: string): Config => ({
   ],
   preset: 'ts-jest',
   detectOpenHandles: true,
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        outputDirectory: `./test-results/${testType}`,
-        outputName: `${testType}-results.xml`,
-        suiteName: `${testType} tests`,
-        classNameTemplate: `{classname} (${testType})`,
-      },
-    ],
-  ],
 });
 
 const unitTestPreset: Config = {
@@ -46,4 +34,20 @@ const e2eTestPreset: Config = {
   testMatch: ['**/*.e2e.test.[jt]s?(x)'],
 };
 
-export { unitTestPreset, integrationTestPreset, e2eTestPreset };
+// Only run reporters in CI
+const jestReporters: Config['reporters'] = process.env.CI
+  ? [
+      'default',
+      [
+        'jest-junit',
+        {
+          outputDirectory: './test-results',
+          outputName: 'test-results.xml',
+          suiteName: 'Tests',
+          classNameTemplate: '{classname} ({displayName})',
+        },
+      ],
+    ]
+  : undefined;
+
+export { unitTestPreset, integrationTestPreset, e2eTestPreset, jestReporters };

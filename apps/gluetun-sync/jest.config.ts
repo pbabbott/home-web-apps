@@ -5,6 +5,7 @@ import {
   unitTestPreset,
   integrationTestPreset,
   e2eTestPreset,
+  jestReporters,
 } from '@abbottland/jest-presets';
 
 const config: Config = {
@@ -16,6 +17,7 @@ const config: Config = {
     },
     e2eTestPreset,
   ],
+  reporters: jestReporters,
 };
 
 export default config;
