@@ -42,7 +42,7 @@ jobs:
         uses: ./.github/actions/pnpm-install
 
       - name: Build environment files
-        run: pnpm generate:env
+        run: pnpm env:generate
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
@@ -69,7 +69,7 @@ jobs:
         uses: ./.github/actions/pnpm-install
 
       - name: Build environment files
-        run: pnpm generate:env
+        run: pnpm env:generate
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
