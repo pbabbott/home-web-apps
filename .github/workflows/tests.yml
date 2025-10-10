@@ -21,12 +21,13 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+      # Replace with https://github.com/marketplace/actions/publish-test-results
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
         with:
-          name: test-results
-          path: '**/test-results/*.xml'
+          files: |
+            **/test-results/test-results.xml
 
   integration-tests:
     runs-on: [self-hosted, amd64-runner, dind-runner]
@@ -41,7 +42,7 @@ jobs:
         uses: ./.github/actions/pnpm-install
 
       - name: Build environment files
-        run: pnpm generate:secrets
+        run: pnpm generate:env
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
@@ -68,7 +69,7 @@ jobs:
         uses: ./.github/actions/pnpm-install
 
       - name: Build environment files
-        run: pnpm generate:secrets
+        run: pnpm generate:env
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
