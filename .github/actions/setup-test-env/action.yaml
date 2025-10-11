@@ -20,7 +20,7 @@ runs:
       uses: ./.github/actions/pnpm-install
 
     - name: Build
-      run: pnpm build:abctl
+      run: pnpm build
       shell: bash
 
     - name: Install dependencies
