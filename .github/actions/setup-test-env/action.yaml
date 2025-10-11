@@ -17,7 +17,7 @@ runs:
       uses: docker/setup-buildx-action@v3
 
     - name: pnpm install composite action
-      uses: ./.github/actions/pnpm-install
+      uses: ../pnpm-install
 
     - name: Build
       run: pnpm build
