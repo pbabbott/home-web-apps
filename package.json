@@ -9,6 +9,8 @@
     "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
+    "dev:deps": "turbo run dev:deps",
+    "dev:deps:down": "turbo run dev:deps:down",
     "format:check": "prettier . --check",
     "format:fix": "prettier . --write",
     "lint": "turbo run lint",
