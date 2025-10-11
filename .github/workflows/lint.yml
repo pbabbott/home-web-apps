@@ -1,19 +1,41 @@
 name: Lint Codebase
 on:
   workflow_dispatch: {}
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - synchronize
       - reopened
     branches:
       - main
+
 jobs:
   lint:
-    uses: ./.github/workflows/reusable-pnpm-script.yml
-    with:
-      pnpm-script: lint
+    runs-on: [self-hosted, amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run PNPM Script
+        run: pnpm lint
+
   format:
-    uses: ./.github/workflows/reusable-pnpm-script.yml
-    with:
-      pnpm-script: format:check
+    runs-on: [self-hosted, amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run PNPM Script
+        run: pnpm format:check
