@@ -17,6 +17,7 @@
     "lint:fix": "turbo run lint --fix",
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
+    "test:e2e": "turbo run test:e2e",
     "storybook": "turbo run storybook",
     "graph": "turbo graph",
     "e2e:deps": "turbo run e2e:deps",

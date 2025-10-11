@@ -24,7 +24,6 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit
 
-      # Replace with https://github.com/marketplace/actions/publish-test-results
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: (!cancelled())
@@ -67,6 +66,14 @@ jobs:
       - name: Run integration tests
         run: pnpm test:int
 
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        if: (!cancelled())
+        with:
+          check_name: 'Integration Test Results'
+          files: |
+            **/test-results/test-results.xml
+
       - name: Stop dev dependencies
         run: pnpm dev:deps:down
 
@@ -103,6 +110,14 @@ jobs:
 
       - name: Run e2e tests
         run: pnpm test:e2e
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        if: (!cancelled())
+        with:
+          check_name: 'E2E Test Results'
+          files: |
+            **/test-results/test-results.xml
 
       - name: Stop e2e dependencies
         run: pnpm e2e:deps:down
