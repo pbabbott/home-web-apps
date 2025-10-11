@@ -5,7 +5,6 @@ describe('E2E: GET /healthz', () => {
     const response = await fetch(`${BASE_URL}/healthz`);
 
     expect(response.status).toBe(200);
-    expect(response.ok).toBe(true);
 
     const data = (await response.json()) as { status: string };
     expect(data.status).toBe('ok');
