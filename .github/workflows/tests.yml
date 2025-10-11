@@ -38,27 +38,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: pnpm install composite action
-        uses: ./.github/actions/pnpm-install
-
-      # Run the build here so that links to abctl bin dir is available
-      - name: Build
-        run: pnpm build
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build environment files
-        run: pnpm env:generate
-        env:
-          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
 
       - name: Run dev dependencies
         run: pnpm dev:deps
@@ -75,6 +56,7 @@ jobs:
             **/test-results/test-results.xml
 
       - name: Stop dev dependencies
+        if: always()
         run: pnpm dev:deps:down
 
   e2e-tests:
@@ -83,27 +65,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: pnpm install composite action
-        uses: ./.github/actions/pnpm-install
-
-      # Run the build here so that links to abctl bin dir is available
-      - name: Build
-        run: pnpm build
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build environment files
-        run: pnpm env:generate
-        env:
-          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN }}
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
 
       - name: Start e2e dependencies
         run: pnpm e2e:deps
@@ -120,4 +83,5 @@ jobs:
             **/test-results/test-results.xml
 
       - name: Stop e2e dependencies
+        if: always()
         run: pnpm e2e:deps:down

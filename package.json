@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "build:abctl": "turbo run build --filter=@abbottland/abctl",
     "docker:build": "turbo run docker:build",
     "docker:push": "turbo run docker:push",
     "env:generate": "turbo run env:generate",
