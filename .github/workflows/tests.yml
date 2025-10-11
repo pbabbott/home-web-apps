@@ -29,6 +29,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: (!cancelled())
         with:
+          check_name: 'Unit Test Results'
           files: |
             **/test-results/test-results.xml
 
