@@ -1,5 +1,12 @@
 name: 'Setup Test Environment'
 description: 'Common setup for integration and e2e tests'
+inputs:
+  op-connect-host:
+    description: '1Password Connect host'
+    required: true
+  op-connect-token:
+    description: '1Password Connect token'
+    required: true
 runs:
   using: composite
   steps:
@@ -24,5 +31,5 @@ runs:
       run: pnpm env:generate
       shell: bash
       env:
-        OP_CONNECT_HOST: https://op-connect.local.abbottland.io
-        OP_CONNECT_TOKEN: ${{ env.OP_CONNECT_TOKEN }}
+        OP_CONNECT_HOST: ${{ inputs.op-connect-host }}
+        OP_CONNECT_TOKEN: ${{ inputs.op-connect-token }}

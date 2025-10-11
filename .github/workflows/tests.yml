@@ -40,6 +40,9 @@ jobs:
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
 
       - name: Run dev dependencies
         run: pnpm dev:deps
@@ -67,6 +70,9 @@ jobs:
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
 
       - name: Start e2e dependencies
         run: pnpm e2e:deps
