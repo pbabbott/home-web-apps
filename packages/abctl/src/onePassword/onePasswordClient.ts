@@ -14,6 +14,8 @@ export const getOnePasswordValue = async (
     throw new Error('OP_CONNECT_TOKEN and OP_CONNECT_HOST are not set');
   }
 
+  console.log('OP_CONNECT_TOKEN.length', process.env.OP_CONNECT_TOKEN.length);
+
   const secret = (await item.get(secretName, {
     vault,
     fields: { label: [secretKey] },
