@@ -19,7 +19,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: pnpm install composite action
-        uses: ./.github/actions/pnpm-install
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Run unit tests
         run: pnpm test:unit
@@ -37,6 +40,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: pnpm install composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -68,13 +77,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: pnpm install composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
         with:
           op-connect-host: https://op-connect.local.abbottland.io
           op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
 
-      - name: Start e2e dependencies
+      - name: Run e2e dependencies
         run: pnpm e2e:deps
 
       - name: Run e2e tests
@@ -84,7 +99,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: (!cancelled())
         with:
-          check_name: 'E2E Test Results'
+        check_name: 'E2E Test Results'
           files: |
             **/test-results/test-results.xml
 
