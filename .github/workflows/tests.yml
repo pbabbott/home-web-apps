@@ -99,7 +99,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: (!cancelled())
         with:
-        check_name: 'E2E Test Results'
+          check_name: 'E2E Test Results'
           files: |
             **/test-results/test-results.xml
 
