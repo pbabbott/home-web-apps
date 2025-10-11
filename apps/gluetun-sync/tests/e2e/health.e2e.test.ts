@@ -4,6 +4,7 @@ describe('E2E: GET /healthz', () => {
   it('should return 200 status when healthz endpoint is called', async () => {
     const response = await fetch(`${BASE_URL}/healthz`);
 
+    console.log('response', response);
     expect(response.status).toBe(200);
 
     const data = (await response.json()) as { status: string };
