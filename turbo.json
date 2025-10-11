@@ -3,20 +3,20 @@
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "public/dist/**"],
+      "outputs": ["dist/**", "public/dist/**"],
       "dependsOn": ["^build"]
     },
     "test:int": {
       "outputs": ["test-results/integration/**"],
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     },
     "test:unit": {
       "outputs": ["test-results/unit/**"],
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     },
     "test:e2e": {
       "outputs": ["test-results/e2e/**"],
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     },
     "docker:build": {
       "cache": false,

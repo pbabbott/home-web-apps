@@ -9,7 +9,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
     "env:generate": "abctl-secrets-generate-env",
-    "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d",
+    "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d --quiet-pull",
     "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
     "e2e:deps": "docker compose --ansi=never -f ./docker-compose.yaml --profile e2e up -d --quiet-pull",
     "e2e:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml --profile e2e down -v",
