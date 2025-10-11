@@ -23,9 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        shell: bash
 
       - name: Run unit tests
         run: pnpm test:unit
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
@@ -55,9 +57,11 @@ jobs:
 
       - name: Run dev dependencies
         run: pnpm dev:deps
+        shell: bash
 
       - name: Run integration tests
         run: pnpm test:int
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
@@ -70,6 +74,7 @@ jobs:
       - name: Stop dev dependencies
         if: always()
         run: pnpm dev:deps:down
+        shell: bash
 
   e2e-tests:
     runs-on: [self-hosted, amd64-runner, dind-runner]
@@ -82,6 +87,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        shell: bash
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -91,9 +97,11 @@ jobs:
 
       - name: Run e2e dependencies
         run: pnpm e2e:deps
+        shell: bash
 
       - name: Run e2e tests
         run: pnpm test:e2e
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
@@ -106,3 +114,4 @@ jobs:
       - name: Stop e2e dependencies
         if: always()
         run: pnpm e2e:deps:down
+        shell: bash

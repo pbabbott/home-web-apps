@@ -20,6 +20,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        shell: bash
 
       - name: Run PNPM Script
         run: pnpm build
+        shell: bash
