@@ -7,21 +7,23 @@
       "dependsOn": ["^build"]
     },
     "test:int": {
-      "outputs": ["test-results/integration/**"],
-      "dependsOn": ["^build"]
+      "outputs": ["test-results/**", "coverage/**"],
+      "dependsOn": ["^build"],
+      "cache": false
     },
     "test:unit": {
-      "outputs": ["test-results/unit/**"],
-      "dependsOn": ["^build"]
+      "outputs": ["test-results/**", "coverage/**"],
+      "dependsOn": ["^build"],
+      "cache": false
     },
     "test:e2e": {
-      "outputs": ["test-results/e2e/**"],
-      "dependsOn": ["^build"]
+      "outputs": ["test-results/**", "coverage/**"],
+      "dependsOn": ["^build"],
+      "cache": false
     },
     "docker:build": {
       "cache": false,
-      "dependsOn": ["^build"],
-      "outputs": []
+      "dependsOn": ["^build"]
     },
     "docker:push": {
       "dependsOn": ["^docker:build"],
@@ -45,9 +47,17 @@
       "outputs": [".env"],
       "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"]
     },
-    "e2e:deps": {},
-    "e2e:deps:down": {},
-    "dev:deps": {},
-    "dev:deps:down": {}
+    "e2e:deps": {
+      "cache": false
+    },
+    "e2e:deps:down": {
+      "cache": false
+    },
+    "dev:deps": {
+      "cache": false
+    },
+    "dev:deps:down": {
+      "cache": false
+    }
   }
 }
