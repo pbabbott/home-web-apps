@@ -10,6 +10,7 @@ runs:
 
     - name: Ensure Node.js directory exists
       run: mkdir -p ~/.nvm/versions/node
+      shell: bash
 
     - name: Cache Node.js
       uses: actions/cache@v3
@@ -27,6 +28,7 @@ runs:
 
     - name: Ensure PNPM store directory exists
       run: mkdir -p ~/.pnpm-store
+      shell: bash
 
     - name: Cache PNPM store
       uses: actions/cache@v3
