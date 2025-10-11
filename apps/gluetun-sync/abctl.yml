@@ -1,1 +1,14 @@
 buildPreset: pnpm-turbo-docker-build
+secrets:
+  generateEnv: true
+  envFile: .env
+  envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: PrivateInternetAccess.com
+        secretKey: username
+        envVarName: OPENVPN_USER
+      - secretName: PrivateInternetAccess.com
+        secretKey: password
+        envVarName: OPENVPN_PASSWORD

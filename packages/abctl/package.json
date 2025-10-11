@@ -5,7 +5,8 @@
   "main": "index.js",
   "bin": {
     "abctl-docker-build": "dist/bin/docker-build.js",
-    "abctl-docker-push": "dist/bin/docker-push.js"
+    "abctl-docker-push": "dist/bin/docker-push.js",
+    "abctl-secrets-generate-env": "dist/bin/secrets-generate-env.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -30,6 +31,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@1password/op-js": "^0.1.13",
     "@abbottland/yaml-config": "workspace:*",
     "commander": "^13.1.0",
     "execa": "^9.5.2"

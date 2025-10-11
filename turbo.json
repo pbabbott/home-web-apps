@@ -7,11 +7,15 @@
       "dependsOn": ["^build"]
     },
     "test:int": {
-      "outputs": ["coverage/**", "test-results/**"],
+      "outputs": ["test-results/integration/**"],
       "dependsOn": ["build"]
     },
     "test:unit": {
-      "outputs": ["coverage/**", "test-results/**"],
+      "outputs": ["test-results/unit/**"],
+      "dependsOn": ["build"]
+    },
+    "test:e2e": {
+      "outputs": ["test-results/e2e/**"],
       "dependsOn": ["build"]
     },
     "docker:build": {
@@ -36,6 +40,14 @@
     },
     "clean": {
       "cache": false
-    }
+    },
+    "env:generate": {
+      "outputs": [".env"],
+      "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"]
+    },
+    "e2e:deps": {},
+    "e2e:deps:down": {},
+    "dev:deps": {},
+    "dev:deps:down": {}
   }
 }

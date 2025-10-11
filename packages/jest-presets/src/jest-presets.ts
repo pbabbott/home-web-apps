@@ -1,6 +1,6 @@
 import type { Config } from 'jest';
 
-const basePreset: Config = {
+const createBasePreset = (testType: string): Config => ({
   roots: ['<rootDir>'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
@@ -13,19 +13,41 @@ const basePreset: Config = {
   ],
   preset: 'ts-jest',
   detectOpenHandles: true,
-};
+});
 
 const unitTestPreset: Config = {
-  ...basePreset,
+  ...createBasePreset('unit'),
   // Add or override unit-test-specific configurations
   displayName: 'unit',
   testMatch: ['**/*.unit.test.[jt]s?(x)'],
 };
 
 const integrationTestPreset: Config = {
-  ...basePreset,
+  ...createBasePreset('integration'),
   displayName: 'integration',
   testMatch: ['**/*.integration.test.[jt]s?(x)'],
 };
 
-export { basePreset, unitTestPreset, integrationTestPreset };
+const e2eTestPreset: Config = {
+  ...createBasePreset('e2e'),
+  displayName: 'e2e',
+  testMatch: ['**/*.e2e.test.[jt]s?(x)'],
+};
+
+// Only run reporters in CI
+const jestReporters: Config['reporters'] = process.env.CI
+  ? [
+      'default',
+      [
+        'jest-junit',
+        {
+          outputDirectory: './test-results',
+          outputName: 'test-results.xml',
+          suiteName: 'Tests',
+          classNameTemplate: '{classname} ({displayName})',
+        },
+      ],
+    ]
+  : undefined;
+
+export { unitTestPreset, integrationTestPreset, e2eTestPreset, jestReporters };
