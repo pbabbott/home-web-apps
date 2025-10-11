@@ -4,19 +4,25 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "docker:publish": "pnpm run docker:build && pnpm run docker:push",
+    "build:abctl": "turbo run build --filter=@abbottland/abctl",
     "docker:build": "turbo run docker:build",
     "docker:push": "turbo run docker:push",
+    "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
+    "dev:deps": "turbo run dev:deps",
+    "dev:deps:down": "turbo run dev:deps:down",
     "format:check": "prettier . --check",
     "format:fix": "prettier . --write",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint --fix",
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
+    "test:e2e": "turbo run test:e2e",
     "storybook": "turbo run storybook",
-    "graph": "turbo graph"
+    "graph": "turbo graph",
+    "e2e:deps": "turbo run e2e:deps",
+    "e2e:deps:down": "turbo run e2e:deps:down"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",

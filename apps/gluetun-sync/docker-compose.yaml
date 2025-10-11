@@ -1,4 +1,32 @@
 services:
+  gluetun-sync:
+    image: harbor.local.abbottland.io/library/gluetun-sync:0.0.10
+    profiles:
+      - e2e
+    build:
+      context: ../../
+      dockerfile: docker/pnpm-turbo.Dockerfile
+      args:
+        BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
+        PROJECT_DIR: apps/
+        PROJECT: gluetun-sync
+    ports:
+      - '4000:4000'
+    environment:
+      # Gluetun Sync Config
+      - PORT=4000
+      - SHOW_CONFIG=true
+      - TZ=America/Chicago
+      - CRON_EXPRESSION=*/20 * * * * # Run every 20 minutes
+      # Gluetun API Config
+      - GLUETUN_API_HOST=http://gluetun:8000
+      # QbitTorrent API Config
+      - QBITTORRENT_API_HOST=http://qbittorrent:8080
+      - QBITTORRENT_USERNAME=admin
+      - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD}
+    cap_add:
+      - NET_ADMIN
+
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
@@ -15,8 +43,6 @@ services:
       - VPN_PORT_FORWARDING=on
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-    env_file:
-      - .env
     cap_add:
       - NET_ADMIN
 
@@ -27,14 +53,8 @@ services:
       - '8080:8080'
     environment:
       - QBITTORRENT_USERNAME=admin
-      - QBITTORRENT_API_HOST=http://localhost:8080
+      - QBITTORRENT_API_HOST=http://gluetun:8080
       - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD}
     volumes:
       # Default password in this configuration is set to Password123
       - ./docker/conf/qBittorrent/qBittorrent.conf:/config/qBittorrent/qBittorrent.conf
-# gluetun-sync config
-# PORT: "4000"
-# GLUETUN_API_HOST: http://localhost:8000
-# QBITTORRENT_API_HOST: http://localhost:8080
-# QBITTORRENT_USERNAME: admin
-# CRON_EXPRESSION: "*/20 * * * *"

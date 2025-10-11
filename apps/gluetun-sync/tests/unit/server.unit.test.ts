@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import { createServer } from '../../src/server'; // like here
+import { createServer } from '../../src/server';
 import { PortsResult } from '../../src/controllers/status';
 import * as gluetunApi from '../../src/api/gluetun/gluetun';
 import * as qbittorrentApi from '../../src/api/qbittorrent';

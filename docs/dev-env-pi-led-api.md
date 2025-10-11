@@ -1,6 +1,6 @@
-# Integration Environment - pi-led-api
+# Development Environment - pi-led-api
 
-The purpose of this document is to explain how the application `pi-led-api` can be developed within an integration environment.
+The purpose of this document is to explain how the application `pi-led-api` can be developed within an Development environment.
 
 ## Overview
 

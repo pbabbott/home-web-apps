@@ -193,6 +193,9 @@ importers:
 
   packages/abctl:
     dependencies:
+      '@1password/op-js':
+        specifier: ^0.1.13
+        version: 0.1.13
       '@abbottland/yaml-config':
         specifier: workspace:*
         version: link:../yaml-config
@@ -538,6 +541,9 @@ importers:
         version: 5.9.3
 
 packages:
+
+  '@1password/op-js@0.1.13':
+    resolution: {integrity: sha512-ZZBLxVqywFdvIbLv2xWw2N1ImSi183rRKf90vV19KRMReNyLwuD0dv6IrKrIdrJU33IuV3Gz85Z4K2a1PJTBDg==}
 
   '@adobe/css-tools@4.4.2':
     resolution: {integrity: sha512-baYZExFpsdkBNuvGKTKWCwKH57HRZLVtycZS05WTQNVOiXVSeAki3nU35zlRbToeMW8aHlJfyS+1C4BOv27q0A==}
@@ -3889,6 +3895,11 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
+  lookpath@1.2.3:
+    resolution: {integrity: sha512-kthRVhf4kH4+HW3anM4UBHxsw/XFESf13euCEldhXr6GpBdmBoa7rDd7WO5G0Mhd4G5XtKTcEy8OR0iRZXpS3Q==}
+    engines: {npm: '>=6.13.4'}
+    hasBin: true
+
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
@@ -5305,6 +5316,11 @@ packages:
     resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
 
 snapshots:
+
+  '@1password/op-js@0.1.13':
+    dependencies:
+      lookpath: 1.2.3
+      semver: 7.7.2
 
   '@adobe/css-tools@4.4.2': {}
 
@@ -9441,6 +9457,8 @@ snapshots:
   lodash.startcase@4.4.0: {}
 
   lodash@4.17.21: {}
+
+  lookpath@1.2.3: {}
 
   loose-envify@1.4.0:
     dependencies:

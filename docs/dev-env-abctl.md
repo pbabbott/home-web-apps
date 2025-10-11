@@ -1,6 +1,6 @@
-# Integration Environment - abctl
+# Development Environment - abctl
 
-The purpose of this document is to explain how the package `abctl` can be developed within an integration environment.
+The purpose of this document is to explain how the package `abctl` can be developed within an Development environment.
 
 ## Overview
 

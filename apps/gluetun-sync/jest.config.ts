@@ -4,6 +4,8 @@ import type { Config } from 'jest';
 import {
   unitTestPreset,
   integrationTestPreset,
+  e2eTestPreset,
+  jestReporters,
 } from '@abbottland/jest-presets';
 
 const config: Config = {
@@ -13,17 +15,9 @@ const config: Config = {
       ...integrationTestPreset,
       setupFilesAfterEnv: ['<rootDir>/tests/jest.integration.setup.ts'],
     },
+    e2eTestPreset,
   ],
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        outputDirectory: './test-results/junit',
-        outputName: 'results.xml',
-      },
-    ],
-  ],
+  reporters: jestReporters,
 };
 
 export default config;
