@@ -12,7 +12,8 @@ const createBasePreset = (testType: string): Config => ({
     '<rootDir>/dist',
   ],
   preset: 'ts-jest',
-  detectOpenHandles: true,
+  // Only detect open handles locally, not in CI where it can cause false-positive timeouts
+  detectOpenHandles: process.env.CI !== 'true',
 });
 
 const unitTestPreset: Config = {
