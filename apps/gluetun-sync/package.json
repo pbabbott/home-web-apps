@@ -11,7 +11,7 @@
     "env:generate": "abctl-secrets-generate-env",
     "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d --quiet-pull",
     "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
-    "e2e:deps": "docker compose --ansi=never -f ./docker-compose.yaml --profile e2e up -d --quiet-pull",
+    "e2e:deps": "docker compose --ansi=never -f ./docker-compose.yaml --profile e2e up -d --build --quiet-pull",
     "e2e:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml --profile e2e down -v",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
     "start": "node ./dist/index.js",
