@@ -50,6 +50,9 @@
     "e2e:deps": {
       "cache": false
     },
+    "e2e:deps:build": {
+      "cache": false
+    },
     "e2e:deps:down": {
       "cache": false
     },
