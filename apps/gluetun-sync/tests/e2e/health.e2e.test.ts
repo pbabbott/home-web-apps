@@ -5,9 +5,12 @@ describe('E2E: GET /healthz', () => {
     const response = await fetch(`${BASE_URL}/healthz`);
 
     console.log('response', response);
+    console.log('response.status', response.status);
+    const body = await response.json();
+    console.log('response.body', body);
     expect(response.status).toBe(200);
 
-    const data = (await response.json()) as { status: string };
+    const data = body as { status: string };
     expect(data.status).toBe('ok');
   });
 });
