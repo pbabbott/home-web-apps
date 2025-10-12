@@ -10,7 +10,9 @@ describe('E2E: GET /healthz', () => {
     console.log('response.body', body);
     expect(response.status).toBe(200);
 
+    console.log('body', body);
     const data = body as { status: string };
+    console.log('data', data);
     expect(data.status).toBe('ok');
   });
 });
