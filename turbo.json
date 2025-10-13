@@ -13,7 +13,6 @@
     },
     "test:unit": {
       "outputs": ["test-results/**", "coverage/**"],
-      "dependsOn": ["^build"],
       "cache": false
     },
     "test:e2e": {
