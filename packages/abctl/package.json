@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "files": [
+    "dist/**"
+  ],
   "bin": {
     "abctl-docker-build": "dist/bin/docker-build.js",
     "abctl-docker-push": "dist/bin/docker-push.js",
@@ -14,7 +17,8 @@
     "test:build": "tsc -p tsconfig.test.json",
     "dev": "tsc -w -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
-    "test:unit": "jest --config jest.config.ts --selectProjects unit"
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
+    "prepare": "pnpm build"
   },
   "keywords": [],
   "author": "",
