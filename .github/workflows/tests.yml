@@ -18,12 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
-        shell: bash
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Run unit tests
         run: pnpm test:unit
@@ -43,11 +42,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -82,12 +81,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
-        shell: bash
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env

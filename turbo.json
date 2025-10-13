@@ -45,7 +45,8 @@
     },
     "env:generate": {
       "outputs": [".env"],
-      "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"]
+      "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"],
+      "dependsOn": ["^build"]
     },
     "e2e:deps": {
       "cache": false
