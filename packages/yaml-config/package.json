@@ -12,7 +12,6 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
-    "test:unit": "jest --config jest.config.ts --selectProjects unit",
     "docs": "typedoc --plugin typedoc-plugin-markdown --out ./docs --githubPages false --readme none ./src/index.ts"
   },
   "dependencies": {
