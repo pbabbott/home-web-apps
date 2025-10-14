@@ -22,6 +22,7 @@
     "storybook": "turbo run storybook",
     "graph": "turbo graph",
     "e2e:deps": "turbo run e2e:deps",
+    "e2e:deps:build": "turbo run e2e:deps:build",
     "e2e:deps:down": "turbo run e2e:deps:down"
   },
   "devDependencies": {

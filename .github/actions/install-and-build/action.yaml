@@ -1,0 +1,17 @@
+name: 'pnpm setup'
+description: 'A composite action to run pnpm setup'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      run: pnpm install
+      shell: bash
+
+    - name: Run PNPM Script
+      run: pnpm build
+      shell: bash
+
+    # Rerun the install to ensure all dependencies are properly symlinked
+    - name: Install dependencies (again)
+      run: pnpm install
+      shell: bash

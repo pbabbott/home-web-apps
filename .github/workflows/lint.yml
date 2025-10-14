@@ -21,9 +21,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        shell: bash
 
       - name: Run PNPM Script
         run: pnpm lint
+        shell: bash
 
   format:
     runs-on: [self-hosted, amd64-runner]
@@ -36,6 +38,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        shell: bash
 
       - name: Run PNPM Script
         run: pnpm format:check
+        shell: bash

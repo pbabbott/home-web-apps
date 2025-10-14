@@ -18,8 +18,5 @@ jobs:
       - name: Setup PNPM
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run PNPM Script
-        run: pnpm build
+      - name: Install and build
+        uses: ./.github/actions/install-and-build

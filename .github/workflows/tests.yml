@@ -18,14 +18,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Run unit tests
         run: pnpm test:unit
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
@@ -41,11 +42,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -55,9 +56,11 @@ jobs:
 
       - name: Run dev dependencies
         run: pnpm dev:deps
+        shell: bash
 
       - name: Run integration tests
         run: pnpm test:int
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
@@ -70,6 +73,7 @@ jobs:
       - name: Stop dev dependencies
         if: always()
         run: pnpm dev:deps:down
+        shell: bash
 
   e2e-tests:
     runs-on: [self-hosted, amd64-runner, dind-runner]
@@ -77,11 +81,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm install composite action
+      - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -89,20 +93,27 @@ jobs:
           op-connect-host: https://op-connect.local.abbottland.io
           op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
 
+      - name: Run e2e dependencies build
+        run: pnpm e2e:deps:build
+        shell: bash
+
       - name: Run e2e dependencies
         run: pnpm e2e:deps
+        shell: bash
 
       - name: Run e2e tests
         run: pnpm test:e2e
+        shell: bash
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: (!cancelled())
         with:
-        check_name: 'E2E Test Results'
+          check_name: 'E2E Test Results'
           files: |
             **/test-results/test-results.xml
 
       - name: Stop e2e dependencies
         if: always()
         run: pnpm e2e:deps:down
+        shell: bash

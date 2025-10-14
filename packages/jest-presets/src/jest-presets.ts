@@ -12,7 +12,6 @@ const createBasePreset = (testType: string): Config => ({
     '<rootDir>/dist',
   ],
   preset: 'ts-jest',
-  detectOpenHandles: true,
 });
 
 const unitTestPreset: Config = {
