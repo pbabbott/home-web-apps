@@ -35,7 +35,7 @@ TODO: set this up against pi-led-api
 
 - Centralize linting, tidying up with pnpm features
 
-# fui-components
+# fui-components-bak
 
 - rebuild component library from scratch following tutorials online
 - setup visual tests
