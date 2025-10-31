@@ -1,15 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
-import { Input, InputProps } from './Input';
-import { Panel } from '../Panel/Panel';
+import { Input, type InputProps } from './Input';
 
 const meta = {
-  title: 'Inputs/Input',
+  title: 'Components/Input',
   component: Input,
-  globals: {
-    backgrounds: { grid: true },
-  },
   parameters: {
     layout: 'centered',
   },
@@ -28,11 +24,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const InputContainer = (args: InputProps) => (
-  <Panel color={args.color} className="min-w-80 min-h-80 flex items-center">
-    <Input {...args} />
-  </Panel>
-);
+const InputContainer = (args: InputProps) => <Input {...args} />;
 
 export const Default: Story = {
   name: 'Color: Default',

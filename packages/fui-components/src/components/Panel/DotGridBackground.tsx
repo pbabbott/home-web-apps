@@ -1,4 +1,4 @@
-import { PanelColor } from './types';
+import type { PanelColor } from './types';
 // https://claude.ai/chat/615031e5-1910-4312-9c30-fa918b725ef2
 
 const getDotColorClass = (color: PanelColor) => {

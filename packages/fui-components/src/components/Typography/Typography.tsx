@@ -1,7 +1,7 @@
 import React from 'react';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 
-type TypographyVariant =
+export type TypographyVariant =
   | 'h1'
   | 'h2'
   | 'h3'
@@ -13,7 +13,7 @@ type TypographyVariant =
   | 'button'
   | 'caption'
   | 'small';
-type TypographyComponent =
+export type TypographyComponent =
   | 'p'
   | 'h1'
   | 'h2'

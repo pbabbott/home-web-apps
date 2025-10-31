@@ -1,5 +1,5 @@
 import React from 'react';
-import { PanelColor } from './types';
+import type { PanelColor } from './types';
 
 const getSquareColorClass = (color: PanelColor) => {
   const colors = {

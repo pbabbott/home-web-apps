@@ -1,6 +1,6 @@
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
-import { PanelColor, PanelVariant } from './types';
+import type { PanelColor, PanelVariant } from './types';
 import CornerSquares from './CornerSquares';
 import CornerCrosses from './CornerCrosses';
 import DotGridBackground from './DotGridBackground';

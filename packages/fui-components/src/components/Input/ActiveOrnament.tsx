@@ -1,7 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 import anime from 'animejs';
-import { InputColor } from './types';
+import type { InputColor } from './types';
 import { getSvgColorClasses } from './ColorHelpers';
 
 const useRefs = <T extends SVGElement | HTMLElement>() => {

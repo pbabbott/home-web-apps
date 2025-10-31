@@ -21,7 +21,7 @@ const ButtonVariants = ({ color }: { color: ButtonColor }) => (
 );
 
 export const ColorsAndVariants: Story = {
-  render: (args) => (
+  render: () => (
     <div className="grid gap-4 max-w-3xl">
       <ButtonVariants color="primary" />
       <ButtonVariants color="secondary" />

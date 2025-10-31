@@ -1,7 +1,7 @@
-import React, { useState, FocusEvent } from 'react';
+import React, { useState, type FocusEvent } from 'react';
 import ActiveOrnament from './ActiveOrnament';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
-import { InputColor } from './types';
+import type { InputColor } from './types';
 import { getSvgColorClasses } from './ColorHelpers';
 
 export interface InputProps

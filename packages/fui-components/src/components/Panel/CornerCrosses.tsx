@@ -1,5 +1,5 @@
 import React from 'react';
-import { PanelColor } from './types';
+import type { PanelColor } from './types';
 
 type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
