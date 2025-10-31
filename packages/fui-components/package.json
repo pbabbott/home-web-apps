@@ -4,11 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build",
+    "docker:build": "pnpm run docker:build:storybook && pnpm run docker:push:storybook",
+    "docker:push": "pnpm run docker:push:webserver",
+    "docker:build:storybook": "abctl-docker-build --config abctl-react.yml",
+    "docker:push:storybook": "abctl-docker-push --config abctl-react.yml",
+    "docker:build:webserver": "abctl-docker-build --config abctl-webserver.yml",
+    "docker:push:webserver": "abctl-docker-push --config abctl-webserver.yml",
+    "build": "pnpm run build:storybook && pnpm run build:npm",
+    "build:npm": "tsc -b && vite build",
+    "build:storybook": "storybook build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "dev": "storybook dev -p 6006 --no-open",
-    "build-storybook": "storybook build"
+    "dev": "storybook dev -p 6006 --no-open"
   },
   "main": "./dist/fui-components.umd.js",
   "module": "./dist/fui-components.es.js",
