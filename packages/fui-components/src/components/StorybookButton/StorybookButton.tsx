@@ -19,16 +19,29 @@ export const StorybookButton = ({
   label,
   ...props
 }: StorybookButtonProps) => {
-  const mode = primary
-    ? 'storybook-button--primary'
-    : 'storybook-button--secondary';
+  // Base button styles
+  const baseClasses =
+    'font-semibold rounded-md cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+
+  // Size-based classes
+  const sizeClasses = {
+    small: 'px-3 py-1.5 text-sm',
+    medium: 'px-4 py-2 text-base',
+    large: 'px-6 py-3 text-lg',
+  };
+
+  // Primary vs secondary styling
+  const modeClasses = primary
+    ? 'bg-primary text-white hover:bg-primary-700 focus:ring-primary'
+    : 'bg-neutral-200 text-neutral-900 hover:bg-neutral-300 focus:ring-neutral-500';
+
+  const className = `${baseClasses} ${sizeClasses[size]} ${modeClasses}`.trim();
+
   return (
     <button
       type="button"
-      className={['storybook-button', `storybook-button--${size}`, mode].join(
-        ' ',
-      )}
-      style={{ backgroundColor }}
+      className={className}
+      style={backgroundColor ? { backgroundColor } : undefined}
       {...props}
     >
       {label}
