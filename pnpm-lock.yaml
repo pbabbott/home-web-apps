@@ -400,6 +400,9 @@ importers:
       react-dom:
         specifier: ^19.1.1
         version: 19.2.0(react@19.2.0)
+      tailwind-merge:
+        specifier: ^2.5.4
+        version: 2.5.5
       tailwindcss:
         specifier: ^4.1.16
         version: 4.1.16
