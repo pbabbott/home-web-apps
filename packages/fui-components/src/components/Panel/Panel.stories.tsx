@@ -52,25 +52,47 @@ const PanelContent = ({ children }: { children: ReactNode }) => {
 
 export const Default: Story = {
   args: {
-    color: 'primary',
-    variant: 'dots',
-    children: <PanelContent>Accent Falcon</PanelContent>,
+    color: 'default',
   },
+  render: (args) => (
+    <Panel {...args}>
+      <PanelContent>Transparent</PanelContent>
+    </Panel>
+  ),
 };
 
-// Example showing all variants for a single color
-export const VariantShowcase: Story = {
+export const PrimaryTransparent: Story = {
+  args: {
+    color: 'primary',
+    variant: 'transparent',
+  },
   render: (args) => (
-    <div className="flex gap-4">
-      <Panel {...args} variant="transparent">
-        <PanelContent>Transparent</PanelContent>
-      </Panel>
-      <Panel {...args} variant="outlined">
-        <PanelContent>Outlined</PanelContent>
-      </Panel>
-      <Panel {...args} variant="dots">
-        <PanelContent>Dots</PanelContent>
-      </Panel>
-    </div>
+    <Panel {...args}>
+      <PanelContent>Transparent</PanelContent>
+    </Panel>
+  ),
+};
+
+export const PrimaryOutlined: Story = {
+  args: {
+    color: 'primary',
+    variant: 'outlined',
+  },
+  render: (args) => (
+    <Panel {...args}>
+      <PanelContent>Outlined</PanelContent>
+    </Panel>
+  ),
+};
+
+export const PrimaryDots: Story = {
+  args: {
+    color: 'primary',
+    variant: 'dots',
+  },
+  render: (args) => (
+    <Panel {...args}>
+      <PanelContent>Dots</PanelContent>
+    </Panel>
   ),
 };
