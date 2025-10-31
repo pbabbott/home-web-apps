@@ -1,6 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { Button, type ButtonProps } from './Button';
+import {
+  Button,
+  type ButtonColor,
+  type ButtonProps,
+  type ButtonVariant,
+} from './Button';
 import { fn } from 'storybook/test';
 
 const meta = {
@@ -43,97 +48,48 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const ButtonVariants = (args: ButtonProps) => (
-  <div className="flex gap-4">
-    <Button {...args} variant="contained">
-      Contained
-    </Button>
-    <Button {...args} variant="outlined">
-      Outlined
-    </Button>
-    <Button {...args} variant="text">
-      Text
-    </Button>
-  </div>
+const ButtonStory = (
+  name: string,
+  color: ButtonColor,
+  variant: ButtonVariant = 'contained',
+) => {
+  return {
+    name: name,
+    args: {
+      color: color,
+      children: 'Button',
+      variant: variant,
+    },
+    render: (args: ButtonProps) => (
+      <Button color={color} {...args}>
+        {args.children}
+      </Button>
+    ),
+  };
+};
+
+export const ColorPrimary: Story = ButtonStory('Primary', 'primary');
+export const ColorSecondary: Story = ButtonStory('Secondary', 'secondary');
+export const ColorSuccess: Story = ButtonStory('Success', 'success');
+export const ColorError: Story = ButtonStory('Error', 'error');
+export const ColorWarning: Story = ButtonStory('Warning', 'warning');
+export const ColorAccentPurple: Story = ButtonStory(
+  'AccentPurple',
+  'accent-purple',
+);
+export const ColorAccentFalcon: Story = ButtonStory(
+  'AccentFalcon',
+  'accent-falcon',
 );
 
-export const Primary: Story = {
-  name: 'Color: Primary',
-  args: {
-    color: 'primary',
-  },
-  render: ButtonVariants,
-};
-export const Secondary: Story = {
-  name: 'Color: Secondary',
-  args: {
-    color: 'secondary',
-  },
-  render: ButtonVariants,
-};
-export const Success: Story = {
-  name: 'Color: Success',
-  args: {
-    color: 'success',
-  },
-  render: ButtonVariants,
-};
-
-export const Error: Story = {
-  name: 'Color: Error',
-  args: {
-    color: 'error',
-  },
-  render: ButtonVariants,
-};
-
-export const Warning: Story = {
-  name: 'Color: Warning',
-  args: {
-    color: 'warning',
-  },
-  render: ButtonVariants,
-};
-export const Purple: Story = {
-  name: 'Color: Accent - Purple',
-  args: {
-    color: 'accent-purple',
-  },
-  render: ButtonVariants,
-};
-export const AccentFalcon: Story = {
-  name: 'Color: Accent - Falcon',
-  args: {
-    color: 'accent-falcon',
-  },
-  render: ButtonVariants,
-};
-
-// Example showing all colors in a grid
-export const ColorShowcase: Story = {
-  render: (args) => (
-    <div className="grid grid-cols-2 gap-4">
-      <Button {...args} color="primary">
-        Primary
-      </Button>
-      <Button {...args} color="secondary">
-        Secondary
-      </Button>
-      <Button {...args} color="success">
-        Success
-      </Button>
-      <Button {...args} color="error">
-        Error
-      </Button>
-      <Button {...args} color="warning">
-        Warning
-      </Button>
-      <Button {...args} color="accent-purple">
-        Accent Purple
-      </Button>
-      <Button {...args} color="accent-falcon">
-        Accent Falcon
-      </Button>
-    </div>
-  ),
-};
+export const VariantContained: Story = ButtonStory(
+  'Contained',
+  'primary',
+  'contained',
+);
+export const VariantOutlined: Story = ButtonStory(
+  'Outlined',
+  'primary',
+  'outlined',
+);
+export const VariantText: Story = ButtonStory('Text', 'primary', 'text');
