@@ -38,7 +38,8 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "github.copilot",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "unifiedjs.vscode-mdx"
       ],
       "settings": {
         "typescript.tsdk": "node_modules/typescript/lib",

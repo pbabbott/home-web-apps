@@ -1,5 +1,4 @@
-import { Button } from './Button';
-import './header.css';
+import { StorybookButton } from '../StorybookButton/StorybookButton';
 
 type User = {
   name: string;
@@ -50,13 +49,12 @@ export const Header = ({
             <span className="welcome">
               Welcome, <b>{user.name}</b>!
             </span>
-            <Button size="small" onClick={onLogout} label="Log out" />
+            <StorybookButton size="small" onClick={onLogout} label="Log out" />
           </>
         ) : (
           <>
-            <Button size="small" onClick={onLogin} label="Log in" />
-            <Button
-              primary
+            <StorybookButton size="small" onClick={onLogin} label="Log in" />
+            <StorybookButton
               size="small"
               onClick={onCreateAccount}
               label="Sign up"

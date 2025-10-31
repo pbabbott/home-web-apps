@@ -1,3 +1,6 @@
-export { Button, type ButtonProps } from './stories/Button';
-export { Header, type HeaderProps } from './stories/Header';
-export { Page } from './stories/Page';
+export {
+  StorybookButton,
+  type StorybookButtonProps,
+} from './components/StorybookButton/StorybookButton';
+export { Header, type HeaderProps } from './components/Header/Header';
+export { Page } from './components/Page/Page';
