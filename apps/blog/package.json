@@ -9,17 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "next": "16.0.1"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@tailwindcss/postcss": "catalog:",
+    "tailwindcss": "catalog:",
     "eslint": "^9",
     "eslint-config-next": "16.0.1"
   }

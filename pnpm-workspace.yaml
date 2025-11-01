@@ -19,3 +19,11 @@ catalog:
   '@types/jest': '^29.5.14'
   ts-jest: '^29.4.4'
   ts-node: '^10.9.2'
+
+  react: '^19.2.0'
+  '@types/react': '^19.2.0'
+  react-dom: '^19.2.0'
+  '@types/react-dom': '^19.2.0'
+
+  tailwindcss: '^4.1.16'
+  '@tailwindcss/postcss': '^4.1.16'
