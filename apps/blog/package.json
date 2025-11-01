@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 4020",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -11,7 +11,8 @@
   "dependencies": {
     "react": "catalog:",
     "react-dom": "catalog:",
-    "next": "16.0.1"
+    "next": "16.0.1",
+    "fui-components": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:",

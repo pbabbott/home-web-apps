@@ -3,17 +3,17 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import dts from 'vite-plugin-dts';
-// https://vite.dev/config/
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
+
 const dirname =
   typeof __dirname !== 'undefined'
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [
     react(),
@@ -23,6 +23,14 @@ export default defineConfig({
       rollupTypes: true,
       tsconfigPath: './tsconfig.build.json',
     }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/assets/fonts/*',
+          dest: 'fonts',
+        },
+      ],
+    }),
   ],
   build: {
     lib: {
@@ -31,7 +39,13 @@ export default defineConfig({
       fileName: (format) => `fui-components.${format}.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: (id) => {
+        // Externalize all React and React-DOM imports, including subpaths like react/jsx-runtime
+        if (/^react(\/.*)?$/.test(id) || /^react-dom(\/.*)?$/.test(id)) {
+          return true;
+        }
+        return false;
+      },
       output: {
         globals: {
           react: 'React',
