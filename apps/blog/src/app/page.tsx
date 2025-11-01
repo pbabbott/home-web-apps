@@ -35,6 +35,12 @@ export default function Home() {
             Crafted with &lt;3 by Brandon Abbott
           </Typography>
         </div>
+        {/* Scroll Hint */}
+        <div className="flex items-center justify-center absolute bottom-0 left-0 w-full h-10 z-10 text-white">
+          <Typography variant="body1" component="p">
+            &darr; Scroll down for more content &darr;
+          </Typography>
+        </div>
       </div>
       <div className="flex flex-col items-center justify-center w-full max-w-3xl gap-6 py-32">
         <Panel color="primary" variant="outlined">
