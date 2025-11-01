@@ -9,19 +9,20 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "fui-components": "workspace:*",
     "next": "16.0.1",
-    "fui-components": "workspace:*"
+    "particles.js": "^2.0.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:",
+    "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@tailwindcss/postcss": "catalog:",
-    "tailwindcss": "catalog:",
     "eslint": "^9",
-    "eslint-config-next": "16.0.1"
+    "eslint-config-next": "16.0.1",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
   }
 }
