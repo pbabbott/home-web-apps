@@ -4,14 +4,11 @@ runs:
   using: 'composite'
   steps:
     - name: Install dependencies
-      run: pnpm install --ignore-scripts
+      run: pnpm install
       shell: bash
+      env:
+        NODE_ENV: development
 
     - name: Run PNPM Script
       run: pnpm build
-      shell: bash
-
-    # Rerun the install to ensure all dependencies are properly symlinked
-    - name: Install dependencies (again)
-      run: pnpm install
       shell: bash
