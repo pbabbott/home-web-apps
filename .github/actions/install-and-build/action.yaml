@@ -3,12 +3,8 @@ description: 'A composite action to run pnpm setup'
 runs:
   using: 'composite'
   steps:
-    - name: Bootstrap
-      run: pnpm bootstrap
-      shell: bash
-
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --ignore-scripts
       shell: bash
 
     - name: Run PNPM Script
