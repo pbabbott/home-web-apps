@@ -1,7 +1,7 @@
 {
   "name": "fui-components",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "docker:build": "pnpm run docker:build:storybook && pnpm run docker:push:storybook",
@@ -10,7 +10,7 @@
     "docker:push:storybook": "abctl-docker-push --config abctl-react.yml",
     "docker:build:webserver": "abctl-docker-build --config abctl-webserver.yml",
     "docker:push:webserver": "abctl-docker-push --config abctl-webserver.yml",
-    "build": "pnpm run build:storybook && pnpm run build:npm",
+    "build": "pnpm run build:npm && pnpm run build:storybook",
     "build:npm": "tsc -b && vite build",
     "build:npm:clean": "rm -rf dist",
     "build:storybook": "storybook build",

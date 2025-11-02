@@ -1,5 +1,5 @@
 'use client';
-import { Button, Typography, Panel } from 'fui-components';
+import { Typography, Panel } from 'fui-components';
 import { useEffect } from 'react';
 import { particlesConfig } from '@/config/particles';
 
@@ -29,16 +29,16 @@ export default function Home() {
             Abbottland.io
           </Typography>
           <Typography variant="h5" component="h5" className="mb-2">
-            A blog sharing technical insights on software engineering.
+            A blog sharing technical insights on software engineering
           </Typography>
           <Typography variant="body1" component="p" className="mb-2">
             Crafted with &lt;3 by Brandon Abbott
           </Typography>
         </div>
         {/* Scroll Hint */}
-        <div className="flex items-center justify-center absolute bottom-0 left-0 w-full h-10 z-10 text-white">
-          <Typography variant="body1" component="p">
-            &darr; Scroll down for more content &darr;
+        <div className="flex items-center justify-center absolute bottom-0 left-0 w-full h-10 z-10 text-white animate-subtle-bounce">
+          <Typography variant="h6" component="h6">
+            &darr; Scroll down for more content
           </Typography>
         </div>
       </div>
