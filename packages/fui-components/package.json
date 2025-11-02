@@ -1,7 +1,7 @@
 {
-  "name": "fui-components",
+  "name": "@abbottland/fui-components",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "docker:build": "pnpm run docker:build:storybook && pnpm run docker:push:storybook",
@@ -40,6 +40,7 @@
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
     "@chromatic-com/storybook": "^4.1.1",
     "@eslint/js": "^9.36.0",
     "@storybook/addon-a11y": "^10.0.0",
