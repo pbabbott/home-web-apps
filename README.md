@@ -9,11 +9,13 @@ All apps and packages are built with Typescript!
 ## Apps
 
 - `@abbottland/gluetun-sync` - An express.js application which keeps a qBitTorrent port in sync with a dynamically assigned Gluetun vpn public port to ensure my home IP is not leaked during torrent downloads.
+- `@abbottland/pi-led-api` - An express.js application which provides a REST API to control an LED strip inside a Raspberry Pi PIRONMAN case.
+- `@abbottland/blog` - A Next.js application which serves as my personal blog.
 
 ## Packages
 
 - `@abbottland/eslint-config`: ESLint presets.
-- `@abbottland/fui-components-bak`: React Fantasy UI component library written with Storybook
+- `@abbottland/fui-components`: React Futuristic UI component library written with Storybook
 - `@abbottland/jest-presets`: Jest configurations
 - `@abbottland/logger`: Placeholder code, not yet used.
 - `@abbottland/typescript-config`: `tsconfig.json`'s used throughout the monorepo
