@@ -3,3 +3,4 @@ build
 coverage
 packages/yaml-config/docs
 pnpm-lock.yaml
+next-env.d.ts
