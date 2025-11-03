@@ -22,11 +22,11 @@ Be sure to list `abctl` as a `devDependency`
 
 ### 2 - Set docker:build script
 
-Each package needing docker support should have a script named `docker:build`. This can just be a call to an `abctl` binary
+Each package needing docker support should have a script named `docker:build`. This can just be a call to the `abctl` CLI
 
 ```json
 "scripts": {
-    "docker:build": "abctl-docker-build"
+    "docker:build": "abctl docker build"
 }
 ```
 

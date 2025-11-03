@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "fui-components": "workspace:*",
+    "@abbottland/fui-components": "workspace:*",
     "next": "16.0.1",
     "particles.js": "^2.0.0",
     "react": "catalog:",

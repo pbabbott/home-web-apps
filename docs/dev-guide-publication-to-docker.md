@@ -38,13 +38,13 @@ Be sure to list `abctl` as a `devDependency`
 }
 ```
 
-### 2 - Set docker:build script
+### 2 - Set docker:push script
 
-Each package needing docker support should have a script named `docker:push`. This can just be a call to an `abctl` binary
+Each package needing docker support should have a script named `docker:push`. This can just be a call to the `abctl` CLI
 
 ```json
 "scripts": {
-    "docker:push": "abctl-docker-push"
+    "docker:push": "abctl docker push"
 }
 ```
 

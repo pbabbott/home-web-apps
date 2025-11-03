@@ -4,7 +4,7 @@ The purpose of this document is to explain how the package `abctl` can be develo
 
 ## Overview
 
-The `abctl` package is short for `Abbottland` + `control`. The idea is that the `abctl` package exports a few binaries to help with common activities needed in this repository. While the `scripts/` directory does exist for quick one-off activities, some actions are more complex and require proper management over the logic and control flow of the action. In these cases, `abctl` is here to help!
+The `abctl` package is short for `Abbottland` + `control`. The idea is that the `abctl` package provides a unified CLI to help with common activities needed in this repository. While the `scripts/` directory does exist for quick one-off activities, some actions are more complex and require proper management over the logic and control flow of the action. In these cases, `abctl` is here to help!
 
 ## Development Procedure
 
@@ -22,8 +22,8 @@ For example, take a look at `apps/gluetun-sync/package.json`. In the `package.js
 
 ```json
   "scripts": {
-    "docker:build": "abctl-docker-build",
-    "docker:push": "abctl-docker-push"
+    "docker:build": "abctl docker build",
+    "docker:push": "abctl docker push"
   },
   "devDependencies": {
     "@abbottland/abctl": "workspace:*"

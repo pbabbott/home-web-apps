@@ -20,7 +20,7 @@
     "@abbottland/typescript-config": "workspace:*",
     "@types/jest": "catalog:",
     "@types/node": "catalog:",
-    "eslint": "^9.37.0",
+    "eslint": "catalog:",
     "jest": "catalog:",
     "ts-node": "catalog:",
     "typescript": "catalog:"

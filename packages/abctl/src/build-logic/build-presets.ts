@@ -1,12 +1,10 @@
-import { DockerBuildConfig } from '../config/abctl-config';
-import { config } from '../config/config-loader';
+import {DockerBuildConfig} from '../config/abctl-config.js'
+import {config} from '../config/config-loader.js'
 
-export type DockerBuildPreset = '' | 'default' | 'pnpm-turbo-docker-build';
+export type DockerBuildPreset = '' | 'default' | 'pnpm-turbo-docker-build'
 
-export const getBuildConfigFromPresetName = (
-  presetName: string,
-): DockerBuildConfig => {
-  const preset = presetName as DockerBuildPreset;
+export const getBuildConfigFromPresetName = (presetName: string): DockerBuildConfig => {
+  const preset = presetName as DockerBuildPreset
 
   switch (preset) {
     case 'default':
@@ -20,7 +18,7 @@ export const getBuildConfigFromPresetName = (
         target: '',
         dockerfile: './Dockerfile',
         platform: 'linux/amd64,linux/arm64',
-      };
+      }
     case 'pnpm-turbo-docker-build':
       return {
         baseImage: `${config.registryWithNamespace}/node-22-alpine:1.0.0`,
@@ -31,8 +29,8 @@ export const getBuildConfigFromPresetName = (
         target: '',
         dockerfile: '../../docker/pnpm-turbo.Dockerfile',
         platform: 'linux/amd64,linux/arm64',
-      };
+      }
     default:
-      throw new Error(`Unknown build preset: ${presetName}`);
+      throw new Error(`Unknown build preset: ${presetName}`)
   }
-};
+}
