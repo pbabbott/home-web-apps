@@ -29,21 +29,10 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`abctl baseCommand`](#abctl-basecommand)
 * [`abctl docker build`](#abctl-docker-build)
 * [`abctl docker publish`](#abctl-docker-publish)
 * [`abctl help [COMMAND]`](#abctl-help-command)
 * [`abctl secrets generate-env`](#abctl-secrets-generate-env)
-
-## `abctl baseCommand`
-
-```
-USAGE
-  $ abctl baseCommand [-c <value>]
-
-FLAGS
-  -c, --config=<value>  [default: ./abctl.yml] Path to the config file
-```
 
 ## `abctl docker build`
 
