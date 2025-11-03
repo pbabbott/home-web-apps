@@ -35,6 +35,7 @@
     "supertest": "^7.0.0",
     "ts-node": "catalog:",
     "tsc-watch": "^6.2.1",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "eslint": "catalog:"
   }
 }

@@ -1,103 +1,103 @@
-import { AppConfig, ConfigSection } from '@abbottland/yaml-config';
+import {AppConfig, ConfigSection} from '@abbottland/yaml-config'
 
-@AppConfig({ appPrefix: 'ABCTL' })
+@AppConfig({appPrefix: 'ABCTL'})
 export class AbctlConfig {
-  buildPreset = '';
+  buildPreset = ''
 
   /**
    * Added to the beginning of the image name
    */
-  registryWithNamespace = 'harbor.local.abbottland.io/library';
+  registryWithNamespace = 'harbor.local.abbottland.io/library'
 
   /**
    * Configuration for the docker build
    */
   @ConfigSection()
-  build = new DockerBuildConfig();
+  build = new DockerBuildConfig()
 
   /**
    * Configuration for generating an .env file with secrets
    */
   @ConfigSection()
-  secrets = new SecretConfig();
+  secrets = new SecretConfig()
 }
 
 export class SecretConfig {
   /**
    * Should the secrets be generated into an .env file?
    */
-  generateEnv = false;
+  generateEnv = false
 
   /**
    * The file to write the secrets to
    */
-  envFile = '';
+  envFile = ''
 
   /**
    * The file to read the sample secrets from
    */
-  envSampleFile = '';
+  envSampleFile = ''
 
   /**
    * The one password config. Helps determine how to get secrets from 1Password and load them into the .env file
    */
   @ConfigSection()
-  onePassword = new OnePasswordConfig();
+  onePassword = new OnePasswordConfig()
 }
 
 export class OnePasswordConfig {
   /**
    * The vault to get the secrets from
    */
-  vault = '';
+  vault = ''
 
   /**
    * The items to get from the vault
    */
-  items: OnePasswordItemConfig[] = [];
+  items: OnePasswordItemConfig[] = []
 }
 
 export class OnePasswordItemConfig {
   /**
    * The name of the item to get from the vault
    */
-  secretName = '';
+  secretName = ''
 
   /**
    * The key to get from the item
    */
-  secretKey = '';
+  secretKey = ''
 
   /**
    * The environment variable name to set the secret to
    */
-  envVarName = '';
+  envVarName = ''
 }
 
 export class DockerBuildConfig {
   /**
    * Corresponds to the docker build arg `BASE_IMAGE`
    */
-  baseImage = '';
+  baseImage = ''
 
   /**
    * The repository to push the image to, if not specified, uses the project name
    */
-  repository = '';
+  repository = ''
 
   /**
    * The tag to use for the image, if not specified, uses the project version
    */
-  tag = '';
+  tag = ''
 
-  context = '';
+  context = ''
 
-  dockerfile = '';
+  dockerfile = ''
 
-  platform = '';
+  platform = ''
 
-  target = '';
+  target = ''
 
   /** Should --load be set during the build process? */
-  load = 'false';
+  load = 'false'
 }

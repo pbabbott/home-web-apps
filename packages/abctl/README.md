@@ -1,19 +1,19 @@
-@abbottland/abctl
-=================
+# @abbottland/abctl
 
 Abbottland control CLI for common repository tasks
-
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/@abbottland/abctl.svg)](https://npmjs.org/package/@abbottland/abctl)
 [![Downloads/week](https://img.shields.io/npm/dw/@abbottland/abctl.svg)](https://npmjs.org/package/@abbottland/abctl)
 
-
 <!-- toc -->
+* [@abbottland/abctl](#abbottlandabctl)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
+
 # Usage
+
 <!-- usage -->
 ```sh-session
 $ npm install -g @abbottland/abctl
@@ -27,7 +27,9 @@ USAGE
 ...
 ```
 <!-- usagestop -->
+
 # Commands
+
 <!-- commands -->
 * [`abctl docker build`](#abctl-docker-build)
 * [`abctl docker publish`](#abctl-docker-publish)
