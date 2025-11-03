@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import 'fui-components/globals.css';
+import '@abbottland/fui-components/globals.css';
 import './globals.css';
 
 export const metadata: Metadata = {

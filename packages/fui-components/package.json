@@ -15,7 +15,8 @@
     "build:npm:clean": "rm -rf dist",
     "build:storybook": "storybook build",
     "lint": "eslint .",
-    "dev": "storybook dev -p 6006 --no-open"
+    "dev": "storybook dev -p 6006 --no-open",
+    "clean": "rm -rf dist storybook-static"
   },
   "main": "./dist/fui-components.umd.js",
   "module": "./dist/fui-components.es.js",

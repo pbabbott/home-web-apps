@@ -1,5 +1,5 @@
 'use client';
-import { Typography, Panel } from 'fui-components';
+import { Typography, Panel } from '@abbottland/fui-components';
 import { useEffect } from 'react';
 import { particlesConfig } from '@/config/particles';
 
