@@ -4,3 +4,6 @@ coverage
 packages/yaml-config/docs
 pnpm-lock.yaml
 next-env.d.ts
+
+packages/abctl/README.md
+packages/abctl/oclif.manifest.json
