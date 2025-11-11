@@ -1,5 +1,12 @@
 # blog
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @abbottland/fui-components@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes
