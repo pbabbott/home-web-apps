@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "docker:build": "abctl docker build",
-    "docker:push": "abctl docker push",
+    "docker:publish": "abctl docker publish",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",

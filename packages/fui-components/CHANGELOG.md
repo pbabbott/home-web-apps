@@ -1,5 +1,23 @@
 # fui-components
 
+## 0.4.3
+
+### Patch Changes
+
+- Reduce docker build to just be nginx
+
+## 0.4.2
+
+### Patch Changes
+
+- Modify storybook build to use version tag rather than latest
+
+## 0.4.1
+
+### Patch Changes
+
+- Issuing new version with docker ignore changes
+
 ## 0.4.0
 
 ### Minor Changes

@@ -1,0 +1,4 @@
+build:
+  dockerfile: Dockerfile
+  context: .
+  platform: linux/amd64

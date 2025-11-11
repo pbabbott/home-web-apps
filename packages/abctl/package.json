@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsc -w -p tsconfig.build.json",
-    "build": "tsc -p tsconfig.build.json && pnpm build:oclif",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
     "clean": "shx rm -rf dist && shx rm -f oclif.manifest.json",
-    "build:oclif": "oclif manifest && oclif readme",
+    "build:docs": "oclif manifest && oclif readme",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.ts --selectProjects unit"
   },
   "bin": {
