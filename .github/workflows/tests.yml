@@ -29,7 +29,7 @@ jobs:
         shell: bash
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
         with:
           check_name: 'Unit Test Results'
@@ -63,7 +63,7 @@ jobs:
         shell: bash
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
         with:
           check_name: 'Integration Test Results'
@@ -106,7 +106,7 @@ jobs:
         shell: bash
 
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
         with:
           check_name: 'E2E Test Results'
