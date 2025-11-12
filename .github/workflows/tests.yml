@@ -33,7 +33,9 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: Unit Tests
-          path: '**/test-results/test-results.xml'
+          path: |
+            **/test-results/test-results.xml
+            !**/node_modules/**
           reporter: jest-junit
 
       - name: Publish Test Results
