@@ -1,8 +1,10 @@
 /** @jest-config-loader ts-node -P tsconfig.test.json */
 
 import type {Config} from 'jest'
-import {unitTestPreset} from '@abbottland/jest-presets'
+import {unitTestPreset, jestReporters} from '@abbottland/jest-presets'
 
+// NOTE: i had to override the default jest config to use ESM
+// Its ok that this is not in the presets because this is the only package that uses ESM
 const config: Config = {
   projects: [
     {
@@ -26,6 +28,7 @@ const config: Config = {
       },
     },
   ],
+  reporters: jestReporters,
 }
 
 export default config
