@@ -28,6 +28,14 @@ jobs:
         run: pnpm test:unit
         shell: bash
 
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Unit Tests
+          path: '**/test-results/test-results.xml'
+          reporter: jest-junit
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
