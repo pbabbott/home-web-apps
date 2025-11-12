@@ -1,7 +1,8 @@
 'use client';
-import { Typography, Panel } from '@abbottland/fui-components';
+import { Typography } from '@abbottland/fui-components';
 import { useEffect } from 'react';
 import { particlesConfig } from '@/config/particles';
+import WelcomeSection from './WelcomeSection';
 
 export default function Home() {
   useEffect(() => {
@@ -42,16 +43,8 @@ export default function Home() {
           </Typography>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center w-full max-w-3xl gap-6 py-32">
-        <Panel color="primary" variant="outlined">
-          <Typography variant="h4" component="h4">
-            Welcome to Abbottland.io
-          </Typography>
-          <Typography variant="body1" component="p">
-            This is the home page of Abbottland.io
-          </Typography>
-        </Panel>
-      </div>
+      {/* Welcome Section */}
+      <WelcomeSection />
     </div>
   );
 }

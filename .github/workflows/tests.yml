@@ -21,7 +21,7 @@ jobs:
       - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install and build
+      - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
       - name: Run unit tests
@@ -45,7 +45,7 @@ jobs:
       - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install and build
+      - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
