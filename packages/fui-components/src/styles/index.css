@@ -5,13 +5,19 @@
 @layer base {
   @font-face {
     font-family: 'ethnocentric';
-    src: url('../src/assets/fonts/ethnocentric_rg.otf') format('opentype');
+    src:
+      url('../src/assets/fonts/ethnocentric_rg.otf') format('opentype'),
+      url('../src/assets/fonts/EnthocentricRg-Regular.woff2') format('woff2'),
+      url('../src/assets/fonts/EnthocentricRg-Regular.woff') format('woff');
     font-weight: normal;
     font-style: normal;
   }
   @font-face {
     font-family: 'monobit';
-    src: url('../src/assets/fonts/monobit.ttf') format('truetype');
+    src:
+      url('../src/assets/fonts/monobit.ttf') format('truetype'),
+      url('../src/assets/fonts/monobit.woff2') format('woff2'),
+      url('../src/assets/fonts/monobit.woff') format('woff');
     font-weight: normal;
     font-style: normal;
   }
