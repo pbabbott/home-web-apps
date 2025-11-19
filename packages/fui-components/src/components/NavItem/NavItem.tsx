@@ -1,6 +1,8 @@
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
+import { LineWithCircle } from './LineWithCircle';
+import { ExpandableLine } from './ExpandableLine';
 
 export type NavItemProps<T extends React.ElementType = 'div'> = {
   as?: T;
@@ -9,70 +11,11 @@ export type NavItemProps<T extends React.ElementType = 'div'> = {
   icon?: React.ElementType;
   showLeftLine?: boolean;
   showRightLine?: boolean;
+  active?: boolean;
 } & Omit<
   React.ComponentPropsWithoutRef<T>,
   'as' | 'className' | 'children' | 'icon' | 'showLeftLine' | 'showRightLine'
 >;
-
-const LineWithCircle = ({
-  height = 15,
-  stroke = 'currentColor',
-  strokeWidth = 1,
-  circleRadius = 2.5,
-  className = '',
-}) => {
-  const circleY = circleRadius + strokeWidth;
-
-  return (
-    <svg
-      width="1"
-      height={height}
-      className={className}
-      viewBox={`0 0 1 ${height}`}
-      preserveAspectRatio="xMidYMin meet"
-      overflow="visible"
-    >
-      {/* Vertical line */}
-      <line
-        x1="0.5"
-        y1={circleY}
-        x2="0.5"
-        y2={height}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-      />
-
-      {/* Circle at the top */}
-      <circle cx="0.5" cy={circleY} r={circleRadius} fill="currentColor" />
-    </svg>
-  );
-};
-
-const ExpandableLine = ({
-  stroke = 'currentColor',
-  strokeWidth = 2,
-  className = '',
-}) => {
-  const startingWidth = 10;
-  return (
-    <svg
-      className={className}
-      width="100%"
-      height={strokeWidth}
-      viewBox={`0 0 ${startingWidth} ${strokeWidth}`}
-      preserveAspectRatio="none"
-    >
-      <line
-        x1="0"
-        y1={strokeWidth / 2}
-        x2={startingWidth}
-        y2={strokeWidth / 2}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-      />
-    </svg>
-  );
-};
 
 export const NavItem = <T extends React.ElementType = 'div'>({
   as,
@@ -81,6 +24,7 @@ export const NavItem = <T extends React.ElementType = 'div'>({
   icon,
   showLeftLine = true,
   showRightLine = true,
+  active = false,
   ...props
 }: NavItemProps<T>) => {
   const Component = (as || 'div') as React.ElementType;
@@ -89,9 +33,18 @@ export const NavItem = <T extends React.ElementType = 'div'>({
   const iconSize = 20;
   const lineHeight = 15;
   const circleRadius = 2;
+  const textColor = active ? 'text-primary-500' : 'text-neutral-300';
+  const hoverClasses =
+    'transition-colors duration-300 group-hover:text-warning-500';
 
   return (
-    <div className="text-neutral-300">
+    <Component
+      className={extendedTwMerge(
+        `group text-neutral-300 hover:cursor-pointer text-button`,
+        classes,
+      )}
+      {...props}
+    >
       <div className="flex flex-row items-end justify-center gap-x-2">
         {showLeftLine ? (
           <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
@@ -99,13 +52,15 @@ export const NavItem = <T extends React.ElementType = 'div'>({
           <div style={{ width: 1, height: lineHeight }} />
         )}
         {icon &&
-          React.createElement(icon, { width: iconSize, height: iconSize })}
-        <Component
-          className={extendedTwMerge('text-neutral-300 text-button', classes)}
-          {...props}
-        >
+          React.createElement(icon, {
+            width: iconSize,
+            height: iconSize,
+            className: extendedTwMerge(textColor, hoverClasses),
+          })}
+        <span className={extendedTwMerge(textColor, hoverClasses)}>
           {children}
-        </Component>
+        </span>
+
         {showRightLine ? (
           <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
         ) : (
@@ -116,9 +71,9 @@ export const NavItem = <T extends React.ElementType = 'div'>({
         <ExpandableLine strokeWidth={1} />
       </div>
 
-      <div className="relative top-[4px] ">
+      <div className={`relative top-[3px] ${textColor} ${hoverClasses}`}>
         <ExpandableLine strokeWidth={2} />
       </div>
-    </div>
+    </Component>
   );
 };

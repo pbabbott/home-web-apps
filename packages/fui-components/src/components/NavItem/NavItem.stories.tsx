@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
-import { HomeIcon, PersonIcon, GearIcon } from '@radix-ui/react-icons';
+import { CubeIcon } from '@radix-ui/react-icons';
 
 import { NavItem } from './NavItem';
 
@@ -43,42 +43,26 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const AsAnchor: Story = {
+export const Default: Story = {
   args: {
-    as: 'a',
-    href: '#',
-    children: 'Link Item',
+    icon: CubeIcon,
+    children: 'Abbottland',
   },
 };
 
-export const WithIcon: Story = {
+export const Active: Story = {
   args: {
-    icon: HomeIcon,
-    children: 'Home is where the heart is',
+    icon: CubeIcon,
+    children: 'Abbottland',
+    active: true,
   },
 };
 
-export const WithIconAsAnchor: Story = {
+export const WithoutLines: Story = {
   args: {
-    as: 'a',
-    href: '#',
-    icon: PersonIcon,
-    children: 'Profile',
+    icon: CubeIcon,
+    children: 'Abbottland',
+    showLeftLine: false,
+    showRightLine: false,
   },
-};
-
-export const MultipleWithIcons: Story = {
-  render: () => (
-    <div className="flex flex-row">
-      <NavItem icon={HomeIcon} showLeftLine={true} showRightLine={false}>
-        Home
-      </NavItem>
-      <NavItem icon={PersonIcon} showLeftLine={true} showRightLine={false}>
-        Profile
-      </NavItem>
-      <NavItem icon={GearIcon} showLeftLine={true} showRightLine={true}>
-        Settings
-      </NavItem>
-    </div>
-  ),
 };

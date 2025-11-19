@@ -1,6 +1,5 @@
 import React from 'react';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
-import { relative } from 'path';
 
 export interface NavBarProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
@@ -138,7 +137,7 @@ export const NavBar: React.FC<NavBarProps> = ({
     <nav className={classes} {...props}>
       <div className="flex flex-row mb-2">{children}</div>
       <BoxWithCornerCircles
-        top={-10}
+        top={-11}
         height={10}
         circleRadius={2}
         strokeWidth={1}

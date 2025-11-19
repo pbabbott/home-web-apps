@@ -21,3 +21,7 @@ export {
   type TypographyVariant,
   type TypographyComponent,
 } from './components/Typography/Typography';
+
+// NavBar
+export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
+export { NavItem, type NavItemProps } from './components/NavItem/NavItem';

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { HomeIcon, PersonIcon, GearIcon } from '@radix-ui/react-icons';
+import { PersonIcon, GearIcon, CubeIcon } from '@radix-ui/react-icons';
 
 import { NavBar } from './NavBar';
 import { NavItem } from '../NavItem/NavItem';
@@ -27,8 +27,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <NavBar>
-      <NavItem icon={HomeIcon} showLeftLine={true} showRightLine={false}>
-        Home
+      <NavItem icon={CubeIcon} showLeftLine={true} showRightLine={false}>
+        Abbottland
       </NavItem>
       <NavItem icon={PersonIcon} showLeftLine={true} showRightLine={false}>
         Profile
