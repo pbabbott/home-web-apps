@@ -56,19 +56,7 @@ export const Default: Story = {
   },
   render: (args) => (
     <Panel {...args}>
-      <PanelContent>Transparent</PanelContent>
-    </Panel>
-  ),
-};
-
-export const PrimaryTransparent: Story = {
-  args: {
-    color: 'primary',
-    variant: 'transparent',
-  },
-  render: (args) => (
-    <Panel {...args}>
-      <PanelContent>Transparent</PanelContent>
+      <PanelContent>Default</PanelContent>
     </Panel>
   ),
 };

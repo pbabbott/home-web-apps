@@ -11,10 +11,13 @@
   "dependencies": {
     "@abbottland/fui-components": "workspace:*",
     "@radix-ui/react-icons": "^1.3.2",
+    "@types/animejs": "^3.1.13",
+    "animejs": "^3.2.2",
     "next": "16.0.1",
     "particles.js": "^2.0.0",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-typed": "^2.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

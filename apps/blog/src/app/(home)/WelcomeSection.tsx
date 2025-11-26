@@ -1,7 +1,6 @@
 'use client';
 
 import { Panel, Typography } from '@abbottland/fui-components';
-
 export default function WelcomeSection() {
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-3xl gap-6 py-32">

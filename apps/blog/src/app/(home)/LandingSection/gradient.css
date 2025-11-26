@@ -1,0 +1,9 @@
+.gradient-anim {
+  --grad-bg: linear-gradient(
+    to bottom right,
+    #23272b,
+    #23272b
+  ); /* start flat neutral-900 to neutral-900 */
+  background-image: var(--grad-bg);
+  background-size: 200% 200%; /* helps with subtle movement */
+}

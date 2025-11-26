@@ -48,7 +48,7 @@ export function CircleSvg({
 export default function BoxWithCornerCircles({
   height = 100,
   stroke = 'currentColor',
-  strokeWidth = 2,
+  strokeWidth = 0.75,
   circleRadius = 4,
   className = '',
   top = 0,
@@ -140,7 +140,6 @@ export const NavBar: React.FC<NavBarProps> = ({
         top={-11}
         height={10}
         circleRadius={2}
-        strokeWidth={1}
         className="text-neutral-300"
       />
     </nav>

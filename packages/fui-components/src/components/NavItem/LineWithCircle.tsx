@@ -9,7 +9,7 @@ export type LineWithCircleProps = {
 export const LineWithCircle = ({
   height = 15,
   stroke = 'currentColor',
-  strokeWidth = 1,
+  strokeWidth = 0.75,
   circleRadius = 2.5,
   className = '',
 }: LineWithCircleProps) => {
@@ -39,4 +39,3 @@ export const LineWithCircle = ({
     </svg>
   );
 };
-

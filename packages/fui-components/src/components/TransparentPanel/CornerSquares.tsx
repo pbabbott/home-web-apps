@@ -1,9 +1,10 @@
 import React from 'react';
-import type { PanelColor } from './types';
+import type { TransparentPanelColor } from './types';
 
-const getSquareColorClass = (color: PanelColor) => {
+const getSquareColorClass = (color: TransparentPanelColor) => {
   const colors = {
     default: 'fill-neutral-500',
+    dark: 'fill-neutral-600',
     white: 'fill-neutral-50',
     primary: 'fill-primary-300',
     secondary: 'fill-secondary-200',
@@ -17,7 +18,7 @@ const getSquareColorClass = (color: PanelColor) => {
 };
 
 export interface CornerSquaresProps {
-  color: PanelColor;
+  color: TransparentPanelColor;
 }
 
 const CornerSquares: React.FC<CornerSquaresProps> = ({ color }) => {

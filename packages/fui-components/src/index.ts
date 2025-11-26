@@ -14,6 +14,13 @@ export { type InputColor } from './components/Input/types';
 export { Panel, type PanelProps } from './components/Panel/Panel';
 export { type PanelColor, type PanelVariant } from './components/Panel/types';
 
+// TransparentPanel
+export {
+  TransparentPanel,
+  type TransparentPanelProps,
+} from './components/TransparentPanel/TransparentPanel';
+export { type TransparentPanelColor } from './components/TransparentPanel/types';
+
 // Typography
 export {
   Typography,
@@ -25,3 +32,6 @@ export {
 // NavBar
 export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
 export { NavItem, type NavItemProps } from './components/NavItem/NavItem';
+
+// Utils
+export { extendedTwMerge } from './utils/extendTwMerge';

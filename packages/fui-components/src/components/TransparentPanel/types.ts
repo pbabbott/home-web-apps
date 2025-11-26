@@ -1,5 +1,6 @@
-export type PanelColor =
+export type TransparentPanelColor =
   | 'default'
+  | 'dark'
   | 'white'
   | 'primary'
   | 'secondary'
@@ -8,4 +9,3 @@ export type PanelColor =
   | 'warning'
   | 'accent-purple'
   | 'accent-falcon';
-export type PanelVariant = 'outlined' | 'dots';

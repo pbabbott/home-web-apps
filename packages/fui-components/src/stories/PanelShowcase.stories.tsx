@@ -47,11 +47,6 @@ const renderColorGrid = (variant: PanelVariant) => (
   </div>
 );
 
-// Example showing all colors in a grid
-export const TransparentColors: Story = {
-  render: () => renderColorGrid('transparent'),
-};
-
 export const OutlinedColors: Story = {
   render: () => renderColorGrid('outlined'),
 };
