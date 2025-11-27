@@ -63,7 +63,7 @@ export default function LandingSection() {
       isAnimated={showBackgroundColors}
       className={`w-full min-h-screen`}
     >
-      <div className="z-10 flex flex-col items-center justify-center min-h-screen px-4 max-w-3xl mx-auto">
+      <div className="z-10 flex flex-col items-center justify-center min-h-screen px-4 max-w-screen-md mx-auto">
         <Typography
           variant={isXSScreen ? 'h2' : 'h1'}
           component="h1"

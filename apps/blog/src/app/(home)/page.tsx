@@ -1,5 +1,5 @@
 'use client';
-import WelcomeSection from './WelcomeSection';
+import WelcomeSection from './WelcomeSection/WelcomeSection';
 import StickyHeader from '../components/StickyHeader';
 import LandingSection from './LandingSection/LandingSection';
 import LandingSectionContextProvider from './LandingSection/LandingSection.Context';

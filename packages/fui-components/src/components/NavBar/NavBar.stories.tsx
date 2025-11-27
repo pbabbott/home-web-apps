@@ -27,7 +27,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   render: () => (
     <NavBar>
-      <NavItem icon={CubeIcon} showLeftLine={true} showRightLine={false}>
+      <NavItem
+        active={true}
+        icon={CubeIcon}
+        showLeftLine={true}
+        showRightLine={false}
+      >
         Abbottland
       </NavItem>
       <NavItem icon={PersonIcon} showLeftLine={true} showRightLine={false}>

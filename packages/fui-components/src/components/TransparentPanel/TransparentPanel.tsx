@@ -11,7 +11,7 @@ export interface TransparentPanelProps
 const getTransparentColorClasses = (color: TransparentPanelColor) => {
   const colors = {
     default: 'bg-neutral-600/60 text-neutral-50',
-    dark: 'bg-neutral-900/60 text-neutral-50',
+    dark: 'bg-neutral-900/80 text-neutral-50',
     white: 'bg-neutral-50/70',
     primary: 'bg-primary-700/60 text-neutral-50',
     secondary: 'bg-secondary-600/60  text-neutral-50',

@@ -33,9 +33,9 @@ export const NavItem = <T extends React.ElementType = 'div'>({
   const iconSize = 20;
   const lineHeight = 15;
   const circleRadius = 2;
-  const textColor = active ? 'text-primary-500' : 'text-neutral-300';
+  const textColor = active ? 'text-primary-700' : 'text-neutral-300';
   const hoverClasses =
-    'transition-colors duration-300 group-hover:text-warning-500';
+    'transition-colors duration-300 group-hover:text-primary-500';
 
   return (
     <Component

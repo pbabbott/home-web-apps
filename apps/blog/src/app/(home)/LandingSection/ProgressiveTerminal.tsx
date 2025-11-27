@@ -30,14 +30,19 @@ const lines: TerminalLine[] = [
   },
   {
     text: 'Awaiting user action...',
-    event_name: TerminalEvent.AWAITING_USER_INPUT,
+    event_name: TerminalEvent.AWAITING_USER_ACTION,
+    endOfLineComponent: null,
+  },
+  {
+    text: '... ...',
+    event_name: TerminalEvent.PROCESS_DELAYED,
     endOfLineComponent: (
       <span className="text-warning-500">PROCESS DELAYED</span>
     ),
   },
   {
     text: '(click a button above to continue)',
-    event_name: TerminalEvent.AWAITING_USER_INPUT,
+    event_name: TerminalEvent.CLICK_BUTTON_TO_CONTINUE,
     endOfLineComponent: null,
   },
 ];
