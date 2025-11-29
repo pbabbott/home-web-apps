@@ -8,7 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
-  
+
   // Store snapshots co-located with components in __screenshots__ folders
   // e.g., src/components/Button/__screenshots__/components-button--color-primary.png
   // These baseline screenshots should be committed to version control

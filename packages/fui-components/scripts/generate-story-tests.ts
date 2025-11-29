@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -215,7 +216,7 @@ async function generateTests() {
       const data = await response.json();
       storyIds = Object.keys(data.entries || {});
       console.log(`✓ Found ${storyIds.length} stories\n`);
-    } catch (indexError) {
+    } catch {
       console.log('⚠️  Could not fetch from index.json, trying legacy API...');
 
       // Fallback to legacy API
