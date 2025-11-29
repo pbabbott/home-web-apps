@@ -1,7 +1,7 @@
-import { Panel } from '../components/Panel/Panel';
+import { Panel } from '../../components/Panel/Panel';
 import { type ReactNode } from 'react';
 import type { StoryObj } from '@storybook/react-vite';
-import type { PanelVariant } from '../components/Panel/types';
+import type { PanelVariant } from '../../components/Panel/types';
 
 const PanelContent = ({ children }: { children: ReactNode }) => {
   return <div className="text-body2 px-2 py-16">{children}</div>;

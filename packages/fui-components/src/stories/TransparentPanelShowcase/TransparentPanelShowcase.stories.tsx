@@ -1,4 +1,4 @@
-import { TransparentPanel } from '../components/TransparentPanel/TransparentPanel';
+import { TransparentPanel } from '../../components/TransparentPanel/TransparentPanel';
 import { type ReactNode } from 'react';
 import type { StoryObj } from '@storybook/react-vite';
 

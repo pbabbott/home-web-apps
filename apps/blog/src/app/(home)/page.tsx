@@ -3,15 +3,17 @@ import WelcomeSection from './WelcomeSection/WelcomeSection';
 import StickyHeader from '../components/StickyHeader';
 import LandingSection from './LandingSection/LandingSection';
 import LandingSectionContextProvider from './LandingSection/LandingSection.Context';
+import AboutMeSection from './AboutMeSection/AboutMeSection';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-800">
+    <div>
       <StickyHeader />
       <LandingSectionContextProvider>
         <LandingSection />
       </LandingSectionContextProvider>
       <WelcomeSection />
+      <AboutMeSection />
     </div>
   );
 }

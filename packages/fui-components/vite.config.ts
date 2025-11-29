@@ -56,6 +56,7 @@ export default defineConfig({
   },
   test: {
     projects: [
+      // Project 1: Storybook tests - tests stories directly in the DOM for basic rendering without errors via the addon
       {
         extends: true,
         plugins: [
@@ -76,6 +77,10 @@ export default defineConfig({
                 browser: 'chromium',
               },
             ],
+            viewport: {
+              width: 1280,
+              height: 720,
+            },
           },
           setupFiles: ['.storybook/vitest.setup.ts'],
         },
