@@ -55,6 +55,27 @@ export default defineConfig({
     },
   },
   test: {
+    // Global test reporters - generates reports for all test projects
+    reporters: [
+      'default', // Console output
+      'junit', // JUnit XML report for CI/CD
+    ],
+    outputFile: {
+      junit: './test-results/junit.xml',
+    },
+    // Optional: Enable coverage reporting
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      reportsDirectory: './test-results/coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.stories.{ts,tsx}',
+        'src/**/*.test.{ts,tsx}',
+        'src/**/__tests__/**',
+        'src/**/types.ts',
+      ],
+    },
     projects: [
       // Project 1: Storybook tests - tests stories directly in the DOM for basic rendering without errors via the addon
       {

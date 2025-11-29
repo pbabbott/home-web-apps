@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "dev": "storybook dev -p 6006 --no-open",
     "clean": "rm -rf dist storybook-static",
-    "test": "pnpm run test:playwright && pnpm run test:dom",
+    "test:ui": "pnpm run test:playwright && pnpm run test:dom",
     "test:dom": "vitest run",
     "test:watch": "vitest watch",
     "test:playwright": "playwright test",

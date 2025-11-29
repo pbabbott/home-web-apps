@@ -12,6 +12,22 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
+  ui-tests:
+    runs-on: [self-hosted, amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Run ui tests
+        run: pnpm test:ui
+        shell: bash
+
   unit-tests:
     runs-on: [self-hosted, amd64-runner]
     steps:
