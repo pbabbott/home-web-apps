@@ -24,6 +24,11 @@ jobs:
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
+      - name: Install playwright
+        run: pnpm exec playwright install
+        working-directory: packages/fui-components
+        shell: bash
+
       - name: Run ui tests
         run: pnpm test:ui
         shell: bash
