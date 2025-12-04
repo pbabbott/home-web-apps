@@ -1,4 +1,4 @@
-export type PanelColor =
+export type DotGridPanelColor =
   | 'default'
   | 'white'
   | 'primary'

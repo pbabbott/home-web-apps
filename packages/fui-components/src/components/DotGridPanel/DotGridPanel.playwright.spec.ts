@@ -3,21 +3,21 @@
 import { test, expect } from '@playwright/test';
 import { gotoStory, STANDARD_VIEWPORT, SCREENSHOT_OPTIONS } from '../../../tests/playwright-helpers';
 
-test.describe('Panel Visual Regression Tests', () => {
+test.describe('DotGridPanel Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-panel--default');
-    await expect(page).toHaveScreenshot('components-panel--default.png', SCREENSHOT_OPTIONS);
+    await gotoStory(page, 'components-dotgridpanel--default');
+    await expect(page).toHaveScreenshot('components-dotgridpanel--default.png', SCREENSHOT_OPTIONS);
   });
 
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-panel--primary');
-    await expect(page).toHaveScreenshot('components-panel--primary.png', SCREENSHOT_OPTIONS);
+    await gotoStory(page, 'components-dotgridpanel--primary');
+    await expect(page).toHaveScreenshot('components-dotgridpanel--primary.png', SCREENSHOT_OPTIONS);
   });
 
 

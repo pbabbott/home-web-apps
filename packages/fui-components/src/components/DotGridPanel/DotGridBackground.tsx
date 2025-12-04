@@ -1,7 +1,7 @@
-import type { PanelColor } from './types';
+import type { DotGridPanelColor } from './types';
 // https://claude.ai/chat/615031e5-1910-4312-9c30-fa918b725ef2
 
-const getDotColorClass = (color: PanelColor) => {
+const getDotColorClass = (color: DotGridPanelColor) => {
   const colors = {
     default: 'fill-neutral-500',
     white: 'fill-neutral-50',
@@ -16,7 +16,7 @@ const getDotColorClass = (color: PanelColor) => {
   return colors[color] || '';
 };
 
-const DotGridBackground = ({ color }: { color: PanelColor }) => {
+const DotGridBackground = ({ color }: { color: DotGridPanelColor }) => {
   // These values can be adjusted to match your desired appearance
   const dotSize = 0.8;
   const spacing = 14;

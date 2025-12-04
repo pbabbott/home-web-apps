@@ -1,4 +1,4 @@
-import { Panel } from '../../components/Panel/Panel';
+import { DotGridPanel } from '../../components/DotGridPanel/DotGridPanel';
 import { type ReactNode } from 'react';
 import type { StoryObj } from '@storybook/react-vite';
 
@@ -7,7 +7,7 @@ const PanelContent = ({ children }: { children: ReactNode }) => {
 };
 
 const meta = {
-  title: 'Showcase/Panel',
+  title: 'Showcase/DotGridPanel',
 };
 
 export default meta;
@@ -16,33 +16,34 @@ type Story = StoryObj<typeof meta>;
 export const AllColors: Story = {
   render: () => (
     <div className="grid grid-cols-3 gap-6">
-      <Panel color="default">
+      <DotGridPanel color="default">
         <PanelContent>Default</PanelContent>
-      </Panel>
-      <Panel color="white">
+      </DotGridPanel>
+      <DotGridPanel color="white">
         <PanelContent>White</PanelContent>
-      </Panel>
-      <Panel color="primary">
+      </DotGridPanel>
+      <DotGridPanel color="primary">
         <PanelContent>Primary</PanelContent>
-      </Panel>
-      <Panel color="secondary">
+      </DotGridPanel>
+      <DotGridPanel color="secondary">
         <PanelContent>Secondary</PanelContent>
-      </Panel>
-      <Panel color="success">
+      </DotGridPanel>
+      <DotGridPanel color="success">
         <PanelContent>Success</PanelContent>
-      </Panel>
-      <Panel color="error">
+      </DotGridPanel>
+      <DotGridPanel color="error">
         <PanelContent>Error</PanelContent>
-      </Panel>
-      <Panel color="warning">
+      </DotGridPanel>
+      <DotGridPanel color="warning">
         <PanelContent>Warning</PanelContent>
-      </Panel>
-      <Panel color="accent-purple">
+      </DotGridPanel>
+      <DotGridPanel color="accent-purple">
         <PanelContent>Purple</PanelContent>
-      </Panel>
-      <Panel color="accent-falcon">
+      </DotGridPanel>
+      <DotGridPanel color="accent-falcon">
         <PanelContent>Falcon</PanelContent>
-      </Panel>
+      </DotGridPanel>
     </div>
   ),
 };
+

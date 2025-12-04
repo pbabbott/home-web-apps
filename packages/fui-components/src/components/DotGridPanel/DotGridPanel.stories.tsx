@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
-import { Panel } from './Panel';
+import { DotGridPanel } from './DotGridPanel';
 import { type ReactNode } from 'react';
 
 const meta = {
-  title: 'Components/Panel',
-  component: Panel,
+  title: 'Components/DotGridPanel',
+  component: DotGridPanel,
   parameters: {
     layout: 'centered',
   },
@@ -36,7 +36,7 @@ const meta = {
     onClick: fn(),
     children: 'Panel content', // Default text for all stories
   },
-} satisfies Meta<typeof Panel>;
+} satisfies Meta<typeof DotGridPanel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -50,9 +50,9 @@ export const Default: Story = {
     color: 'default',
   },
   render: (args) => (
-    <Panel {...args}>
+    <DotGridPanel {...args}>
       <PanelContent>Default</PanelContent>
-    </Panel>
+    </DotGridPanel>
   ),
 };
 
@@ -61,8 +61,9 @@ export const Primary: Story = {
     color: 'primary',
   },
   render: (args) => (
-    <Panel {...args}>
+    <DotGridPanel {...args}>
       <PanelContent>Primary</PanelContent>
-    </Panel>
+    </DotGridPanel>
   ),
 };
+

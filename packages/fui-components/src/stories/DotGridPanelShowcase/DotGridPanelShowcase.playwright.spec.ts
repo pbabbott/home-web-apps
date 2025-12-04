@@ -3,15 +3,15 @@
 import { test, expect } from '@playwright/test';
 import { gotoStory, STANDARD_VIEWPORT, SCREENSHOT_OPTIONS } from '../../../tests/playwright-helpers';
 
-test.describe('ButtonShowcase Visual Regression Tests', () => {
+test.describe('DotGridPanelShowcase Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
 
-  test('colors-and-variants', async ({ page }) => {
-    await gotoStory(page, 'showcase-button--colors-and-variants');
-    await expect(page).toHaveScreenshot('showcase-button--colors-and-variants.png', SCREENSHOT_OPTIONS);
+  test('all-colors', async ({ page }) => {
+    await gotoStory(page, 'showcase-dotgridpanel--all-colors');
+    await expect(page).toHaveScreenshot('showcase-dotgridpanel--all-colors.png', SCREENSHOT_OPTIONS);
   });
 
 
