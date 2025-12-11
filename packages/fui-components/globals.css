@@ -22,38 +22,38 @@
     font-size: 1.75rem;
     letter-spacing: 0;
   }
-}
 
-a {
-  color: theme('colors.primary.500');
-  text-decoration: underline;
-  transition: color 0.2s ease-in-out;
-}
-a:hover {
-  color: theme('colors.primary.300');
-}
-a:visited {
-  color: theme('colors.primary.600');
-}
-a:active {
-  color: theme('colors.primary.700');
-}
-a:focus-visible {
-  outline: 2px solid theme('colors.primary.500');
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+  a {
+    color: theme('colors.primary.500');
+    text-decoration: underline;
+    transition: color 0.2s ease-in-out;
+  }
+  a:hover {
+    color: theme('colors.primary.300');
+  }
+  a:visited {
+    color: theme('colors.primary.600');
+  }
+  a:active {
+    color: theme('colors.primary.700');
+  }
+  a:focus-visible {
+    outline: 2px solid theme('colors.primary.500');
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 
-/* Reset link styles for navigation links */
-nav a {
-  color: inherit;
-  text-decoration: none;
-}
-nav a:hover,
-nav a:visited,
-nav a:active {
-  color: inherit;
-}
-nav a:focus-visible {
-  outline: none;
+  /* Reset link styles for navigation links */
+  nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+  nav a:hover,
+  nav a:visited,
+  nav a:active {
+    color: inherit;
+  }
+  nav a:focus-visible {
+    outline: none;
+  }
 }
