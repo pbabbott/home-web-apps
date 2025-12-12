@@ -131,7 +131,7 @@ const ActiveOrnament = ({ color }: { color: InputColor }) => {
 
   return (
     <>
-      <div className="absolute -bottom-[8px] left-0">
+      <div className="absolute -bottom-[8px] left-0 w-full">
         <svg className="w-full" height={svgHeight}>
           {/* Underline */}
           <line

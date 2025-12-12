@@ -6,6 +6,7 @@ import { LandingSectionContext } from './LandingSection.Context';
 import AnimatedGradient from './AnimatedGradient';
 import { particlesConfig } from '@/config/particles';
 import anime from 'animejs';
+import Link from 'next/link';
 
 export default function LandingSection() {
   const { showParticles } = useContext(LandingSectionContext);
@@ -75,12 +76,22 @@ export default function LandingSection() {
           A blog sharing technical insights on software engineering
         </Typography>
         <div className="flex gap-2 mb-4">
-          <Button variant="contained" color="secondary">
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              document
+                .getElementById('welcome-section')
+                ?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
             Read Manual
           </Button>
-          <Button variant="contained" color="primary">
-            Read Blog
-          </Button>
+          <Link href="/blog">
+            <Button variant="contained" color="primary">
+              Read Blog
+            </Button>
+          </Link>
         </div>
         <ProgressiveTerminal />
       </div>
@@ -92,7 +103,7 @@ export default function LandingSection() {
 
       <div
         id="particles-js"
-        className="absolute inset-0 w-full h-full z-20 opacity-0"
+        className="absolute inset-0 w-full h-full z-20 opacity-0 pointer-events-none"
         ref={particlesRef}
       ></div>
     </AnimatedGradient>

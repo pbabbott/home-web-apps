@@ -1,3 +1,10 @@
+// Badge
+export {
+  Badge,
+  type BadgeProps,
+  type BadgeColor,
+} from './components/Badge/Badge';
+
 // Button
 export {
   Button,
@@ -58,3 +65,18 @@ export {
 
 // Utils
 export { extendedTwMerge } from './utils/extendTwMerge';
+
+// Design Tokens
+export {
+  neutral,
+  primary,
+  secondary,
+  accentPurple,
+  accentFalcon,
+  success,
+  warning,
+  error,
+  brandColors,
+  gradient,
+  type ColorShade,
+} from './tokens';

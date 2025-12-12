@@ -6,7 +6,10 @@ import RaspberryPi from '@/app/components/RaspberryPi/RaspberryPi';
 
 export default function WelcomeSection() {
   return (
-    <div className="bg-neutral-800 w-full flex flex-col items-center px-4 py-12">
+    <div
+      id="welcome-section"
+      className="bg-neutral-800 w-full flex flex-col items-center px-4 py-18"
+    >
       <div className="flex flex-col items-center justify-center w-full max-w-screen-lg gap-6">
         <Typography variant="h2" component="h2">
           Welcome to Abbottland.io

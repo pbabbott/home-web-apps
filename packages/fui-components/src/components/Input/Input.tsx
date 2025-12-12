@@ -6,7 +6,7 @@ import { getSvgColorClasses } from './ColorHelpers';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  color: InputColor;
+  color?: InputColor;
 }
 
 const getContainerColorClasses = (color: InputColor) => {
@@ -20,7 +20,7 @@ const getContainerColorClasses = (color: InputColor) => {
 const getInputColorClasses = (color: InputColor) => {
   const colors = {
     default: 'bg-neutral-600 border-neutral-300',
-    primary: 'bg-primary-900 border-primary-300',
+    primary: 'bg-primary-900 border-primary-300 text-neutral-50',
   };
   return colors[color] || '';
 };
@@ -29,6 +29,7 @@ export const Input: React.FC<InputProps> = ({
   color = 'default',
   onFocus,
   onBlur,
+  className,
   ...props
 }) => {
   const [isActive, setIsActive] = useState(false);
@@ -45,7 +46,7 @@ export const Input: React.FC<InputProps> = ({
 
   const baseClasses = 'relative';
   const baseInputClasses =
-    'border focus:outline-none focus:ring-0 active:outline-none px-2';
+    'border focus:outline-none focus:ring-0 active:outline-none px-2 rounded-none';
 
   const containerColorClasses = getContainerColorClasses(color);
   const inputColorClasses = getInputColorClasses(color);
@@ -57,7 +58,11 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className={extendedTwMerge(baseClasses, containerColorClasses)}>
       <input
-        className={extendedTwMerge(baseInputClasses, inputColorClasses)}
+        className={extendedTwMerge(
+          baseInputClasses,
+          inputColorClasses,
+          className,
+        )}
         onFocus={handleFocus}
         onBlur={handleBlur}
         {...props}

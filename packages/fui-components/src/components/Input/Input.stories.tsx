@@ -37,6 +37,46 @@ export const Primary: Story = {
   name: 'Color: Primary',
   args: {
     color: 'primary',
+    placeholder: 'Enter your text here...',
   },
   render: InputContainer,
+};
+
+export const WithPlaceholder: Story = {
+  name: 'With Placeholder',
+  args: {
+    placeholder: 'Enter your text here...',
+  },
+  render: InputContainer,
+};
+
+export const DefaultWithValue: Story = {
+  name: 'Color: Default with Value',
+  args: {
+    color: 'default',
+    defaultValue: 'Hello World',
+  },
+  render: InputContainer,
+};
+
+export const PrimaryWithValue: Story = {
+  name: 'Color: Primary with Value',
+  args: {
+    color: 'primary',
+    defaultValue: 'Hello World',
+  },
+  render: InputContainer,
+};
+
+export const FullWidth: Story = {
+  name: 'Full Width',
+  args: {
+    className: 'w-full',
+    placeholder: 'Full width input...',
+  },
+  render: (args) => (
+    <div className="w-[600px]">
+      <Input {...args} />
+    </div>
+  ),
 };
