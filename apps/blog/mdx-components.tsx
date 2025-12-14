@@ -45,6 +45,21 @@ const components: MDXComponents = {
       {children}
     </Typography>
   ),
+  pre: ({ children, ...props }) => (
+    <pre className="not-prose" {...props}>
+      {children}
+    </pre>
+  ),
+  code: ({ children, ...props }) => (
+    <Typography
+      variant="body1"
+      component="code"
+      className="not-prose bg-neutral-900 text-accent-purple-300 px-1 rounded border border-accent-purple-300/50 px-2"
+      {...props}
+    >
+      {children}
+    </Typography>
+  ),
 };
 
 export function useMDXComponents(): MDXComponents {

@@ -1,8 +1,9 @@
-import type { NextConfig } from 'next';
+/** @typedef {import('next').NextConfig} NextConfig */
 
 import createMDX from '@next/mdx';
 
-const nextConfig: NextConfig = {
+/** @type {NextConfig} */
+const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below
@@ -14,6 +15,9 @@ const withMDX = createMDX({
   options: {
     // Strip frontmatter from rendered content (we parse it separately with gray-matter)
     remarkPlugins: [['remark-frontmatter', { type: 'yaml', marker: '-' }]],
+
+    // Use string reference for rehype-pretty-code to ensure serializable options for Turbopack
+    rehypePlugins: [['rehype-pretty-code', { theme: 'material-theme-darker' }]],
   },
 });
 
