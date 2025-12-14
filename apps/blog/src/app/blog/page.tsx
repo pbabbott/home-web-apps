@@ -42,9 +42,9 @@ export default function Blog() {
 
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
-      <StickyHeader fixed={false} />
+      <StickyHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         {/* Page Title */}
         <div className="mb-12 text-center">
           <Typography
@@ -58,8 +58,8 @@ export default function Blog() {
             variant="body1"
             className="text-neutral-400 max-w-2xl mx-auto"
           >
-            Thoughts on web development, design, DevOps, and navigating a career
-            in tech.
+            Topics include web development, interface design, DevOps procedures,
+            and computational career trajectory analysis.
           </Typography>
         </div>
 

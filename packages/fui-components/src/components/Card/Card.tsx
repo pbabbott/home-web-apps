@@ -16,18 +16,19 @@ const getCardColorClasses = (color: CardColor): string => {
     default:
       'border-neutral-500 border-l-neutral-900 hover:border-l-neutral-500',
     primary:
-      'border-primary-500 border-l-primary-800 hover:border-l-primary-500',
+      'border-y-primary-500 border-r-primary-500 border-l-primary-800 hover:border-l-primary-500',
     secondary:
-      'border-secondary-500 border-l-secondary-800 hover:border-l-secondary-500',
+      'border-y-secondary-500 border-r-secondary-500 border-l-secondary-800 hover:border-l-secondary-500',
     success:
-      'border-success-500 border-l-success-700 hover:border-l-success-500',
-    error: 'border-error-500 border-l-error-800 hover:border-l-error-500',
+      'border-y-success-500 border-r-success-500 border-l-success-700 hover:border-l-success-500',
+    error:
+      'border-y-error-500 border-r-error-500 border-l-error-800 hover:border-l-error-500',
     warning:
-      'border-warning-500 border-l-warning-800 hover:border-l-warning-500',
+      'border-y-warning-500 border-r-warning-500 border-l-warning-800 hover:border-l-warning-500',
     'accent-purple':
-      'border-accent-purple-500 border-l-accent-purple-700 hover:border-l-accent-purple-500',
+      'border-y-accent-purple-500 border-r-accent-purple-500 border-l-accent-purple-700 hover:border-l-accent-purple-500',
     'accent-falcon':
-      'border-accent-falcon-500 border-l-accent-falcon-700 hover:border-l-accent-falcon-500',
+      'border-y-accent-falcon-500 border-r-accent-falcon-500 border-l-accent-falcon-700 hover:border-l-accent-falcon-500',
   };
 
   return colorMap[color];
@@ -53,7 +54,7 @@ export const Card = ({
 
   return (
     <div
-      className={`text-neutral-50 border-y border-r border-l-8 rounded-lg relative cursor-pointer transition-all duration-300 group isolate ${colorClasses} ${sizeClasses}`}
+      className={`text-neutral-50 border-y border-r rounded-lg relative cursor-pointer transition-all duration-300 group isolate ${colorClasses} border-l-8 ${sizeClasses}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

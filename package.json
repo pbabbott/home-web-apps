@@ -10,6 +10,7 @@
     "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
+    "dev:ui": "turbo run dev --filter=@abbottland/blog --filter=@abbottland/fui-components",
     "dev:deps": "turbo run dev:deps",
     "dev:deps:down": "turbo run dev:deps:down",
     "format:check": "prettier . --check",
