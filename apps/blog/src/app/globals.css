@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 @config '../../tailwind.config.ts';
 
 @layer base {
@@ -21,6 +22,27 @@
   body {
     font-size: 1.75rem;
     letter-spacing: 0;
+  }
+
+  /* Set default font size for MDX blog post content to body1 */
+  .prose {
+    font-size: 2rem; /* body1 font size */
+    line-height: 0.8;
+  }
+
+  /* Ensure paragraphs and other text elements in prose use body1 */
+  .prose p,
+  .prose li,
+  .prose td,
+  .prose th,
+  .prose span {
+    font-size: 2rem; /* body1 font size */
+    line-height: 0.8;
+  }
+
+  time {
+    font-size: 2rem;
+    line-height: 0.8;
   }
 
   a {
