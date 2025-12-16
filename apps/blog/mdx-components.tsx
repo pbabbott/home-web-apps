@@ -54,7 +54,7 @@ const components: MDXComponents = {
     <Typography
       variant="body1"
       component="code"
-      className="not-prose bg-neutral-900 text-accent-purple-300 px-1 rounded border border-accent-purple-300/50 px-2"
+      className="not-prose bg-neutral-900 text-accent-purple-300 px-2 rounded border border-accent-purple-300/50"
       {...props}
     >
       {children}
