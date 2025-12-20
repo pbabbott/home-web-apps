@@ -63,7 +63,3 @@ export const ColorAccentFalcon: Story = BadgeStory(
   'Accent Falcon',
   'accent-falcon',
 );
-
-
-
-
