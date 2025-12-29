@@ -10,6 +10,8 @@ import {
   NodeResizer,
 } from '@xyflow/react';
 
+import { Typography } from '@abbottland/fui-components';
+
 export type NodeColorScheme = 'primary' | 'secondary' | 'default';
 export type HandlePosition = 'top' | 'bottom' | 'left' | 'right';
 export type HandleType = 'source' | 'target';
@@ -51,15 +53,15 @@ const colorSchemeStyles: Record<
   { bg: string; border: string; labelBg: string; text: string }
 > = {
   primary: {
-    bg: 'bg-primary-900',
+    bg: 'bg-neutral-900',
     border: 'border-primary-600',
-    labelBg: 'bg-primary-700',
+    labelBg: 'bg-neutral-900',
     text: 'text-primary-200',
   },
   secondary: {
-    bg: 'bg-secondary-800',
+    bg: 'bg-neutral-900',
     border: 'border-secondary-600',
-    labelBg: 'bg-secondary-700',
+    labelBg: 'bg-neutral-900',
     text: 'text-secondary-200',
   },
   default: {
@@ -92,7 +94,7 @@ export function BaseNode({
   // Label editing state (only used if showLabel is true)
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [labelValue, setLabelValue] = useState(data.label ?? 'Label');
-  const labelInputRef = useRef<HTMLInputElement>(null);
+  const labelInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Content editing state
   const [isEditingContent, setIsEditingContent] = useState(false);
@@ -106,6 +108,14 @@ export function BaseNode({
       labelInputRef.current.select();
     }
   }, [isEditingLabel]);
+
+  // Auto-resize label textarea
+  useEffect(() => {
+    if (isEditingLabel && labelInputRef.current) {
+      labelInputRef.current.style.height = 'auto';
+      labelInputRef.current.style.height = `${labelInputRef.current.scrollHeight}px`;
+    }
+  }, [isEditingLabel, labelValue]);
 
   // Focus content input when editing
   useEffect(() => {
@@ -134,7 +144,9 @@ export function BaseNode({
 
   const handleLabelKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      // Allow Enter for new lines, use Cmd/Ctrl+Enter to save
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
         handleLabelBlur();
       }
       if (e.key === 'Escape') {
@@ -197,12 +209,15 @@ export function BaseNode({
     [id, setNodes],
   );
 
+  const borderClasses = `border-2 ${colors.border}`;
+
   return (
     <div
       className={`
-        ${colors.bg} border-2
-        ${selected ? 'border-primary-500 shadow-lg shadow-primary-500/20' : colors.border}
+        ${colors.bg}
+        ${selected ? 'border-primary-500 shadow-lg shadow-primary-500/20' : borderClasses}
         transition-colors duration-150
+        relative
       `}
       style={{
         width: data.width ?? MIN_WIDTH,
@@ -222,22 +237,29 @@ export function BaseNode({
       {/* Label in top-left - only shown if showLabel is true */}
       {showLabel && (
         <div
-          className={`absolute -top-3 left-2 px-2 py-0.5 ${colors.labelBg} text-xs font-medium z-10`}
+          className={`absolute -top-3 left-2 px-2 py-0.5 ${colors.labelBg} ${borderClasses} text-xs font-medium z-10`}
           onDoubleClick={handleLabelDoubleClick}
         >
           {isEditingLabel ? (
-            <input
+            <textarea
               ref={labelInputRef}
-              type="text"
               value={labelValue}
               onChange={(e) => setLabelValue(e.target.value)}
               onBlur={handleLabelBlur}
               onKeyDown={handleLabelKeyDown}
-              className="bg-secondary-900 text-white px-1 py-0.5 outline-none border border-primary-500 min-w-[60px]"
               onClick={(e) => e.stopPropagation()}
+              className="bg-secondary-900 text-white px-1 py-0.5 outline-none border border-primary-500 min-w-[60px] resize-none text-xs font-medium"
+              rows={1}
+              style={{ minHeight: '1.5rem' }}
             />
           ) : (
-            <span className="text-primary-400 cursor-text">{labelValue}</span>
+            <Typography
+              variant="body2"
+              component="span"
+              className={`cursor-text ${colors.text} whitespace-pre-wrap`}
+            >
+              {labelValue}
+            </Typography>
           )}
         </div>
       )}
@@ -245,7 +267,10 @@ export function BaseNode({
       {/* Node content area - double-click to edit */}
       <div
         className={`h-full flex items-center justify-center overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'}`}
-        onDoubleClick={handleContentDoubleClick}
+        onDoubleClick={!isEditingContent ? handleContentDoubleClick : undefined}
+        style={{
+          pointerEvents: isEditingContent || !contentValue ? 'auto' : 'none',
+        }}
       >
         {isEditingContent ? (
           <textarea
@@ -255,15 +280,18 @@ export function BaseNode({
             onBlur={handleContentBlur}
             onKeyDown={handleContentKeyDown}
             onClick={(e) => e.stopPropagation()}
-            className="w-full h-full bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none text-sm"
+            className="w-full h-full bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none text-sm pointer-events-auto"
             placeholder="Enter text..."
           />
         ) : contentValue ? (
-          <span
-            className={`${colors.text} text-sm text-center whitespace-pre-wrap cursor-text`}
+          <Typography
+            variant="body2"
+            component="span"
+            className={`${colors.text} text-center whitespace-pre-wrap cursor-text pointer-events-auto`}
+            onDoubleClick={handleContentDoubleClick}
           >
             {contentValue}
-          </span>
+          </Typography>
         ) : null}
       </div>
 
@@ -275,7 +303,7 @@ export function BaseNode({
           type={handle.type}
           position={positionMap[handle.position]}
           isConnectable={true}
-          className="!w-3 !h-3 !bg-primary-500 !border-2 !border-secondary-800 hover:!bg-primary-400 hover:scale-125 transition-transform cursor-crosshair"
+          className="!w-3 !h-3 !bg-primary-500 !border-2 !border-secondary-800 hover:!bg-primary-400 hover:scale-125 transition-transform cursor-crosshair !pointer-events-auto !z-50"
         />
       ))}
     </div>

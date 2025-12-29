@@ -5,10 +5,9 @@ import { Node, Edge } from '@xyflow/react';
 import { Button, Typography } from '@abbottland/fui-components';
 import {
   CopyIcon,
-  EyeOpenIcon,
-  EyeClosedIcon,
   Cross2Icon,
   UploadIcon,
+  DownloadIcon,
 } from '@radix-ui/react-icons';
 
 interface ExportPanelProps {
@@ -74,32 +73,13 @@ export function ExportPanel({ getExportData, onImport }: ExportPanelProps) {
     <>
       <div className="flex items-center gap-2 p-3">
         <Button
-          onClick={handleExport}
-          color="primary"
-          variant="contained"
-          className="flex items-center gap-2"
-        >
-          <CopyIcon width={16} height={16} />
-          {copied ? 'Copied!' : 'Copy JSON'}
-        </Button>
-
-        <Button
           onClick={() => setShowPreview(!showPreview)}
           color="secondary"
           variant="outlined"
           className="flex items-center gap-2"
         >
-          {showPreview ? (
-            <>
-              <EyeClosedIcon width={16} height={16} />
-              Hide Preview
-            </>
-          ) : (
-            <>
-              <EyeOpenIcon width={16} height={16} />
-              Preview JSON
-            </>
-          )}
+          <DownloadIcon width={16} height={16} />
+          Export JSON
         </Button>
 
         <Button

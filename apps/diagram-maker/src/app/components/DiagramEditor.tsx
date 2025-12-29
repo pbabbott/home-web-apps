@@ -20,7 +20,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { neutral } from '@abbottland/fui-components';
-import { Sidebar } from './Sidebar';
+import { Sidebar } from './Sidebar/Sidebar';
 import { ExportPanel } from './ExportPanel';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
@@ -189,6 +189,14 @@ function DiagramEditorInner() {
 
   return (
     <div className="flex h-screen w-full">
+      <style>{`
+        .react-flow__edges {
+          z-index: 10;
+        }
+        .react-flow__nodes {
+          z-index: 1;
+        }
+      `}</style>
       <Sidebar
         selectedNodeIds={selectedNodeIds}
         onSendToFront={sendToFront}
@@ -199,7 +207,7 @@ function DiagramEditorInner() {
         onHandlesChange={updateSelectedNodesHandles}
       />
       <div className="flex-1 flex flex-col bg-neutral-900">
-        <div className="flex items-center bg-secondary-800 border-b border-secondary-700">
+        <div className="flex items-center bg-neutral-900 border-b border-neutral-300">
           <ExportPanel getExportData={getExportData} onImport={handleImport} />
         </div>
         <div className="flex-1" ref={reactFlowWrapper}>
@@ -216,6 +224,9 @@ function DiagramEditorInner() {
             defaultEdgeOptions={{
               type: 'smoothstep',
               style: { stroke: neutral[300], strokeWidth: 2 },
+              markerEnd: {
+                type: 'arrowclosed',
+              },
             }}
             deleteKeyCode={['Backspace', 'Delete']}
             connectOnClick={true}
