@@ -222,6 +222,7 @@ export function BaseNode({
       style={{
         width: data.width ?? MIN_WIDTH,
         height: data.height ?? MIN_HEIGHT,
+        pointerEvents: 'auto',
       }}
     >
       {/* Resizer - only visible when selected */}
@@ -269,7 +270,7 @@ export function BaseNode({
         className={`h-full flex items-center justify-center overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'}`}
         onDoubleClick={!isEditingContent ? handleContentDoubleClick : undefined}
         style={{
-          pointerEvents: isEditingContent || !contentValue ? 'auto' : 'none',
+          pointerEvents: isEditingContent ? 'auto' : 'none',
         }}
       >
         {isEditingContent ? (
@@ -292,7 +293,12 @@ export function BaseNode({
           >
             {contentValue}
           </Typography>
-        ) : null}
+        ) : (
+          <div
+            className="w-full h-full pointer-events-auto"
+            onDoubleClick={handleContentDoubleClick}
+          />
+        )}
       </div>
 
       {/* Dynamic Handles */}
