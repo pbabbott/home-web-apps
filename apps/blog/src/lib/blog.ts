@@ -91,3 +91,22 @@ export function getAllBlogPosts(): BlogPost[] {
 export function getFeaturedBlogPosts(): BlogPost[] {
   return getAllBlogPosts().filter((post) => post.featured);
 }
+
+/**
+ * Get all unique categories from all blog posts
+ * Returns a sorted array of unique categories
+ */
+export function getAllBlogCategories(): string[] {
+  const posts = getAllBlogPosts();
+  const categorySet = new Set<string>();
+
+  posts.forEach((post) => {
+    if (post.categories && Array.isArray(post.categories)) {
+      post.categories.forEach((category) => {
+        categorySet.add(category);
+      });
+    }
+  });
+
+  return Array.from(categorySet).sort();
+}

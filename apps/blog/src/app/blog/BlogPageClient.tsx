@@ -6,15 +6,18 @@ import StickyHeader from '../components/StickyHeader';
 import BlogPostCard from './BlogPostCard';
 import HeroBlogPostCard from './HeroBlogPostCard';
 import type { BlogPost, BlogCategory } from '../../types/blog';
-import { categories } from '../../types/blog';
 
 type CategoryFilter = BlogCategory | 'All';
 
 interface BlogPageClientProps {
   posts: BlogPost[];
+  categories: string[];
 }
 
-export default function BlogPageClient({ posts }: BlogPageClientProps) {
+export default function BlogPageClient({
+  posts,
+  categories,
+}: BlogPageClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>('All');
@@ -27,7 +30,8 @@ export default function BlogPageClient({ posts }: BlogPageClientProps) {
         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesCategory =
-        selectedCategory === 'All' || post.category === selectedCategory;
+        selectedCategory === 'All' ||
+        (post.categories && post.categories.includes(selectedCategory));
 
       return matchesSearch && matchesCategory;
     });
@@ -43,7 +47,10 @@ export default function BlogPageClient({ posts }: BlogPageClientProps) {
   const heroPost = sortedPosts[0];
   const remainingPosts = sortedPosts.slice(1);
 
-  const allCategories: CategoryFilter[] = ['All', ...categories];
+  const allCategories: CategoryFilter[] = [
+    'All',
+    ...categories,
+  ] as CategoryFilter[];
 
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
@@ -145,7 +152,7 @@ export default function BlogPageClient({ posts }: BlogPageClientProps) {
                       date={post.date}
                       readTime={post.readTime}
                       slug={post.slug}
-                      category={post.category}
+                      categories={post.categories}
                       bannerImage={post.bannerImage}
                     />
                   ))}

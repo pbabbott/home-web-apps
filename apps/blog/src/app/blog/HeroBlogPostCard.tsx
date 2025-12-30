@@ -55,9 +55,15 @@ export default function HeroBlogPostCard({
         {/* Content */}
         <div className="flex flex-col flex-grow justify-between">
           <div>
-            <div className="mb-3">
-              <Badge color="primary">{post.category}</Badge>
-            </div>
+            {post.categories && post.categories.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {post.categories.map((category) => (
+                  <Badge key={category} color="primary">
+                    {category}
+                  </Badge>
+                ))}
+              </div>
+            )}
             <Typography
               variant="h2"
               component="h2"

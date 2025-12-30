@@ -17,7 +17,7 @@ interface BlogPostCardProps {
   date: string;
   readTime: string;
   slug?: string;
-  category?: BlogCategory;
+  categories?: BlogCategory[];
   bannerImage?: string;
   size?: CardSize;
   onClick?: () => void;
@@ -31,7 +31,7 @@ export default function BlogPostCard({
   date,
   readTime,
   slug,
-  category,
+  categories,
   bannerImage,
   size = 'default',
   onClick,
@@ -62,9 +62,13 @@ export default function BlogPostCard({
         containerClassName="w-full h-32 rounded-md mb-4 overflow-hidden relative"
         imageSizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
-      {category && (
-        <div className="mb-2">
-          <Badge color="primary">{category}</Badge>
+      {categories && categories.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {categories.map((category) => (
+            <Badge key={category} color="primary">
+              {category}
+            </Badge>
+          ))}
         </div>
       )}
       <Typography

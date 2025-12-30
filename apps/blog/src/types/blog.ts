@@ -9,7 +9,11 @@ export type BlogCategory =
   | 'DevOps'
   | 'AI/ML'
   | 'Career'
-  | 'Home Automation';
+  | 'Home Automation'
+  | 'dns'
+  | 'docker'
+  | 'raspberry pi'
+  | 'homelab';
 
 export const categories: BlogCategory[] = [
   'Web Development',
@@ -18,6 +22,10 @@ export const categories: BlogCategory[] = [
   'AI/ML',
   'Career',
   'Home Automation',
+  'dns',
+  'docker',
+  'raspberry pi',
+  'homelab',
 ];
 
 /**
@@ -32,8 +40,8 @@ export interface BlogPostMetadata {
   date: string;
   /** Estimated reading time (e.g., "12 min") */
   readTime: string;
-  /** Post category */
-  category: BlogCategory;
+  /** Post categories */
+  categories: BlogCategory[];
   /** Optional gradient or image URL for the post card */
   image?: string;
   /** Optional banner image filename (relative to blog post folder) */

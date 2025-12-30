@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           title={post.title}
           date={post.date}
           readTime={post.readTime}
-          category={post.category}
+          categories={post.categories}
         />
         <div className="prose-headings:text-neutral-100 prose-p:text-neutral-300 prose-a:text-primary-400 prose-code:text-accent-purple-300 prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700">
           <MDXContent slug={slug} />

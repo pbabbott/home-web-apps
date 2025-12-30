@@ -6,14 +6,14 @@ type BlogPostHeaderProps = {
   title: string;
   date: string;
   readTime: string;
-  category: string;
+  categories: string[];
 };
 
 export default function BlogPostHeader({
   title,
   date,
   readTime,
-  category,
+  categories,
 }: BlogPostHeaderProps) {
   return (
     <header className="mb-8">
@@ -38,7 +38,15 @@ export default function BlogPostHeader({
           {readTime}
         </Typography>
 
-        <Badge color="primary">{category}</Badge>
+        {categories && categories.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Badge key={category} color="primary">
+                {category}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
     </header>
   );
