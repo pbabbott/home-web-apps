@@ -28,6 +28,7 @@ import {
 } from '@abbottland/fui-components';
 import { Sidebar } from './Sidebar/Sidebar';
 import { ExportPanel } from './ExportPanel';
+import { TipsSection } from './Sidebar/TipsSection';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
 import { TextNode } from './nodes/TextNode';
@@ -216,8 +217,11 @@ function DiagramEditorInner() {
         onHandlesChange={updateSelectedNodesHandles}
       />
       <div className="flex-1 flex flex-col bg-neutral-900">
-        <div className="flex items-center bg-neutral-900 border-b border-neutral-300">
+        <div className="flex items-center justify-between bg-neutral-900 border-b border-neutral-300">
           <ExportPanel getExportData={getExportData} onImport={handleImport} />
+          <div className="pr-3">
+            <TipsSection />
+          </div>
         </div>
         <div className="flex-1" ref={reactFlowWrapper}>
           <ReactFlow

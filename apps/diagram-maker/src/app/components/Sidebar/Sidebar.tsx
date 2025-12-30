@@ -6,7 +6,6 @@ import { SelectionInfo } from './SelectionInfo';
 import { ColorSchemeControl } from './ColorSchemeControl';
 import { HandlesControl } from './HandlesControl';
 import { LayerControls } from './LayerControls';
-import { TipsSection } from './TipsSection';
 
 interface SidebarProps {
   selectedNodeIds: string[];
@@ -36,26 +35,31 @@ export function Sidebar({
 
       <SelectionInfo selectedNodeIds={selectedNodeIds} />
 
-      <ColorSchemeControl
-        selectedColorScheme={selectedColorScheme}
-        onColorSchemeChange={onColorSchemeChange}
-        hasSelection={hasSelection}
-      />
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden flex flex-col gap-4 ${
+          hasSelection
+            ? 'opacity-100 max-h-[500px]'
+            : 'opacity-0 max-h-0 pointer-events-none'
+        }`}
+      >
+        <ColorSchemeControl
+          selectedColorScheme={selectedColorScheme}
+          onColorSchemeChange={onColorSchemeChange}
+          hasSelection={hasSelection}
+        />
 
-      <HandlesControl
-        handles={handles}
-        onHandlesChange={onHandlesChange}
-        hasSelection={hasSelection}
-      />
+        <HandlesControl
+          handles={handles}
+          onHandlesChange={onHandlesChange}
+          hasSelection={hasSelection}
+        />
 
-      <LayerControls
-        onSendToFront={onSendToFront}
-        onSendToBack={onSendToBack}
-        hasSelection={hasSelection}
-      />
-
-      <TipsSection />
+        <LayerControls
+          onSendToFront={onSendToFront}
+          onSendToBack={onSendToBack}
+          hasSelection={hasSelection}
+        />
+      </div>
     </aside>
   );
 }
-
