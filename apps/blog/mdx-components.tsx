@@ -2,6 +2,7 @@
 
 import type { MDXComponents } from 'mdx/types';
 import { Typography } from '@abbottland/fui-components';
+import { DiagramViewer } from './src/components/diagram';
 // See: https://nextjs.org/docs/app/api-reference/file-conventions/mdx-components
 
 const components: MDXComponents = {
@@ -60,6 +61,7 @@ const components: MDXComponents = {
       {children}
     </Typography>
   ),
+  DiagramViewer,
 };
 
 export function useMDXComponents(): MDXComponents {

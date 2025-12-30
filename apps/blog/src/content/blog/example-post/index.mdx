@@ -14,6 +14,8 @@ keywords:
   - Frontmatter
 ---
 
+import diagramData from './diagram.json';
+
 Welcome to your first MDX blog post! This example demonstrates how to structure your blog content using MDX with frontmatter metadata.
 
 ## What is MDX?
@@ -54,6 +56,22 @@ interface BlogPost {
   category: BlogCategory;
 }
 ```
+
+## Rendering Diagrams
+
+You can render interactive React Flow diagrams in your blog posts. The `DiagramViewer` component is available globally in all MDX files. Just import your diagram JSON file and use it:
+
+```jsx
+import diagramData from './diagram.json';
+
+<DiagramViewer data={diagramData} />;
+```
+
+Here's an example diagram:
+
+<DiagramViewer data={diagramData} height="500px" />
+
+The diagram is interactive - you can pan and zoom to explore the nodes and connections. Diagrams are created using the diagram-maker app and exported as JSON files.
 
 ## Next Steps
 
