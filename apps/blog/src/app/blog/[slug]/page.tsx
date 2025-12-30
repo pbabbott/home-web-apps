@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getBlogPostBySlug, getBlogPostSlugs } from '../../../lib/blog';
 import StickyHeader from '../../components/StickyHeader';
+import BlogPostBannerImage from '../../components/BlogPostBannerImage';
 import MDXContent from './MDXContent';
 import BlogPostHeader from './BlogPostHeader';
 
@@ -60,6 +61,13 @@ export default async function BlogPostPage({ params }: PageProps) {
     <div className="bg-neutral-800 w-full min-h-screen">
       <StickyHeader />
       <article className="prose prose-invert mx-auto max-w-3xl px-4 py-24 text-neutral-100">
+        <BlogPostBannerImage
+          bannerImage={post.bannerImage}
+          slug={slug}
+          alt={post.title}
+          containerClassName="w-full h-64 md:h-96 rounded-lg overflow-hidden mb-8 relative"
+          imageSizes="(max-width: 768px) 100vw, 768px"
+        />
         <BlogPostHeader
           title={post.title}
           date={post.date}

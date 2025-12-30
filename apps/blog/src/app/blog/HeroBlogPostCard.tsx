@@ -7,7 +7,8 @@ import {
   HorizontalRule,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
-import type { BlogPost } from './blogPosts';
+import type { BlogPost } from '../../types/blog';
+import BlogPostBannerImage from '../components/BlogPostBannerImage';
 
 interface HeroBlogPostCardProps {
   post: BlogPost;
@@ -20,7 +21,16 @@ export default function HeroBlogPostCard({
   post,
   onClick,
 }: HeroBlogPostCardProps) {
-  const handleReadMore = () => {
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (post.slug) {
+      window.location.href = `/blog/${post.slug}`;
+    }
+  };
+
+  const handleReadMore = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when button is clicked
     if (onClick) {
       onClick();
     } else if (post.slug) {
@@ -29,18 +39,17 @@ export default function HeroBlogPostCard({
   };
 
   return (
-    <Card color="primary" size="large">
+    <Card color="primary" size="large" onClick={handleCardClick}>
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Featured Image */}
-        <div
-          className="w-full lg:w-2/5 h-48 lg:h-64 rounded-lg overflow-hidden flex-shrink-0"
-          style={{ background: post.image }}
-        >
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-6xl opacity-30 font-mono tracking-tighter">
-              {'</>'}
-            </div>
-          </div>
+        <div className="w-full lg:w-2/5 h-48 lg:h-64 rounded-lg overflow-hidden flex-shrink-0">
+          <BlogPostBannerImage
+            bannerImage={post.bannerImage}
+            slug={post.slug}
+            alt={post.title}
+            containerClassName="w-full h-full relative"
+            imageSizes="(max-width: 1024px) 100vw, 40vw"
+          />
         </div>
 
         {/* Content */}

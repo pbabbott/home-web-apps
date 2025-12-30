@@ -8,7 +8,8 @@ import {
   Badge,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
-import type { BlogCategory } from './blogPosts';
+import type { BlogCategory } from '../../types/blog';
+import BlogPostBannerImage from '../components/BlogPostBannerImage';
 
 interface BlogPostCardProps {
   title: string;
@@ -17,7 +18,7 @@ interface BlogPostCardProps {
   readTime: string;
   slug?: string;
   category?: BlogCategory;
-  image?: string;
+  bannerImage?: string;
   size?: CardSize;
   onClick?: () => void;
 }
@@ -31,11 +32,20 @@ export default function BlogPostCard({
   readTime,
   slug,
   category,
-  image,
+  bannerImage,
   size = 'default',
   onClick,
 }: BlogPostCardProps) {
-  const handleReadMore = () => {
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (slug) {
+      window.location.href = `/blog/${slug}`;
+    }
+  };
+
+  const handleReadMore = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when button is clicked
     if (onClick) {
       onClick();
     } else if (slug) {
@@ -44,19 +54,14 @@ export default function BlogPostCard({
   };
 
   return (
-    <Card color="primary" size={size}>
-      {image && (
-        <div
-          className="w-full h-32 rounded-md mb-4 overflow-hidden"
-          style={{ background: image }}
-        >
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-3xl opacity-20 font-mono tracking-tighter">
-              {'</>'}
-            </div>
-          </div>
-        </div>
-      )}
+    <Card color="primary" size={size} onClick={handleCardClick}>
+      <BlogPostBannerImage
+        bannerImage={bannerImage}
+        slug={slug}
+        alt={title}
+        containerClassName="w-full h-32 rounded-md mb-4 overflow-hidden relative"
+        imageSizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
       {category && (
         <div className="mb-2">
           <Badge color="primary">{category}</Badge>

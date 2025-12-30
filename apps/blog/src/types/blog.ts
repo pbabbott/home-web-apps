@@ -8,7 +8,8 @@ export type BlogCategory =
   | 'Design'
   | 'DevOps'
   | 'AI/ML'
-  | 'Career';
+  | 'Career'
+  | 'Home Automation';
 
 export const categories: BlogCategory[] = [
   'Web Development',
@@ -16,6 +17,7 @@ export const categories: BlogCategory[] = [
   'DevOps',
   'AI/ML',
   'Career',
+  'Home Automation',
 ];
 
 /**
@@ -34,6 +36,8 @@ export interface BlogPostMetadata {
   category: BlogCategory;
   /** Optional gradient or image URL for the post card */
   image?: string;
+  /** Optional banner image filename (relative to blog post folder) */
+  bannerImage?: string;
   /** Whether this post should be featured */
   featured?: boolean;
   /** SEO meta description (defaults to excerpt if not provided) */

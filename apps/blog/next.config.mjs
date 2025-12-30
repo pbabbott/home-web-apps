@@ -8,6 +8,20 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below
   transpilePackages: ['@abbottland/fui-components', '@xyflow/react'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+    // Allow unoptimized images from API routes
+    unoptimized: false,
+  },
 };
 
 const withMDX = createMDX({
