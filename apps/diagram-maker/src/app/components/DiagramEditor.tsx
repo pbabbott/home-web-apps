@@ -17,6 +17,7 @@ import {
   ReactFlowInstance,
   NodeTypes,
   useOnSelectionChange,
+  useUpdateNodeInternals,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { neutral } from '@abbottland/fui-components';
@@ -51,6 +52,7 @@ function DiagramEditorInner() {
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const updateNodeInternals = useUpdateNodeInternals();
 
   // Track selected nodes
   useOnSelectionChange({
@@ -126,8 +128,15 @@ function DiagramEditorInner() {
             : node,
         ),
       );
+      // Notify React Flow to update internal state for dynamically added handles
+      // Use setTimeout to ensure DOM has updated before React Flow processes the change
+      setTimeout(() => {
+        selectedNodeIds.forEach((nodeId) => {
+          updateNodeInternals(nodeId);
+        });
+      }, 0);
     },
-    [selectedNodeIds, setNodes],
+    [selectedNodeIds, setNodes, updateNodeInternals],
   );
 
   const onDragOver = useCallback((event: DragEvent) => {

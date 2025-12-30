@@ -223,6 +223,7 @@ export function BaseNode({
         width: data.width ?? MIN_WIDTH,
         height: data.height ?? MIN_HEIGHT,
         pointerEvents: 'auto',
+        opacity: selected ? 0.5 : 1,
       }}
     >
       {/* Resizer - only visible when selected */}
@@ -267,7 +268,7 @@ export function BaseNode({
 
       {/* Node content area - double-click to edit */}
       <div
-        className={`h-full flex items-center justify-center overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'}`}
+        className={`h-full flex items-center ${showLabel ? 'justify-start' : 'justify-center'} overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'}`}
         onDoubleClick={!isEditingContent ? handleContentDoubleClick : undefined}
         style={{
           pointerEvents: isEditingContent ? 'auto' : 'none',
@@ -288,7 +289,7 @@ export function BaseNode({
           <Typography
             variant="body2"
             component="span"
-            className={`${colors.text} text-center whitespace-pre-wrap cursor-text pointer-events-auto`}
+            className={`${colors.text} ${showLabel ? 'text-left' : 'text-center'} whitespace-pre-wrap cursor-text pointer-events-auto`}
             onDoubleClick={handleContentDoubleClick}
           >
             {contentValue}
