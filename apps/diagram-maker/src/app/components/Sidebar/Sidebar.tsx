@@ -1,6 +1,7 @@
 'use client';
 
 import type { NodeColorScheme, HandleConfig } from '@abbottland/fui-components';
+import { HorizontalRule } from '@abbottland/fui-components';
 import { NodesSection } from './NodesSection';
 import { SelectionInfo } from './SelectionInfo';
 import { ColorSchemeControl } from './ColorSchemeControl';
@@ -32,6 +33,7 @@ export function Sidebar({
   return (
     <aside className="w-64 bg-neutral-800 border-r border-neutral-300 p-4 flex flex-col gap-4 overflow-y-auto">
       <NodesSection />
+      <HorizontalRule color="secondary" />
 
       <SelectionInfo selectedNodeIds={selectedNodeIds} />
 

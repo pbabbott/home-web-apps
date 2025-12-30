@@ -21,7 +21,7 @@ export function HandlesControl({
   onHandlesChange,
   hasSelection,
 }: HandlesControlProps) {
-  const canAddHandle = handles.length < 2;
+  const canAddHandle = handles.length < 4;
 
   const addHandle = () => {
     if (!canAddHandle) return;
@@ -50,7 +50,7 @@ export function HandlesControl({
     <div>
       <div className="flex items-center justify-between mb-2">
         <Typography variant="body1" component="p" className="text-primary-300">
-          Handles ({handles.length}/2)
+          Handles ({handles.length}/4)
         </Typography>
         <Button
           onClick={addHandle}

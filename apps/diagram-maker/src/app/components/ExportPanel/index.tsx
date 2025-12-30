@@ -42,11 +42,11 @@ export function ExportPanel({ getExportData, onImport }: ExportPanelProps) {
           <UploadIcon width={16} height={16} />
           Import JSON
         </Button>
-      </div>
 
-      <Typography variant="body1" component="div" className="pr-3">
-        {exportData.nodes.length} nodes · {exportData.edges.length} edges
-      </Typography>
+        <Typography variant="body1" component="div" className="pr-3">
+          {exportData.nodes.length} nodes | {exportData.edges.length} edges
+        </Typography>
+      </div>
 
       {showPreview && (
         <ExportPreviewModal

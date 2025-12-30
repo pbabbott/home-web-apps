@@ -10,16 +10,12 @@ export function SelectionInfo({ selectedNodeIds }: SelectionInfoProps) {
   const hasSelection = selectedNodeIds.length > 0;
 
   return (
-    <div className="border-t border-secondary-700 pt-4">
+    <div>
       <Typography variant="h2" component="h2">
         Props
       </Typography>
       {hasSelection ? (
-        <Typography
-          variant="body1"
-          component="p"
-          className="text-neutral-100"
-        >
+        <Typography variant="body1" component="p" className="text-neutral-100">
           {selectedNodeIds.length} node{selectedNodeIds.length > 1 ? 's' : ''}{' '}
           selected
         </Typography>
@@ -35,4 +31,3 @@ export function SelectionInfo({ selectedNodeIds }: SelectionInfoProps) {
     </div>
   );
 }
-
