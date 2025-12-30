@@ -1,7 +1,6 @@
 'use client';
 
-import { Typography } from '@abbottland/fui-components';
-import type { NodeColorScheme } from '../nodes/BaseNode';
+import { Typography, type NodeColorScheme } from '@abbottland/fui-components';
 import { colorSchemeOptions } from './constants';
 
 interface ColorSchemeControlProps {

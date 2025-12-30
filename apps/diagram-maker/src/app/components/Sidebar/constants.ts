@@ -2,7 +2,7 @@ import type {
   NodeColorScheme,
   HandlePosition,
   HandleType,
-} from '../nodes/BaseNode';
+} from '@abbottland/fui-components';
 
 export const nodeTypes = [
   {

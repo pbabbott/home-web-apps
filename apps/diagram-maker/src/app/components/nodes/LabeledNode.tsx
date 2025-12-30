@@ -1,11 +1,11 @@
 'use client';
 
 import { Node, NodeProps } from '@xyflow/react';
-import { BaseNode, BaseNodeData } from './BaseNode';
+import { BaseNode, type BaseNodeData } from '@abbottland/fui-components';
 
-export interface LabeledNodeData extends BaseNodeData {
+export type LabeledNodeData = BaseNodeData & {
   label: string;
-}
+};
 
 type LabeledNodeType = Node<LabeledNodeData, 'labeled'>;
 

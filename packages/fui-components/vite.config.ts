@@ -44,12 +44,17 @@ export default defineConfig({
         if (/^react(\/.*)?$/.test(id) || /^react-dom(\/.*)?$/.test(id)) {
           return true;
         }
+        // Externalize @xyflow/react imports (peer dependency for BaseNode component)
+        if (/^@xyflow\/react(\/.*)?$/.test(id)) {
+          return true;
+        }
         return false;
       },
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
+          '@xyflow/react': 'ReactFlow',
         },
       },
     },

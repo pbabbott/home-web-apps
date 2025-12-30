@@ -20,17 +20,17 @@ import {
   useUpdateNodeInternals,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { neutral } from '@abbottland/fui-components';
+import {
+  neutral,
+  DEFAULT_HANDLES,
+  type NodeColorScheme,
+  type HandleConfig,
+} from '@abbottland/fui-components';
 import { Sidebar } from './Sidebar/Sidebar';
 import { ExportPanel } from './ExportPanel';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
 import { TextNode } from './nodes/TextNode';
-import {
-  DEFAULT_HANDLES,
-  type NodeColorScheme,
-  type HandleConfig,
-} from './nodes/BaseNode';
 
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];

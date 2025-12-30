@@ -1,9 +1,6 @@
 'use client';
 
-import type {
-  NodeColorScheme,
-  HandleConfig,
-} from '../nodes/BaseNode';
+import type { NodeColorScheme, HandleConfig } from '@abbottland/fui-components';
 import { NodesSection } from './NodesSection';
 import { SelectionInfo } from './SelectionInfo';
 import { ColorSchemeControl } from './ColorSchemeControl';

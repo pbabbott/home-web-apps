@@ -1,16 +1,22 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect, ReactNode } from 'react';
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  type ReactNode,
+} from 'react';
 import {
   Handle,
   Position,
-  NodeProps,
+  type NodeProps,
   useReactFlow,
-  Node,
+  type Node,
   NodeResizer,
 } from '@xyflow/react';
 
-import { Typography } from '@abbottland/fui-components';
+import { Typography } from '../Typography/Typography';
 
 export type NodeColorScheme = 'primary' | 'secondary' | 'default';
 export type HandlePosition = 'top' | 'bottom' | 'left' | 'right';
@@ -72,7 +78,7 @@ const colorSchemeStyles: Record<
   },
 };
 
-interface BaseNodeProps {
+export interface BaseNodeProps {
   id: string;
   data: BaseNodeData;
   selected?: boolean;
@@ -218,6 +224,7 @@ export function BaseNode({
         ${selected ? 'border-primary-500 shadow-lg shadow-primary-500/20' : borderClasses}
         transition-colors duration-150
         relative
+        cursor-pointer
       `}
       style={{
         width: data.width ?? MIN_WIDTH,

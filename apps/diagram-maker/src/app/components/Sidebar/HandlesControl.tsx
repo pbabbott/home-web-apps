@@ -1,8 +1,13 @@
 'use client';
 
-import { Typography, Button } from '@abbottland/fui-components';
+import {
+  Typography,
+  Button,
+  type HandleConfig,
+  type HandlePosition,
+  type HandleType,
+} from '@abbottland/fui-components';
 import { PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
-import type { HandleConfig, HandlePosition, HandleType } from '../nodes/BaseNode';
 import { handlePositionOptions, handleTypeOptions } from './constants';
 
 interface HandlesControlProps {

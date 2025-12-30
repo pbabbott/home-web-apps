@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { NodeProps, useReactFlow, Node } from '@xyflow/react';
-import { Typography } from '@abbottland/fui-components';
-import type { NodeColorScheme } from './BaseNode';
+import { Typography, type NodeColorScheme } from '@abbottland/fui-components';
 
 export interface TextNodeData extends Record<string, unknown> {
   content?: string;

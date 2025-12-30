@@ -5,6 +5,22 @@ export {
   type BadgeColor,
 } from './components/Badge/Badge';
 
+// BaseNode (React Flow component - requires @xyflow/react peer dependency)
+export {
+  BaseNode,
+  DEFAULT_HANDLES,
+  MIN_WIDTH,
+  MIN_HEIGHT,
+  type BaseNodeProps,
+  type BaseNodeData,
+  type BaseNodeType,
+  type NodeColorScheme,
+  type HandlePosition,
+  type HandleType,
+  type HandleConfig,
+  type NodeProps,
+} from './components/BaseNode/BaseNode';
+
 // Button
 export {
   Button,
