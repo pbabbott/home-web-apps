@@ -16,8 +16,8 @@ const config: Config = {
         body1: ['2rem', { lineHeight: '.8' }], // 32px
         body2: ['1.75rem', { lineHeight: '.8' }], // 28px
         button: ['1.75rem', { lineHeight: '.8' }], // 28px
-        caption: ['1.125rem', { lineHeight: '.8' }], // 18px
-        small: ['1rem', { lineHeight: '.8' }], // 16px
+        caption: ['1.375rem', { lineHeight: '.8' }], // 22px
+        small: ['1.125rem', { lineHeight: '.8' }], // 18px
       },
       fontFamily: {
         monobit: ['monobit', 'sans-serif'],
