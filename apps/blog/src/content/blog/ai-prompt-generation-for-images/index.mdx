@@ -27,13 +27,13 @@ bannerImage: 'ai-image-generation-from-text.png'
 
 import Image from 'next/image';
 
-I was recently working on getting this website constructed for launch, and I realized I really wanted some cool imagery to use with each post. I stumbled upon an interesting trick to generate images and I wanted to share my process in case someone else wants to try it out. There are definitely better tools out there for more robust image generation, but this was a fun way to get started. I mostly wanted to try and use the new Nano Banana tool from Google to see how it worked and come up with a easy system to obtain images for each post quickly!
+I was recently working on getting this website constructed for launch, and I realized I really wanted some cool imagery to use with each post. I stumbled upon an interesting trick to generate images and I wanted to share my process in case someone else wants to try it out. There are definitely better tools out there for more robust image generation, but this was a fun way to get started. I mostly wanted to try and use the new Nano Banana tool from Google to see how it worked and also come up with a system to obtain images for each post with minimal effort!
 
 ## The process
 
 ### Step 1 - Use AI to summarize visual language into a reusable prompt template
 
-In working on this website, I've put a lot of thought and effort into the visual language, style, and imagery. I've tried to summarize this aesthetic in a few different ways, but I realized that an LLM is going to be better at this than I am.
+In working on this website, I've put a lot of thought and effort into the visual language, style, and vibe. I have been designing things for this site in accordance with my mood boards, and evolving my design system as I iterate on making things. Eventually, I'll want to articulate the style of this website into a more formalized written standard. Since I don't have anything like that yet, I realized that an LLM is going to be much better at making something up like this than I am.
 
 I also knew that I wanted all of the images to be generated in a consistent style, so I needed to come up with an image generation prompt that could basically work as a template.
 
@@ -64,11 +64,10 @@ And here are some examples of things I attached to the prompt:
   />
 </div>
 
-### Step 2 - Evaulate the prompt template
+### Step 2 - Evaluate the prompt template
 
+What was generated was a prompt template that I could use to generate images for each one of my blog posts.  
 Here is the prompt template that was generated:
-
-(No need to read the whole thing, just check out the first few lines)
 
 ```md
 Generate a wide cinematic banner image for a software engineering blog.
@@ -159,6 +158,8 @@ This is good, but let's make it take in more text streams, and output images in 
 
 This was an enjoyable way to get started with image generation and I'm looking forward to using it more in the future so that each of my blog posts has a unique image based on the content of the post.
 
-Something I learned is that having a prompt template was a great way to ensure consitentency across the various images I was generating, and this consistency even stayed across the various tools. That is, the images that Nano Banana generated looked pretty similar to the images that ChatGPT generated.
+Interestingly, I think I've seen this prompt template show up before. I watch a lot of social media videos on YouTube and TikTok. I've seen content on n8n and lots of people making ai-videos with characters. The talking yeti out in the snow is pretty funny if you've never seen it. In any case, if you dig behind the scenes, its usually n8n, and some of the image/video generation nodes are just powered by templates like these in the format shown in this blog post.
+
+Something I learned is that having a prompt template was a great way to ensure consistency across the various images I was generating, and this consistency even stayed across the various tools. That is, the images that Nano Banana generated looked pretty similar to the images that ChatGPT generated.
 
 If I were to explore this further, I would definitely want to explore other tools like DALL-E, Midjourney, and Stable Diffusion. For now though, this approach worked well and I'm happy with the results.
