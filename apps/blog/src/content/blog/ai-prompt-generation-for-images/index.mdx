@@ -1,0 +1,164 @@
+---
+title: 'The Prompt Engineering Shortcut: Make AI Write Better Prompts Than You Ever Could'
+excerpt: "Learn how to generate consistent AI banner images for your blog posts using reusable prompt templates. A step-by-step guide exploring tools like Nano Banana and ChatGPT to create images that match your site's visual language."
+date: '2025-12-30'
+readTime: '5 min'
+categories:
+  - 'AI'
+  - 'Web Development'
+featured: false
+description: ''
+keywords:
+  - 'prompt engineering'
+  - 'AI image generation'
+  - 'banner images'
+  - 'prompt templates'
+  - 'visual language'
+  - 'Nano Banana'
+  - 'ChatGPT image generation'
+  - 'AI prompts'
+  - 'blog imagery'
+  - 'content creation'
+  - 'DALL-E'
+  - 'Midjourney'
+  - 'Stable Diffusion'
+bannerImage: 'ai-image-generation-from-text.png'
+---
+
+import Image from 'next/image';
+
+I was recently working on getting this website constructed for launch, and I realized I really wanted some cool imagery to use with each post. I stumbled upon an interesting trick to generate images and I wanted to share my process in case someone else wants to try it out. There are definitely better tools out there for more robust image generation, but this was a fun way to get started. I mostly wanted to try and use the new Nano Banana tool from Google to see how it worked and come up with a easy system to obtain images for each post quickly!
+
+## The process
+
+### Step 1 - Use AI to summarize visual language into a reusable prompt template
+
+In working on this website, I've put a lot of thought and effort into the visual language, style, and imagery. I've tried to summarize this aesthetic in a few different ways, but I realized that an LLM is going to be better at this than I am.
+
+I also knew that I wanted all of the images to be generated in a consistent style, so I needed to come up with an image generation prompt that could basically work as a template.
+
+Here is the prompt I started with:
+
+```md
+i need help generating a prompt template. i'm going to use this prompt template to generate a cool banner image for each of my blog posts. my blog is all about software engineering, technology and has a cool futuristic / fantasy ui theme. i want to come up with a strong prompt that will stay within the visual language of my website. ideally i should be able to say something like "generate an image inspired by a raspberry pi and follow the guidelines below
+
+i've attached some PDFs of my site content to help describe the visual language
+```
+
+And here are some examples of things I attached to the prompt:
+
+<div className="flex flex-row gap-2">
+  <Image
+    src="/api/blog-images/ai-prompt-generation-for-images/design-system-components.png"
+    alt="Component design system visual example"
+    width={400}
+    height={300}
+    className="rounded-lg my-8"
+  />
+  <Image
+    src="/api/blog-images/ai-prompt-generation-for-images/design-system-colors.png"
+    alt="Component design system visual example"
+    width={400}
+    height={300}
+    className="rounded-lg my-8"
+  />
+</div>
+
+### Step 2 - Evaulate the prompt template
+
+Here is the prompt template that was generated:
+
+(No need to read the whole thing, just check out the first few lines)
+
+```md
+Generate a wide cinematic banner image for a software engineering blog.
+
+SUBJECT:
+{ONE_SENTENCE_SUBJECT_DESCRIPTION}
+
+STYLE & VISUAL LANGUAGE (do not deviate):
+
+- Futuristic terminal-inspired UI aesthetic
+- Dark-mode only, deep charcoal / near-black background
+- Neon electric accents inspired by TRON
+- Clean, minimal, high-tech — not cluttered, not cartoonish
+- Subtle sci-fi / fantasy tone, grounded in real technology
+- Feels like an engineering control panel or system interface
+
+COLOR PALETTE:
+
+- Primary glow: electric teal / cyan (#02FBFF, #00C6C9 range)
+- Secondary glow: bright blue (#03BEFF range)
+- Optional accent: soft neon purple (#AC8CFF range)
+- Neutral UI surfaces: dark slate / graphite grays
+- High contrast, luminous edges against dark backgrounds
+
+COMPOSITION:
+
+- Center or slightly off-center hero object
+- Surrounded by abstract UI elements (thin lines, grid overlays, data panels, schematics)
+- Soft glow, rim lighting, subtle bloom
+- Plenty of negative space for text overlay
+- No text, logos, or watermarks in the image
+
+DETAILING:
+
+- Use geometric shapes, wireframes, circuit motifs, or holographic overlays
+- UI elements should feel functional, like real system diagrams
+- Depth through layering and transparency (glass / HUD panels)
+- Crisp, sharp, professional — not noisy or painterly
+
+RENDERING:
+
+- Ultra-high resolution
+- Sharp focus
+- Clean edges
+- Digital illustration or 3D render hybrid
+- Not photorealistic, not hand-drawn
+
+FORMAT:
+
+- Wide banner (approx 16:9 or 21:9)
+```
+
+### Step 3 - Generate an image with a descriptive summary.
+
+Now that we have a prompt template and a descriptive summary, we can use it to generate images!
+
+So, I went over to the Nano Banana tool and input the following (after clicking the "Create Image" button):
+
+```md
+Generate a wide cinematic banner image for a software engineering blog.
+
+SUBJECT:
+A machine that takes in various text streams and outputs unique, technical images based on the text streams.
+
+STYLE & VISUAL LANGUAGE (do not deviate):
+
+- Futuristic terminal-inspired UI aesthetic
+  ...
+```
+
+In testing out the template, I found that I should not just put my `blogPostTitle` as the subject. Instead, it works a lot better if you actually describe a bit of what should be shown in the image.
+
+For example, don't just put "AI Image Generation from Text" as the subject. Instead, consider something like "A machine that takes in various text streams and outputs unique, technical images based on the text streams."
+
+### Step 4 - Iterate on the image generation.
+
+After trying quite a few times with Nano Banana, I found that it would sometimes just not generate a wide image (ie. it would just make square images).
+
+I did get a good image from Nano Banana for a different blog post, but for this post you're reading now, I used ChatGPT.
+
+I provided feedback to ChatGPT to ensure things were looking good:
+
+```md
+This is good, but let's make it take in more text streams, and output images in more directions. the machine should also be more abstract
+```
+
+## Reflection
+
+This was an enjoyable way to get started with image generation and I'm looking forward to using it more in the future so that each of my blog posts has a unique image based on the content of the post.
+
+Something I learned is that having a prompt template was a great way to ensure consitentency across the various images I was generating, and this consistency even stayed across the various tools. That is, the images that Nano Banana generated looked pretty similar to the images that ChatGPT generated.
+
+If I were to explore this further, I would definitely want to explore other tools like DALL-E, Midjourney, and Stable Diffusion. For now though, this approach worked well and I'm happy with the results.
