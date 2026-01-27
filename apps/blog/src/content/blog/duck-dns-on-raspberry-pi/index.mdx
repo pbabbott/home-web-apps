@@ -1,5 +1,5 @@
 ---
-title: 'Expose Your Raspberry Pi to the Internet with Duck DNS'
+title: 'Access Your Raspberry Pi from Anywhere with Duck DNS'
 htmlTitle: 'Duck DNS on Raspberry Pi: Simple Dynamic DNS Setup Guide'
 excerpt: 'Learn how to expose your Raspberry Pi to the Internet with Duck DNS. This guide will show you how to set up Duck DNS on your Raspberry Pi and how to use it to access your Raspberry Pi from anywhere.'
 date: '2025-12-30'
@@ -16,14 +16,23 @@ keywords:
   - Raspberry Pi
   - Dynamic DNS
   - Home Automation
+status: 'published'
 ---
 
 ## Introduction
 
-In today's world, having a way to access your Raspberry Pi from anywhere is essential. Whether you're using it for home automation, server hosting, or just for fun, having a way to access it from the internet is a must.
+So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this article, we'll take a look at how to access services running on your raspberry PI even if you're not at home!
+
+### The Example Setup
+
+For this article, we'll work with an example setup. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service `n8n` which runs on port `5678`. You're accessing your n8n installation from another computer by visiting it in a web-browser at `http://192.168.1.182:8080`.
+
+Check out the diagram for a visual:
 
 ## What is Duck DNS?
 
 Duck DNS is a free dynamic DNS service that allows you to easily expose your Raspberry Pi to the internet. It works by assigning a subdomain to your Raspberry Pi and then updating the IP address of that subdomain whenever your Raspberry Pi's IP address changes.
 
 ## How to Set Up Duck DNS on Your Raspberry Pi
+
+Here is

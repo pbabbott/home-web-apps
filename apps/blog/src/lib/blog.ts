@@ -69,13 +69,18 @@ export function getBlogPostContent(slug: string): string | null {
 /**
  * Get all blog posts with their metadata
  * Sorted by date (newest first)
+ * Only includes posts with status: 'published' (or no status field, for backwards compatibility)
  */
 export function getAllBlogPosts(): BlogPost[] {
   const slugs = getBlogPostSlugs();
 
   const posts = slugs
     .map((slug) => getBlogPostBySlug(slug))
-    .filter((post): post is BlogPost => post !== null);
+    .filter((post): post is BlogPost => post !== null)
+    .filter((post) => {
+      // Only include published posts (or posts without status for backwards compatibility)
+      return post.status === undefined || post.status === 'published';
+    });
 
   // Sort by date (newest first)
   return posts.sort((a, b) => {

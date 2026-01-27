@@ -16,6 +16,7 @@ import {
   Edge,
   ReactFlowInstance,
   NodeTypes,
+  EdgeTypes,
   useOnSelectionChange,
   useUpdateNodeInternals,
 } from '@xyflow/react';
@@ -23,6 +24,7 @@ import '@xyflow/react/dist/style.css';
 import {
   neutral,
   DEFAULT_HANDLES,
+  EditableEdge,
   type NodeColorScheme,
   type HandleConfig,
 } from '@abbottland/fui-components';
@@ -44,6 +46,11 @@ const nodeTypes: NodeTypes = {
   labeled: LabeledNode,
   customDefault: DefaultNode,
   text: TextNode,
+};
+
+// Define edgeTypes
+const edgeTypes: EdgeTypes = {
+  editable: EditableEdge,
 };
 
 function DiagramEditorInner() {
@@ -234,8 +241,9 @@ function DiagramEditorInner() {
             onDrop={onDrop}
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             defaultEdgeOptions={{
-              type: 'smoothstep',
+              type: 'editable',
               style: { stroke: neutral[300], strokeWidth: 2 },
               markerEnd: {
                 type: 'arrowclosed',
@@ -243,6 +251,7 @@ function DiagramEditorInner() {
             }}
             deleteKeyCode={['Backspace', 'Delete']}
             connectOnClick={true}
+            nodesConnectable={true}
             fitView
             className="bg-secondary-950"
           >

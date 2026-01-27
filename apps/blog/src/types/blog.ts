@@ -54,6 +54,8 @@ export interface BlogPostMetadata {
   keywords?: string[];
   /** Open Graph image URL */
   ogImage?: string;
+  /** Post status - 'published' posts are included in getAllBlogPosts(), 'draft' posts are excluded */
+  status?: 'draft' | 'published';
 }
 
 /**

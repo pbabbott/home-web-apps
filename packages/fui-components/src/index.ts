@@ -21,6 +21,9 @@ export {
   type NodeProps,
 } from './components/BaseNode/BaseNode';
 
+// EditableEdge (React Flow component - requires @xyflow/react peer dependency)
+export { EditableEdge } from './components/EditableEdge/EditableEdge';
+
 // Button
 export {
   Button,
