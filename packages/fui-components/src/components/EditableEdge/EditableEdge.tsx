@@ -8,6 +8,7 @@ import {
   type EdgeProps,
   useReactFlow,
 } from '@xyflow/react';
+import { Typography } from '../Typography/Typography';
 
 export function EditableEdge({
   id,
@@ -22,6 +23,7 @@ export function EditableEdge({
   data,
 }: EdgeProps) {
   const { setEdges } = useReactFlow();
+  const isReadonly = data?.readonly === true;
   const [isEditing, setIsEditing] = useState(false);
   const [labelValue, setLabelValue] = useState<string>(
     typeof data?.label === 'string' ? data.label : '',
@@ -48,11 +50,11 @@ export function EditableEdge({
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isEditing) {
+      if (!isEditing && !isReadonly) {
         setIsEditing(true);
       }
     },
-    [isEditing],
+    [isEditing, isReadonly],
   );
 
   const handleBlur = useCallback(() => {
@@ -87,7 +89,7 @@ export function EditableEdge({
       <BaseEdge
         path={edgePath}
         markerEnd={markerEnd}
-        style={{ ...style, cursor: 'text' }}
+        style={{ ...style, cursor: isReadonly ? 'default' : 'text' }}
       />
       <EdgeLabelRenderer>
         <div
@@ -122,17 +124,39 @@ export function EditableEdge({
             />
           ) : labelValue ? (
             <div
-              className="px-2 py-1 bg-primary-800 text-neutral-200 rounded text-sm cursor-text hover:bg-primary-700 transition-colors whitespace-pre-line"
+              className={`px-2 py-1 bg-primary-800 rounded whitespace-pre-line ${
+                isReadonly
+                  ? 'cursor-default'
+                  : 'cursor-text hover:bg-primary-700 transition-colors'
+              }`}
               onClick={handleClick}
             >
-              {labelValue}
+              <Typography
+                variant="caption"
+                component="span"
+                className="text-neutral-200"
+              >
+                {labelValue}
+              </Typography>
             </div>
           ) : (
             <div
-              className="px-2 py-1 bg-primary-800/50 text-neutral-400 rounded text-sm cursor-text hover:bg-primary-800 border border-dashed border-neutral-600 transition-colors"
+              className={`px-2 py-1 bg-primary-800/50 rounded border border-dashed border-neutral-600 ${
+                isReadonly
+                  ? 'cursor-default'
+                  : 'cursor-text hover:bg-primary-800 transition-colors'
+              }`}
               onClick={handleClick}
             >
-              click to add label
+              {!isReadonly && (
+                <Typography
+                  variant="caption"
+                  component="span"
+                  className="text-neutral-400"
+                >
+                  click to add label
+                </Typography>
+              )}
             </div>
           )}
         </div>

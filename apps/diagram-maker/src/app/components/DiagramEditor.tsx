@@ -23,8 +23,10 @@ import {
 import '@xyflow/react/dist/style.css';
 import {
   neutral,
+  warning,
   DEFAULT_HANDLES,
   EditableEdge,
+  DefaultEdge,
   type NodeColorScheme,
   type HandleConfig,
 } from '@abbottland/fui-components';
@@ -51,6 +53,7 @@ const nodeTypes: NodeTypes = {
 // Define edgeTypes
 const edgeTypes: EdgeTypes = {
   editable: EditableEdge,
+  default: DefaultEdge,
 };
 
 function DiagramEditorInner() {
@@ -60,12 +63,14 @@ function DiagramEditorInner() {
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
   const updateNodeInternals = useUpdateNodeInternals();
 
-  // Track selected nodes
+  // Track selected nodes and edges
   useOnSelectionChange({
-    onChange: ({ nodes: selectedNodes }) => {
+    onChange: ({ nodes: selectedNodes, edges: selectedEdges }) => {
       setSelectedNodeIds(selectedNodes.map((n) => n.id));
+      setSelectedEdgeIds(selectedEdges.map((e) => e.id));
     },
   });
 
@@ -147,6 +152,27 @@ function DiagramEditorInner() {
     [selectedNodeIds, setNodes, updateNodeInternals],
   );
 
+  // Get the type of the first selected edge (for display in sidebar)
+  const selectedEdgeType: string | undefined =
+    selectedEdgeIds.length > 0
+      ? (edges.find((e) => e.id === selectedEdgeIds[0])?.type ?? 'editable')
+      : undefined;
+
+  // Update edge type for all selected edges
+  const updateSelectedEdgesType = useCallback(
+    (edgeType: string) => {
+      if (selectedEdgeIds.length === 0) return;
+      setEdges((eds) =>
+        eds.map((edge) =>
+          selectedEdgeIds.includes(edge.id)
+            ? { ...edge, type: edgeType }
+            : edge,
+        ),
+      );
+    },
+    [selectedEdgeIds, setEdges],
+  );
+
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -204,6 +230,16 @@ function DiagramEditorInner() {
     [setNodes, setEdges],
   );
 
+  // Convert warning color hex to rgba for drop-shadow
+  // warning[400] = '#FAA539' = rgb(250, 165, 57)
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+  const warningColorRgba = hexToRgba(warning[400], 0.8);
+
   return (
     <div className="flex h-screen w-full">
       <style>{`
@@ -212,6 +248,9 @@ function DiagramEditorInner() {
         }
         .react-flow__nodes {
           z-index: 1;
+        }
+        .react-flow__edge.selected {
+          filter: drop-shadow(0 0 4px ${warningColorRgba});
         }
       `}</style>
       <Sidebar
@@ -222,6 +261,9 @@ function DiagramEditorInner() {
         onColorSchemeChange={updateSelectedNodesColorScheme}
         selectedHandles={selectedNodeHandles}
         onHandlesChange={updateSelectedNodesHandles}
+        selectedEdgeIds={selectedEdgeIds}
+        selectedEdgeType={selectedEdgeType}
+        onEdgeTypeChange={updateSelectedEdgesType}
       />
       <div className="flex-1 flex flex-col bg-neutral-900">
         <div className="flex items-center justify-between bg-neutral-900 border-b border-neutral-300">

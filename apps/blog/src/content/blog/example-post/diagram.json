@@ -10,12 +10,12 @@
       "data": {
         "label": "Nissa's House",
         "content": "",
-        "width": 698,
-        "height": 285
+        "width": 747,
+        "height": 292
       },
       "measured": {
-        "width": 698,
-        "height": 285
+        "width": 747,
+        "height": 292
       },
       "selected": false,
       "resizing": false,
@@ -25,8 +25,8 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 244.0032258064516,
-        "y": 73.6635248655914
+        "x": 281.5032258064516,
+        "y": 71.1635248655914
       },
       "data": {
         "label": "Raspberry PI\n192.168.1.123",
@@ -54,8 +54,8 @@
       "id": "node_4",
       "type": "labeled",
       "position": {
-        "x": 257.4956989247312,
-        "y": 141.47788978494623
+        "x": 294.9956989247312,
+        "y": 138.97788978494623
       },
       "data": {
         "label": "Docker",
@@ -76,8 +76,8 @@
       "id": "node_3",
       "type": "customDefault",
       "position": {
-        "x": 272.5,
-        "y": 165.21875
+        "x": 310,
+        "y": 162.71875
       },
       "data": {
         "content": "Traefik\n80:80\n443:443",
@@ -100,8 +100,8 @@
       "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 495.5,
-        "y": 164.21875
+        "x": 533,
+        "y": 161.71875
       },
       "data": {
         "content": "n8n\n5678",
@@ -124,8 +124,8 @@
       "id": "node_0",
       "type": "labeled",
       "position": {
-        "x": 15.255913978494618,
-        "y": 68.53203965053766
+        "x": 11.755913978494618,
+        "y": 67.03203965053766
       },
       "data": {
         "label": "Router",
@@ -151,7 +151,7 @@
   ],
   "edges": [
     {
-      "type": "smoothstep",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -163,10 +163,11 @@
       "sourceHandle": "handle-1767065250371",
       "target": "node_5",
       "targetHandle": "handle-1767065254934",
-      "id": "xy-edge__node_3handle-1767065250371-node_5handle-1767065254934"
+      "id": "xy-edge__node_3handle-1767065250371-node_5handle-1767065254934",
+      "selected": false
     },
     {
-      "type": "smoothstep",
+      "type": "editable",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -179,7 +180,10 @@
       "target": "node_1",
       "targetHandle": "handle-1767065813874",
       "id": "xy-edge__node_0handle-1767065807683-node_1handle-1767065813874",
-      "selected": false
+      "selected": false,
+      "data": {
+        "label": "443\n80"
+      }
     }
   ]
 }

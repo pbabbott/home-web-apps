@@ -7,6 +7,7 @@ import { SelectionInfo } from './SelectionInfo';
 import { ColorSchemeControl } from './ColorSchemeControl';
 import { HandlesControl } from './HandlesControl';
 import { LayerControls } from './LayerControls';
+import { EdgeTypeControl } from './EdgeTypeControl';
 
 interface SidebarProps {
   selectedNodeIds: string[];
@@ -16,6 +17,9 @@ interface SidebarProps {
   onColorSchemeChange: (colorScheme: NodeColorScheme) => void;
   selectedHandles?: HandleConfig[];
   onHandlesChange: (handles: HandleConfig[]) => void;
+  selectedEdgeIds: string[];
+  selectedEdgeType?: string;
+  onEdgeTypeChange: (edgeType: string) => void;
 }
 
 export function Sidebar({
@@ -26,8 +30,13 @@ export function Sidebar({
   onColorSchemeChange,
   selectedHandles,
   onHandlesChange,
+  selectedEdgeIds,
+  selectedEdgeType,
+  onEdgeTypeChange,
 }: SidebarProps) {
-  const hasSelection = selectedNodeIds.length > 0;
+  const hasNodeSelection = selectedNodeIds.length > 0;
+  const hasEdgeSelection = selectedEdgeIds.length > 0;
+  const hasSelection = hasNodeSelection || hasEdgeSelection;
   const handles = selectedHandles ?? [];
 
   return (
@@ -35,11 +44,15 @@ export function Sidebar({
       <NodesSection />
       <HorizontalRule color="secondary" />
 
-      <SelectionInfo selectedNodeIds={selectedNodeIds} />
+      <SelectionInfo
+        selectedNodeIds={selectedNodeIds}
+        selectedEdgeIds={selectedEdgeIds}
+      />
 
+      {/* Node-specific controls */}
       <div
         className={`transition-all duration-300 ease-in-out overflow-hidden flex flex-col gap-4 ${
-          hasSelection
+          hasNodeSelection
             ? 'opacity-100 max-h-[500px]'
             : 'opacity-0 max-h-0 pointer-events-none'
         }`}
@@ -47,19 +60,34 @@ export function Sidebar({
         <ColorSchemeControl
           selectedColorScheme={selectedColorScheme}
           onColorSchemeChange={onColorSchemeChange}
-          hasSelection={hasSelection}
+          hasSelection={hasNodeSelection}
         />
 
         <HandlesControl
           handles={handles}
           onHandlesChange={onHandlesChange}
-          hasSelection={hasSelection}
+          hasSelection={hasNodeSelection}
         />
 
         <LayerControls
           onSendToFront={onSendToFront}
           onSendToBack={onSendToBack}
-          hasSelection={hasSelection}
+          hasSelection={hasNodeSelection}
+        />
+      </div>
+
+      {/* Edge-specific controls */}
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden flex flex-col gap-4 ${
+          hasEdgeSelection
+            ? 'opacity-100 max-h-[500px]'
+            : 'opacity-0 max-h-0 pointer-events-none'
+        }`}
+      >
+        <EdgeTypeControl
+          selectedEdgeType={selectedEdgeType}
+          onEdgeTypeChange={onEdgeTypeChange}
+          hasSelection={hasEdgeSelection}
         />
       </div>
     </aside>

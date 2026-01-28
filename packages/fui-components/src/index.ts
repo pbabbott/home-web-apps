@@ -24,6 +24,9 @@ export {
 // EditableEdge (React Flow component - requires @xyflow/react peer dependency)
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
 
+// DefaultEdge (React Flow component - requires @xyflow/react peer dependency)
+export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
+
 // Button
 export {
   Button,

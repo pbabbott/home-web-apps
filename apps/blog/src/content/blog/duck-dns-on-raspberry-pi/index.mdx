@@ -19,15 +19,19 @@ keywords:
 status: 'published'
 ---
 
+import diagram1 from './diagram-01.json';
+
 ## Introduction
 
 So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this article, we'll take a look at how to access services running on your raspberry PI even if you're not at home!
 
 ### The Example Setup
 
-For this article, we'll work with an example setup. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service `n8n` which runs on port `5678`. You're accessing your n8n installation from another computer by visiting it in a web-browser at `http://192.168.1.182:8080`.
+For this article, we'll work with a simple example setup and the build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service: `n8n` which runs on port `5678`. You're accessing your `n8n` installation from another computer at home by visiting it in a web-browser at `http://192.168.1.182:8080`.
 
 Check out the diagram for a visual:
+
+<DiagramViewer data={diagram1} height="400px" className="mb-8" />
 
 ## What is Duck DNS?
 

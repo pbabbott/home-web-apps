@@ -7,10 +7,12 @@ import {
   Node,
   Edge,
   NodeTypes,
+  EdgeTypes,
   Background,
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { DefaultEdge, EditableEdge } from '@abbottland/fui-components';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
 import { TextNode } from './nodes/TextNode';
@@ -31,6 +33,12 @@ const nodeTypes: NodeTypes = {
   text: TextNode,
 };
 
+// Define edgeTypes outside to prevent re-renders
+const edgeTypes: EdgeTypes = {
+  editable: EditableEdge,
+  default: DefaultEdge,
+};
+
 export function DiagramViewer({
   data,
   height = '600px',
@@ -38,18 +46,35 @@ export function DiagramViewer({
 }: DiagramViewerProps) {
   // Memoize nodes and edges to prevent unnecessary re-renders
   const nodes = useMemo(() => data.nodes, [data.nodes]);
-  const edges = useMemo(() => data.edges, [data.edges]);
+  // Make all edges readonly in the viewer
+  const edges = useMemo(
+    () =>
+      data.edges.map((edge) => ({
+        ...edge,
+        data: { ...edge.data, readonly: true },
+      })),
+    [data.edges],
+  );
 
   return (
     <div
       className={`w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
       style={{ height }}
     >
+      <style>{`
+        .react-flow__edges {
+          z-index: 10;
+        }
+        .react-flow__nodes {
+          z-index: 1;
+        }
+      `}</style>
       <ReactFlowProvider>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           fitViewOptions={{ padding: 0.2 }}
           nodesDraggable={false}
