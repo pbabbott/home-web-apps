@@ -20,6 +20,7 @@ status: 'published'
 ---
 
 import diagram1 from './diagram-01.json';
+import diagram2 from './diagram-02.json';
 
 ## Introduction
 
@@ -33,10 +34,90 @@ Check out the diagram for a visual:
 
 <DiagramViewer data={diagram1} height="400px" className="mb-8" />
 
-## What is Duck DNS?
+> Note: I'm just using n8n as an example, this tutorial would work for any service running on your home server.
 
-Duck DNS is a free dynamic DNS service that allows you to easily expose your Raspberry Pi to the internet. It works by assigning a subdomain to your Raspberry Pi and then updating the IP address of that subdomain whenever your Raspberry Pi's IP address changes.
+### Access From Outside Your House
 
-## How to Set Up Duck DNS on Your Raspberry Pi
+Alright great! So you can access from home! But what if you want to show off your sweet n8n workflows while you're at the bar with your friends?
 
-Here is
+Let's add a few more pieces one step at a time:
+
+#### Configure Your Router
+
+First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
+
+Some routers (like Eero) will also have you set up a "reservation." This is just saying that `192.168.1.183` should belong to your Raspberry PI, and the router really use that IP for any other device that might connect to your home wi-fi network.
+
+#### Determine Your IP address
+
+Next, you'll need to figure out what your IP address is. This one is easy. Get on a device that is connected to your home wi-fi network and just google "what is my ip?" There are a dozen websites that will show what it is. I like to think of this as very similar to my home address (so don't share it around on the public internet). Really, its just the IP address that your ISP (internet service provider) has given your household.
+
+For the sake of example in this tutorial, let's pretend like your ISP is Xfinity and your IP address is `74.165.22.113`
+
+#### Test Access
+
+Now you can try to access your n8n from outside your home network! Now, you don't actually have to go to the bar to check (though I won't stop you!). An easy way to check from the "public internet" is simply to disconnect your phone from wi-fi. This will mean you'll be connected to your phone's internet like an AT&T or Verizon 5G network.
+
+With your phone off of wifi, you should be able to see n8n by going to `http://74.165.22.113`. Your web-browser will say its "un-safe" but that's just because we haven't set up `HTTPS` yet. Ignore these safety warnings and "continue anyway."
+
+Check out the updated diagram:
+
+<DiagramViewer data={diagram2} height="400px" className="mb-8" />
+
+> Diagram too small? Scroll to zoom; click and drag to navigate around
+
+## Time for DNS
+
+### One Small Problem: Dynamic DNS
+
+If you've got everything working, you can now access your n8n workflows from anywhere! Wahoo!
+
+Well... almost.
+
+We have one small problem to solve. Remember that IP address `74.165.22.113` ? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home and look up your IP once again. This setup is common and its called dynamic DNS.
+
+One option you have is to contact your ISP and purchase a static ip address, but this is typically reserved for businesses and not home users.
+
+So what do we do?
+
+### The plan
+
+Instead of accessing your Raspbery PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway.
+
+We can do this with two steps.
+
+First, we'll need to procure a domain name. For this tutorial we're going to use a website called duckdns.org. Its totally free and super easy to sign up and perfect for a homelab project like this. Upon signing up, you'll get to choose a subdomain of duckdns.org. For this tutorial, let's pretend like you choose `myhouse.duckdns.org`
+
+Second, we'll need to install a new docker service on your raspberry PI. The idea with this new service is that it will check and see what your home IP address is every few minutes. Whenever it happens to change, it will update your DNS record at duckdns.org for you! That means even if your ISP changes your IP, you'll always be able to go to `myhouse.duckdns.org` and you won't even have to think about your public IP address anymore!
+
+### Duck DNS
+
+Here are the basic steps for configuring Duck DNS.
+
+- First go to [https://www.duckdns.org/](https://www.duckdns.org/)
+- Sign in using a button at the top of the screen.
+- Add a domain. We'll do `myhouse.duckdns.org`
+- At the top of the page, notice your `token` - be sure to take note of this token. We'll need it later!
+
+### DDNS with Docker
+
+Next, let's setup our new docker service to keep track of our ever-changing IP address.
+
+For this tutorial, I'm going to use an image called `linuxserver/duckdns`. Here is the full documentation for it: [https://hub.docker.com/r/linuxserver/duckdns](https://hub.docker.com/r/linuxserver/duckdns)
+
+This part is pretty easy. Check out the `docker-compose` code below. We just need to list the token from earlier and the subdomains we care about.
+
+```yaml
+services:
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: duckdns
+    environment:
+      - SUBDOMAINS=subdomain1,subdomain2
+      - TOKEN=token
+    restart: unless-stopped
+```
+
+### Diagram Time
+
+## Summary

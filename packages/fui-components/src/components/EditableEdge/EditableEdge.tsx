@@ -124,7 +124,7 @@ export function EditableEdge({
             />
           ) : labelValue ? (
             <div
-              className={`px-2 py-1 bg-primary-800 rounded whitespace-pre-line ${
+              className={`px-2 bg-primary-800 rounded whitespace-pre-line leading-tight ${
                 isReadonly
                   ? 'cursor-default'
                   : 'cursor-text hover:bg-primary-700 transition-colors'
