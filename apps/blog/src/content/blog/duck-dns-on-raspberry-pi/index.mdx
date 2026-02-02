@@ -21,10 +21,13 @@ status: 'published'
 
 import diagram1 from './diagram-01.json';
 import diagram2 from './diagram-02.json';
+import diagram3 from './diagram-03.json';
 
 ## Introduction
 
 So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this article, we'll take a look at how to access services running on your raspberry PI even if you're not at home!
+
+> This guide assumes basic comfort with Docker and your home router, but no prior experience with DNS.
 
 ### The Example Setup
 
@@ -44,7 +47,7 @@ Let's add a few more pieces one step at a time:
 
 #### Configure Your Router
 
-First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
+First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. This tells your router which internal device should receive traffic coming from the internet.  There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
 
 Some routers (like Eero) will also have you set up a "reservation." This is just saying that `192.168.1.183` should belong to your Raspberry PI, and the router really use that IP for any other device that might connect to your home wi-fi network.
 
@@ -105,7 +108,7 @@ Next, let's setup our new docker service to keep track of our ever-changing IP a
 
 For this tutorial, I'm going to use an image called `linuxserver/duckdns`. Here is the full documentation for it: [https://hub.docker.com/r/linuxserver/duckdns](https://hub.docker.com/r/linuxserver/duckdns)
 
-This part is pretty easy. Check out the `docker-compose` code below. We just need to list the token from earlier and the subdomains we care about.
+This part is pretty easy. Check out the `docker-compose` code below. We just need to list the token from earlier and the subdomain(s) we care about.
 
 ```yaml
 services:
@@ -113,11 +116,23 @@ services:
     image: lscr.io/linuxserver/duckdns:latest
     container_name: duckdns
     environment:
-      - SUBDOMAINS=subdomain1,subdomain2
+      - SUBDOMAINS=myhouse
       - TOKEN=token
     restart: unless-stopped
 ```
 
 ### Diagram Time
 
+And now here is the diagram for our final stack.
+
+<DiagramViewer data={diagram3} height="400px" className="mb-8" />
+
+### Security
+
+Let's think about what we've just done.  Your Pi is officially on the internet now!  This means you can access it from anywhere! Though, that also means anyone else can do so too.  Mke sure you have a strong password setup on your `n8n` instance so anyone who stumbles across this webserver can't break into your homelab.  Keeping `n8n` up-to-date is also important to avoid getting hacked.
+
 ## Summary
+
+And now its time to celebrate.  You can now leave your home, go to the bar with some friends and show them your `n8n` service remotely.  In fact, since its a public URL (`http://myhouse.duckdns.org`) it would work on their phones too!
+
+From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab. 
