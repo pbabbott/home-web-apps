@@ -1,6 +1,6 @@
 ---
-title: 'Access Your Raspberry Pi from Anywhere with Duck DNS'
-htmlTitle: 'Duck DNS on Raspberry Pi: Simple Dynamic DNS Setup Guide'
+title: 'Expose Your Raspberry Pi to the Internet with Duck DNS (Using Docker)'
+htmlTitle: 'Access Your Raspberry Pi from Anywhere with Duck DNS'
 excerpt: 'Learn how to expose your Raspberry Pi to the Internet with Duck DNS. This guide will show you how to set up Duck DNS on your Raspberry Pi and how to use it to access your Raspberry Pi from anywhere.'
 date: '2025-12-30'
 bannerImage: 'raspberry-pi-duck-dns.png'
@@ -19,13 +19,14 @@ keywords:
 status: 'published'
 ---
 
+import { HorizontalRule } from '@abbottland/fui-components';
 import diagram1 from './diagram-01.json';
 import diagram2 from './diagram-02.json';
 import diagram3 from './diagram-03.json';
 
 ## Introduction
 
-So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this article, we'll take a look at how to access services running on your raspberry PI even if you're not at home!
+So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this guide, we'll use Duck DNS and Docker to give your Raspberry Pi a stable domain name so you can access it from anywhere!
 
 > This guide assumes basic comfort with Docker and your home router, but no prior experience with DNS.
 
@@ -136,3 +137,20 @@ Let's think about what we've just done.  Your Pi is officially on the internet n
 And now its time to celebrate.  You can now leave your home, go to the bar with some friends and show them your `n8n` service remotely.  In fact, since its a public URL (`http://myhouse.duckdns.org`) it would work on their phones too!
 
 From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab. 
+
+<HorizontalRule color="primary" className="not-prose mt-32 mb-16" />
+
+### Frequently Asked Questions
+
+#### Is Duck DNS free ?
+Yes. Duck DNS is a free dynamic DNS service and works well for personal projects and home labs.
+
+#### Do I need Docker to use Duck DNS?
+No, but Docker makes the setup cleaner, easier to maintain, and simpler to restart automatically.
+
+#### Is it safe to expose a Raspberry Pi to the internet?
+It can be, as long as you secure your services, use strong passwords, and avoid exposing unnecessary ports.  For example, don't expose port 22 for easy SSH access anywhere; there are better ways to handle this.
+
+#### What port should I forward to my Raspberry Pi?
+That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS).  
+
