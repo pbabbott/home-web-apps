@@ -2,6 +2,7 @@
   "description": "Typescript configuration for VS Code",
   "extends": "@abbottland/typescript-config/ts-lib-base.json",
   "compilerOptions": {
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "noEmit": true
   }
 }
