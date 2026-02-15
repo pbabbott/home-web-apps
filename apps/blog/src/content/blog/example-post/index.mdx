@@ -2,7 +2,6 @@
 title: 'Getting Started with MDX Blog Posts'
 excerpt: 'Learn how to create blog posts using MDX with frontmatter metadata. This example post demonstrates the structure and capabilities of the blog system.'
 date: '2025-01-15'
-readTime: '5 min'
 categories:
   - 'Web Development'
 featured: true
@@ -31,8 +30,8 @@ At the top of each MDX file, you'll find a YAML frontmatter block (between the `
 - **title**: The post title displayed in headings and SEO
 - **excerpt**: A brief description for post cards and previews
 - **date**: Publication date in YYYY-MM-DD format
-- **readTime**: Estimated reading time
 - **categories**: An array of predefined categories
+- **readTime**: Computed automatically from content (do not set in frontmatter)
 - **featured**: Whether to highlight this post
 - **description**: SEO meta description (optional)
 - **keywords**: SEO keywords array (optional)

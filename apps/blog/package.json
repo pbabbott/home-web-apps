@@ -24,6 +24,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-typed": "^2.0.12",
+    "reading-time": "^1.5.0",
     "rehype-pretty-code": "^0.14.1",
     "remark-frontmatter": "^5.0.0",
     "shiki": "^3.20.0"

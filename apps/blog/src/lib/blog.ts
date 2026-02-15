@@ -1,7 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import readingTime from 'reading-time';
 import type { BlogPost, BlogPostMetadata } from '../types/blog';
+
+/**
+ * Format reading-time minutes as "X min" (round up for partial minutes)
+ */
+function formatReadTime(minutes: number): string {
+  const mins = Math.max(1, Math.ceil(minutes));
+  return `${mins} min`;
+}
 
 /**
  * Path to the blog content directory
@@ -40,13 +49,16 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
   }
 
   const fileContents = fs.readFileSync(mdxPath, 'utf8');
-  const { data } = matter(fileContents);
+  const { data, content } = matter(fileContents);
 
   const metadata = data as BlogPostMetadata;
+  const stats = readingTime(content);
+  const readTime = formatReadTime(stats.minutes);
 
   return {
     slug,
     ...metadata,
+    readTime,
   };
 }
 

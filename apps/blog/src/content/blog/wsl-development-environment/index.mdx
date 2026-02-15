@@ -1,0 +1,164 @@
+---
+title: Hot Tip - Don't use Windows (Directly) for a Development Environment
+status: 'published'
+date: '2026-02-15'
+bannerImage: 'futuristic-linux-terminal.png'
+categories:
+  - 'DevOps'
+  - 'Web Development'
+---
+
+import Image from 'next/image';
+import { HorizontalRule } from '@abbottland/fui-components';
+
+import diagram1 from './diagram-01.json';
+
+In this article we'll take a look at setting up a development environment on Windows using WSL and how to avoid some common pitfalls.
+
+## The importance of good tools
+
+Let's face it - software development on a Windows machine can be a bear if you're used to working in a \*nix-based environment (like on a Mac or Linux Desktop).
+
+When I'm building things on my mac, I really like to use use terminal tools like `zsh`, `oh-my-zsh`, `starship`, and I need to have my basic commands like `cd`, `ls`, `wc`, `grep`, `ps`, etc. - its all of these tools and the classic \*nix-based utilities that enable me to stay effective as a software developer.
+
+## Where did my tools go?
+
+So.. how do things look on Windows? Well, you might be tempted to open up Command Prompt as that is the most basic of Windows terminals; however, its going to be a distinctly different experience. Trying to run a few commands will quickly reveal it doesn't have really any of the bash utilities available:
+
+```sh
+C:\Users\pbabb>grep
+'grep' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\pbabb>cat
+'cat' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\pbabb>echo
+ECHO is on.
+```
+
+## A common Windows pitfall
+
+### Setting up a code directory
+
+Next up, let's start setting up a development environment directly on our Windows computer, and examine a common pitfall.
+
+Alright, imagine its day 1 of building software on your windows machine and you've only ever worked on a Mac before. So, you need a place to store all your code, so you go to your `Documents` folder and make a directory called `code`. Seems reasonable enough, right? Here's where it would live on my computer:
+
+`C:\Users\pbabb\Documents\code`
+
+Now, imagine you set up your awesome Node.js project in this code folder. Something like `my-awesome-blog`. Once you've got your project up and running and you've ran `npm install` you're going to have a `node_modules` directory. Something like...
+
+`C:\Users\pbabb\Documents\code\my-awesome-blog\node_modules`
+
+Before we get too far along, Its important to remember that the `node_modules` directory is notorious for having lots and lots of files in it.
+
+This is because when you run `npm install` it will go download all the projects your project depends on. And if _those_ projects depend on projects, it'll get the dependent projects too. And so on.. until you have a giant directory full of hundreds of folders each with hundreds of files (code, binaries, libraries, etc.). Before you know it, the `node_modules` directory can get absurdly full of countless files and quite large.
+
+This is ultimately normal and accepted by the software development community to a certain extent - consider this meme:
+
+<Image
+  src="/api/blog-images/wsl-development-environment/node_modules_meme.png"
+  alt="Node Modules Meme"
+  width={400}
+  height={300}
+  className="rounded-lg my-8"
+/>
+
+### What could go wrong?
+
+Alright, so we have a code folder, a project folder, and node_module has tons of files? What could go wrong?
+
+By default on Windows 11, OneDrive is enabled. This usually means any files you put into your `Documents` folder will automatically be synchronized up to the cloud. Now imagine all of those hundreds of thousands of files getting uploaded. Yeah, it can take a long time and slow your internet connection to a halt.
+
+Maybe you're solving a bug dealing with a npm package version and you delete your `node_modules` directory temporarily (perhaps to re-run `npm install`). This now triggers a full-scale DELETE operation sent to OneDrive to start removing files.
+
+I've had this setup before, and its painful! OneDrive can acquire locks on files, and it'll prevent you from deleting things and working cleanly. The sheer network traffic and demand on CPU can also make working on your computer a bear.
+
+The take-away? Don't put your code in `Documents`.
+
+## Let's Setup WSL
+
+One way we can address this problem is by just putting all of our code in a place where OneDrive can't find it. If you're set on working on Windows, a great place for it is `C:\code`. That's right, just in the root of the `C:\` drive.
+
+However, if you want to feed two birds with one scone (and get your tools back too), consider using WSL - the Windows Sub-system for Linux.
+
+Now, this article won't be a guide as to how to install WSL, as Microsoft has great documentation on this subject:
+
+[learn.microsoft.com - How to install Linux on Windows with WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+If you're following this as a guide, definitely install [Windows Terminal from the Microsoft Store](https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=US) and [VS Code](https://code.visualstudio.com/download) too!
+
+## What does it mean?
+
+Ok, let's say you follow this guide from Microsoft, and you get WSL set up. What does it mean? What just happened? Let's take a look.
+
+Pop open a WSL or Ubuntu terminal and run `pwd`.
+
+```sh
+$ pwd
+/home/pabbott
+```
+
+Where are we? This is your home directory in linux. This is NOT to be confused with your home directory on Windows. The cool part is that you can actually see your normal home directory from this linux environment. In WSL, your `C:\` drive is automatically mounted under `/mnt`.
+
+So, if I wanted to navigate to my Windows computer from Linux, I could just `cd /mnt/c/Users/pbabb` and take it from there!
+
+For this guide, let's create a place for our code in WSL:
+
+```sh
+$ cd $HOME
+$ mkdir code
+$ cd code
+```
+
+And also make a folder for your project
+
+```sh
+$ mkdir my-awesome-blog
+```
+
+Here is a diagram to show what's happening.
+
+<DiagramViewer data={diagram1} height="400px" className="mb-8" />
+
+## Setting up VS CODE
+
+Finally, let's configure VS CODE for success.
+
+VS Code has a handy extension called "[WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)." This will make it so when you open up a project in VS Code, and its in a WSL folder, you'll actually get connected to the linux environment as well. I like to think of this extension as opening up a folder on another computer, because that's kind of what its doing. Linux (WSL) is basically its own computer within your windows pc.
+
+Once its installed use `CTRL` + `SHIFT` + `P` to open the command palette, and start typing `wsl`. There should be an option: "WSL: Open Folder in WSL..." - This is where you would select something like `/home/pbabbott/code/my-awesome-blog`
+
+## The result
+
+The result? You can now work on this project with all your awesome \*nix-based tools! There's also no fear of having tons of files sync'd to and from OneDrive. And best of all, you don't have to start learning Powershell ;)
+
+Happy coding!
+
+<HorizontalRule color="primary" className="not-prose mt-32 mb-16" />
+
+### An interesting edge case
+
+I was recently talking with my friend Nissa on this subject, and we discovered an interesting scenario.
+
+Imagine instead of following this guide, you had set up your code in your `Documents` folder on Windows, but still installed WSL for VS code?
+
+Now you might be tempted to open the folder on Windows you had previously made through WSL (using that handy mount).
+
+However, this is not recommended. If you attempt it, you'll get the following error:
+
+<Image
+  src="/api/blog-images/wsl-development-environment/wsl_error.png"
+  alt="WSL Folder Error"
+  width={500}
+  height={300}
+  className="rounded-lg my-8"
+/>
+
+This does make sense. If you want to open up folders on windows, then just open them up with VS Code. If you try to open them up through a mount, its a bit round-about.
+
+#### The solve?
+
+How do we solve this issue? Simply just setup your code directory in WSL, and keep VS Code also connected to WSL.

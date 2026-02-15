@@ -1,10 +1,9 @@
 ---
 title: 'Expose Your Raspberry Pi to the Internet with Duck DNS (Using Docker)'
-htmlTitle: 'Access Your Raspberry Pi from Anywhere with Duck DNS'
+htmlTitle: 'Expose Your Raspberry Pi to the Internet with Duck DNS (Using Docker)'
 excerpt: 'Learn how to expose your Raspberry Pi to the Internet with Duck DNS. This guide will show you how to set up Duck DNS on your Raspberry Pi and how to use it to access your Raspberry Pi from anywhere.'
-date: '2025-12-30'
+date: '2026-02-03'
 bannerImage: 'raspberry-pi-duck-dns.png'
-readTime: '5 min'
 categories:
   - dns
   - docker
@@ -32,7 +31,7 @@ So you've got a raspberry PI and you've started running services and containers 
 
 ### The Example Setup
 
-For this article, we'll work with a simple example setup and the build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service: `n8n` which runs on port `5678`. You're accessing your `n8n` installation from another computer at home by visiting it in a web-browser at `http://192.168.1.182:8080`.
+For this article, we'll work with a simple example setup and the build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service: `n8n` which runs on port `5678`. You're accessing your `n8n` installation from another computer at home by visiting it in a web-browser at `http://192.168.1.182:5678`.
 
 Check out the diagram for a visual:
 
@@ -48,7 +47,7 @@ Let's add a few more pieces one step at a time:
 
 #### Configure Your Router
 
-First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. This tells your router which internal device should receive traffic coming from the internet.  There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
+First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. This tells your router which internal device should receive traffic coming from the internet. There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
 
 Some routers (like Eero) will also have you set up a "reservation." This is just saying that `192.168.1.183` should belong to your Raspberry PI, and the router really use that IP for any other device that might connect to your home wi-fi network.
 
@@ -72,13 +71,13 @@ Check out the updated diagram:
 
 ## Time for DNS
 
-### One Small Problem: Dynamic DNS
+### One Small Problem: Dynamic IP Allocation
 
 If you've got everything working, you can now access your n8n workflows from anywhere! Wahoo!
 
 Well... almost.
 
-We have one small problem to solve. Remember that IP address `74.165.22.113` ? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home and look up your IP once again. This setup is common and its called dynamic DNS.
+We have one small problem to solve. Remember that IP address `74.165.22.113` ? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home, access one of your computers, and look up your IP once again. This setup is common and its called a dynamic IP address.
 
 One option you have is to contact your ISP and purchase a static ip address, but this is typically reserved for businesses and not home users.
 
@@ -86,9 +85,9 @@ So what do we do?
 
 ### The plan
 
-Instead of accessing your Raspbery PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway.
+Instead of accessing your Raspberry PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway. Not only will we set up DNS, but also a Dynamic DNS service to keep up with your ever-changing IP address.
 
-We can do this with two steps.
+We can do this with two steps. (The sections below explain these two steps in more detail)
 
 First, we'll need to procure a domain name. For this tutorial we're going to use a website called duckdns.org. Its totally free and super easy to sign up and perfect for a homelab project like this. Upon signing up, you'll get to choose a subdomain of duckdns.org. For this tutorial, let's pretend like you choose `myhouse.duckdns.org`
 
@@ -130,27 +129,30 @@ And now here is the diagram for our final stack.
 
 ### Security
 
-Let's think about what we've just done.  Your Pi is officially on the internet now!  This means you can access it from anywhere! Though, that also means anyone else can do so too.  Mke sure you have a strong password setup on your `n8n` instance so anyone who stumbles across this webserver can't break into your homelab.  Keeping `n8n` up-to-date is also important to avoid getting hacked.
+Let's think about what we've just done. Your Pi is officially on the internet now! This means you can access it from anywhere! Though, that also means anyone else can do so too. Mke sure you have a strong password setup on your `n8n` instance so anyone who stumbles across this webserver can't break into your homelab. Keeping `n8n` up-to-date is also important to avoid getting hacked.
 
 ## Summary
 
-And now its time to celebrate.  You can now leave your home, go to the bar with some friends and show them your `n8n` service remotely.  In fact, since its a public URL (`http://myhouse.duckdns.org`) it would work on their phones too!
+And now its time to celebrate. You can now leave your home, go to the bar with some friends and show them your `n8n` service remotely. In fact, since its a public URL (`http://myhouse.duckdns.org`) it would work on their phones too!
 
-From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab. 
+From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab.
 
 <HorizontalRule color="primary" className="not-prose mt-32 mb-16" />
 
 ### Frequently Asked Questions
 
 #### Is Duck DNS free ?
+
 Yes. Duck DNS is a free dynamic DNS service and works well for personal projects and home labs.
 
 #### Do I need Docker to use Duck DNS?
+
 No, but Docker makes the setup cleaner, easier to maintain, and simpler to restart automatically.
 
 #### Is it safe to expose a Raspberry Pi to the internet?
-It can be, as long as you secure your services, use strong passwords, and avoid exposing unnecessary ports.  For example, don't expose port 22 for easy SSH access anywhere; there are better ways to handle this.
+
+It can be, as long as you secure your services, use strong passwords, and avoid exposing unnecessary ports. For example, don't expose port 22 for easy SSH access anywhere; there are better ways to handle this.
 
 #### What port should I forward to my Raspberry Pi?
-That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS).  
 
+That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS).

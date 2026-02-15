@@ -38,8 +38,8 @@ export interface BlogPostMetadata {
   excerpt: string;
   /** Publication date in ISO format (YYYY-MM-DD) */
   date: string;
-  /** Estimated reading time (e.g., "12 min") */
-  readTime: string;
+  /** Estimated reading time (e.g., "12 min"); derived from content if omitted */
+  readTime?: string;
   /** Post categories */
   categories: BlogCategory[];
   /** Optional gradient or image URL for the post card */
@@ -59,11 +59,14 @@ export interface BlogPostMetadata {
 }
 
 /**
- * Blog post with slug derived from folder name
+ * Blog post with slug derived from folder name.
+ * readTime is always set when loaded via getBlogPostBySlug (computed from content).
  */
 export interface BlogPost extends BlogPostMetadata {
   /** Unique identifier derived from folder name */
   slug: string;
+  /** Estimated reading time (always set when loaded from content) */
+  readTime: string;
 }
 
 /**
