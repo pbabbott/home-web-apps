@@ -3,7 +3,7 @@ import fuiConfig from '@abbottland/fui-components/tailwind.config';
 
 const config: Config = {
   presets: [fuiConfig],
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
 };
 
 export default config;

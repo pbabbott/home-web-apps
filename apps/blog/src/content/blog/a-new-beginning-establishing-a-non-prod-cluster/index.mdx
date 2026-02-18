@@ -1,0 +1,264 @@
+---
+title: A new beginning - Establishing a non-prod cluster at home
+excerpt: 'Kubernetes at home running out of control? Learn how to establish a non-prod cluster as a blank canvas - replace ingress-nginx with Istio, manage Proxmox with Terraform, and rebuild your homelab one strategic step at a time.'
+status: 'published'
+date: '2026-02-16'
+bannerImage: 'kubernetes-cluster-split.png'
+categories:
+  - 'DevOps'
+  - 'Web Development'
+  - 'Docker'
+  - 'Kubernetes'
+---
+
+import diagram1 from './diagram-01.json';
+
+This post is about a homelab upgrade - but it's really more about mentality.
+
+What follows is me pulling back the curtain on how I approach a large, messy, slightly intimidating problem and turn it into something clear, structured, and achievable. Yes, I'll outline the concrete next steps for my non-production cluster. But the deeper goal is to show the thinking behind the plan: the questions, trade-offs, and small decisions that transform "I should fix this someday" into real, forward progress.
+
+Every big project always begins the same way: unclear scope, too many options, and just enough friction to keep it in "i'll do it later" pile. The way forward isn't a burst of motivation or having the perfect design - it's the deliberate act of breaking something daunting into small, meaningful steps and moving through them one at a time.
+
+This article is simply that philosophy in action, but applied to a homelab. And if it works here, it can work anywhere.
+
+## Motivation
+
+My motivation for writing this article is that I am running kubernetes at home, and my current setup has become somewhat difficult to maintain. My flux repository has grown quite unruly, and I need to upgrade from `ingress-nginx` now that its no longer supported to a new solution. Many of my secrets have expired, and I'm not totally confident in my storage classes nor my observability stack.
+
+While I could address these problems one by one in my singular "production" cluster, I'm thinking I want to establish a second cluster to serve as a blank canvas. I should be able to update my existing flux repository to add another cluster, and then start building these things out one-by-one, leveraging existing code as much as possible. I don't have a team of people to maintain a cluster, so the setup I put into place needs to be highly scalable.
+
+Before we make a plan, let's take a look at current state.
+
+### Current state
+
+In my Homelab, I'm running vanilla kubernetes (via `kubeadm`) on some Ubuntu VMs powered by Proxmox. In front of this, I have my home WiFi router forwarding traffic to a load balancer on a Banana Pi (there was a shortage of raspberry PIs during COVID and this was the next best thing I could find).
+
+Check it - here's a simplified diagram:
+
+<DiagramViewer data={diagram1} height="400px" className="mb-8" />
+
+## Strategy
+
+Next, we'll take a look at how my mind maps out a big problem into smaller steps. I'm going to show how I want to address all the aforementioned problems, keeping solutions high-level. In subsequent articles, we'll take a look at each implementation step in more detail, but for today, let's go on a journey together of formulating strategy!
+
+### Brainstorming
+
+Ok - there are quite a few problems I'm looking to address. Let's start by defining some of the problems and possible solutions to attack some of these things:
+
+<table className="border border-primary-500 border-collapse w-full">
+  <thead>
+    <tr>
+      <th className="border border-primary-500 px-3 py-2 text-left">Problem</th>
+      <th className="border border-primary-500 px-3 py-2 text-left">
+        Possible solution
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        Singular production cluster is brittle & codebase is unorganized
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        Build a 2nd cluster using flux to maximize re-use across prod and
+        non-prod clusters coming up with a new pattern to organize helm
+        installations.
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        ingress-nginx is no longer supported
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        Introduce Istio during cluster rebuild
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        Lacking confidence observability stack & storage providers
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        Reintroduce these aspects one-at-a-time during cluster rebuild,
+        documenting and hardening each.
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        Lack of availability in my banana pi results in the load balancer going
+        offline, knocking out all of my services.
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        Move haproxy to an LXC container on Proxmox
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        Virtual Machine Upgrades are tricky
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        Ensure Proxmox VMs are managed by some codebase. Terraform? Ansible? No
+        more ClickOps!
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        Some secrets are expired
+      </td>
+      <td className="border border-primary-500 px-3 py-2">
+        During rebuild ensrue 1Password is used as much as possible, writing
+        automation scripts for any other cases.
+
+        Bonus points if I can use an AI to help me with this.
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+### Mentality
+
+### Mentality
+
+Phew... that's quite the laundry list. At first glance, building all of this feels a little overwhelming. I only have so much free time - and I promise I do, in fact, spend time with my family. LOL
+
+But this is the fun part. Working through a list like this one small piece at a time is incredibly satisfying. Each step brings a bit more clarity, a bit more order, and a bit more momentum. And once the right patterns are in place, once things are organized and intentional, it becomes possible to grow something bigger and better without the chaos.
+
+That's the magic of home-labbing: setting the stage for your future self to succeed. When everything finally clicks, you take a step back, sip some coffee, and admire what you built... and in that moment, all the effort feels completely worth it.
+
+### Critical Path
+
+Now that we've taken a deep breath. Let's find critical path.
+
+### 1 - Set up Terraform for Proxmox
+
+The first step is clear: start building new nodes in Proxmox.
+
+Up to now, this has mostly been "Click Ops." I log into Proxmox, click around, assemble a few components, and suddenly I have new Ubuntu VMs. I've tried to stay disciplined by keeping careful notes in a journal and using Ansible once a VM is online, but the early provisioning stages are still largely unmanaged and hard to reproduce.
+
+It would be far better to provision storage, networking, and virtual machines through a managed, version-controlled codebase. My plan is to introduce Terraform to manage Proxmox directly.
+
+While Ansible _can_ handle pieces of this workflow, Terraform is the better fit. Terraform excels at API-driven infrastructure management: defining and maintaining the desired state of resources like VMs, disks, and VLANs. Ansible, on the other hand, shines inside the operating system: configuring packages, users, services, and security over SSH. In short: Terraform manages the **existence** of infrastructure, and Ansible manages the **contents** within it.
+
+The right tool for the right job.
+
+#### 2 - Ansible
+
+Let's say I find success with Terraform. Next up, it will make sense to configure them correctly via Ansible. I do have some Ansible scripts set up, but they feel a little shaky. That is, sometimes I need to re-run them to get them working (maybe they don't work on the first run). Also, I'm not 100% sure I can re-run them safely. Working with `kubeadm` has been kind of intense!
+
+I do have a lot of good materials here in in my [pbabbbott/home-playbooks](https://github.com/pbabbott/home-playbooks) repository. I think the thing to do here is to just tidy up the code, add some documentation and ensure everything can be re-run safely. It will also be nice to run some of these playbooks against fresh instances to ensure first-time runs work well too.
+
+The playbooks will install containerd, the kubelet, and handle basic vm configurations. They also will set up a pod overlay network (calico) so that we can start deploying pods to the cluster.
+
+#### A quick aside: Analysis of dependencies
+
+Next up, I'll want to extend my setup in [pbabbott/home-kubernetes](https://github.com/pbabbott/home-kubernetes) to support a second cluster. Since this repository is managed with Flux, this shouldn't be a big deal. The only tricky part to figure out which helm installation should i try to setup first?
+
+I basically have a chain of dependencies going on in my flux repo. For example, I have an API I built and it depends on my observability stack (prometheus-operator / grafana / loki). This observability stack needs fast custom storage so longhorn needs to be set up first. To access longhorn, I need ingress-nginx working. To have ingress-nginx deployed, I'll need cert-manager, a pod network and a working load balancer.
+
+DIAGRAM
+
+- App -> Observability Stack -> Longhorn -> Ingress-nginx -> pod network -> load balancer
+
+I think it makes sense to start at the very end of this chain with the load balancer
+
+#### 3 - HA Proxy in Proxmox LXC + Domain Names
+
+Alright, first up is `haproxy`. This service will be interesting. I already have this running via `docker-compose` on my Banana Pi.
+
+First, I need to replicate its configuration to distribute requests across the existing VMs. It makes sense to me to set this up in terraform along with the rest of the Proxmox configuration.
+
+Then, its important to note that the new VMs will ultimately host workloads that will be tied to a domain name. I think for this new cluster, I'll use the nomenclature of `non-prod`
+
+For example:
+
+<table className="border border-primary-500 border-collapse w-full">
+  <thead>
+    <tr>
+      <th className="border border-primary-500 px-3 py-2 text-left">URL</th>
+      <th className="border border-primary-500 px-3 py-2 text-left">
+        Workload
+      </th>
+      <th className="border border-primary-500 px-3 py-2 text-left">
+        Publicly / Internally facing
+      </th>
+      <th className="border border-primary-500 px-3 py-2 text-left">Cluster</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">*.abbottland.io</td>
+      <td className="border border-primary-500 px-3 py-2">Production</td>
+      <td className="border border-primary-500 px-3 py-2">public</td>
+      <td className="border border-primary-500 px-3 py-2">
+        Existing Cluster VMs
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        *.local.abbottland.io
+      </td>
+      <td className="border border-primary-500 px-3 py-2">Production</td>
+      <td className="border border-primary-500 px-3 py-2">internal</td>
+      <td className="border border-primary-500 px-3 py-2">
+        Existing Cluster VMs
+      </td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        *.non-prod.abbottland.io
+      </td>
+      <td className="border border-primary-500 px-3 py-2">Non-production</td>
+      <td className="border border-primary-500 px-3 py-2">public</td>
+      <td className="border border-primary-500 px-3 py-2">New Cluster VMs</td>
+    </tr>
+    <tr>
+      <td className="border border-primary-500 px-3 py-2">
+        *.local.non-prod.abbottland.io
+      </td>
+      <td className="border border-primary-500 px-3 py-2">Non-production</td>
+      <td className="border border-primary-500 px-3 py-2">internal</td>
+      <td className="border border-primary-500 px-3 py-2">New Cluster VMs</td>
+    </tr>
+  </tbody>
+</table>
+
+That means, `haproxy` will need to be configured to route requests based on domain-names. After a quick chat with Claude, this will definitely work!
+
+#### 4 - Flux + New Ingress pattern
+
+Ok, so if we accomplish the three previous steps, we now have new VMs, they each have containerd, and kubernetes is setup and installed. We also now have haproxy setup to distribute traffic to the new nodes. Now its time to replace `ingress-nginx`.
+
+In this step, I'll have to finally figure out how to get off of `ingress-nginx` and transition onto that `Gateway` resource from Istio. When I first built `ingress-nginx` on bare-metal, there were a lot of configurations to set to handle the load balancer and decrypt https traffic. This is going to be a tricky one, but the guide that I will be able to write after figuring it out will be tremendous!
+
+In my current `ingress-nginx` setup, I also have it connected to `cert-manager` and to `external-dns`. This is making me think I should consider this as a whole "system" where each of these tools are basically all in place to handle `ingress` into the cluster.
+
+The plan will be to start with `ingress-nginx`, and find direct dependencies, setting those up, but with Isitio as a replacement in the new cluster.
+
+#### 5 - Storage
+
+Next up, I think I need to refine my patterns for storage. I know I will want to maintain 2 big ideas:
+
+- "fast storage" should use an ssd and get backups via longhorn
+- "slow storage" should use NFS for workloads that don't need frequent read/writes
+
+#### 6 - Observability Stack
+
+Here we will set up things like open-telemetry collector, loki, grafana, prometheus, etc..
+
+I have a good amount of code written for this, it'll just need to get better organized to bring things in one piece at a time.
+
+#### 7 - The rest of the apps
+
+With storage, ingress, and observability established, what else do we need? Workloads! Setting up the internal registry, Github ARC, and others will be great! I don't know if i need to actually deploy my blog website and other custom web apps, but it should be fairly easy to do so since I'll have all of my tools ready and available!
+
+## Reflection
+
+I now have a reasonably detailed plan to establish a `non-prod` cluster along side my existing infra. As the plan evolves, things get less clear to me in the future, but that's ok.
+
+The most important part of these sorts of exercises is thinking about the chain of dependencies and the major speed bumps that you might encounter at each step.
+
+How do you tackle a big project? You spend a lot of time thinking about what you are going to do first and shortly there after.
+
+Next thing you know, you're doing the thing you told yourself you'd do, and steps don't feel so big, because you thought about them earlier.
+
+While today's article was largely me thinking out loud about my homelab, I hope you found it interesting and the process of breaking down big chunks of work inspirational for your next project!
