@@ -62,34 +62,23 @@ export default function BlogPageClient({
       <DotGridBackground color="default" />
       <div className="relative z-10">
         <StickyHeader />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          {/* Page Title */}
-          <div className="mb-12 text-center">
-            <Typography
-              variant="h1"
-              component="h1"
-              className="text-neutral-100 mb-4"
-            >
-              Blog
-            </Typography>
-            <Typography
-              variant="body1"
-              className="text-neutral-400 max-w-2xl mx-auto"
-            >
-              Topics include web development, interface design, DevOps
-              procedures, and computational career trajectory analysis.
-            </Typography>
-          </div>
+        <div className="flex flex-col lg:flex-row max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-24 gap-8 lg:gap-12">
+          {/* Left sidebar: filters (~15–20% on large screens, sticky) */}
+          <aside className="w-full lg:w-[18%] lg:min-w-[200px] lg:max-w-[280px] lg:shrink-0">
+            <div className="sticky top-28 space-y-6">
+              <Typography
+                variant="subtitle1"
+                className="text-neutral-400 font-medium uppercase tracking-wider"
+              >
+                Filters
+              </Typography>
 
-          {/* Filter Section */}
-          <div className="mb-12 space-y-6">
-            {/* Search Input */}
-            <div className="flex items-center gap-4 max-w-md mx-auto">
-              <div className="relative flex-grow">
+              {/* Search */}
+              <div className="relative">
                 <MagnifyingGlassIcon
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none z-10"
-                  width={20}
-                  height={20}
+                  width={18}
+                  height={18}
                 />
                 <Input
                   color="primary"
@@ -98,75 +87,97 @@ export default function BlogPageClient({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setSearchTerm(e.target.value)
                   }
-                  className="w-full pl-10"
+                  className="w-full pl-9"
                 />
               </div>
-            </div>
 
-            {/* Category Filters */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {allCategories.map((category) => (
-                <Button
-                  key={category}
-                  color="primary"
-                  variant={
-                    selectedCategory === category ? 'contained' : 'outlined'
-                  }
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category === 'All' ? 'All Posts' : category}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content */}
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-16">
-              <Typography variant="h3" className="text-neutral-400 mb-4">
-                No posts found
-              </Typography>
-              <Typography variant="body2" className="text-neutral-500">
-                Try adjusting your search or filter criteria.
-              </Typography>
-            </div>
-          ) : (
-            <>
-              {/* Hero Section */}
-              {heroPost && (
-                <section className="mb-16">
-                  <HeroBlogPostCard post={heroPost} />
-                </section>
-              )}
-
-              {/* Blog Posts Grid */}
-              {remainingPosts.length > 0 && (
-                <section>
-                  <Typography
-                    variant="h3"
-                    component="h2"
-                    className="text-neutral-300 mb-8 border-l-4 border-primary-500 pl-4"
+              {/* Category list (vertical, scrollable if many) */}
+              <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto pr-1">
+                {allCategories.map((category) => (
+                  <Button
+                    key={category}
+                    color="primary"
+                    variant={
+                      selectedCategory === category ? 'contained' : 'outlined'
+                    }
+                    onClick={() => setSelectedCategory(category)}
+                    className="justify-start text-left w-full"
                   >
-                    More Posts
-                  </Typography>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {remainingPosts.map((post) => (
-                      <BlogPostCard
-                        key={post.slug}
-                        title={post.title}
-                        excerpt={post.excerpt}
-                        date={post.date}
-                        readTime={post.readTime}
-                        slug={post.slug}
-                        categories={post.categories}
-                        bannerImage={post.bannerImage}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
-          )}
+                    {category === 'All' ? 'All Posts' : category}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          {/* Right: main content (remaining space) */}
+          <main className="flex-1 min-w-0">
+            {/* Page Title */}
+            <div className="mb-12">
+              <Typography
+                variant="h1"
+                component="h1"
+                className="text-neutral-100 mb-4"
+              >
+                Blog
+              </Typography>
+              <Typography
+                variant="body1"
+                className="text-neutral-400 max-w-2xl"
+              >
+                Topics include web development, interface design, DevOps
+                procedures, and computational career trajectory analysis.
+              </Typography>
+            </div>
+
+            {/* Content */}
+            {filteredPosts.length === 0 ? (
+              <div className="py-16">
+                <Typography variant="h3" className="text-neutral-400 mb-4">
+                  No posts found
+                </Typography>
+                <Typography variant="body2" className="text-neutral-500">
+                  Try adjusting your search or filter criteria.
+                </Typography>
+              </div>
+            ) : (
+              <>
+                {/* Hero Section */}
+                {heroPost && (
+                  <section className="mb-16">
+                    <HeroBlogPostCard post={heroPost} />
+                  </section>
+                )}
+
+                {/* Blog Posts Grid */}
+                {remainingPosts.length > 0 && (
+                  <section>
+                    <Typography
+                      variant="h3"
+                      component="h2"
+                      className="text-neutral-300 mb-8 border-l-4 border-primary-500 pl-4"
+                    >
+                      More Posts
+                    </Typography>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {remainingPosts.map((post) => (
+                        <BlogPostCard
+                          key={post.slug}
+                          title={post.title}
+                          excerpt={post.excerpt}
+                          date={post.date}
+                          readTime={post.readTime}
+                          slug={post.slug}
+                          categories={post.categories}
+                          bannerImage={post.bannerImage}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </main>
         </div>
       </div>
     </div>
