@@ -7,6 +7,9 @@ const meta: Meta<typeof Card> = {
   parameters: {
     layout: 'centered',
   },
+  globals: {
+    backgrounds: { value: 'dark', grid: true },
+  },
 };
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -43,5 +46,13 @@ export const LargePrimary: Story = {
     size: 'large',
     color: 'primary',
     children: <div>Large card with primary color</div>,
+  },
+};
+
+export const WithDotGrid: Story = {
+  args: {
+    color: 'primary',
+    dotGrid: true,
+    children: <div>Card content with dot grid background</div>,
   },
 };

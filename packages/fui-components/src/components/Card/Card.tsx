@@ -8,6 +8,8 @@ export type CardProps = {
   size?: CardSize;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   className?: string;
+  /** When true, renders the dot grid background. Default false. */
+  dotGrid?: boolean;
 };
 
 export type CardColor = DotGridBackgroundColor;
@@ -51,6 +53,7 @@ export const Card = ({
   size = 'default',
   onClick,
   className = '',
+  dotGrid = false,
 }: CardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const colorClasses = getCardColorClasses(color);
@@ -58,12 +61,12 @@ export const Card = ({
 
   return (
     <div
-      className={`text-neutral-50 border-y border-r rounded-lg relative transition-all duration-300 group isolate ${colorClasses} border-l-8 ${sizeClasses} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`bg-neutral-800/80 text-neutral-50 border-y border-r rounded-lg relative transition-all duration-300 group isolate ${colorClasses} border-l-8 ${sizeClasses} ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
     >
-      <DotGridBackground color={color} active={isHovered} />
+      {dotGrid && <DotGridBackground color={color} active={isHovered} />}
       {children}
     </div>
   );
