@@ -1,5 +1,6 @@
 import React from 'react';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
+import { Typography } from '../Typography/Typography';
 
 export type TableColor = 'primary' | 'secondary' | 'neutral';
 
@@ -64,6 +65,7 @@ export type ThProps = React.ThHTMLAttributes<HTMLTableCellElement> & {
 export const Th = ({
   className,
   color = 'primary',
+  children,
   ...props
 }: ThProps) => {
   const border = borderColorClasses[color];
@@ -75,7 +77,11 @@ export const Th = ({
         className,
       )}
       {...props}
-    />
+    >
+      <Typography variant="body2" component="span">
+        {children}
+      </Typography>
+    </th>
   );
 };
 
@@ -87,6 +93,7 @@ export type TdProps = React.TdHTMLAttributes<HTMLTableCellElement> & {
 export const Td = ({
   className,
   color = 'primary',
+  children,
   ...props
 }: TdProps) => {
   const border = borderColorClasses[color];
@@ -94,6 +101,10 @@ export const Td = ({
     <td
       className={extendedTwMerge('border px-3 py-2', border, className)}
       {...props}
-    />
+    >
+      <Typography variant="body2" component="span">
+        {children}
+      </Typography>
+    </td>
   );
 };
