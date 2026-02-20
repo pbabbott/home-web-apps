@@ -37,14 +37,13 @@ export async function generateMetadata({
 
   return {
     title: post.title,
-    description: post.description || post.excerpt,
-    keywords: post.keywords,
+    description: post.seoDescription || post.excerpt,
+    keywords: post.seoKeywords,
     openGraph: {
       title: post.title,
-      description: post.description || post.excerpt,
+      description: post.seoDescription || post.excerpt,
       type: 'article',
       publishedTime: post.date,
-      images: post.ogImage ? [post.ogImage] : undefined,
     },
   };
 }

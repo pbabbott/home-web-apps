@@ -42,18 +42,12 @@ export interface BlogPostMetadata {
   readTime?: string;
   /** Post categories */
   categories: BlogCategory[];
-  /** Optional gradient or image URL for the post card */
-  image?: string;
   /** Optional banner image filename (relative to blog post folder) */
   bannerImage?: string;
-  /** Whether this post should be featured */
-  featured?: boolean;
   /** SEO meta description (defaults to excerpt if not provided) */
-  description?: string;
+  seoDescription?: string;
   /** SEO keywords */
-  keywords?: string[];
-  /** Open Graph image URL */
-  ogImage?: string;
+  seoKeywords?: string[];
   /** Post status - 'published' posts are included in getAllBlogPosts(), 'draft' posts are excluded */
   status?: 'draft' | 'published';
 }

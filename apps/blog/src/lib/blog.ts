@@ -91,7 +91,7 @@ export function getAllBlogPosts(): BlogPost[] {
     .filter((post): post is BlogPost => post !== null)
     .filter((post) => {
       // Only include published posts (or posts without status for backwards compatibility)
-      return post.status === undefined || post.status === 'published';
+      return post.status === 'published';
     });
 
   // Sort by date (newest first)
@@ -100,13 +100,6 @@ export function getAllBlogPosts(): BlogPost[] {
     const dateB = new Date(b.date);
     return dateB.getTime() - dateA.getTime();
   });
-}
-
-/**
- * Get featured blog posts
- */
-export function getFeaturedBlogPosts(): BlogPost[] {
-  return getAllBlogPosts().filter((post) => post.featured);
 }
 
 /**
