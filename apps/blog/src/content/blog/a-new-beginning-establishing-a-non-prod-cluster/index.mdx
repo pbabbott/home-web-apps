@@ -14,6 +14,14 @@ categories:
 
 import diagram1 from './diagram-01.json';
 import diagram2 from './diagram-02.json';
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  Th,
+  Td,
+} from '@abbottland/fui-components';
 
 For today's article, I'll write down the steps I want to take to build a reproducible non-production Kubernetes cluster where I can safely evolve my infrastructure before touching anything real. By the end of this series, I want a fully automated path from bare metal to GitOps-managed cluster with experiments happening only in non-prod.
 
@@ -51,75 +59,62 @@ Next, we'll take a look at how my mind maps out a big problem into smaller steps
 
 Ok - there are quite a few problems I'm looking to address. Let's start by defining some of the problems and possible solutions:
 
-<table className="border border-primary-500 border-collapse w-full">
-  <thead>
-    <tr>
-      <th className="border border-primary-500 px-3 py-2 text-left">Problem</th>
-      <th className="border border-primary-500 px-3 py-2 text-left">
-        Possible solution
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
+<Table color="primary">
+  <TableHead>
+    <TableRow>
+      <Th>Problem</Th>
+      <Th>Possible solution</Th>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <Td>
         Singular production cluster is brittle & codebase is unorganized
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+      <Td>
         Build a 2nd cluster using flux to maximize re-use across prod and
         non-prod clusters coming up with a new pattern to organize helm
         installations.
-      </td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        ingress-nginx is no longer supported
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
-        Introduce Istio during cluster rebuild
-      </td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+    </TableRow>
+    <TableRow>
+      <Td>ingress-nginx is no longer supported</Td>
+      <Td>Introduce Istio during cluster rebuild</Td>
+    </TableRow>
+    <TableRow>
+      <Td>
         Lacking confidence observability stack & storage providers
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+      <Td>
         Reintroduce these aspects one-at-a-time during cluster rebuild,
         documenting and hardening each.
-      </td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+    </TableRow>
+    <TableRow>
+      <Td>
         Lack of availability in my banana pi results in the load balancer going
         offline, knocking out all of my services.
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
-        Move haproxy to an LXC container on Proxmox
-      </td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        Virtual Machine Upgrades are tricky
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+      <Td>Move haproxy to an LXC container on Proxmox</Td>
+    </TableRow>
+    <TableRow>
+      <Td>Virtual Machine Upgrades are tricky</Td>
+      <Td>
         Ensure Proxmox VMs are managed by some codebase. Terraform? Ansible? No
         more ClickOps!
-      </td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        Some secrets are expired
-      </td>
-      <td className="border border-primary-500 px-3 py-2">
+      </Td>
+    </TableRow>
+    <TableRow>
+      <Td>Some secrets are expired</Td>
+      <Td>
         During rebuild ensrue 1Password is used as much as possible, writing
         automation scripts for any other cases.
 
         Bonus points if I can use an AI to help me with rotations.
-      </td>
-    </tr>
-
-  </tbody>
-</table>
+      </Td>
+    </TableRow>
+  </TableBody>
+</Table>
 
 ### Critical Path
 
@@ -171,56 +166,42 @@ Next, I need to figure out how I'll distribute requests to two different cluster
 
 For example:
 
-<table className="border border-primary-500 border-collapse w-full">
-  <thead>
-    <tr>
-      <th className="border border-primary-500 px-3 py-2 text-left">
-        <span>URL</span>
-      </th>
-      <th className="border border-primary-500 px-3 py-2 text-left">
-        <span>Workload</span>
-      </th>
-      <th className="border border-primary-500 px-3 py-2 text-left">
-        <span>Facing</span>
-      </th>
-      <th className="border border-primary-500 px-3 py-2 text-left">
-        <span>Cluster</span>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">*.abbottland.io</td>
-      <td className="border border-primary-500 px-3 py-2">prod</td>
-      <td className="border border-primary-500 px-3 py-2">public</td>
-      <td className="border border-primary-500 px-3 py-2">Existing Cluster</td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        *.local.abbottland.io
-      </td>
-      <td className="border border-primary-500 px-3 py-2">prod</td>
-      <td className="border border-primary-500 px-3 py-2">internal</td>
-      <td className="border border-primary-500 px-3 py-2">Existing Cluster</td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        *.non-prod.abbottland.io
-      </td>
-      <td className="border border-primary-500 px-3 py-2">non-prod</td>
-      <td className="border border-primary-500 px-3 py-2">public</td>
-      <td className="border border-primary-500 px-3 py-2">New Cluster</td>
-    </tr>
-    <tr>
-      <td className="border border-primary-500 px-3 py-2">
-        *.local.non-prod.abbottland.io
-      </td>
-      <td className="border border-primary-500 px-3 py-2">non-prod</td>
-      <td className="border border-primary-500 px-3 py-2">internal</td>
-      <td className="border border-primary-500 px-3 py-2">New Cluster</td>
-    </tr>
-  </tbody>
-</table>
+<Table color="primary">
+  <TableHead>
+    <TableRow>
+      <Th>URL</Th>
+      <Th>Workload</Th>
+      <Th>Facing</Th>
+      <Th>Cluster</Th>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <Td>*.abbottland.io</Td>
+      <Td>prod</Td>
+      <Td>public</Td>
+      <Td>Existing Cluster</Td>
+    </TableRow>
+    <TableRow>
+      <Td>*.local.abbottland.io</Td>
+      <Td>prod</Td>
+      <Td>internal</Td>
+      <Td>Existing Cluster</Td>
+    </TableRow>
+    <TableRow>
+      <Td>*.non-prod.abbottland.io</Td>
+      <Td>non-prod</Td>
+      <Td>public</Td>
+      <Td>New Cluster</Td>
+    </TableRow>
+    <TableRow>
+      <Td>*.local.non-prod.abbottland.io</Td>
+      <Td>non-prod</Td>
+      <Td>internal</Td>
+      <Td>New Cluster</Td>
+    </TableRow>
+  </TableBody>
+</Table>
 
 That means, `haproxy` will need to be configured to route requests based on domain-names. After a quick chat with an LLM, this will definitely work! That is, I should be able to inspect traffic using SNI without actually needing to decrypt it!
 

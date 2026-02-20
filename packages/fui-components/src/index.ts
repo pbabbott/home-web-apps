@@ -77,6 +77,23 @@ export {
 } from './components/TransparentPanel/TransparentPanel';
 export { type TransparentPanelColor } from './components/TransparentPanel/types';
 
+// Table
+export {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  Th,
+  Td,
+  type TableProps,
+  type TableHeadProps,
+  type TableBodyProps,
+  type TableRowProps,
+  type ThProps,
+  type TdProps,
+  type TableColor,
+} from './components/Table/Table';
+
 // Typography
 export {
   Typography,
