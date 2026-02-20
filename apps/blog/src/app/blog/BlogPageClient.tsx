@@ -3,16 +3,14 @@ import { useState, useMemo } from 'react';
 import {
   Input,
   Typography,
-  Button,
   DotGridBackground,
 } from '@abbottland/fui-components';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import StickyHeader from '../components/StickyHeader';
 import BlogPostCard from './BlogPostCard';
 import HeroBlogPostCard from './HeroBlogPostCard';
+import CategoryList, { type CategoryFilter } from './CategoryList';
 import type { BlogPost, BlogCategory } from '../../types/blog';
-
-type CategoryFilter = BlogCategory | 'All';
 
 interface BlogPageClientProps {
   posts: BlogPost[];
@@ -36,7 +34,8 @@ export default function BlogPageClient({
 
       const matchesCategory =
         selectedCategory === 'All' ||
-        (post.categories && post.categories.includes(selectedCategory));
+        (post.categories &&
+          post.categories.includes(selectedCategory as BlogCategory));
 
       return matchesSearch && matchesCategory;
     });
@@ -51,11 +50,6 @@ export default function BlogPageClient({
 
   const heroPost = sortedPosts[0];
   const remainingPosts = sortedPosts.slice(1);
-
-  const allCategories: CategoryFilter[] = [
-    'All',
-    ...categories,
-  ] as CategoryFilter[];
 
   return (
     <div className="relative bg-neutral-800 w-full min-h-screen">
@@ -92,21 +86,11 @@ export default function BlogPageClient({
               </div>
 
               {/* Category list (vertical, scrollable if many) */}
-              <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto pr-1">
-                {allCategories.map((category) => (
-                  <Button
-                    key={category}
-                    color="primary"
-                    variant={
-                      selectedCategory === category ? 'contained' : 'outlined'
-                    }
-                    onClick={() => setSelectedCategory(category)}
-                    className="justify-start text-left w-full"
-                  >
-                    {category === 'All' ? 'All Posts' : category}
-                  </Button>
-                ))}
-              </div>
+              <CategoryList
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
             </div>
           </aside>
 
