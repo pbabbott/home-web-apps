@@ -51,6 +51,17 @@ export default function BlogPageClient({
   const heroPost = sortedPosts[0];
   const remainingPosts = sortedPosts.slice(1);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const post of posts) {
+      if (!post.categories) continue;
+      for (const cat of post.categories) {
+        counts[cat] = (counts[cat] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [posts]);
+
   return (
     <div className="relative bg-neutral-800 w-full min-h-screen">
       <DotGridBackground color="default" />
@@ -88,6 +99,8 @@ export default function BlogPageClient({
               {/* Category list (vertical, scrollable if many) */}
               <CategoryList
                 categories={categories}
+                categoryCounts={categoryCounts}
+                totalCount={posts.length}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
               />

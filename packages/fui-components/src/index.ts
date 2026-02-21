@@ -1,3 +1,5 @@
+/** @abbottland/fui-components – public API */
+
 // Badge
 export {
   Badge,
@@ -5,7 +7,7 @@ export {
   type BadgeColor,
 } from './components/Badge/Badge';
 
-// BaseNode (React Flow component - requires @xyflow/react peer dependency)
+// React Flow (peer: @xyflow/react)
 export {
   BaseNode,
   DEFAULT_HANDLES,
@@ -20,12 +22,8 @@ export {
   type HandleConfig,
   type NodeProps,
 } from './components/BaseNode/BaseNode';
-
-// EditableEdge (React Flow component - requires @xyflow/react peer dependency)
-export { EditableEdge } from './components/EditableEdge/EditableEdge';
-
-// DefaultEdge (React Flow component - requires @xyflow/react peer dependency)
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
+export { EditableEdge } from './components/EditableEdge/EditableEdge';
 
 // Button
 export {
@@ -94,6 +92,17 @@ export {
   type TableColor,
 } from './components/Table/Table';
 
+// HexagonButton & TiledHexagons
+export {
+  HexagonButton,
+  type HexagonButtonProps,
+} from './components/HexagonButton/HexagonButton';
+export {
+  TiledHexagons,
+  type TiledHexagonsProps,
+  type TiledHexagonTile,
+} from './components/TiledHexagons/TiledHexagons';
+
 // Typography
 export {
   Typography,
@@ -102,10 +111,8 @@ export {
   type TypographyComponent,
 } from './components/Typography/Typography';
 
-// Utils
+// Utils & tokens
 export { extendedTwMerge } from './utils/extendTwMerge';
-
-// Design Tokens
 export {
   neutral,
   primary,
