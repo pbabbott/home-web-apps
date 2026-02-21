@@ -46,6 +46,13 @@ export const WithLabelAndLowerLabel: Story = {
   },
 };
 
+export const LongLabel: Story = {
+  args: {
+    label: 'web development',
+    lowerLabel: '3',
+  },
+};
+
 export const Active: Story = {
   args: {
     label: 'NET',

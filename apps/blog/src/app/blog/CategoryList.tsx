@@ -21,7 +21,12 @@ export default function CategoryList({
   selectedCategory,
   onSelectCategory,
 }: CategoryListProps) {
-  const allCategories: CategoryFilter[] = ['All', ...categories];
+  const sortedCategories = [...categories].sort((a, b) => {
+    const countDiff = (categoryCounts[b] ?? 0) - (categoryCounts[a] ?? 0);
+    if (countDiff !== 0) return countDiff;
+    return a.localeCompare(b);
+  });
+  const allCategories: CategoryFilter[] = ['All', ...sortedCategories];
 
   const tiles = allCategories.map((category) => ({
     label: category === 'All' ? 'All Posts' : category,
@@ -30,7 +35,13 @@ export default function CategoryList({
         ? String(totalCount)
         : String(categoryCounts[category] ?? 0),
     active: selectedCategory === category,
-    onClick: () => onSelectCategory(category),
+    onClick: () => {
+      if (selectedCategory === category && category !== 'All') {
+        onSelectCategory('All');
+      } else {
+        onSelectCategory(category);
+      }
+    },
   }));
 
   return (
