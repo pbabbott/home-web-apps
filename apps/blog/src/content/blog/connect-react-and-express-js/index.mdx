@@ -1,6 +1,6 @@
 ---
 title: 'Build a Clean React + Express Stack From Scratch'
-excerpt: ''
+excerpt: 'Connect a React front-end to an Express backend step by step: build a small API, spin up a Vite app, wire data with useState and useEffect, then fix CORS and response shape so the list on screen is actually from your API.'
 date: '2026-02-21'
 categories:
   - 'Web Development'
@@ -10,23 +10,22 @@ status: 'draft'
 import Image from 'next/image';
 import { TransparentPanel, Typography } from '@abbottland/fui-components';
 
-In this article, we'll go step-by-step showing how you can connect a react front-end to an express.js backend. This one is written like a tutorial so you should be able to follow along at home.
+This article walks you step-by-step through connecting a React front-end to an Express.js backend. It's for developers who already have a bit of React and Express (or similar) under their belt but haven't wired them together. By the end you'll understand how a request from the browser hits your Express server, how the server returns data, and how React turns that data into UI - and you'll have a small app running that proves it.
 
 ## Motivation
 
-I was recently working with my friend Nissa on a web development project. She had created some ui components in react and some boilerplate express.js code and wanted to know how to connect them together. If you're a bit new to web development, this article is for you! I'll be sure to explain all the pieces as we connect things together, and you'll see links to some of my favorite documentation.
+I was recently working with my friend Nissa on a web project. She had built a UI in React and had some Express boilerplate and wanted to know how to connect them. If you're in a similar spot - comfortable with the basics of each but unsure how they talk to each other - this article is for you. I'll be sure to explain all the pieces as we connect things together, and you'll see links to some of my favorite documentation.
 
-To continue with this article, you should have some basic, working knowledge of `npm`, `node`, `html`, and a few shell commands.
+For this guide, you'll need basic familiarity with `npm`, `node`, HTML, and running commands in a terminal (e.g. `cd`, `mkdir`).
 
-## The express.js setup
+## Build the API first: Express
 
-The first thing we're going to build is an API with express.js.
+We'll build the API first. Every command in this section runs from a single project directory: `~/code/one-cool-api`.
 
-For all of the following commands, we're going to work in a repository (directory) called `one-cool-api`. Assume that any command we issue in this section is from this directory.
-
-Here's the commands
+Here are the first few commands to get you started:
 
 ```sh
+cd ~/code
 mkdir one-cool-api
 cd one-cool-api
 
@@ -56,9 +55,7 @@ npm install -D nodemon
   to run an API and we only need `nodemon` for our own development purposes.
 </TransparentPanel>
 
->
-
-### 2 - Warm-reloading Code
+### 2 - Set up warm reloading
 
 Next, we need to setup a place to write code. Let's make a folder and a file:
 
@@ -78,7 +75,7 @@ We also need to make an edit to our `package.json`. We're going to make a script
 }
 ```
 
-Now, in `src/indexjs`, add a little code:
+Now, in `src/index.js`, add a little code:
 
 ```js
 console.log('hello world');
@@ -91,7 +88,7 @@ Using nodemon is far quicker than the alternative process of:
 
 - Edit file
 - Save file
-- `ctrl` + `c` in termainl
+- `ctrl` + `c` in terminal
 - type `npm run dev`
 
 <TransparentPanel color="secondary" className="mb-6">
@@ -112,7 +109,7 @@ Let's start things off by following the [hello-world tutorial from express.js](h
 
 Add the following code to `src/index.js`
 
-```ts
+```js
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -126,23 +123,19 @@ app.listen(port, () => {
 });
 ```
 
-Ok. Let's take a look at what is happening here. First, we import `express` and make a new instance of it called `app`. I like to think of the `app` as the "server." This is the API and how it should work.
+Here's what's going on. We create an Express `app` - that's the object that defines your API (routes and behavior). Nothing runs until we call `app.listen(port)`: that binds the server to a port on your machine so it can accept requests. Think of `app` as "what to do" and `listen` as "start accepting traffic."
 
-Next, let's jump down to the `app.listen()` call. The `port` is the port on your computer where this API should start listening to requests. This `app.listen()` section is basically where the server starts up.
-
-Finally, let's take a look at that `app.get(...)` bit. This says that our API should respond to requests at `/`. Practically speaking, that means you can visit `http://localhost:3000/` in a web-browser and expect express.js to handle your request.
+The `app.get('/', ...)` block is a route: it tells Express how to respond when someone requests the root path. Practically speaking, that means you can visit `http://localhost:3000/` in a web-browser and expect express.js to handle your request.
 
 #### req and res
 
 Next, notice the function `(req, res) => { ... }`. This is a callback. Basically just when you interact with `http://localhost:3000/` express will call this function.
 
-Express stores everything about the request in the variable called `req`. On my computer, I did a `console.log(req)` and it shows that I'm on a Windows 11 pc, using Google Chrome, my IP address, and the URL I typed into my browser. There's so much in this `req` variable, it can be a bit overwhelming, but just think of it as information about the request made to our express server.
+`req` holds everything about the incoming request (URL, headers, IP, etc.). A `console.log(req)` will show how much is in there - it can definitely feel like a lot. For now, think of it as "everything the client sent." `res` is the opposite: it's how you send data and status codes back. Here we use `res.send('Hello World!')` to return a string.
 
-`res` on the other hand is the Response. It says how we want to respond to the caller. In this case, we're just sending down a string that says `Hello World`. Generally `res` is used to send data down from the API with a particular status code.
+### 4 - Add real endpoints: health check and data
 
-### 4 - More Meaningful Code
-
-Let's update our API to provide some code that is a litlte more meaningful. Here is the new code, and below we'll talk about it:
+Next we'll add two routes: a health check and a route that returns structured data. Here's the updated code; we'll walk through it below:
 
 ```js
 const express = require('express');
@@ -161,7 +154,7 @@ app.get('/foods', (req, res) => {
       { id: 1, name: 'chips' },
       { id: 2, name: 'salsa' },
       { id: 3, name: 'guac' },
-      { id: 3, name: 'queso' },
+      { id: 4, name: 'queso' },
     ],
   });
 });
@@ -175,13 +168,11 @@ app.listen(port, () => {
 
 Ok, first, let's notice that we can no longer make GET requests to `/`. Instead, we've updated it to `/healthz`. If you try going to `http://localhost:3000/` in a web-browser, you'll notice it says `CANNOT GET /`. Which makes sense, as we told express it should only respond to the paths: `/healthz` and `/foods`.
 
-What is that `/healthz` thing anyway? This is a pretty common endpoint to have in back-end development. Its just a health check endpoint that returns a simple object. In our case, we did `status: 'OK'`. This can be useful in scenarios where you just want to see if your API is up-and-running. The name `/healthz` also shows up in kubernetes environments to help with health checks.
+`/healthz` is a health-check endpoint: it returns a simple payload so clients (or load balancers) can confirm that the API is up. It's a common backend convention. In our case we return `status: 'OK'`. The name `/healthz` also shows up in Kubernetes environments for health checks.
 
 #### Data
 
-Finally, we've implemented another `app.get()` for `/foods`. This route returns a list of items.
-
-Now, you might be tempted to return an array directly in a response. Something like this... `res.json([])`. But you don't want to do this! The reason is because arrays are not easily extensible.
+The `/foods` route returns a list of items. Returning a raw array (`res.json([...])`) is tempting, but there's a catch: arrays are not easily extensible.
 
 Imagine next week you need to add a `count` and a `featuredFood` to your response. This can be very tricky if you're locked in to using an array. If you always make your root response an object `{}`, then you'll always be able to extend it! See below.
 
@@ -196,15 +187,20 @@ res.json({
 })
 ```
 
-## React
+<TransparentPanel color="accent-purple" className="mb-6">
+  **Checkpoint** You now have an API that listens on port 3000 and responds to
+  GET `/healthz` and GET `/foods`. Try `http://localhost:3000/foods` in the
+  browser and confirm you see JSON. Once that works, we'll build the client that
+  consumes it.
+</TransparentPanel>
 
-Alright! We have an API that returns data! Now let's start building a front-end to show that data from our API on screen.
+## Add the React front-end
+
+The API is ready. Next we build a React app that requests that data from our API and renders it.
 
 ### 1 - Quick start with Vite
 
-Ok, let's head back to our code directory. If you were working on the api, we're going up one level `cd ..`
-
-Now we're going to use a special command to make a directory for us (instead of using `mkdir` from before).
+From the API project directory, go up one level (`cd ..`). We'll create the React app with a single command - no manual `mkdir` this time around.
 
 ```sh
 # This command might ask some questions.
@@ -222,11 +218,11 @@ If everything went well you should be able to see a website like this:
   className="rounded-lg my-8"
 />
 
-### 2 - Build a list
+### 2 - A static list to start
 
 Ok, next up make some edits to `src/App.jsx`. In fact, we're going to remove lots of the boilerplate code and cut it down to just the basics.
 
-Check it:
+Replace the contents of `src/App.jsx` with:
 
 ```jsx
 import './App.css';
@@ -251,16 +247,16 @@ export default App;
 
 </TransparentPanel>
 
-### 2 - Use State
+### 3 - Use State
 
-Ok now we're going to make an interesting change to this code. In React, if we know that we're going to have data changing on the page we need to use a special function in react called `useState`. This will help us make changes to the page automatically.
+The list will soon come from the API, so it must be able to change after the page loads. In React, any value that can change over time lives in state, and `useState` is how we declare and update it. That is, we will later call `setFoods` with API data and the UI will update automatically.
 
 <TransparentPanel color="secondary" className="mb-6">
   **Note** If you want to see how this works in depth, check out the [React docs on useState](https://react.dev/reference/react/useState) - they're actually pretty good!
 
 </TransparentPanel>
 
-Anyway, let's change our code so that it makes a list from State
+We'll drive the list from state so we can replace it with API data in the next step:
 
 ```jsx
 import './App.css';
@@ -300,7 +296,13 @@ Now take a look at the area of code inside the `<ul>` with a call to `.map()`. W
 
 Thankfully we have an `id` field on each food item!
 
-### 3 - Introducing Use Effect
+<TransparentPanel color="accent-purple" className="mb-6">
+  **Checkpoint** The list is now driven by `foods` in state and rendered with
+  `.map()`. It's still hard-coded, but the structure is ready: as soon as we put
+  API data into `setFoods`, the same list will show that data.
+</TransparentPanel>
+
+### 4 - Fetch data on load with useEffect
 
 Ok, at this point our code hasn't changed all that much in terms of functionality. We are still rendering a list of things on screen, and they're just hard-coded on the front-end. The nice part though, is we are now set up to get these foods from somewhere else: from `one-cool-api`!
 
@@ -364,9 +366,9 @@ The other piece of code to look at is the call to `fetch()`. This is where we te
 
 The first `.then()` says to get the response as json. Basically we're expecting structured data, not just a string.
 
-The second `.then()` makes a call to `setFoods`. This is perfect! This should update our page with the data from the API. Wahoo!
+The second `.then()` calls `setFoods(data)`. That should (hopefully) update the page!
 
-## Fixing the bugs
+## Fix two bugs: CORS and response shape
 
 Alright, if you've been following along you should be able to see something like this:
 
@@ -400,7 +402,7 @@ Notice how two of them have a CORS error!
 
 ### Fixing the CORS problem
 
-Ok this is thankfully a super common issue. CORS stands for cross-origin resource sharing. It basically means that your API right now is set up to ONLY share data with clients at `localhost:3000` and nowhere else. This can be kind of handy in a production environment where your APIs and UIs might all be under the same domain name. For our purposes though, let's just open it up to anybody.
+This is a very common issue. CORS (cross-origin resource sharing) is a browser rule: by default, your API only accepts requests from the same origin (e.g. same port). Our React app runs on a different port (5173), so the browser blocks the request. This can be kind of handy in a production environment where your APIs and UIs might all be on the same domain name. For local development, we'll enable CORS so the API accepts requests from anywhere (ie. our React app).
 
 Go over to your API and stop it from running with `ctrl` + `c`.
 
@@ -446,9 +448,9 @@ app.listen(port, () => {
   can be called from anywhere.
 </TransparentPanel>
 
-### Whack-a-mole
+### Fix the response shape
 
-Alright, if you refreshed your page, you might see its blank.
+After refreshing, the page may be blank. CORS is fixed, but we're now hitting a second issue.
 
 Let's right-click and inspect element again.
 
@@ -461,9 +463,9 @@ This time instead of the "Network" tab click on the "Console" tab to find the fo
 
 #### Fixing the bug with .map()
 
-This one should be easy to fix! We know that foods.map won't work because `foods` in our API is an object. We need to reference `foods.items` instead. This is by design.
+The fix is small. The API returns `{ items: [...] }`, but we passed the whole object to `setFoods`, so `foods` was an object, not an array. We intentionally return an object from the API so we can extend it later. On the client, we just need to pass `data.items` into `setFoods`.
 
-All we need to change is one small bit in the `useEffect`:
+Here is where we need to change it, in the `useEffect`:
 
 ```js
 useEffect(() => {
@@ -474,9 +476,16 @@ useEffect(() => {
 }, []);
 ```
 
+<TransparentPanel color="accent-purple" className="mb-6">
+  **Checkpoint** CORS is enabled and the client uses `data.items`. You now have
+  a full loop: the UI requests `/foods`, Express responds with JSON, and React
+  renders the list. Verify in the Network tab that the request succeeds and the
+  list shows chips, salsa, guac, queso.
+</TransparentPanel>
+
 ### Time to celebrate!
 
-And finally we have our UI and API connected together! The front end application makes a request to our backend server to get data and then shows it on screen. Time to celebrate with some chips and dip.
+The UI and API are connected. On load, the front end requests `/foods` from the backend, receives the JSON, and renders the list. That's the full loop. Time to celebrate with some chips and dip.
 
 <Image
   src="/api/blog-images/connect-react-and-express-js/ui-li-screenshot.png"
@@ -487,3 +496,7 @@ And finally we have our UI and API connected together! The front end application
 />
 
 ## Reflection
+
+You now have the full loop: **request** (browser calls your API) → **server** (Express handles the route) → **data** (JSON with `items`) → **response** (back to the browser) → **UI** (React state updates and the list re-renders). Two things we fixed along the way: CORS (so the browser allows the cross-origin request) and response shape (the client uses `data.items` because the API returns an object, not a raw array).
+
+Returning an object from the API (with `items` and room for more fields) and enabling CORS for local dev are patterns you'll reuse. Next steps: more routes, loading and error states in the UI, or a real database. You've got a clean React + Express stack to build on.
