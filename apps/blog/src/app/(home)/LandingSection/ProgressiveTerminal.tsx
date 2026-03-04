@@ -1,6 +1,10 @@
 'use client';
 import { useContext, useState } from 'react';
-import { TransparentPanel, Typography } from '@abbottland/fui-components';
+import {
+  extendedTwMerge,
+  TransparentPanel,
+  Typography,
+} from '@abbottland/fui-components';
 import { ReactTyped } from 'react-typed';
 import { ReactNode } from 'react';
 import { TerminalEvent } from './TerminalEvent';
@@ -19,13 +23,13 @@ const lines: TerminalLine[] = [
     endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
   {
-    text: 'Initializing background colors... ',
-    event_name: TerminalEvent.INITIALIZING_BACKGROUND_COLORS,
+    text: 'Initializing website title... ',
+    event_name: TerminalEvent.INITIALIZING_WEBSITE_TITLE,
     endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
   {
-    text: 'Rendering interactive background experience... ',
-    event_name: TerminalEvent.RENDERING_INTERACTIVE_BACKGROUND_EXPERIENCE,
+    text: 'Rendering background experience... ',
+    event_name: TerminalEvent.RENDERING_BACKGROUND_EXPERIENCE,
     endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
   {
@@ -34,20 +38,34 @@ const lines: TerminalLine[] = [
     endOfLineComponent: null,
   },
   {
-    text: '... ...',
-    event_name: TerminalEvent.PROCESS_DELAYED,
+    text: 'Still waiting for user action...',
+    event_name: TerminalEvent.STILL_WAITING_FOR_USER_ACTION,
     endOfLineComponent: (
       <span className="text-warning-500">PROCESS DELAYED</span>
     ),
+  },
+  {
+    text: '... ...',
+    event_name: TerminalEvent.PROCESS_DELAYED,
+    endOfLineComponent: null,
   },
   {
     text: '(click a button above to continue)',
     event_name: TerminalEvent.CLICK_BUTTON_TO_CONTINUE,
     endOfLineComponent: null,
   },
+  {
+    text: '(or scroll down the page)',
+    event_name: TerminalEvent.SCROLL_DOWN_PAGE,
+    endOfLineComponent: null,
+  },
 ];
 
-export default function ProgressiveTerminal() {
+export default function ProgressiveTerminal({
+  className,
+}: {
+  className?: string;
+}) {
   const [renderedLines, setRenderedLines] = useState<TerminalLine[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { onTerminalEventFinished, onTerminalEventStarted } = useContext(
@@ -79,7 +97,10 @@ export default function ProgressiveTerminal() {
   };
 
   return (
-    <TransparentPanel color="dark" className="w-full h-48">
+    <TransparentPanel
+      color="dark"
+      className={extendedTwMerge('w-full h-56', className)}
+    >
       {/* Render accumulated lines */}
       {renderedLines.map((line, i) => (
         <Typography variant="body1" component="p" key={i}>

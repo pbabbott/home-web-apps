@@ -20,7 +20,6 @@
     "animejs": "^3.2.2",
     "gray-matter": "^4.0.3",
     "next": "16.0.1",
-    "particles.js": "^2.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-typed": "^2.0.12",

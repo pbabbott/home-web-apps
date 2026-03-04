@@ -1,0 +1,94 @@
+import { useState, useEffect, useRef } from 'react';
+import { buildGrid, buildEdgeGraph, buildGridPath } from './hexGrid';
+import { C } from './hexagonalConstants';
+import { useSparkCanvas } from './useSparkEffect';
+
+export type HexagonalBackgroundProps = {
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function HexagonalBackground({
+  className,
+  style,
+}: HexagonalBackgroundProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [size, setSize] = useState({ width: 800, height: 600 });
+  const [hexes, setHexes] = useState<ReturnType<typeof buildGrid>>([]);
+  const graphRef = useRef<ReturnType<typeof buildEdgeGraph>>({
+    vertices: new Map(),
+    edges: new Map(),
+  });
+
+  useSparkCanvas(canvasRef, graphRef, hexes, size);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    setSize({ width: el.offsetWidth, height: el.offsetHeight });
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const DEBOUNCE_MS = 80;
+    const ro = new ResizeObserver(([e]) => {
+      const { width, height } = e.contentRect;
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        timeoutId = null;
+        setSize({ width, height });
+      }, DEBOUNCE_MS);
+    });
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      if (timeoutId !== null) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const grid = buildGrid(size.width, size.height);
+    setHexes(grid);
+    graphRef.current = buildEdgeGraph(grid);
+  }, [size]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        background: C.bg,
+        ...style,
+      }}
+    >
+      <svg
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          overflow: 'visible',
+        }}
+      >
+        <path
+          d={buildGridPath(hexes)}
+          fill={C.hexFill}
+          stroke={C.hexStroke}
+          strokeWidth={0.5}
+        />
+      </svg>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  );
+}

@@ -1,16 +1,16 @@
 'use client';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Typography } from '@abbottland/fui-components';
+import { useContext, useEffect, useState } from 'react';
+import { HexagonalBackground, Typography } from '@abbottland/fui-components';
 import ProgressiveTerminal from './ProgressiveTerminal';
 import { LandingSectionContext } from './LandingSection.Context';
-import AnimatedGradient from './AnimatedGradient';
-import { particlesConfig } from '@/config/particles';
-import anime from 'animejs';
-import Link from 'next/link';
+import LandingSectionTitle from './LandingSectionTitle';
+import MaskReveal from '@/app/components/MaskReveal';
 
 export default function LandingSection() {
-  const { showParticles } = useContext(LandingSectionContext);
   const [isXSScreen, setIsXSScreen] = useState(false);
+  const { revealTitle, showBackgroundExperience } = useContext(
+    LandingSectionContext,
+  );
 
   // Effect to check screen size for responsive typography
   useEffect(() => {
@@ -24,88 +24,41 @@ export default function LandingSection() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const { showBackgroundColors } = useContext(LandingSectionContext);
-
-  useEffect(() => {
-    // Dynamically import particles.js to avoid SSR issues
-    if (typeof window !== 'undefined') {
-      import('particles.js').then(() => {
-        if (window.particlesJS) {
-          window.particlesJS('particles-js', particlesConfig);
-        }
-      });
-    }
-  }, []);
-
-  const particlesRef = useRef<HTMLDivElement>(null);
-
-  // Initialize particles with opacity 0
-  useEffect(() => {
-    if (particlesRef.current) {
-      particlesRef.current.style.opacity = '0';
-    }
-  }, []);
-
-  // Animate particles fade-in when showParticles becomes true
-  useEffect(() => {
-    if (showParticles && particlesRef.current) {
-      anime({
-        targets: particlesRef.current,
-        opacity: [0, 1],
-        duration: 3000,
-        delay: 1000,
-        easing: 'easeInOutQuad',
-      });
-    }
-  }, [showParticles]);
+  /* Spacer so content starts below fixed header; height must match --header-height */
+  /* <div className="h-[var(--header-height)]" aria-hidden /> */
 
   return (
-    <AnimatedGradient
-      isAnimated={showBackgroundColors}
-      className={`w-full min-h-screen`}
-    >
-      <div className="z-10 flex flex-col items-center justify-center min-h-screen px-4 max-w-screen-md mx-auto">
-        <Typography
-          variant={isXSScreen ? 'h2' : 'h1'}
-          component="h1"
-          className="mb-2"
+    <>
+      <div className="h-[var(--header-height)] bg-neutral-700"></div>
+      <div className="relative w-full h-[calc(100vh-var(--header-height))] bg-neutral-700">
+        <MaskReveal
+          reveal={showBackgroundExperience}
+          direction="left-to-right"
+          duration={2000}
+          delay={2000}
+          className="absolute inset-0"
         >
-          Abbottland.io
-        </Typography>
-        <Typography variant="h5" component="h5" className="mb-2">
-          A blog sharing technical insights on software engineering
-        </Typography>
-        <div className="flex gap-2 mb-4">
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => {
-              document
-                .getElementById('welcome-section')
-                ?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Read Manual
-          </Button>
-          <Link href="/blog">
-            <Button variant="contained" color="primary">
-              Read Blog
-            </Button>
-          </Link>
-        </div>
-        <ProgressiveTerminal />
-      </div>
-      <div className="flex items-center justify-end absolute bottom-0 left-0 w-full z-10">
-        <Typography variant="caption" component="span">
-          Crafted with &lt;3 by Brandon Abbott
-        </Typography>
-      </div>
+          <HexagonalBackground />
+        </MaskReveal>
 
-      <div
-        id="particles-js"
-        className="absolute inset-0 w-full h-full z-20 opacity-0 pointer-events-none"
-        ref={particlesRef}
-      ></div>
-    </AnimatedGradient>
+        <div className="relative z-10 flex flex-col pt-32 px-4 max-w-screen-md mx-auto">
+          <div className="flex flex-col min-h-[50vh] shrink-0">
+            <LandingSectionTitle
+              isXSScreen={isXSScreen}
+              reveal={revealTitle}
+              className="shrink-0"
+            />
+            <div className="flex flex-1 items-center justify-center min-h-0">
+              <ProgressiveTerminal />
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end mt-auto py-4 absolute bottom-0 left-0 w-full">
+          <Typography variant="caption" component="span">
+            Crafted with &lt;3 by Brandon Abbott
+          </Typography>
+        </div>
+      </div>
+    </>
   );
 }

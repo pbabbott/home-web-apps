@@ -48,6 +48,12 @@ export {
   type DotGridBackgroundProps,
 } from './components/DotGridBackground/DotGridBackground';
 
+// HexagonalBackground
+export {
+  HexagonalBackground,
+  type HexagonalBackgroundProps,
+} from './components/HexagonalBackground/HexagonalBackground';
+
 // HorizontalRule
 export {
   HorizontalRule,

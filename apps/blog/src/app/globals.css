@@ -3,6 +3,11 @@
 
 @config '../../tailwind.config.ts';
 
+:root {
+  /* Used for spacer below fixed StickyHeader so full-height sections start in the right place */
+  --header-height: 3rem;
+}
+
 @layer base {
   @font-face {
     font-family: 'ethnocentric';
