@@ -5,7 +5,8 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "22"
+      "version": "22",
+      "pnpmVersion": "10.15.0"
     },
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,

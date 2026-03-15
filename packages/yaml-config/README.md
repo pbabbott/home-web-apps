@@ -292,18 +292,10 @@ First, ensure you have `nx` installed globally
 npm install -g nx@latest
 ```
 
-Next, authenticate to private registry by setting the following environment variables:
-
-```env
-NPM_REGISTRY_PROTO='https'
-NPM_REGISTRY='verdaccio.nas.local.abbottland.io'
-NPM_TOKEN='ASK_PEER_DEVELOPER_FOR_THIS_VALUE'
-```
-
-Then, restore packages with `yarn`
+Then, restore packages from the repo root (this monorepo uses pnpm):
 
 ```bash
-yarn
+pnpm install
 ```
 
 Now you are ready to start developing on this project. 🎉

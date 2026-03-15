@@ -1,6 +1,6 @@
 # Dev Guide - Publication Semantic Versioning
 
-The purpose of this document is to explain how you can version major, minor, or patch version of each package in preparation for them to be later published to either the npm or docker registries.
+The purpose of this document is to explain how you can version major, minor, or patch version of each package in preparation for them to be later published to the docker registry.
 
 ## 1- Create a changeset
 
