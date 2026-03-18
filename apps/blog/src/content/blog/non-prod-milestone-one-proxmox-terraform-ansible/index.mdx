@@ -88,7 +88,7 @@ Here's a diagram showing the steps:
 
 <DiagramViewer data={diagram1} height="400px" className="mb-8" />
 
-### Template Configuration vs Fleet Configuration
+### What goes into the golden image (and what doesn't)
 
 Now you might be wondering, in step 3 we configure a vm and in step 6 we configure many vms. Why configure the VMs twice?
 
@@ -181,15 +181,6 @@ The interesting part here is that `qm` is used to create a vm, and set various s
 
 ```sh
 #!/usr/bin/env bash
-set -euo pipefail
-
-# ------------------------------------------------------------
-# Ubuntu Cloud-Init Template Bootstrap for Proxmox
-# ------------------------------------------------------------
-# This script creates a reusable Ubuntu cloud-init template.
-# Terraform will clone from this template.
-# Run once per Ubuntu release.
-# ------------------------------------------------------------
 
 TEMPLATE_ID="${TEMPLATE_ID:-901}"
 TEMPLATE_NAME="${TEMPLATE_NAME:-ansible-template-ubuntu-noble}"
@@ -206,19 +197,8 @@ CIPASSWORD="${CIPASSWORD:-change-me}"
 UBUNTU_IMAGE_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 IMAGE_FILE="noble-server-cloudimg-amd64.img"
 
-### PRECHECKS ###
-if qm status "$TEMPLATE_ID" &>/dev/null; then
-  echo "VMID $TEMPLATE_ID already exists. Aborting."
-  exit 1
-fi
-
-### DOWNLOAD IMAGE ###
-if [ ! -f "$IMAGE_FILE" ]; then
-  echo "Downloading Ubuntu cloud image..."
-  wget -O "$IMAGE_FILE" "$UBUNTU_IMAGE_URL"
-else
-  echo "Image already downloaded."
-fi
+echo "Downloading Ubuntu cloud image..."
+wget -O "$IMAGE_FILE" "$UBUNTU_IMAGE_URL"
 
 echo "Creating VM..."
 qm create "$TEMPLATE_ID" \
@@ -418,6 +398,6 @@ I shouldn't have messed around with my home network (without full understanding 
 
 I also accidentally discovered multiple strategies for handling VMs. Golden images or a just-in-time approach. I could see the benefit of having everything fully scripted and perhaps then highly automated with the just-in-time approach, but my homelab infrastructure just isn't there yet. I think the approach I used for my homelab works well for my needs right now. I can destroy everything and re-create with a handful of manual steps. Things that change frequently are now easier to change. I accomplished the goal of my first milestone: Ensure things can be re-run safely, and build confidence in my infrastructure management code.
 
-Perhaps the most exciting was that final moment of running `kubectl get nodes`.
+Perhaps the most exciting was that final moment of running `kubectl get nodes`. With this foundation in place, I can now spin up a full cluster in just a few minutes, which sets the stage for layering in a new ingress pattern, service mesh experimentation, and organizing my Flux repository.
 
 I am now fully ready to start Milestone 2. Next up, it'll be time to re-work the ingress pattern with `haproxy` and a transition from `ingress-nginx` to `istio`. Stay tuned!
