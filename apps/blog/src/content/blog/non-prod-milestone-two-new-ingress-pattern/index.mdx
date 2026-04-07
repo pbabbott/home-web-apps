@@ -1,0 +1,101 @@
+---
+title: Non-Prod Journey Milestone 2 - A new ingress pattern
+excerpt: 'TBD'
+status: 'published'
+date: '2026-04-06'
+bannerImage: 'kubernetes-cluster-split-milestone-2.png'
+categories:
+  - 'k8s'
+  - 'DevOps'
+  - 'Flux'
+  - 'terraform'
+  - 'haproxy'
+---
+
+import Image from 'next/image';
+
+This article is number 3 in a series where I establish a non-prod cluster at home.
+
+If you've been following along, last time I set up a new fleet of VMs using proxmox and then installed kubernetes onto them with ansible.
+
+In today's article, we'll walk through the steps I took to setup a new ingress pattern for my kubernetes cluster. We'll take a look at things like `haproxy`, `flux`, `istio` and even touch on some AI with `flux-operator-mcp`.
+
+Buckle up, for a fun, narrative journey to see how my homelab is evolving.
+
+## 1 - Sync code into the cluster
+
+Last time - we built out a kubernetes cluster. Now I need to put some stuff on it. Thankfully, from my gen 1 cluster, I had written some nice step-by-step instructions to install flux. To keep things simple, I just followed one of my existing "dev guides" and quickly set up the boilerplate flux needs to sync code from github into the cluster.
+
+If you're curious, here is roughly what my old bootstrap command looked like:
+
+```sh
+flux bootstrap github \
+  --components-extra=image-reflector-controller,\
+    image-automation-controller \
+  --token-auth \
+  --owner=$GITHUB_USER \
+  --repository=home-kubernetes \
+  --branch=main \
+  --path=./clusters/non-prod-gen2 \
+  --personal
+```
+
+Of course I needed to actually deploy something to the cluster. For basic sensibility checks in kubernetes, I've really come to enjoy using a deployment called [stefanprodan/podinfo](https://github.com/stefanprodan/podinfo). It has easy instructions for both `kubectl` and `helm install`. Plus once you've installed podinfo, it has a cute cephalopod when you view the page in a browser.
+
+## 2 - ingress into cluster
+
+### 2A - Isitio
+
+Ok, so now I've got a `podinfo` deployment running, but I want to access it. In my old cluster, I had set up `ingress-nginx` and in my earlier planning phases I said I wanted to get off of this tech as its no longer supported. So yeah, now I need to figure out how to replace it. I've always wanted to figure out Istio & how the Gateway api works.
+
+To accelerate this process, I used a clever prompt with an LLM to generate the `HelmReleases` I needed. I took [my old ingress-nginx HelmRelease](https://gist.github.com/pbabbott/37ea6e845d298f875b20ae1797a0e8c7) and gave it to an LLM and said something like this:
+
+```text
+Referencing my ingress-nginx deployment, Let's generate the equivalent HelmReleases using Istio and Gateways.
+
+For cases when there is no functional equivalence, output a list of features that need coverage into a markdown file as a report.
+```
+
+With some more back-and-forth with the AI to figure out what each of these components actually do, I wound up with the following Helm HelmReleases:
+
+- `istio/istiod` (profile: ambient)
+- `istio/gateway` (running as a DaemonSet)
+- `istio/cni` (profile: ambient)
+- `istio/ztunnel` (profile: ambient)
+
+I also set up an `AuthorizationPolicy` for ip allowlisting, and a `Gateway` to handle ingress on port 80 and 443.
+
+The nice part, is that all of this just lives in my `istio-system` and I don't have to configure it for every ingress. In a future blog post, I'll do a deep dive into each of these components of Istio to fully explain how to transition from ingress-nginx, but for today, we're just on a high-level, narrative journey.
+
+### 2B - Loadbalancer: HAProxy in an LXC container
+
+Next up, is to set up my load balancer. I've had an `haproxy` instance on my banana pi for a long time now; however, I am wanting to move services off of this device, as I'd like my infra to be a bit more portable. That is, I'm realizing the more stuff I put into virtual infrastructure, the less work I have to do with physical infra. I want to get basically all of my core services set up on VMs, kubernetes services, or on anything ephemeral and light weight. That then leaves my physical devices (like my bananapi) available to fold in as work horses. I think there is an industry saying about treating infra like cattle, and honestly it makes sense. Building snowflakes just leads to snapshots, restoring from backups, and headaches.
+
+Anyway, I landed on making an LXC via proxmox. An LXC (as I found out) is basically just a super light weight VM, kind of like a container, but for proxmox. Its very fast because it can actually share the kernel with the host so it doesn't eat much memory or CPU either. This solution felt perfect for my needs, as I don't want anything heavy hosting services outside my cluster.
+
+If you'd like to see the code - check it out! I built a small terraform module for haproxy.
+
+home-playbooks / terrraform / modules / [haproxy](https://github.com/pbabbott/home-playbooks/tree/main/terraform/modules/haproxy).
+
+This honestly turned out pretty cool, as I used SNI to inspect the traffic coming in, to send it to either my prod or non-prod cluster. I used this opportunity in terraform to provision another cluster. Here's how my data center now looks:
+
+<Image
+  src="/api/blog-images/non-prod-milestone-two-new-ingress-pattern/proxmox-datacenter-screenshot.png"
+  alt="Proxmox Screenshot"
+  width={200}
+  height={400}
+  className="rounded-lg my-8"
+/>
+
+- 4 vms for non-prod gen2
+- 4 vms for prod gen2
+- 4 for my old homelab cluster (turned off, RIP)
+- an haproxy lxc
+- a dev workstation
+- and a few templates
+
+The homelab must grow!
+
+#### 2C - Certificates
+
+cert-manager

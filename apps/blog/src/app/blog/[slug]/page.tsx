@@ -5,6 +5,7 @@ import StickyHeader from '../../components/StickyHeader';
 import BlogPostBannerImage from '../../components/BlogPostBannerImage';
 import MDXContent from './MDXContent';
 import BlogPostHeader from './BlogPostHeader';
+import BlogMinimap from './BlogMinimap';
 
 type PageProps = {
   params: Promise<{
@@ -59,7 +60,11 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
       <StickyHeader />
-      <article className="prose prose-invert mx-auto max-w-3xl px-4 py-24 text-neutral-100">
+      <BlogMinimap />
+      <article
+        id="blog-article"
+        className="prose prose-invert mx-auto max-w-3xl px-4 py-24 text-neutral-100"
+      >
         <BlogPostBannerImage
           bannerImage={post.bannerImage}
           slug={slug}

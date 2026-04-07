@@ -209,9 +209,6 @@ qm create "$TEMPLATE_ID" \
   --scsihw virtio-scsi-pci \
   --ostype l26
 
-echo "Setting memory balloon to $BALLOON..."
-qm set "$TEMPLATE_ID" --balloon "$BALLOON"
-
 echo "Importing disk..."
 qm importdisk "$TEMPLATE_ID" "$IMAGE_FILE" "$STORAGE"
 
@@ -221,34 +218,11 @@ qm set "$TEMPLATE_ID" \
   --boot order=scsi0 \
   --bootdisk scsi0
 
-echo "Resizing disk to $DISK_SIZE..."
-qm resize "$TEMPLATE_ID" scsi0 "$DISK_SIZE"
+# Trimmed for brevity...
 
-echo "Adding cloud-init drive..."
-qm set "$TEMPLATE_ID" --ide2 "$STORAGE:cloudinit"
-
-echo "Disabling QEMU agent..."
-qm set "$TEMPLATE_ID" --agent enabled=0
-
-echo "Setting serial console..."
-qm set "$TEMPLATE_ID" --serial0 socket --vga serial0
-
-echo "Enabling auto-start..."
-qm set "$TEMPLATE_ID" --onboot 1
-
-echo "Setting user and password..."
-qm set "$TEMPLATE_ID" --ciuser "${CIUSER}" --cipassword "${CIPASSWORD}"
-
-echo "Setting SSH public key..."
-qm set "$TEMPLATE_ID" --sshkey "/root/id_ed25519.pub"
-
-echo "Setting static IP config..."
-qm set "$TEMPLATE_ID" --ipconfig0 "ip=192.168.6.91/22,gw=192.168.4.1"
-
-echo ""
-echo "Template $TEMPLATE_NAME (VMID $TEMPLATE_ID) created successfully."
-echo "Note: template is not yet finalized."
 ```
+
+Want to see the whole proxmox script? Check [it out here in this gist](https://gist.github.com/pbabbott/d269958dd57708e0c666115bb1d21055).
 
 ### 5. B - Configure the VM
 
