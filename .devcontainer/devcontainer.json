@@ -1,5 +1,6 @@
 {
   "name": "Node.js Development Container",
+  "waitFor": "none",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -15,21 +16,29 @@
       "upgradePackages": true
     },
     "ghcr.io/devcontainers/features/docker-in-docker:2.16.1": {},
-    "ghcr.io/itsmechlark/features/1password:1": {},
+    "ghcr.io/flexwie/devcontainer-features/op:1": {},
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1.3.1": {
       "helm": "none",
       "minikube": "none"
     },
     "ghcr.io/rio/features/skaffold:2.0.0": {},
     "ghcr.io/devcontainers-contrib/features/kubectx-kubens:1.0.6": {},
+    "ghcr.io/devcontainers-extra/features/starship:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
   "mounts": [
-    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly",
+    "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/vscode/.gitconfig,readonly",
+    "type=bind,source=/home/${localEnv:USER}/.claude,target=/home/vscode/.claude"
   ],
   "runArgs": ["--env-file", ".devcontainer/.env"],
   "customizations": {
     "vscode": {
+      "settings": {
+        "dev.containers.copyGitConfig": false,
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "debug.javascript.autoAttachFilter": "disabled"
+      },
       "extensions": [
         "yzhang.markdown-all-in-one",
         "aaron-bond.better-comments",
@@ -43,13 +52,10 @@
         "github.vscode-github-actions",
         "unifiedjs.vscode-mdx",
         "anthropic.claude-code"
-      ],
-      "settings": {
-        "typescript.tsdk": "node_modules/typescript/lib",
-        "debug.javascript.autoAttachFilter": "disabled"
-      }
+      ]
     }
   },
   "containerUser": "vscode",
-  "postStartCommand": "/workspaces/home-web-apps/.devcontainer/init-script.sh"
+  "postCreateCommand": "bash .devcontainer/init-postcreate.sh",
+  "postStartCommand": "bash .devcontainer/init-poststart.sh"
 }
