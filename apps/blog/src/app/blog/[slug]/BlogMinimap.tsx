@@ -380,8 +380,8 @@ export default function BlogMinimap() {
   const [articleHeight, setArticleHeight] = useState(0);
   const [articleDocTop, setArticleDocTop] = useState(0);
   const [minimapHeight, setMinimapHeight] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const [scrollTop, setScrollTop] = useState(() => window.scrollY);
+  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
   const [visible, setVisible] = useState(false);
 
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -415,7 +415,7 @@ export default function BlogMinimap() {
       debounceTimer = setTimeout(scanArticle, 150);
     });
     observer.observe(article, { childList: true, subtree: true });
-    scanArticle();
+    setTimeout(scanArticle, 0);
 
     return () => {
       observer.disconnect();
@@ -440,9 +440,6 @@ export default function BlogMinimap() {
       setViewportHeight(window.innerHeight);
       scanArticle();
     };
-
-    setViewportHeight(window.innerHeight);
-    setScrollTop(window.scrollY);
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize, { passive: true });

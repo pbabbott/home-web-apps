@@ -17,7 +17,7 @@ const textColorStyles: Record<NodeColorScheme, string> = {
   default: 'text-neutral-200',
 };
 
-export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
+export function TextNode({ data, selected }: NodeProps<TextNodeType>) {
   const colorScheme = data.colorScheme ?? 'default';
   const textColor = textColorStyles[colorScheme];
   const contentValue = data.content ?? 'Text';
