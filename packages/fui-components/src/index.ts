@@ -10,18 +10,20 @@ export {
 // React Flow (peer: @xyflow/react)
 export {
   BaseNode,
-  DEFAULT_HANDLES,
-  MIN_WIDTH,
-  MIN_HEIGHT,
   type BaseNodeProps,
   type BaseNodeData,
   type BaseNodeType,
   type NodeColorScheme,
+  type NodeProps,
+} from './components/BaseNode/BaseNode';
+export {
+  DEFAULT_HANDLES,
+  MIN_WIDTH,
+  MIN_HEIGHT,
   type HandlePosition,
   type HandleType,
   type HandleConfig,
-  type NodeProps,
-} from './components/BaseNode/BaseNode';
+} from './components/BaseNode/BaseNode.constants';
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
 

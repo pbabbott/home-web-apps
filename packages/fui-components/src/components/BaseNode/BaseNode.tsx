@@ -17,19 +17,15 @@ import {
 } from '@xyflow/react';
 
 import { Typography } from '../Typography/Typography';
+import {
+  DEFAULT_HANDLES,
+  MIN_WIDTH,
+  MIN_HEIGHT,
+  type HandleConfig,
+  type HandlePosition,
+} from './BaseNode.constants';
 
 export type NodeColorScheme = 'primary' | 'secondary' | 'default';
-export type HandlePosition = 'top' | 'bottom' | 'left' | 'right';
-export type HandleType = 'source' | 'target';
-
-export interface HandleConfig {
-  id: string;
-  type: HandleType;
-  position: HandlePosition;
-}
-
-// Default handles configuration (empty - no handles by default)
-export const DEFAULT_HANDLES: HandleConfig[] = [];
 
 export interface BaseNodeData extends Record<string, unknown> {
   label?: string;
@@ -41,9 +37,6 @@ export interface BaseNodeData extends Record<string, unknown> {
 }
 
 export type BaseNodeType = Node<BaseNodeData>;
-
-export const MIN_WIDTH = 150;
-export const MIN_HEIGHT = 80;
 
 // Map HandlePosition to React Flow Position
 const positionMap: Record<HandlePosition, Position> = {

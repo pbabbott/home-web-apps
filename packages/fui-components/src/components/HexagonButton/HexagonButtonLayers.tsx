@@ -7,7 +7,7 @@ import {
 } from './constants';
 import type { HexagonButtonStyles } from './useHexagonButtonStyles';
 
-export interface HexagonButtonLayersProps extends HexagonButtonStyles {}
+export type HexagonButtonLayersProps = HexagonButtonStyles;
 
 export function HexagonButtonLayers(styles: HexagonButtonLayersProps) {
   const {
