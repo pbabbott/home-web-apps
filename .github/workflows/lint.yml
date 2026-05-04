@@ -11,7 +11,7 @@ on:
 
 jobs:
   lint:
-    runs-on: [self-hosted, non-prod-gen2-amd64-runner]
+    runs-on: [non-prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
         shell: bash
 
   format:
-    runs-on: [self-hosted, non-prod-gen2-amd64-runner]
+    runs-on: [non-prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
