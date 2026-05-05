@@ -1,5 +1,9 @@
 'use client';
-import { Button, Typography, extendedTwMerge } from '@abbottland/fui-components';
+import {
+  Button,
+  Typography,
+  extendedTwMerge,
+} from '@abbottland/fui-components';
 import Link from 'next/link';
 import MaskReveal from '../../components/MaskReveal';
 

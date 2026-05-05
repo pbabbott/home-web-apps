@@ -23,15 +23,23 @@ export function SelectionInfo({
       {hasSelection ? (
         <div className="flex flex-col gap-1">
           {hasNodeSelection && (
-            <Typography variant="body1" component="p" className="text-neutral-100">
-              {selectedNodeIds.length} node{selectedNodeIds.length > 1 ? 's' : ''}{' '}
-              selected
+            <Typography
+              variant="body1"
+              component="p"
+              className="text-neutral-100"
+            >
+              {selectedNodeIds.length} node
+              {selectedNodeIds.length > 1 ? 's' : ''} selected
             </Typography>
           )}
           {hasEdgeSelection && (
-            <Typography variant="body1" component="p" className="text-neutral-100">
-              {selectedEdgeIds.length} edge{selectedEdgeIds.length > 1 ? 's' : ''}{' '}
-              selected
+            <Typography
+              variant="body1"
+              component="p"
+              className="text-neutral-100"
+            >
+              {selectedEdgeIds.length} edge
+              {selectedEdgeIds.length > 1 ? 's' : ''} selected
             </Typography>
           )}
         </div>

@@ -55,23 +55,23 @@ function panelColorHex(color: string): string {
 
 /** Minimap colour palette derived from FUI design tokens. */
 const C = {
-  minimapBg: neutral[900],          // #23272B — dark panel background
-  codeBlockBg: neutral[1000],       // #171819 — darker than minimap so code blocks recede
-  codeBlockBorder: neutral[700],    // #3D4A4F — subtle border
-  codeLine: neutral[600],           // #728A92 — readable lines against the dark bg
-  textLine: neutral[500],           // #8DABB5 — paragraph text representation
-  listMark: neutral[600],           // #728A92 — bullet dots + item lines
-  headingBright: neutral[100],      // #F2FCFF — H1 / H2
-  headingMid: neutral[300],         // #C8D9DE — H3 / H4
-  headingDim: neutral[500],         // #8DABB5 — H5 / H6
-  blockquote: accentPurple[400],    // #8F63FF — left-accent purple
-  tableBg: neutral[800],            // #2E373B — table body (slightly lighter than minimap)
-  tableBorder: primary[800],        // #008E91 — muted teal row / column grid lines
-  imagePrimary: primary[400],        // #63FDFF — teal end of image gradient
-  imageAccent: accentPurple[300],    // #AC8CFF — light purple end of image gradient
-  diagramPrimary: secondary[400],    // #2BC9FF — blue end of diagram gradient
-  diagramAccent: accentPurple[400],  // #8F63FF — deeper purple end of diagram gradient
-  thumbAccent: primary[400],         // #63FDFF — viewport indicator borders
+  minimapBg: neutral[900], // #23272B — dark panel background
+  codeBlockBg: neutral[1000], // #171819 — darker than minimap so code blocks recede
+  codeBlockBorder: neutral[700], // #3D4A4F — subtle border
+  codeLine: neutral[600], // #728A92 — readable lines against the dark bg
+  textLine: neutral[500], // #8DABB5 — paragraph text representation
+  listMark: neutral[600], // #728A92 — bullet dots + item lines
+  headingBright: neutral[100], // #F2FCFF — H1 / H2
+  headingMid: neutral[300], // #C8D9DE — H3 / H4
+  headingDim: neutral[500], // #8DABB5 — H5 / H6
+  blockquote: accentPurple[400], // #8F63FF — left-accent purple
+  tableBg: neutral[800], // #2E373B — table body (slightly lighter than minimap)
+  tableBorder: primary[800], // #008E91 — muted teal row / column grid lines
+  imagePrimary: primary[400], // #63FDFF — teal end of image gradient
+  imageAccent: accentPurple[300], // #AC8CFF — light purple end of image gradient
+  diagramPrimary: secondary[400], // #2BC9FF — blue end of diagram gradient
+  diagramAccent: accentPurple[400], // #8F63FF — deeper purple end of diagram gradient
+  thumbAccent: primary[400], // #63FDFF — viewport indicator borders
 } as const;
 
 function scanArticleBlocks(article: HTMLElement): ContentBlock[] {
@@ -125,7 +125,9 @@ function scanArticleBlocks(article: HTMLElement): ContentBlock[] {
   });
 
   // Diagrams: React Flow containers rendered by DiagramViewer
-  const diagrams = article.querySelectorAll<HTMLElement>('.react-flow, .xyflow');
+  const diagrams = article.querySelectorAll<HTMLElement>(
+    '.react-flow, .xyflow',
+  );
   diagrams.forEach((el) => {
     const rect = el.getBoundingClientRect();
     const top = Math.round(rect.top + scrolled - articleTop);
@@ -136,7 +138,9 @@ function scanArticleBlocks(article: HTMLElement): ContentBlock[] {
   });
 
   // TransparentPanel components (identified by data-fui attribute)
-  const panels = article.querySelectorAll<HTMLElement>('[data-fui="transparent-panel"]');
+  const panels = article.querySelectorAll<HTMLElement>(
+    '[data-fui="transparent-panel"]',
+  );
   panels.forEach((el) => {
     const rect = el.getBoundingClientRect();
     const top = Math.round(rect.top + scrolled - articleTop);
@@ -155,14 +159,28 @@ function scanArticleBlocks(article: HTMLElement): ContentBlock[] {
   return blocks;
 }
 
-function ParagraphBlock({ scaledTop, scaledHeight }: { scaledTop: number; scaledHeight: number }) {
+function ParagraphBlock({
+  scaledTop,
+  scaledHeight,
+}: {
+  scaledTop: number;
+  scaledHeight: number;
+}) {
   const lineHeight = 1;
   const lineGap = 2;
-  const lineCount = Math.max(1, Math.floor(scaledHeight / (lineHeight + lineGap)));
+  const lineCount = Math.max(
+    1,
+    Math.floor(scaledHeight / (lineHeight + lineGap)),
+  );
   return (
     <div
       className="absolute"
-      style={{ top: scaledTop, height: Math.max(2, scaledHeight), left: 4, right: 4 }}
+      style={{
+        top: scaledTop,
+        height: Math.max(2, scaledHeight),
+        left: 4,
+        right: 4,
+      }}
     >
       {Array.from({ length: lineCount }, (_, j) => {
         const isLast = j === lineCount - 1;
@@ -186,10 +204,19 @@ function ParagraphBlock({ scaledTop, scaledHeight }: { scaledTop: number; scaled
   );
 }
 
-function CodeBlock({ scaledTop, scaledHeight }: { scaledTop: number; scaledHeight: number }) {
+function CodeBlock({
+  scaledTop,
+  scaledHeight,
+}: {
+  scaledTop: number;
+  scaledHeight: number;
+}) {
   const lineHeight = 2;
   const lineGap = 1;
-  const lineCount = Math.max(1, Math.floor((scaledHeight - 2) / (lineHeight + lineGap)));
+  const lineCount = Math.max(
+    1,
+    Math.floor((scaledHeight - 2) / (lineHeight + lineGap)),
+  );
   return (
     <div
       className="absolute overflow-hidden"
@@ -221,13 +248,24 @@ function CodeBlock({ scaledTop, scaledHeight }: { scaledTop: number; scaledHeigh
   );
 }
 
-function ListBlock({ scaledTop, scaledHeight }: { scaledTop: number; scaledHeight: number }) {
+function ListBlock({
+  scaledTop,
+  scaledHeight,
+}: {
+  scaledTop: number;
+  scaledHeight: number;
+}) {
   const lineGap = 3;
   const lineCount = Math.max(1, Math.floor(scaledHeight / lineGap));
   return (
     <div
       className="absolute"
-      style={{ top: scaledTop, height: Math.max(2, scaledHeight), left: 4, right: 4 }}
+      style={{
+        top: scaledTop,
+        height: Math.max(2, scaledHeight),
+        left: 4,
+        right: 4,
+      }}
     >
       {Array.from({ length: lineCount }, (_, j) => {
         const widthFactor = TEXT_LINE_WIDTHS[j % TEXT_LINE_WIDTHS.length];
@@ -354,12 +392,14 @@ function TransparentPanelBlock({
       }}
     >
       {/* Corner squares mirroring the actual TransparentPanel decoration */}
-      {([
-        { top: 0, left: 0 },
-        { top: 0, right: 0 },
-        { bottom: 0, left: 0 },
-        { bottom: 0, right: 0 },
-      ] as React.CSSProperties[]).map((pos, i) => (
+      {(
+        [
+          { top: 0, left: 0 },
+          { top: 0, right: 0 },
+          { bottom: 0, left: 0 },
+          { bottom: 0, right: 0 },
+        ] as React.CSSProperties[]
+      ).map((pos, i) => (
         <div
           key={i}
           style={{
@@ -381,7 +421,9 @@ export default function BlogMinimap() {
   const [articleDocTop, setArticleDocTop] = useState(0);
   const [minimapHeight, setMinimapHeight] = useState(0);
   const [scrollTop, setScrollTop] = useState(() => window.scrollY);
-  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
+  const [viewportHeight, setViewportHeight] = useState(
+    () => window.innerHeight,
+  );
   const [visible, setVisible] = useState(false);
 
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -454,8 +496,12 @@ export default function BlogMinimap() {
       const el = minimapRef.current;
       if (!el || articleHeight === 0) return;
       const rect = el.getBoundingClientRect();
-      const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-      const targetScroll = articleDocTop + ratio * articleHeight - viewportHeight / 2;
+      const ratio = Math.max(
+        0,
+        Math.min(1, (clientY - rect.top) / rect.height),
+      );
+      const targetScroll =
+        articleDocTop + ratio * articleHeight - viewportHeight / 2;
       window.scrollTo({
         top: Math.max(0, targetScroll),
         behavior: smooth ? 'smooth' : 'instant',
@@ -489,13 +535,24 @@ export default function BlogMinimap() {
     };
   }, [scrollToRatio]);
 
-  const scale = minimapHeight > 0 && articleHeight > 0 ? minimapHeight / articleHeight : 0;
+  const scale =
+    minimapHeight > 0 && articleHeight > 0 ? minimapHeight / articleHeight : 0;
 
   const thumbHeight =
-    articleHeight > 0 ? Math.min(minimapHeight, (viewportHeight / articleHeight) * minimapHeight) : 0;
+    articleHeight > 0
+      ? Math.min(
+          minimapHeight,
+          (viewportHeight / articleHeight) * minimapHeight,
+        )
+      : 0;
   const rawThumbTop =
-    articleHeight > 0 ? ((scrollTop - articleDocTop) / articleHeight) * minimapHeight : 0;
-  const thumbTop = Math.max(0, Math.min(rawThumbTop, minimapHeight - thumbHeight));
+    articleHeight > 0
+      ? ((scrollTop - articleDocTop) / articleHeight) * minimapHeight
+      : 0;
+  const thumbTop = Math.max(
+    0,
+    Math.min(rawThumbTop, minimapHeight - thumbHeight),
+  );
 
   return (
     <div
@@ -574,15 +631,33 @@ export default function BlogMinimap() {
             }
 
             if (t === 'PRE') {
-              return <CodeBlock key={i} scaledTop={scaledTop} scaledHeight={scaledHeight} />;
+              return (
+                <CodeBlock
+                  key={i}
+                  scaledTop={scaledTop}
+                  scaledHeight={scaledHeight}
+                />
+              );
             }
 
             if (t === 'P') {
-              return <ParagraphBlock key={i} scaledTop={scaledTop} scaledHeight={scaledHeight} />;
+              return (
+                <ParagraphBlock
+                  key={i}
+                  scaledTop={scaledTop}
+                  scaledHeight={scaledHeight}
+                />
+              );
             }
 
             if (t === 'UL' || t === 'OL') {
-              return <ListBlock key={i} scaledTop={scaledTop} scaledHeight={scaledHeight} />;
+              return (
+                <ListBlock
+                  key={i}
+                  scaledTop={scaledTop}
+                  scaledHeight={scaledHeight}
+                />
+              );
             }
 
             if (t === 'PANEL') {
@@ -616,7 +691,12 @@ export default function BlogMinimap() {
 
             if (t.match(/^H[1-6]$/)) {
               const level = parseInt(t[1], 10);
-              const color = level <= 2 ? C.headingBright : level <= 4 ? C.headingMid : C.headingDim;
+              const color =
+                level <= 2
+                  ? C.headingBright
+                  : level <= 4
+                    ? C.headingMid
+                    : C.headingDim;
               const widthPct = [92, 78, 65, 52, 42, 34][level - 1] ?? 34;
               const minH = level <= 2 ? 4 : level <= 4 ? 3 : 2;
               return (

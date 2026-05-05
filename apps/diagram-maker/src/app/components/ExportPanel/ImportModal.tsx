@@ -102,11 +102,7 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
             Paste from Clipboard
           </Button>
           <div className="flex gap-2">
-            <Button
-              onClick={onClose}
-              color="secondary"
-              variant="outlined"
-            >
+            <Button onClick={onClose} color="secondary" variant="outlined">
               Cancel
             </Button>
             <Button
@@ -123,4 +119,3 @@ export function ImportModal({ onImport, onClose }: ImportModalProps) {
     </div>
   );
 }
-

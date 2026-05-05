@@ -39,7 +39,12 @@ export const TransparentPanel: React.FC<TransparentPanelProps> = ({
   );
 
   return (
-    <div className={classes} data-fui="transparent-panel" data-color={color} {...props}>
+    <div
+      className={classes}
+      data-fui="transparent-panel"
+      data-color={color}
+      {...props}
+    >
       <CornerSquares color={color} />
       {children}
     </div>

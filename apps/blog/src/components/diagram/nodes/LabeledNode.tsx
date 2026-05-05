@@ -16,4 +16,3 @@ export function LabeledNode({
 }: NodeProps<LabeledNodeType>) {
   return <BaseNode id={id} data={data} selected={selected} showLabel={true} />;
 }
-

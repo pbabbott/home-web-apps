@@ -39,4 +39,3 @@ export function TextNode({ data, selected }: NodeProps<TextNodeType>) {
     </div>
   );
 }
-

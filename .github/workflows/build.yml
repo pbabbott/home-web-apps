@@ -20,4 +20,3 @@ jobs:
 
       - name: Install and build
         uses: ./.github/actions/install-and-build
-

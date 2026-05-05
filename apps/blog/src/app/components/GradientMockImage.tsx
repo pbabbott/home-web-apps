@@ -35,9 +35,10 @@ export default function GradientMockImage({
   const selectedGradient = useState(() => {
     if (seed !== undefined) {
       // Simple hash function for deterministic selection based on seed
-      const hash = typeof seed === 'string' 
-        ? seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-        : seed;
+      const hash =
+        typeof seed === 'string'
+          ? seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+          : seed;
       return gradients[Math.abs(hash) % gradients.length];
     }
     return gradients[Math.floor(Math.random() * gradients.length)];
@@ -56,4 +57,3 @@ export default function GradientMockImage({
     </div>
   );
 }
-

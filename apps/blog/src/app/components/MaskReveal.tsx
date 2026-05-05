@@ -6,7 +6,11 @@ import anime from 'animejs';
 
 type RevealPhase = 'idle' | 'animating' | 'complete';
 
-export type MaskRevealDirection = 'left-to-right' | 'right-to-left' | 'top-to-bottom' | 'bottom-to-top';
+export type MaskRevealDirection =
+  | 'left-to-right'
+  | 'right-to-left'
+  | 'top-to-bottom'
+  | 'bottom-to-top';
 
 const directionToInset = {
   'left-to-right': (value: number) => `inset(0 ${value}% 0 0)`,

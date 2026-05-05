@@ -24,7 +24,7 @@ export type TiledHexagonsProps = {
 
 function getRanges(
   columnCount: number,
-  maxHorizontal: number
+  maxHorizontal: number,
 ): [number, number][] {
   if (maxHorizontal === 1) {
     return Array(columnCount)
@@ -55,7 +55,7 @@ function getColumnCount(tileCount: number, maxHorizontal: number): number {
 
 function getMultipliers(
   i: number,
-  ranges: [number, number][]
+  ranges: [number, number][],
 ): { x: number; y: number } {
   const y = ranges.findIndex((range) => i >= range[0] && i <= range[1]);
   const x = i - ranges[y][0] + (y % 2 === 0 ? 0 : 0.5);
@@ -75,7 +75,9 @@ export function TiledHexagons({
   const numColsFirstRow =
     maxHorizontal === 1 ? 1 : Math.min(tileCount, maxHorizontal);
   const fullWidth =
-    maxHorizontal === 1 ? TILE_SIZE : (numColsFirstRow - 1) * xConst + TILE_SIZE;
+    maxHorizontal === 1
+      ? TILE_SIZE
+      : (numColsFirstRow - 1) * xConst + TILE_SIZE;
   const fullHeight = (columnCount - 1) * yConst + TILE_SIZE;
   const ranges = getRanges(columnCount, maxHorizontal);
 

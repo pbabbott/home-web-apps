@@ -20,13 +20,7 @@ export function HexagonButtonDefs() {
       <clipPath id="hexClip">
         <polygon points={outerPolyStr} />
       </clipPath>
-      <filter
-        id="travelGlow"
-        x="-50%"
-        y="-50%"
-        width="200%"
-        height="200%"
-      >
+      <filter id="travelGlow" x="-50%" y="-50%" width="200%" height="200%">
         <feGaussianBlur stdDeviation="2.5" result="blur" />
         <feMerge>
           <feMergeNode in="blur" />

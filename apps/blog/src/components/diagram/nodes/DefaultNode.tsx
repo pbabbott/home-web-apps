@@ -14,8 +14,5 @@ export function DefaultNode({
   data,
   selected,
 }: NodeProps<DefaultNodeType>) {
-  return (
-    <BaseNode id={id} data={data} selected={selected} showLabel={false} />
-  );
+  return <BaseNode id={id} data={data} selected={selected} showLabel={false} />;
 }
-
