@@ -5,11 +5,25 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [
         "dist/**",
-        "public/dist/**",
         "storybook-static/**",
+        "public/dist/**",
         ".next/**"
       ],
       "dependsOn": ["^build"]
+    },
+    "build:npm": {
+      "outputs": ["dist/**"],
+      "dependsOn": []
+    },
+    "@abbottland/fui-components#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["storybook-static/**"],
+      "dependsOn": ["@abbottland/fui-components#build:npm"]
+    },
+    "@abbottland/blog#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**"],
+      "dependsOn": ["@abbottland/fui-components#build:npm"]
     },
     "test:int": {
       "outputs": ["test-results/**", "coverage/**"],

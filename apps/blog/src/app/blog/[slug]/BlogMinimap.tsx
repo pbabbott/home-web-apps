@@ -420,10 +420,8 @@ export default function BlogMinimap() {
   const [articleHeight, setArticleHeight] = useState(0);
   const [articleDocTop, setArticleDocTop] = useState(0);
   const [minimapHeight, setMinimapHeight] = useState(0);
-  const [scrollTop, setScrollTop] = useState(() => window.scrollY);
-  const [viewportHeight, setViewportHeight] = useState(
-    () => window.innerHeight,
-  );
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
   const [visible, setVisible] = useState(false);
 
   const minimapRef = useRef<HTMLDivElement>(null);
