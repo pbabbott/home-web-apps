@@ -34,7 +34,7 @@ jobs:
         shell: bash
 
   unit-tests:
-    runs-on: [prod-gen2-amd64-runner]
+    runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
