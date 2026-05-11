@@ -71,14 +71,6 @@ jobs:
             !**/node_modules/**
           reporter: jest-junit
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
-        with:
-          check_name: 'Unit Test Results'
-          files: |
-            **/test-results/test-results.xml
-
   integration-tests:
     runs-on: [prod-gen2-dind-runner]
     steps:
@@ -105,13 +97,15 @@ jobs:
         run: pnpm test:int
         shell: bash
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
         with:
-          check_name: 'Integration Test Results'
-          files: |
+          name: Integration Tests
+          path: |
             **/test-results/test-results.xml
+            !**/node_modules/**
+          reporter: jest-junit
 
       - name: Stop dev dependencies
         if: always()
@@ -148,13 +142,15 @@ jobs:
         run: pnpm test:e2e
         shell: bash
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
         with:
-          check_name: 'E2E Test Results'
-          files: |
+          name: E2E Tests
+          path: |
             **/test-results/test-results.xml
+            !**/node_modules/**
+          reporter: jest-junit
 
       - name: Stop e2e dependencies
         if: always()
