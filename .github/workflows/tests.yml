@@ -31,7 +31,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
           restore-keys: |
-            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.ref }}-
+            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.ref_name }}-
             playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
             playwright-${{ runner.os }}-
 
@@ -60,6 +60,8 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit
         shell: bash
+        env:
+          CI: true
 
       - name: Test Report
         uses: dorny/test-reporter@v2
@@ -96,6 +98,8 @@ jobs:
       - name: Run integration tests
         run: pnpm test:int
         shell: bash
+        env:
+          CI: true
 
       - name: Test Report
         uses: dorny/test-reporter@v2
@@ -141,6 +145,8 @@ jobs:
       - name: Run e2e tests
         run: pnpm test:e2e
         shell: bash
+        env:
+          CI: true
 
       - name: Test Report
         uses: dorny/test-reporter@v2
