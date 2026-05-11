@@ -27,3 +27,9 @@ fi
 
 echo "Installing binfmt for cross-platform builds"
 docker run --privileged --rm tonistiigi/binfmt --install all
+
+echo "Installing dependencies"
+pnpm install
+
+echo "Installing Playwright browsers and system dependencies"
+pnpm --filter @abbottland/fui-components exec playwright install --with-deps chromium
