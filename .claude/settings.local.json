@@ -1,5 +1,9 @@
 {
   "permissions": {
-    "allow": ["Bash(pnpm install *)", "Bash(pnpm lint *)"]
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(pnpm lint *)",
+      "Skill(commit)"
+    ]
   }
 }
