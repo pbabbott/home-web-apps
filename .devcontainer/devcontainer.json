@@ -24,7 +24,8 @@
     "ghcr.io/rio/features/skaffold:2.0.0": {},
     "ghcr.io/devcontainers-contrib/features/kubectx-kubens:1.0.6": {},
     "ghcr.io/devcontainers-extra/features/starship:1": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "mounts": [
     "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly",

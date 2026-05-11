@@ -1,6 +1,13 @@
 name: Network Check
 on:
   workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
 jobs:
   check-registry-access:
     runs-on: [prod-gen2-dind-runner]
