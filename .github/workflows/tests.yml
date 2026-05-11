@@ -24,7 +24,19 @@ jobs:
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.ref }}-
+            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            playwright-${{ runner.os }}-
+
       - name: Install playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps
         working-directory: packages/fui-components
         shell: bash
