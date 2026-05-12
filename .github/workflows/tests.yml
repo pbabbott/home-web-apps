@@ -63,19 +63,33 @@ jobs:
         env:
           CI: true
 
-      - name: Find test result files
+      - name: Collect test results
         if: ${{ !cancelled() }}
-        run: find . -name "test-results.xml" -not -path "*/node_modules/*" || echo "No XML files found"
+        run: |
+          mkdir -p /tmp/unit-test-results
+          i=0
+          while IFS= read -r f; do
+            i=$((i+1))
+            cp "$f" "/tmp/unit-test-results/result-${i}.xml"
+          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
+          echo "Collected $i test result file(s)"
         shell: bash
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: unit-test-results
+          path: /tmp/unit-test-results/
+          if-no-files-found: warn
 
       - name: Test Report
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
           name: Unit Tests
-          path: |
-            **/test-results/test-results.xml
-            !**/node_modules/**
+          artifact: unit-test-results
+          path: '*.xml'
           reporter: jest-junit
 
   integration-tests:
@@ -106,14 +120,33 @@ jobs:
         env:
           CI: true
 
+      - name: Collect test results
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p /tmp/integration-test-results
+          i=0
+          while IFS= read -r f; do
+            i=$((i+1))
+            cp "$f" "/tmp/integration-test-results/result-${i}.xml"
+          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
+          echo "Collected $i test result file(s)"
+        shell: bash
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: integration-test-results
+          path: /tmp/integration-test-results/
+          if-no-files-found: warn
+
       - name: Test Report
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
           name: Integration Tests
-          path: |
-            **/test-results/test-results.xml
-            !**/node_modules/**
+          artifact: integration-test-results
+          path: '*.xml'
           reporter: jest-junit
 
       - name: Stop dev dependencies
@@ -153,14 +186,33 @@ jobs:
         env:
           CI: true
 
+      - name: Collect test results
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p /tmp/e2e-test-results
+          i=0
+          while IFS= read -r f; do
+            i=$((i+1))
+            cp "$f" "/tmp/e2e-test-results/result-${i}.xml"
+          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
+          echo "Collected $i test result file(s)"
+        shell: bash
+
+      - name: Upload e2e test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-test-results
+          path: /tmp/e2e-test-results/
+          if-no-files-found: warn
+
       - name: Test Report
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
           name: E2E Tests
-          path: |
-            **/test-results/test-results.xml
-            !**/node_modules/**
+          artifact: e2e-test-results
+          path: '*.xml'
           reporter: jest-junit
 
       - name: Stop e2e dependencies
