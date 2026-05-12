@@ -63,6 +63,11 @@ jobs:
         env:
           CI: true
 
+      - name: Find test result files
+        if: ${{ !cancelled() }}
+        run: find . -name "test-results.xml" -not -path "*/node_modules/*" || echo "No XML files found"
+        shell: bash
+
       - name: Test Report
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
