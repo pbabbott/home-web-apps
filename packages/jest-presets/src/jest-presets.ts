@@ -38,9 +38,9 @@ const jestReporters: Config['reporters'] = process.env.CI
   ? [
       'default',
       [
-        'jest-junit',
+        require.resolve('jest-junit'),
         {
-          outputDirectory: './test-results',
+          outputDirectory: '<rootDir>/test-results',
           outputName: 'test-results.xml',
           suiteName: 'Tests',
           classNameTemplate: '{classname} ({displayName})',
