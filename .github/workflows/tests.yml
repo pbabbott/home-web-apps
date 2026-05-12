@@ -142,33 +142,12 @@ jobs:
         env:
           CI: true
 
-      - name: Collect test results
-        if: ${{ !cancelled() }}
-        run: |
-          mkdir -p /tmp/e2e-test-results
-          while IFS= read -r f; do
-            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
-            cp "$f" "/tmp/e2e-test-results/${pkg}.xml"
-          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $(ls /tmp/e2e-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
-        shell: bash
-
-      - name: Upload e2e test results
-        uses: actions/upload-artifact@v4
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          name: e2e-test-results
-          path: /tmp/e2e-test-results/
-          if-no-files-found: warn
-
-      - name: Test Report
-        uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}
-        with:
-          name: E2E Tests
-          artifact: e2e-test-results
-          path: '*.xml'
-          reporter: jest-junit
+          artifact-name: e2e-test-results
+          report-name: E2E Tests
 
       - name: Stop e2e dependencies
         if: always()
