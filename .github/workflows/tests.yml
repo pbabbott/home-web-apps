@@ -67,12 +67,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           mkdir -p /tmp/unit-test-results
-          i=0
           while IFS= read -r f; do
-            i=$((i+1))
-            cp "$f" "/tmp/unit-test-results/result-${i}.xml"
+            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
+            cp "$f" "/tmp/unit-test-results/${pkg}.xml"
           done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $i test result file(s)"
+          echo "Collected $(ls /tmp/unit-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
         shell: bash
 
       - name: Upload unit test results
@@ -124,12 +123,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           mkdir -p /tmp/integration-test-results
-          i=0
           while IFS= read -r f; do
-            i=$((i+1))
-            cp "$f" "/tmp/integration-test-results/result-${i}.xml"
+            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
+            cp "$f" "/tmp/integration-test-results/${pkg}.xml"
           done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $i test result file(s)"
+          echo "Collected $(ls /tmp/integration-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
         shell: bash
 
       - name: Upload integration test results
@@ -190,12 +188,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           mkdir -p /tmp/e2e-test-results
-          i=0
           while IFS= read -r f; do
-            i=$((i+1))
-            cp "$f" "/tmp/e2e-test-results/result-${i}.xml"
+            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
+            cp "$f" "/tmp/e2e-test-results/${pkg}.xml"
           done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $i test result file(s)"
+          echo "Collected $(ls /tmp/e2e-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
         shell: bash
 
       - name: Upload e2e test results
