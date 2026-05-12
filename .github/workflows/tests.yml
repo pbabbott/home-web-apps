@@ -63,33 +63,12 @@ jobs:
         env:
           CI: true
 
-      - name: Collect test results
-        if: ${{ !cancelled() }}
-        run: |
-          mkdir -p /tmp/unit-test-results
-          while IFS= read -r f; do
-            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
-            cp "$f" "/tmp/unit-test-results/${pkg}.xml"
-          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $(ls /tmp/unit-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
-        shell: bash
-
-      - name: Upload unit test results
-        uses: actions/upload-artifact@v4
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          name: unit-test-results
-          path: /tmp/unit-test-results/
-          if-no-files-found: warn
-
-      - name: Test Report
-        uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}
-        with:
-          name: Unit Tests
-          artifact: unit-test-results
-          path: '*.xml'
-          reporter: jest-junit
+          artifact-name: unit-test-results
+          report-name: Unit Tests
 
   integration-tests:
     runs-on: [prod-gen2-dind-runner]
@@ -119,33 +98,12 @@ jobs:
         env:
           CI: true
 
-      - name: Collect test results
-        if: ${{ !cancelled() }}
-        run: |
-          mkdir -p /tmp/integration-test-results
-          while IFS= read -r f; do
-            pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
-            cp "$f" "/tmp/integration-test-results/${pkg}.xml"
-          done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
-          echo "Collected $(ls /tmp/integration-test-results/*.xml 2>/dev/null | wc -l) test result file(s)"
-        shell: bash
-
-      - name: Upload integration test results
-        uses: actions/upload-artifact@v4
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          name: integration-test-results
-          path: /tmp/integration-test-results/
-          if-no-files-found: warn
-
-      - name: Test Report
-        uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}
-        with:
-          name: Integration Tests
-          artifact: integration-test-results
-          path: '*.xml'
-          reporter: jest-junit
+          artifact-name: integration-test-results
+          report-name: Integration Tests
 
       - name: Stop dev dependencies
         if: always()
