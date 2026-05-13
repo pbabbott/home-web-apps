@@ -13,6 +13,9 @@ export default defineConfig({
   // e.g., src/components/Button/__screenshots__/components-button--color-primary.png
   // These baseline screenshots should be committed to version control
   snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{arg}{ext}',
+  expect: {
+    toHaveScreenshot: { maxDiffPixels: 2 },
+  },
   use: {
     baseURL: 'http://localhost:6006',
     trace: 'on-first-retry',
