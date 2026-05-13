@@ -14,6 +14,10 @@ permissions:
 jobs:
   ui-tests:
     runs-on: [prod-gen2-amd64-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,20 +33,47 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.ref_name }}-
-            playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-
             playwright-${{ runner.os }}-
 
       - name: Install playwright
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps
+        run: pnpm exec playwright install --with-deps chromium
         working-directory: packages/fui-components
         shell: bash
 
       - name: Run ui tests
         run: pnpm test:ui
+        shell: bash
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: packages/fui-components/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/fui-components/playwright-report
+          destination_dir: reports/${{ github.run_id }}
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/${{ github.run_id }}/index.html"
+          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Playwright report: ${URL}"
         shell: bash
 
   unit-tests:
