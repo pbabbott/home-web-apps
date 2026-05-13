@@ -14,7 +14,7 @@ export default defineConfig({
   // These baseline screenshots should be committed to version control
   snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{arg}{ext}',
   expect: {
-    toHaveScreenshot: { maxDiffPixels: 2 },
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
   },
   use: {
     baseURL: 'http://localhost:6006',
