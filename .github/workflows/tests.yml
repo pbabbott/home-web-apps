@@ -39,7 +39,12 @@ jobs:
 
       - name: Install playwright
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Install playwright system deps
+        run: pnpm exec playwright install-deps chromium
         working-directory: packages/fui-components
         shell: bash
 
