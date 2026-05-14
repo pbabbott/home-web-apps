@@ -39,7 +39,7 @@ services:
         condition: service_healthy
 
   gluetun:
-    image: qmcgaw/gluetun:latest
+    image: qmcgaw/gluetun@sha256:bd84f4f090ca61170c8329a72d4f451255b01f6489486a621bfcb89749fb80ab
     container_name: gluetun
     ports:
       - '8000:8000'
@@ -54,6 +54,7 @@ services:
       - VPN_PORT_FORWARDING=on
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE={"auth":"none"}
     cap_add:
       - NET_ADMIN
     healthcheck:
@@ -64,7 +65,7 @@ services:
       start_period: 5s
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
+    image: lscr.io/linuxserver/qbittorrent:5.2.0
     container_name: qbittorrent
     ports:
       - '8080:8080'

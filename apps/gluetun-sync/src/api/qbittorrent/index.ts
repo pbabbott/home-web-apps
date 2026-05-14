@@ -26,7 +26,7 @@ export const login = async (): Promise<string | null> => {
       body: formData,
     });
 
-    if (response.status !== 200) {
+    if (!response.ok) {
       return loginFailed(
         `Response status code was: ${response.status} ${response.statusText}`,
       );
@@ -38,8 +38,7 @@ export const login = async (): Promise<string | null> => {
       return loginFailed(`Cookie was null. headers are ${headers}`);
     }
 
-    const sidValue = cookie.split(';')[0];
-    const token = sidValue.split('=')[1];
+    const token = cookie.split(';')[0];
 
     return token;
   } catch (err) {
@@ -61,7 +60,7 @@ export const getApplicationPreferences = async (
 
     const response = await fetch(uri, {
       headers: {
-        cookie: `SID=${cookieToken}`,
+        cookie: cookieToken,
       },
     });
     const data = (await response.json()) as any;
@@ -99,7 +98,7 @@ export const setApplicationPreference = async (
     const response = await fetch(uri, {
       method: 'post',
       headers: {
-        cookie: `SID=${cookieToken}`,
+        cookie: cookieToken,
       },
       body: formData,
     });

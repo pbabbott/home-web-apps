@@ -10,7 +10,13 @@
       "Bash(pnpm test:unit)",
       "Bash(pnpm run *)",
       "Bash(pnpm -w run test:unit)",
-      "Bash(kubectl config get-contexts *)"
+      "Bash(kubectl config get-contexts *)",
+      "Bash(pnpm test:int)",
+      "Bash(docker exec *)",
+      "Bash(curl *)",
+      "Bash(docker restart *)",
+      "Bash(docker compose *)",
+      "Bash(docker run *)"
     ]
   }
 }
