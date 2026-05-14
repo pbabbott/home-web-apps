@@ -16,7 +16,9 @@
       "Bash(curl *)",
       "Bash(docker restart *)",
       "Bash(docker compose *)",
-      "Bash(docker run *)"
+      "Bash(docker run *)",
+      "Bash(pnpm docker:build)",
+      "Bash(pnpm docker:push *)"
     ]
   }
 }
