@@ -1,10 +1,12 @@
 # 2026-05-12 — CI Test Reporting Fix
 
 ## Goal
+
 Get `dorny/test-reporter@v2` to find JUnit XML files after `pnpm test:unit` runs in CI.
 
 ## Problem
-`dorny/test-reporter@v2` always reported "No file matches path **/test-results/test-results.xml".
+
+`dorny/test-reporter@v2` always reported "No file matches path \*\*/test-results/test-results.xml".
 
 ## Root Cause Investigation
 
@@ -33,15 +35,15 @@ Multiple issues layered on top of each other:
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `.github/workflows/tests.yml` | Removed EnricoMi action; added dorny to int/e2e jobs; added `env: CI: true` on all test steps; added diagnostic find step; fixed Playwright cache key `github.ref` → `github.ref_name` |
-| `turbo.json` | Added `globalPassThroughEnv: ["CI"]` |
-| `packages/jest-presets/src/jest-presets.ts` | `'jest-junit'` → `require.resolve('jest-junit')`; `'./test-results'` → `'<rootDir>/test-results'` |
-| `packages/jest-presets/package.json` | Added `jest-junit: "catalog:"` to dependencies |
-| `package.json` (root) | Added `jest-junit: "catalog:"` to devDependencies |
-| `pnpm-workspace.yaml` | Added `jest-junit: '^16.0.0'` to catalog |
-| `apps/pi-led-api/jest.config.ts` | Switched from inline reporters (wrong path) to `jestReporters` from jest-presets |
+| File                                        | Change                                                                                                                                                                                 |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/tests.yml`               | Removed EnricoMi action; added dorny to int/e2e jobs; added `env: CI: true` on all test steps; added diagnostic find step; fixed Playwright cache key `github.ref` → `github.ref_name` |
+| `turbo.json`                                | Added `globalPassThroughEnv: ["CI"]`                                                                                                                                                   |
+| `packages/jest-presets/src/jest-presets.ts` | `'jest-junit'` → `require.resolve('jest-junit')`; `'./test-results'` → `'<rootDir>/test-results'`                                                                                      |
+| `packages/jest-presets/package.json`        | Added `jest-junit: "catalog:"` to dependencies                                                                                                                                         |
+| `package.json` (root)                       | Added `jest-junit: "catalog:"` to devDependencies                                                                                                                                      |
+| `pnpm-workspace.yaml`                       | Added `jest-junit: '^16.0.0'` to catalog                                                                                                                                               |
+| `apps/pi-led-api/jest.config.ts`            | Switched from inline reporters (wrong path) to `jestReporters` from jest-presets                                                                                                       |
 
 ## Commits
 
