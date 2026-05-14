@@ -29,11 +29,11 @@ Each app that has smoke tests defines a `docker-compose.yaml` with a `smoke` pro
 
 The `smoke` profile spins up three containers:
 
-| Container | Image | Port |
-|---|---|---|
-| `gluetun-sync` | Built from monorepo Dockerfile | `4000` |
-| `gluetun` | `qmcgaw/gluetun` (real PIA VPN) | `8000` |
-| `qbittorrent` | `lscr.io/linuxserver/qbittorrent` | `8080` |
+| Container      | Image                             | Port   |
+| -------------- | --------------------------------- | ------ |
+| `gluetun-sync` | Built from monorepo Dockerfile    | `4000` |
+| `gluetun`      | `qmcgaw/gluetun` (real PIA VPN)   | `8000` |
+| `qbittorrent`  | `lscr.io/linuxserver/qbittorrent` | `8080` |
 
 `gluetun-sync` has a `depends_on` healthcheck against both `gluetun` and `qbittorrent` before it starts.
 
@@ -76,6 +76,7 @@ Job: `smoke-tests` in `.github/workflows/tests.yml`
 Runner: `prod-gen2-dind-runner` (Docker-in-Docker capable)
 
 Steps:
+
 1. Checkout
 2. pnpm setup
 3. Install and build (composite action)

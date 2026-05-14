@@ -2,10 +2,10 @@
 
 UI tests live exclusively in `packages/fui-components` and cover the React component library. There are two distinct sub-types that run together under `pnpm test:ui`:
 
-| Sub-type | Tool | What it tests |
-|---|---|---|
-| Screenshot regression | Playwright | Visual pixel diff of every Storybook story |
-| DOM rendering | Vitest + `@storybook/addon-vitest` | That every story renders in a browser without throwing |
+| Sub-type              | Tool                               | What it tests                                          |
+| --------------------- | ---------------------------------- | ------------------------------------------------------ |
+| Screenshot regression | Playwright                         | Visual pixel diff of every Storybook story             |
+| DOM rendering         | Vitest + `@storybook/addon-vitest` | That every story renders in a browser without throwing |
 
 ## Screenshot Regression Tests (Playwright)
 
@@ -80,6 +80,7 @@ Job: `ui-tests` in `.github/workflows/tests.yml`
 Runner: `prod-gen2-amd64-runner` (not Docker-in-Docker; Playwright needs a real display environment)
 
 Steps:
+
 1. Checkout
 2. pnpm setup
 3. Install and build (composite action)

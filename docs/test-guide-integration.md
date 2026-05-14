@@ -57,6 +57,7 @@ Job: `integration-tests` in `.github/workflows/tests.yml`
 Runner: `prod-gen2-dind-runner` (Docker-in-Docker capable)
 
 Steps:
+
 1. Checkout
 2. pnpm setup
 3. Install and build (composite action)

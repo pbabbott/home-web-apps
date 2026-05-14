@@ -49,4 +49,9 @@ const jestReporters: Config['reporters'] = process.env.CI
     ]
   : undefined;
 
-export { unitTestPreset, integrationTestPreset, smokeTestPreset, jestReporters };
+export {
+  unitTestPreset,
+  integrationTestPreset,
+  smokeTestPreset,
+  jestReporters,
+};
