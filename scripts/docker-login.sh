@@ -7,7 +7,7 @@ if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ] || [ -z "$DOCKER_REGIS
     # Fetch docker username and password from 1Password
     mkdir -p ./temp
     TEMP_FILE=./temp/harbor.json
-    op item get "harbor.local.abbottland.io" --format=json --vault=Homelab > $TEMP_FILE
+    op item get "harbor.local.abbottland.io - admin" --format=json --vault=Homelab > $TEMP_FILE
 
     DOCKER_USERNAME=$(jq -r '.fields[] | select(.id=="username") | .value' $TEMP_FILE)
     DOCKER_PASSWORD=$(jq -r '.fields[] | select(.id=="password") | .value' $TEMP_FILE)

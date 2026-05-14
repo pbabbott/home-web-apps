@@ -10,7 +10,7 @@ on:
       - main
 jobs:
   build:
-    runs-on: [self-hosted, amd64-runner]
+    runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4

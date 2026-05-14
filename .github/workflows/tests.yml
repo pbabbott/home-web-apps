@@ -12,8 +12,12 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
-  unit-tests:
-    runs-on: [self-hosted, amd64-runner]
+  ui-tests:
+    runs-on: [prod-gen2-amd64-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,23 +25,89 @@ jobs:
       - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install and build
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Install playwright system deps
+        run: pnpm exec playwright install-deps chromium
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Run ui tests
+        run: pnpm test:ui
+        shell: bash
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: packages/fui-components/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/fui-components/playwright-report
+          destination_dir: reports/${{ github.run_id }}
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/${{ github.run_id }}/index.html"
+          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Playwright report: ${URL}"
+        shell: bash
+
+  unit-tests:
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
       - name: Run unit tests
         run: pnpm test:unit
         shell: bash
+        env:
+          CI: true
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
         with:
-          check_name: 'Unit Test Results'
-          files: |
-            **/test-results/test-results.xml
+          artifact-name: unit-test-results
+          report-name: Unit Tests
 
   integration-tests:
-    runs-on: [self-hosted, amd64-runner, dind-runner]
+    runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,14 +115,14 @@ jobs:
       - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install and build
+      - name: Install and build composite action
         uses: ./.github/actions/install-and-build
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
         with:
           op-connect-host: https://op-connect.local.abbottland.io
-          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
       - name: Run dev dependencies
         run: pnpm dev:deps
@@ -61,22 +131,23 @@ jobs:
       - name: Run integration tests
         run: pnpm test:int
         shell: bash
+        env:
+          CI: true
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
         with:
-          check_name: 'Integration Test Results'
-          files: |
-            **/test-results/test-results.xml
+          artifact-name: integration-test-results
+          report-name: Integration Tests
 
       - name: Stop dev dependencies
         if: always()
         run: pnpm dev:deps:down
         shell: bash
 
-  e2e-tests:
-    runs-on: [self-hosted, amd64-runner, dind-runner]
+  smoke-tests:
+    runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,29 +162,30 @@ jobs:
         uses: ./.github/actions/setup-test-env
         with:
           op-connect-host: https://op-connect.local.abbottland.io
-          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN }}
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
-      - name: Run e2e dependencies build
-        run: pnpm e2e:deps:build
+      - name: Run smoke dependencies build
+        run: pnpm smoke:deps:build
         shell: bash
 
-      - name: Run e2e dependencies
-        run: pnpm e2e:deps
+      - name: Run smoke dependencies
+        run: pnpm smoke:deps
         shell: bash
 
-      - name: Run e2e tests
-        run: pnpm test:e2e
+      - name: Run smoke tests
+        run: pnpm test:smoke
         shell: bash
+        env:
+          CI: true
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: (!cancelled())
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
         with:
-          check_name: 'E2E Test Results'
-          files: |
-            **/test-results/test-results.xml
+          artifact-name: smoke-test-results
+          report-name: Smoke Tests
 
-      - name: Stop e2e dependencies
+      - name: Stop smoke dependencies
         if: always()
-        run: pnpm e2e:deps:down
+        run: pnpm smoke:deps:down
         shell: bash

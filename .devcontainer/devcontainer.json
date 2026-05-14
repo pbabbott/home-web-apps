@@ -1,33 +1,45 @@
 {
   "name": "Node.js Development Container",
+  "waitFor": "none",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "22"
+    "ghcr.io/devcontainers/features/node:1.7.1": {
+      "version": "22",
+      "pnpmVersion": "10.15.0"
     },
-    "ghcr.io/devcontainers/features/common-utils:2": {
+    "ghcr.io/devcontainers/features/common-utils:2.5.7": {
       "installZsh": true,
       "configureZshAsDefaultShell": true,
       "installOhMyZsh": true,
       "upgradePackages": true
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/itsmechlark/features/1password:1": {},
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2.16.1": {},
+    "ghcr.io/flexwie/devcontainer-features/op:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1.3.1": {
       "helm": "none",
       "minikube": "none"
     },
-    "ghcr.io/rio/features/skaffold:2": {},
-    "ghcr.io/devcontainers-contrib/features/kubectx-kubens:1": {}
+    "ghcr.io/rio/features/skaffold:2.0.0": {},
+    "ghcr.io/devcontainers-extra/features/kubectx-kubens:1.0.6": {},
+    "ghcr.io/devcontainers-extra/features/starship:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "mounts": [
-    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly",
+    "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/vscode/.gitconfig,readonly",
+    "type=bind,source=/home/${localEnv:USER}/.claude,target=/home/vscode/.claude"
   ],
   "runArgs": ["--env-file", ".devcontainer/.env"],
   "customizations": {
     "vscode": {
+      "settings": {
+        "dev.containers.copyGitConfig": false,
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "debug.javascript.autoAttachFilter": "disabled"
+      },
       "extensions": [
         "yzhang.markdown-all-in-one",
         "aaron-bond.better-comments",
@@ -38,14 +50,13 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "github.copilot",
-        "github.vscode-github-actions"
-      ],
-      "settings": {
-        "typescript.tsdk": "node_modules/typescript/lib",
-        "debug.javascript.autoAttachFilter": "disabled"
-      }
+        "github.vscode-github-actions",
+        "unifiedjs.vscode-mdx",
+        "anthropic.claude-code"
+      ]
     }
   },
   "containerUser": "vscode",
-  "postStartCommand": "/workspaces/home-web-apps/.devcontainer/init-script.sh"
+  "postCreateCommand": "bash .devcontainer/init-postcreate.sh",
+  "postStartCommand": "bash .devcontainer/init-poststart.sh"
 }

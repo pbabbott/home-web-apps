@@ -10,25 +10,28 @@
     "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
+    "dev:ui": "turbo run dev --filter=@abbottland/blog --filter=@abbottland/fui-components --filter=@abbottland/diagram-maker",
     "dev:deps": "turbo run dev:deps",
     "dev:deps:down": "turbo run dev:deps:down",
     "format:check": "prettier . --check",
     "format:fix": "prettier . --write",
     "lint": "turbo run lint",
-    "lint:fix": "turbo run lint --fix",
+    "lint:fix": "turbo run lint -- --fix",
     "test:unit": "turbo run test:unit",
     "test:int": "turbo run test:int",
-    "test:e2e": "turbo run test:e2e",
+    "test:smoke": "turbo run test:smoke",
+    "test:ui": "turbo run test:ui",
     "storybook": "turbo run storybook",
     "graph": "turbo graph",
-    "e2e:deps": "turbo run e2e:deps",
-    "e2e:deps:build": "turbo run e2e:deps:build",
-    "e2e:deps:down": "turbo run e2e:deps:down"
+    "smoke:deps": "turbo run smoke:deps",
+    "smoke:deps:build": "turbo run smoke:deps:build",
+    "smoke:deps:down": "turbo run smoke:deps:down"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.11",
     "eslint": "^9.16.0",
+    "jest-junit": "catalog:",
     "prettier": "^3.6.2",
     "turbo": "^2.5.0"
   },
@@ -36,5 +39,8 @@
     "node": ">=22.0.0",
     "npm": ">=7.0.0"
   },
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "pnpm@10.15.0",
+  "dependencies": {
+    "@radix-ui/react-icons": "^1.3.2"
+  }
 }

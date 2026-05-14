@@ -1,0 +1,377 @@
+---
+title: Non-Prod Journey Milestone 1 - Setup Proxmox with Terraform and Ansible
+excerpt: 'A practical walkthrough of building a non-production homelab environment using Proxmox, Terraform, and Ansible. This post covers how I automated VM provisioning, handled networking and SSH setup, and established a repeatable foundation for future infrastructure - all while balancing what belongs in a golden image vs. configuration management.'
+status: 'published'
+date: '2026-03-17'
+bannerImage: 'kubernetes-cluster-split-milestone-1.png'
+categories:
+  - 'Proxmox'
+  - 'k8s'
+  - 'Ansible'
+  - 'Terraform'
+  - 'DevOps'
+---
+
+import { TransparentPanel, HorizontalRule } from '@abbottland/fui-components';
+import diagram1 from './diagram-01.json';
+import Image from 'next/image';
+
+This article is number 2 in a series where I establish a non-prod cluster at home.
+
+Last time - we formulated a strategy for building a non-prod cluster, the first step being focused on infrastructure. In today's blog post, we'll implement that first step and I'll show my work along the way.
+
+In this post, I'll walk through how I built a fully automated non-prod Kubernetes environment using Proxmox, Terraform, and Ansible - focusing on repeatability, fast rebuilds, and keeping config manageable.
+
+## Step 1 - Experiment with Terraform & Proxmox
+
+Ok. First up is terraform. We're not starting from completely from scratch: I do have some code written in ansible to configure VMs, but I have no code established in version control to bring them into existence. Many of my existing VMs are created from a template. The template VM that I've crafted is just managed via a series of steps in my notebook (ie. it is not scripted out yet).
+
+I'm thinking this template VM needs to be managed in a codebase in some way. I haven't worked all that much with `terraform` before, but I know I'm interested to try it out. I'm thinking that maybe managing this template VM with terraform could be a reasonable thing to try?
+
+So I went heads-down and after a few hours of trying to convert proxmox code in my journal to terraform, I came to the following realization:
+
+<TransparentPanel color="accent-purple" className="mb-6">
+  Terraform is great at managing the lifecycle of resources in proxmox, but its
+  not so good at configuring the VMs.
+</TransparentPanel>
+
+This is a problem. Sure I can create a template vm, add storage, and set some cloud-init settings, but there is a lot to do inside the VM itself. I still need mount storage, setup custom directories, configure dns, set iptables, install storage packages, set a timezone, and more!
+
+This made me realize I only have two options:
+
+## Step 2 - Discover two vm management strategies
+
+### Strategy 1 - Save all configuration for the end
+
+One strategy is that I could create the template VM in proxmox using terraform. Then, I create lots of VMs from that template. After all the VMs are created from the template, I then configure themu using ansible.
+
+At first glance, this approach is attractive, as its just two steps: `terraform apply` and then `ansible-playbook <playbook>` - easy!
+
+Upon closer inspection, I have to now run tons of configuration code against tons of VMs, which opens up opportunity for things to go wrong.
+
+When things go wrong (and with so many playbooks), do I delete the whole fleet and start again? Or perhaps I could `ssh` onto a buggy VM and turn it into a snowflake? This approach requires very high confidence in the VM configuration code (ansible) which I presently don't have.
+
+I've also realized it defeats the point of even having a template! If I run `terraform apply` then my template vm is created, but then the fleet is also created using the same settings from terraform. Its like... why even have the template VM at all?
+
+### Strategy 2 - Make a golden image
+
+The other option is to bake configuration into the template. At one of my previous workplaces we called this making a vm "snapshot." The idea is that you make a VM, configure it, and once its ready, you freeze it in place, and then its ready to be copied around.
+
+This approach, I do like. Step 1 is make a VM in proxmox, then start it up, and configure it. For the configuration, I'll be mounting storage, installing packages, and getting it nicely prepared to be copied around. With a "snapshot" or a "golden image" I can work on one image until I'm confident in it, and then copy it about - as opposed to recreating a fleet over and over again.
+
+Moreover, when it finally comes time to upgrade to a new version of Ubuntu, I can work on a new template and roll it out in as a newly versioned "thing."
+
+At this point, I'm realizing I need to scrap my terraform-based template code from step 1.
+
+## Step 3 - Rework my approach to template management
+
+So, I've decided I want to go with the "golden image" approach.
+
+Experimenting with terraform was great! I learned I can set all sort of things in proxmox.
+
+I realized, if I bundle the VM template into terraform, it would also be created in `terraform apply` and I wouldn't have any time to configure it before its used to create the fleet!
+
+With this in mind, I made a choice to manage my template VM entirely in ansible. I wrote four playbooks to create a VM, start it, configure it, and then cleanly shut it down, finalizing it for replication. If you're interested, you can check out these playbooks here:
+
+home-playbooks / playbooks / [ansible-template-ubuntu-noble](https://github.com/pbabbott/home-playbooks/tree/main/playbooks/ansible-template-ubuntu-noble)
+
+So the new strategy is like this:
+
+- 1 - Ansible makes VM on Proxmox host
+- 2 - Ansible Starts the VM (target: Proxmox)
+- 3 - Ansible connects to the newly created VM and configures it - with a clean shutdown
+- 4 - Ansible converts VM to be a template (target: Proxmox)
+- 5 - terraform uses golden image to make fleet (target: Proxmox)
+- 6 - Ansible further configures fleet
+
+Here's a diagram showing the steps:
+
+<DiagramViewer data={diagram1} height="400px" className="mb-8" />
+
+### What goes into the golden image (and what doesn't)
+
+Now you might be wondering, in step 3 we configure a vm and in step 6 we configure many vms. Why configure the VMs twice?
+
+My thinking is this:
+
+In the template VM (golden image), we configure things like storage mounts, iptables, dns, ipv6, timezone, etc. All of these things are very unlikely to change. I'm not go change timezones anytime soon, as these servers are in my house. Storage mounts would only change with new hardware, and my hardware is maxed out.
+
+In configuring the fleet VMs, I'm thinking about apps. I know that `kubernetes` and `containerd` both release new version upgrades on a cadence. Tools like `kubectl` and `helm` also change frequently.
+
+Ultimately, either place is valid for managing configuration. Its just about anticipating what will need to be upgraded and how often. Its also about separation of concerns. The VM template is for making VMs and the final bit of configuration is for running services.
+
+## Step 4 - Home Network Upgrade
+
+Ok. So while I was working on all of this, I found myself deleting VMs and re-creating them over-and-over again. Each time I would make a VM or many VMs, it would require me to go into my router and find their IP addresses so that I could target them with scripts.
+
+Specifically, each VM was set up with cloud init to use `ip=dhcp`.
+
+### Problem: My IPs keep changing!
+
+While this did work, it was also super annoying. I'd have to go into my Eero router app, and find the VM, and then give it an IP reservation so that the IP would not get changed. Even so, recreating the VM gives it a new MAC address and therefore a new IP address. I needed a solution that would let me develop VMs that maintain static IPs.
+
+### Time to start tinkering with my router
+
+To address this problem, I started messing about with the advanced networking settings in my Eero router app.
+
+I went to:
+
+Settings > Advanced Networking > DHCP & NAT.
+
+Then I changed it from `Automatic` (which would mean all DHCP all the time) to `Manual IP`. This lets you edit your Eero network IP range and DHCP range.
+
+So, funny story, I started changing things in here without full understanding of the implications of each of the fields. If anything goes wrong, I assumed I could just set it back to `Automatic` - YOLO!
+
+Unfortunately, my modem was not in pass-through (or bridge) mode. This caused my network to have a double-NAT! My modem was tracking everything under `192.168.X.X` and so was my router.
+
+I can't remember the exact configuration I had, but it ultimately caused my internet to go down, and I had a heck-of-a-time to getting it fixed.
+
+I did a hard-reset on my router and then I called Eero support and they were super helpful in talking through each of the settings with me. They stayed on the call with me until my internet came back up and also helped me solve my double-NAT issue. I was on the phone with them for 30+ min, but it was honestly a great customer support experience!
+
+Thankfully I got the internet back up before the kids wanted to watch their morning TV shows!
+
+### Solution: DHCP + Static
+
+I also got a great solution in place for my home network.
+
+Here's what I landed on.
+
+My Eero network IP starts at `192.168.4.0`. And it has a subnet mask of `255.255.252.0`.
+
+This means I can have IPs in the range of: `192.168.[4-7].[0-255]`.
+
+This gives me `1024` IP addresses, which is more than enough for my house!
+
+I also setup my router to only use DHCP in this range: `192.168.4.20` to `192.168.5.255`. Basically the whole `.4` and `.5` range. The range `192.168.4.[0-19]` will stay reserved for various nodes of my Eero mesh network.
+
+The `192.168.6.X` and `192.168.7.X` range will be reserved for static IPs.
+
+Here's a screenshot from my Eero app:
+
+<Image
+  src="/api/blog-images/non-prod-milestone-one-proxmox-terraform-ansible/eero-dhcp-screenshot.jpg"
+  alt="Eero DHCP Screenshot"
+  width={400}
+  height={300}
+  className="rounded-lg my-8"
+/>
+
+<TransparentPanel color="secondary" className="mb-6">
+  **Note:** I learned that I don't want to create a subnet mask of `/16` as that
+  would result in 65,536 IP addresses. While that sounds great to have that much
+  IP space, it results in tons of ARP requests going around to discover hosts
+  across the whole network, which can slow things down without proper equipment.
+</TransparentPanel>
+
+## Step 5 - Build the template VM in proxmox
+
+Ok. Now I have a template strategy, and a clean network - the stage is set for me to construct everything!
+
+In the following section I'll share a few snippets that I found particularly interesting. If you want to see the full solution for this step, check it out here:
+
+home-playbooks / playbooks / [ansible-template-ubuntu-noble](https://github.com/pbabbott/home-playbooks/tree/main/playbooks/ansible-template-ubuntu-noble)
+
+### 5. A - Create a VM in proxmox using a shell script
+
+While there were several ansible playbooks (create, start, configure, finalize), I want so share the the shell script I used to create the initial VM in proxmox (part of the create playbook).
+
+This shell script is copied to my proxmox host using ansible and then executed to create the VM.
+
+The interesting part here is that `qm` is used to create a vm, and set various settings I could set in the proxmox UI. It was really fun to develop this seeing the UI update to match my script.
+
+```sh
+#!/usr/bin/env bash
+
+TEMPLATE_ID="${TEMPLATE_ID:-901}"
+TEMPLATE_NAME="${TEMPLATE_NAME:-ansible-template-ubuntu-noble}"
+STORAGE="local-lvm"
+BRIDGE="vmbr0"
+MEMORY=6144
+BALLOON=512
+CORES=4
+DISK_SIZE="32G"
+
+CIUSER="${CIUSER:-admin}"
+CIPASSWORD="${CIPASSWORD:-change-me}"
+
+UBUNTU_IMAGE_URL="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+IMAGE_FILE="noble-server-cloudimg-amd64.img"
+
+echo "Downloading Ubuntu cloud image..."
+wget -O "$IMAGE_FILE" "$UBUNTU_IMAGE_URL"
+
+echo "Creating VM..."
+qm create "$TEMPLATE_ID" \
+  --name "$TEMPLATE_NAME" \
+  --memory "$MEMORY" \
+  --cores "$CORES" \
+  --net0 virtio,bridge="$BRIDGE" \
+  --scsihw virtio-scsi-pci \
+  --ostype l26
+
+echo "Importing disk..."
+qm importdisk "$TEMPLATE_ID" "$IMAGE_FILE" "$STORAGE"
+
+echo "Attaching disk..."
+qm set "$TEMPLATE_ID" \
+  --scsi0 "$STORAGE:vm-${TEMPLATE_ID}-disk-0,iothread=1,ssd=1" \
+  --boot order=scsi0 \
+  --bootdisk scsi0
+
+# Trimmed for brevity...
+
+```
+
+Want to see the whole proxmox script? Check [it out here in this gist](https://gist.github.com/pbabbott/d269958dd57708e0c666115bb1d21055).
+
+### 5. B - Configure the VM
+
+Next, I want to show a high-level `main.yml` playbook that configure the VM template. This one is responsible for turning it into that "golden image" or creating the "snapshot."
+
+The last step in this playbook shuts it down cleanly so that it is ready to be replicated across the fleet.
+
+Again, to see all of these playbooks, check it out here:
+
+home-playbooks / playbooks / [ansible-template-ubuntu-noble](https://github.com/pbabbott/home-playbooks/tree/main/playbooks/ansible-template-ubuntu-noble)
+
+```yaml
+---
+# Configure the VM (template) as per playbooks/proxmox/README.md "Configure the VM".
+# Targets the running template VM. Run after the template VM is started and
+# reachable (e.g. at 192.168.6.91).
+
+- name: Include QEMU guest agent play
+  ansible.builtin.import_playbook: 01-qemu-guest-agent.yml
+
+- name: Include memory ballooning play
+  ansible.builtin.import_playbook: 02-memory-ballooning.yml
+
+- name: Include Longhorn data disk play
+  ansible.builtin.import_playbook: 03-longhorn-data-disk.yml
+
+- name: Include DNS play
+  ansible.builtin.import_playbook: 04-dns.yml
+
+- name: Include timezone play
+  ansible.builtin.import_playbook: 05-timezone.yml
+
+- name: Include iptables legacy and IPv6 disable play
+  ansible.builtin.import_playbook: 06-iptables-ipv6.yml
+
+- name: Include storage packages play (NFS, iSCSI)
+  ansible.builtin.import_playbook: 07-storage-packages.yml
+
+- name: Include clean shutdown and power off play
+  ansible.builtin.import_playbook: 08-clean-shutdown.yml
+```
+
+## Step 6 - Create the fleet using terraform
+
+Finally, I got terraform working to create a fleet of VMs from the golden image.
+
+I experimented with a few different providers for proxmox, but the one that I found to be the most stable (and least buggy) was the [BPG Proxmox provider](https://registry.terraform.io/providers/bpg/proxmox/latest/docs).
+
+If you want to see my whole terraform solution, check it out here:
+
+home-playbooks / [terraform](https://github.com/pbabbott/home-playbooks/tree/main/terraform)
+
+The most exciting part of the code is that I managed to get it down to just a few variables to control instances. In this code below, you can see I have names for my VMs mapping to IDs in proxmox. I also have the VMs mapped to IP addresses in my static network!
+
+```terraform
+variable "nonprod_vms" {
+  description = "Non-prod VMs: map of name -> vmid (301 = controller, 302-304 = workers). Use tf-nonprod-* names."
+  type        = map(number)
+  default = {
+    "tf-nonprod-k8s-controller-1" = 301
+    "tf-nonprod-k8s-worker-1"     = 302
+    "tf-nonprod-k8s-worker-2"     = 303
+    "tf-nonprod-k8s-worker-3"     = 304
+  }
+}
+
+variable "nonprod_static_ips" {
+  description = "Static IP address per non-prod VM (keys must match nonprod_vms). Used with /22 and nonprod_gateway."
+  type        = map(string)
+  default = {
+    "tf-nonprod-k8s-controller-1" = "192.168.6.31"
+    "tf-nonprod-k8s-worker-1"     = "192.168.6.32"
+    "tf-nonprod-k8s-worker-2"     = "192.168.6.33"
+    "tf-nonprod-k8s-worker-3"     = "192.168.6.34"
+  }
+}
+```
+
+Then, after running `terraform apply` they of course showed up in my proxmox host! This moment felt great.
+
+<Image
+  src="/api/blog-images/non-prod-milestone-one-proxmox-terraform-ansible/proxmox-screenshot.png"
+  alt="Proxmox Screenshot"
+  width={400}
+  height={400}
+  className="rounded-lg my-8"
+/>
+
+## Step 7 - Install kubernetes
+
+I now have many VMs being easily constructed from my golden image. Now the last thing to do is to start installing cool stuff onto them. In particular, I'm going to use these to run `containerd` and a `kubelet` via `kubeadm`.
+
+Below is the `main.yml` playbook i used to run many playbooks against the fleet.
+
+Since I already had a suite of playbooks to configure my existing cluster in a folder called `playbooks/kubernetes`, I decided to put all my of my new code into a `playbokos/kuberenetes-gen2` folder. That way, I wouldn't risk messing anything up with my first approach. Gen2 here is just my 2nd generation of building a cluster (not actually having anything to do with kubernetes itself).
+
+If you want to check it out for yourself its all here:
+
+home-playbooks / playbooks / [kuberentes-gen2](https://github.com/pbabbott/home-playbooks/tree/main/playbooks/kubernetes-gen2)
+
+```yml
+---
+# Note: the swap and ipv4 stuff could probably move into the golden image
+
+- name: Include containerd play
+  ansible.builtin.import_playbook: 01-containerd.yml
+
+- name: Disable swap
+  ansible.builtin.import_playbook: 02-disable-swap.yml
+
+- name: Load IPv4 networking modules
+  ansible.builtin.import_playbook: 03-ipv4-packets.yml
+
+- name: Install kube tools
+  ansible.builtin.import_playbook: 04-kube-tools.yml
+
+- name: Install Helm
+  ansible.builtin.import_playbook: 05-helm.yml
+
+- name: Configure kubelet
+  ansible.builtin.import_playbook: 06-kubelet.yml
+```
+
+And finally! This last moment brought about the best feeling of accomplishment. I ssh'd onto my controller vm and checked the status of the nodes using `kubectl`
+
+<Image
+  src="/api/blog-images/non-prod-milestone-one-proxmox-terraform-ansible/kubectl-get-nodes-screenshot.png"
+  alt="Kubectl Get Nodes Screenshot"
+  width={500}
+  height={200}
+  className="rounded-lg my-8"
+/>
+
+YES!!! We've got a non-prod cluster!!
+
+---
+
+## Reflection
+
+Phew! What a journey! We did it!
+
+I configured a new pattern for dynamic and static IP addresses at home. I've refactored my [home-playbooks](https://github.com/pbabbott/home-playbooks) repository. I got a new fleet of VMs established with terraform + proxmox. My old notes in my journal are now runnable scripts. And we got it all done without messing with the existing setup.
+
+While these accomplishments feel great, what feels even better is the learning I gained from the mistakes I made.
+
+I shouldn't have messed around with my home network (without full understanding of the settings) as I don't have a non-prod Eero router. My internet (and servers) were down for quite a while. And honestly, this is exactly why i'm building a non-prod cluster. I love to tinker and mess around with things even if they break. I want my production cluster to feel like production and not go down when I can't help but try new things.
+
+I also accidentally discovered multiple strategies for handling VMs. Golden images or a just-in-time approach. I could see the benefit of having everything fully scripted and perhaps then highly automated with the just-in-time approach, but my homelab infrastructure just isn't there yet. I think the approach I used for my homelab works well for my needs right now. I can destroy everything and re-create with a handful of manual steps. Things that change frequently are now easier to change. I accomplished the goal of my first milestone: Ensure things can be re-run safely, and build confidence in my infrastructure management code.
+
+Perhaps the most exciting was that final moment of running `kubectl get nodes`. With this foundation in place, I can now spin up a full cluster in just a few minutes, which sets the stage for layering in a new ingress pattern, service mesh experimentation, and organizing my Flux repository.
+
+I am now fully ready to start Milestone 2. Next up, it'll be time to re-work the ingress pattern with `haproxy` and a transition from `ingress-nginx` to `istio`. Stay tuned!

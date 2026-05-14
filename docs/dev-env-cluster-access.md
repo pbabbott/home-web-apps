@@ -12,7 +12,7 @@ The purpose of this document is to explain how one can gain access to the kubern
 First, you'll need to obtain a kubeconfig file. There is a script for this which fetches it from 1Password and puts it in the proper directory. (`~/.kube/config`)
 
 ```sh
-./scripts/cluster-access.sh
+./scripts/get-kube-config-file.sh
 ```
 
 > [!NOTE]

@@ -1,4 +1,4 @@
-import { InputColor } from './types';
+import type { InputColor } from './types';
 
 export const getSvgColorClasses = (color: InputColor) => {
   const colors = {

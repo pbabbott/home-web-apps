@@ -1,10 +1,30 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": ["CI"],
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", "public/dist/**"],
+      "outputs": [
+        "dist/**",
+        "storybook-static/**",
+        "public/dist/**",
+        ".next/**"
+      ],
       "dependsOn": ["^build"]
+    },
+    "build:npm": {
+      "outputs": ["dist/**"],
+      "dependsOn": []
+    },
+    "@abbottland/fui-components#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["storybook-static/**"],
+      "dependsOn": ["@abbottland/fui-components#build:npm"]
+    },
+    "@abbottland/blog#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**"],
+      "dependsOn": ["@abbottland/fui-components#build:npm"]
     },
     "test:int": {
       "outputs": ["test-results/**", "coverage/**"],
@@ -15,9 +35,13 @@
       "outputs": ["test-results/**", "coverage/**"],
       "cache": false
     },
-    "test:e2e": {
+    "test:smoke": {
       "outputs": ["test-results/**", "coverage/**"],
       "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:ui": {
+      "outputs": ["playwright-report/**", "test-results/**"],
       "cache": false
     },
     "docker:build": {
@@ -47,13 +71,13 @@
       "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"],
       "dependsOn": ["^build"]
     },
-    "e2e:deps": {
+    "smoke:deps": {
       "cache": false
     },
-    "e2e:deps:build": {
+    "smoke:deps:build": {
       "cache": false
     },
-    "e2e:deps:down": {
+    "smoke:deps:down": {
       "cache": false
     },
     "dev:deps": {

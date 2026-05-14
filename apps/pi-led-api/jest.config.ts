@@ -4,20 +4,12 @@ import type { Config } from 'jest';
 import {
   unitTestPreset,
   integrationTestPreset,
+  jestReporters,
 } from '@abbottland/jest-presets';
 
 const config: Config = {
   projects: [unitTestPreset, integrationTestPreset],
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        outputDirectory: './test-results/junit',
-        outputName: 'results.xml',
-      },
-    ],
-  ],
+  reporters: jestReporters,
 };
 
 export default config;

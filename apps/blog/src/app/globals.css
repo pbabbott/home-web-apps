@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@config '../../tailwind.config.ts';
+
+:root {
+  /* Used for spacer below fixed StickyHeader so full-height sections start in the right place */
+  --header-height: 3rem;
+}
+
+@layer base {
+  @font-face {
+    font-family: 'ethnocentric';
+    src: url('/fonts/ethnocentric_rg.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'monobit';
+    src: url('/fonts/monobit.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  html {
+    font-family: 'monobit', system-ui, sans-serif;
+    font-size: 16px;
+  }
+  body {
+    font-size: 1.75rem;
+    letter-spacing: 0;
+  }
+
+  /* Set default font size for MDX blog post content to body1 */
+  .prose {
+    font-size: 2rem; /* body1 font size */
+    line-height: 0.8;
+  }
+
+  /* Ensure paragraphs and other text elements in prose use body1 */
+  .prose p,
+  .prose li,
+  .prose td,
+  .prose th,
+  .prose span,
+  .prose code {
+    font-size: 2rem; /* body1 font size */
+    line-height: 0.8;
+  }
+
+  .prose :not(pre) > code {
+    font-size: 2rem !important; /* body1 font size */
+    line-height: 0.8;
+  }
+
+  /* Allow utility classes on code elements to override prose modifier classes */
+  .prose code[class*='text-'] {
+    color: inherit;
+  }
+
+  time {
+    font-size: 2rem;
+    line-height: 0.8;
+  }
+
+  a {
+    color: theme('colors.primary.500');
+    text-decoration: underline;
+    transition: color 0.2s ease-in-out;
+  }
+  a:hover {
+    color: theme('colors.primary.300');
+  }
+  a:visited {
+    color: theme('colors.primary.600');
+  }
+  a:active {
+    color: theme('colors.primary.700');
+  }
+  a:focus-visible {
+    outline: 2px solid theme('colors.primary.500');
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Reset link styles for navigation links */
+  nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+  nav a:hover,
+  nav a:visited,
+  nav a:active {
+    color: inherit;
+  }
+  nav a:focus-visible {
+    outline: none;
+  }
+}
+
+@keyframes subtle-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-subtle-bounce {
+  animation: subtle-bounce 2s ease-in-out infinite;
+}

@@ -4,7 +4,7 @@ import type { Config } from 'jest';
 import {
   unitTestPreset,
   integrationTestPreset,
-  e2eTestPreset,
+  smokeTestPreset,
   jestReporters,
 } from '@abbottland/jest-presets';
 
@@ -15,7 +15,7 @@ const config: Config = {
       ...integrationTestPreset,
       setupFilesAfterEnv: ['<rootDir>/tests/jest.integration.setup.ts'],
     },
-    e2eTestPreset,
+    smokeTestPreset,
   ],
   reporters: jestReporters,
 };

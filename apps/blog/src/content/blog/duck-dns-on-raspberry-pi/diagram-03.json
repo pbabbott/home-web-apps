@@ -1,0 +1,289 @@
+{
+  "nodes": [
+    {
+      "id": "node_10",
+      "type": "labeled",
+      "position": {
+        "x": -85.8041601255887,
+        "y": 17.36670918367348
+      },
+      "data": {
+        "label": "Public Internet",
+        "content": "",
+        "width": 180,
+        "height": 127
+      },
+      "measured": {
+        "width": 180,
+        "height": 127
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 276.7672684458399,
+        "y": 30.938002845368885
+      },
+      "data": {
+        "label": "Your home\n74.165.22.113",
+        "content": "",
+        "width": 558,
+        "height": 345
+      },
+      "measured": {
+        "width": 558,
+        "height": 345
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "labeled",
+      "position": {
+        "x": 589.75,
+        "y": 76.1640625
+      },
+      "data": {
+        "label": "Raspberry PI\n192.168.1.182",
+        "content": "",
+        "width": 232,
+        "height": 288
+      },
+      "measured": {
+        "width": 232,
+        "height": 288
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 599.25,
+        "y": 134.6640625
+      },
+      "data": {
+        "label": "Docker",
+        "content": "",
+        "colorScheme": "default",
+        "width": 216,
+        "height": 223
+      },
+      "measured": {
+        "width": 216,
+        "height": 223
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 612.25,
+        "y": 163.1640625
+      },
+      "data": {
+        "content": "n8n",
+        "handles": [
+          {
+            "id": "handle-1769565771123",
+            "type": "target",
+            "position": "left"
+          }
+        ],
+        "width": 186,
+        "height": 80
+      },
+      "measured": {
+        "width": 186,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_6",
+      "type": "customDefault",
+      "position": {
+        "x": -71.64324960753531,
+        "y": 49.157917974882274
+      },
+      "data": {
+        "content": "Your phone",
+        "handles": [
+          {
+            "id": "handle-1769570105784",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_8",
+      "type": "labeled",
+      "position": {
+        "x": 288.07182103610677,
+        "y": 135.65477825745685
+      },
+      "data": {
+        "label": "Router",
+        "content": "\nPort Forwarding:\n80 -> 192.168.1.182:5678",
+        "width": 240,
+        "height": 97,
+        "colorScheme": "default",
+        "handles": [
+          {
+            "id": "handle-1769570202206",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1769570202357",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 240,
+        "height": 97
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_12",
+      "type": "customDefault",
+      "position": {
+        "x": 611.8237833594978,
+        "y": 257.9422586342229
+      },
+      "data": {
+        "content": "linuxserver/duckdns",
+        "width": 187,
+        "height": 83,
+        "colorScheme": "primary",
+        "handles": [
+          {
+            "id": "handle-1769648168797",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 187,
+        "height": 83
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_13",
+      "type": "customDefault",
+      "position": {
+        "x": 605.7107535321823,
+        "y": 439.919825653464
+      },
+      "data": {
+        "content": "Duck DNS",
+        "width": 198,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1769648173942",
+            "type": "target",
+            "position": "top"
+          }
+        ],
+        "colorScheme": "primary"
+      },
+      "measured": {
+        "width": 198,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_6",
+      "sourceHandle": "handle-1769570105784",
+      "target": "node_8",
+      "targetHandle": "handle-1769570202206",
+      "id": "xy-edge__node_6handle-1769570105784-node_8handle-1769570202206",
+      "data": {
+        "label": "http://myhouse.duckdns.org\n(port 80)"
+      },
+      "selected": true
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_8",
+      "sourceHandle": "handle-1769570202357",
+      "target": "node_5",
+      "targetHandle": "handle-1769565771123",
+      "id": "xy-edge__node_8handle-1769570202357-node_5handle-1769565771123",
+      "selected": false,
+      "data": {
+        "label": "5678"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_12",
+      "sourceHandle": "handle-1769648168797",
+      "target": "node_13",
+      "targetHandle": "handle-1769648173942",
+      "id": "xy-edge__node_12handle-1769648168797-node_13handle-1769648173942",
+      "selected": false,
+      "data": {
+        "label": "token"
+      }
+    }
+  ]
+}

@@ -52,3 +52,20 @@ test-results
 
 temp
 docker-volumes
+
+# OCLIF defaults
+*-debug.log
+*-error.log
+**/.DS_Store
+/.idea
+/dist
+/tmp
+/node_modules
+oclif.manifest.json
+yarn.lock
+package-lock.json
+
+
+playwright-report
+
+1password-credentials.json

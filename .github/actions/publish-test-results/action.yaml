@@ -1,0 +1,37 @@
+name: 'Publish Test Results'
+description: 'Collects JUnit XML results, uploads as artifact, and publishes via dorny/test-reporter'
+inputs:
+  artifact-name:
+    description: 'Artifact name for the uploaded results (e.g. unit-test-results)'
+    required: true
+  report-name:
+    description: 'Display name for the check run report (e.g. Unit Tests)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Collect test results
+      run: |
+        tmp_dir="/tmp/${{ inputs.artifact-name }}"
+        mkdir -p "$tmp_dir"
+        while IFS= read -r f; do
+          pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
+          cp "$f" "$tmp_dir/${pkg}.xml"
+        done < <(find . -name "test-results.xml" -not -path "*/node_modules/*")
+        echo "Collected $(ls "$tmp_dir"/*.xml 2>/dev/null | wc -l) test result file(s)"
+      shell: bash
+
+    - name: Upload test results artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: /tmp/${{ inputs.artifact-name }}/
+        if-no-files-found: warn
+
+    - name: Test Report
+      uses: dorny/test-reporter@v2
+      with:
+        name: ${{ inputs.report-name }}
+        artifact: ${{ inputs.artifact-name }}
+        path: '*.xml'
+        reporter: jest-junit

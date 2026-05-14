@@ -37,10 +37,10 @@ TODO: set this up against pi-led-api
 
 # fui-components
 
-- rebuild component library from scratch following tutorials online
+- ✅ rebuild component library from scratch following tutorials online
+  - ✅ follow tutorials
+  - ✅ maybe move the whole folder and start fresh?
 - setup visual tests
-- follow tutorials
-- maybe move the whole folder and start fresh?
 
 # swagger
 

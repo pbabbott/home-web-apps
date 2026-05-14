@@ -1,25 +1,31 @@
 # fui-components
 
-## 0.2.0
+## 0.4.3
+
+### Patch Changes
+
+- Reduce docker build to just be nginx
+
+## 0.4.2
+
+### Patch Changes
+
+- Modify storybook build to use version tag rather than latest
+
+## 0.4.1
+
+### Patch Changes
+
+- Issuing new version with docker ignore changes
+
+## 0.4.0
 
 ### Minor Changes
 
-- Initial release with docker
-
-## 0.1.2
-
-### Patch Changes
-
-- Testing a patch version with james on a demo
-
-## 0.1.1
-
-### Patch Changes
-
-- Version bump fui-components to test package publication"
+- Initial release of the newly refactors component lib
 
 ## 0.1.0
 
 ### Minor Changes
 
-- Testing an initial release with changeset cli
+- Upgrade storybook to v10 and integrate with new blog site

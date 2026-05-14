@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
+    "jest-junit": "catalog:",
     "ts-node": "catalog:"
   },
   "peerDependencies": {

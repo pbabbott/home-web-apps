@@ -1,0 +1,350 @@
+{
+  "nodes": [
+    {
+      "id": "node_8",
+      "type": "labeled",
+      "position": {
+        "x": 428.367135293793,
+        "y": 668.4275071245897
+      },
+      "data": {
+        "label": "Ingress Pattern",
+        "content": "",
+        "width": 527,
+        "height": 119,
+        "handles": [
+          {
+            "id": "handle-1771599979546",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "handle-1771600343653",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 527,
+        "height": 119
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_6",
+      "type": "labeled",
+      "position": {
+        "x": 444,
+        "y": 485.6640625
+      },
+      "data": {
+        "label": "Observability Stack",
+        "content": "",
+        "width": 495,
+        "height": 121,
+        "handles": [
+          {
+            "id": "handle-1771599961323",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "handle-1771599963521",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 495,
+        "height": 121
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 496.52302292166485,
+        "y": 312.29692720620704
+      },
+      "data": {
+        "label": "Applications",
+        "content": "",
+        "width": 389,
+        "height": 118,
+        "handles": [
+          {
+            "id": "handle-1771599958074",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 389,
+        "height": 118
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_0",
+      "type": "customDefault",
+      "position": {
+        "x": 518.5230229216648,
+        "y": 341.74223970620704
+      },
+      "data": {
+        "content": "Custom Web Apps"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1",
+      "type": "customDefault",
+      "position": {
+        "x": 455,
+        "y": 513.6640625
+      },
+      "data": {
+        "content": "Grafana"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "customDefault",
+      "position": {
+        "x": 610.867135293793,
+        "y": 695.4275071245897
+      },
+      "data": {
+        "content": "cert-manager"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 444.867135293793,
+        "y": 697.9275071245897
+      },
+      "data": {
+        "content": "Istio"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 681.5230229216648,
+        "y": 341.79692720620704
+      },
+      "data": {
+        "content": "3rd Party\nApps"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_7",
+      "type": "customDefault",
+      "position": {
+        "x": 610.5,
+        "y": 514.1640625
+      },
+      "data": {
+        "content": "Prometheus"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_9",
+      "type": "customDefault",
+      "position": {
+        "x": 773.867135293793,
+        "y": 695.9275071245897
+      },
+      "data": {
+        "content": "Load Balancer\n(haproxy)",
+        "colorScheme": "primary"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_10",
+      "type": "customDefault",
+      "position": {
+        "x": 770.0917567772573,
+        "y": 515.1855038819746
+      },
+      "data": {
+        "content": "otel-collector\n/ Loki"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_11",
+      "type": "labeled",
+      "position": {
+        "x": 487.05730991647147,
+        "y": 838.4649420213337
+      },
+      "data": {
+        "label": "Infra",
+        "content": "",
+        "width": 411,
+        "height": 133,
+        "handles": [
+          {
+            "id": "handle-1771600339716",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 411,
+        "height": 133
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_12",
+      "type": "customDefault",
+      "position": {
+        "x": 520.7047616411804,
+        "y": 870.1331318798832
+      },
+      "data": {
+        "content": "Proxmox with Terraform"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_13",
+      "type": "customDefault",
+      "position": {
+        "x": 702.1370993724533,
+        "y": 870.7928858352697
+      },
+      "data": {
+        "content": "Refine Ansible Playbooks"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_4",
+      "sourceHandle": "handle-1771599958074",
+      "target": "node_6",
+      "targetHandle": "handle-1771599961323",
+      "id": "xy-edge__node_4handle-1771599958074-node_6handle-1771599961323",
+      "selected": false
+    },
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_6",
+      "sourceHandle": "handle-1771599963521",
+      "target": "node_8",
+      "targetHandle": "handle-1771599979546",
+      "id": "xy-edge__node_6handle-1771599963521-node_8handle-1771599979546",
+      "selected": false
+    },
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_8",
+      "sourceHandle": "handle-1771600343653",
+      "target": "node_11",
+      "targetHandle": "handle-1771600339716",
+      "id": "xy-edge__node_8handle-1771600343653-node_11handle-1771600339716",
+      "data": {
+        "label": ""
+      },
+      "selected": false
+    }
+  ]
+}

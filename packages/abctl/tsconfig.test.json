@@ -1,5 +1,13 @@
 {
   "description": "Typescript configuration for running tests",
   "extends": "@abbottland/typescript-config/ts-lib-test.json",
-  "include": ["**/*.test.ts"]
+  "include": ["**/*.test.ts"],
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "isolatedModules": true
+  },
+  "ts-node": {
+    "esm": true
+  }
 }

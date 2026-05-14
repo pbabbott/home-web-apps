@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(pnpm lint *)",
+      "Skill(commit)",
+      "Bash(CI=true pnpm test:unit)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm test:unit)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm -w run test:unit)",
+      "Bash(kubectl config get-contexts *)",
+      "Bash(pnpm test:int)",
+      "Bash(docker exec *)",
+      "Bash(curl *)",
+      "Bash(docker restart *)",
+      "Bash(docker compose *)",
+      "Bash(docker run *)",
+      "Bash(pnpm docker:build)",
+      "Bash(pnpm docker:push *)"
+    ]
+  }
+}

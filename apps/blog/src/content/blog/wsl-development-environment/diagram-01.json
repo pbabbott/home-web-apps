@@ -1,0 +1,287 @@
+{
+  "nodes": [
+    {
+      "id": "node_0",
+      "type": "labeled",
+      "position": {
+        "x": 115.5,
+        "y": 226.109375
+      },
+      "data": {
+        "label": "Windows Computer",
+        "content": "",
+        "width": 555,
+        "height": 417
+      },
+      "measured": {
+        "width": 555,
+        "height": 417
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_2",
+      "type": "labeled",
+      "position": {
+        "x": 130,
+        "y": 263.4140625
+      },
+      "data": {
+        "label": "C:\\",
+        "content": "",
+        "width": 235,
+        "height": 369,
+        "handles": [
+          {
+            "id": "handle-1771183236303",
+            "type": "target",
+            "position": "right"
+          }
+        ],
+        "colorScheme": "secondary"
+      },
+      "measured": {
+        "width": 235,
+        "height": 369
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 147,
+        "y": 302.4140625
+      },
+      "data": {
+        "label": "C:\\Users\\pbabb",
+        "content": "",
+        "width": 206,
+        "height": 321,
+        "handles": [],
+        "colorScheme": "default"
+      },
+      "measured": {
+        "width": 206,
+        "height": 321
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 395,
+        "y": 375.9140625
+      },
+      "data": {
+        "label": "WSL",
+        "content": "",
+        "colorScheme": "default",
+        "width": 254,
+        "height": 214
+      },
+      "measured": {
+        "width": 254,
+        "height": 214
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 485.5,
+        "y": 397.4140625
+      },
+      "data": {
+        "content": "/mnt/c",
+        "handles": [
+          {
+            "id": "handle-1771183242248",
+            "type": "source",
+            "position": "left"
+          }
+        ],
+        "colorScheme": "secondary"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 167,
+        "y": 342.4140625
+      },
+      "data": {
+        "content": "Documents",
+        "colorScheme": "primary",
+        "handles": [
+          {
+            "id": "handle-1771183453231",
+            "type": "source",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_6",
+      "type": "customDefault",
+      "position": {
+        "x": 167,
+        "y": 435.4140625
+      },
+      "data": {
+        "content": "Pictures"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_7",
+      "type": "customDefault",
+      "position": {
+        "x": 168,
+        "y": 525.4140625
+      },
+      "data": {
+        "content": "..."
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_8",
+      "type": "customDefault",
+      "position": {
+        "x": -192.5,
+        "y": 352.4140625
+      },
+      "data": {
+        "content": "OneDrive",
+        "colorScheme": "primary",
+        "handles": [
+          {
+            "id": "handle-1771183175974",
+            "type": "target",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_9",
+      "type": "customDefault",
+      "position": {
+        "x": 423.5,
+        "y": 493.9140625
+      },
+      "data": {
+        "content": "/home/pbabbott/code",
+        "width": 216,
+        "height": 80
+      },
+      "measured": {
+        "width": 216,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_4",
+      "sourceHandle": "handle-1771183182439",
+      "target": "node_8",
+      "targetHandle": "handle-1771183175974",
+      "id": "xy-edge__node_4handle-1771183182439-node_8handle-1771183175974",
+      "selected": false,
+      "data": {
+        "label": "oftentimes\nenabled"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_3",
+      "sourceHandle": "handle-1771183242248",
+      "target": "node_2",
+      "targetHandle": "handle-1771183236303",
+      "id": "xy-edge__node_3handle-1771183242248-node_2handle-1771183236303",
+      "data": {
+        "label": "mount"
+      },
+      "selected": false
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_5",
+      "sourceHandle": "handle-1771183453231",
+      "target": "node_8",
+      "targetHandle": "handle-1771183175974",
+      "id": "xy-edge__node_5handle-1771183453231-node_8handle-1771183175974",
+      "selected": false,
+      "data": {
+        "label": "Often\nEnabled"
+      }
+    }
+  ]
+}

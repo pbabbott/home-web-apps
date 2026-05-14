@@ -9,11 +9,13 @@ All apps and packages are built with Typescript!
 ## Apps
 
 - `@abbottland/gluetun-sync` - An express.js application which keeps a qBitTorrent port in sync with a dynamically assigned Gluetun vpn public port to ensure my home IP is not leaked during torrent downloads.
+- `@abbottland/pi-led-api` - An express.js application which provides a REST API to control an LED strip inside a Raspberry Pi PIRONMAN case.
+- `@abbottland/blog` - A Next.js application which serves as my personal blog.
 
 ## Packages
 
 - `@abbottland/eslint-config`: ESLint presets.
-- `@abbottland/fui-components`: React Fantasy UI component library written with Storybook
+- `@abbottland/fui-components`: React Futuristic UI component library written with Storybook
 - `@abbottland/jest-presets`: Jest configurations
 - `@abbottland/logger`: Placeholder code, not yet used.
 - `@abbottland/typescript-config`: `tsconfig.json`'s used throughout the monorepo
@@ -37,8 +39,12 @@ All apps and packages are built with Typescript!
 - [Linting](./docs/dev-guide-linting.md) - How linting is set up with `eslint` in this repository.
 - [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
 - [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
-- [Publication to NPM](./docs/dev-guide-publication-to-npm.md) - How to push new packages to the remote `npm` registry.
-- [Test Automation](./docs/dev-guide-test-automation.md) - Explains how the `unit`, `integration`, and `e2e` tests are set up to run automatically in this project.
+- Test guides:
+  - [Unit Tests](./docs/test-guide-unit.md) - Jest unit tests, no external dependencies.
+  - [Integration Tests](./docs/test-guide-integration.md) - Node process hitting Dockerized real dependencies.
+  - [Smoke Tests](./docs/test-guide-smoke.md) - Docker-built app image running against real dependencies.
+  - [UI Tests](./docs/test-guide-ui.md) - Playwright screenshot regression and Vitest DOM tests for `fui-components`.
+  - [E2E Tests](./docs/test-guide-e2e.md) - Live site browser tests (not yet implemented).
 
 ## Development Environments
 
