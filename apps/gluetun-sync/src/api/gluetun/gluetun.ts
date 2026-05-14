@@ -11,7 +11,9 @@ export const getForwardedPort = async () => {
     const uri = `${config.gluetun.apiHost}/v1/portforward`;
     const response = await fetch(uri);
     if (!response.ok) {
-      throw new Error(`Gluetun API error: ${response.status} ${await response.text()}`);
+      throw new Error(
+        `Gluetun API error: ${response.status} ${await response.text()}`,
+      );
     }
     const data = await response.json();
     return data as ForwardedPortResult;

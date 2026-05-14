@@ -13,6 +13,7 @@ SyntaxError: Unexpected token 'U', "Unauthorized" is not valid JSON
 ```
 
 Two tests failing:
+
 - `sync › do sync › should return 200 for POST /sync` — got 502
 - `sync › do sync › should return a sensible response for GET /status` — `mostRecentAttemptSuccessful` was false
 
@@ -29,6 +30,7 @@ Recent gluetun image added `HTTP_CONTROL_SERVER_AUTH_DEFAULT_ROLE={}` as default
 Endpoint moved to `/v1/portforward` (old URL returns 301 redirect). The `response.json()` call on a redirect body caused a JSON parse error. Also, `path.join('http://localhost:8000', '/v1/...')` corrupts the URL to `http:/localhost:8000/...` (normalizes double slash) — happens to work with Node.js undici but is technically wrong.
 
 **Fix (`src/api/gluetun/gluetun.ts`):**
+
 - Switch to `/v1/portforward`
 - Template literal URL instead of `path.join`
 - Add `response.ok` guard before `response.json()`
@@ -41,6 +43,7 @@ Two changes in qBittorrent 5.x (linuxserver image `5.2.0`):
 2. Session cookie renamed from `SID` to `QBT_SID_<port>` (e.g. `QBT_SID_8080`) — code was extracting just the token value and rebuilding the cookie as `SID=<token>`, which qBittorrent no longer recognizes
 
 **Fix (`src/api/qbittorrent/index.ts`):**
+
 - Login check: `!== 200` → `!response.ok`
 - Cookie: return and forward the full `name=value` string (`QBT_SID_8080=token`) instead of splitting and reconstructing as `SID=token`
 
