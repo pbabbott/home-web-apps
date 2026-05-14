@@ -19,7 +19,8 @@
       "Bash(docker run *)",
       "Bash(pnpm docker:build)",
       "Bash(pnpm docker:push *)",
-      "Skill(dump)"
+      "Skill(dump)",
+      "Skill(caveman:caveman-commit)"
     ]
   }
 }
