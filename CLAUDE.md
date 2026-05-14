@@ -57,9 +57,11 @@ pnpm format:fix
 ```bash
 pnpm test:unit    # Jest unit tests (all packages)
 pnpm test:int     # Jest integration tests (requires Docker)
-pnpm test:e2e     # Jest e2e tests (requires Docker e2e stack)
+pnpm test:smoke   # Jest smoke tests (requires Docker smoke stack)
 pnpm test:ui      # Playwright + Vitest tests for fui-components only
 ```
+
+See test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
 
 To run a single test file from a package directory:
 
@@ -98,7 +100,7 @@ Follow a consistent pattern:
 - `@abbottland/yaml-config` provides config via decorators + YAML/env files
 - `sample.env` documents required environment variables
 - Docker Compose for local dev dependencies; `abctl` for Docker builds and publishing
-- Jest projects config with separate `unit`, `int`, and `e2e` suites
+- Jest projects config with separate `unit`, `int`, and `smoke` suites
 
 ### Frontend Apps (`blog`, `diagram-maker`)
 
@@ -124,7 +126,7 @@ Presets in `packages/typescript-config/`:
 
 ### Test Presets
 
-`packages/jest-presets` exports `unitTestPreset`, `integrationTestPreset`, `e2eTestPreset`, and `jestReporters`. Apps import these in `jest.config.ts` and use Jest `projects` to run multiple suites.
+`packages/jest-presets` exports `unitTestPreset`, `integrationTestPreset`, `smokeTestPreset`, and `jestReporters`. Apps import these in `jest.config.ts` and use Jest `projects` to run multiple suites.
 
 ### Docker
 
@@ -139,6 +141,6 @@ GitHub Actions workflows (`.github/workflows/`) run on PRs with self-hosted runn
 
 - `build.yml` — installs and builds
 - `lint.yml` — ESLint and Prettier checks
-- `tests.yml` — four parallel jobs: `unit-tests`, `integration-tests`, `e2e-tests`, `ui-tests`
+- `tests.yml` — four parallel jobs: `unit-tests`, `integration-tests`, `smoke-tests`, `ui-tests`
 
 Composite actions in `.github/actions/` handle pnpm setup, install+build, and test environment setup (1Password + Docker Buildx).

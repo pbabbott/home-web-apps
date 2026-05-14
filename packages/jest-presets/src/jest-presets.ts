@@ -27,10 +27,10 @@ const integrationTestPreset: Config = {
   testMatch: ['**/*.integration.test.[jt]s?(x)'],
 };
 
-const e2eTestPreset: Config = {
-  ...createBasePreset('e2e'),
-  displayName: 'e2e',
-  testMatch: ['**/*.e2e.test.[jt]s?(x)'],
+const smokeTestPreset: Config = {
+  ...createBasePreset('smoke'),
+  displayName: 'smoke',
+  testMatch: ['**/*.smoke.test.[jt]s?(x)'],
 };
 
 // Only run reporters in CI
@@ -49,4 +49,4 @@ const jestReporters: Config['reporters'] = process.env.CI
     ]
   : undefined;
 
-export { unitTestPreset, integrationTestPreset, e2eTestPreset, jestReporters };
+export { unitTestPreset, integrationTestPreset, smokeTestPreset, jestReporters };

@@ -1,8 +1,8 @@
 services:
   gluetun-sync:
-    image: harbor.local.abbottland.io/library/gluetun-sync:e2e
+    image: harbor.local.abbottland.io/library/gluetun-sync:smoke
     profiles:
-      - e2e
+      - smoke
     build:
       context: ../../
       dockerfile: docker/pnpm-turbo.Dockerfile

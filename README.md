@@ -39,7 +39,12 @@ All apps and packages are built with Typescript!
 - [Linting](./docs/dev-guide-linting.md) - How linting is set up with `eslint` in this repository.
 - [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
 - [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
-- [Test Automation](./docs/dev-guide-test-automation.md) - Explains how the `unit`, `integration`, and `e2e` tests are set up to run automatically in this project.
+- Test guides:
+  - [Unit Tests](./docs/test-guide-unit.md) - Jest unit tests, no external dependencies.
+  - [Integration Tests](./docs/test-guide-integration.md) - Node process hitting Dockerized real dependencies.
+  - [Smoke Tests](./docs/test-guide-smoke.md) - Docker-built app image running against real dependencies.
+  - [UI Tests](./docs/test-guide-ui.md) - Playwright screenshot regression and Vitest DOM tests for `fui-components`.
+  - [E2E Tests](./docs/test-guide-e2e.md) - Live site browser tests (not yet implemented).
 
 ## Development Environments
 

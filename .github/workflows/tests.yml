@@ -146,7 +146,7 @@ jobs:
         run: pnpm dev:deps:down
         shell: bash
 
-  e2e-tests:
+  smoke-tests:
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -164,16 +164,16 @@ jobs:
           op-connect-host: https://op-connect.local.abbottland.io
           op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
-      - name: Run e2e dependencies build
-        run: pnpm e2e:deps:build
+      - name: Run smoke dependencies build
+        run: pnpm smoke:deps:build
         shell: bash
 
-      - name: Run e2e dependencies
-        run: pnpm e2e:deps
+      - name: Run smoke dependencies
+        run: pnpm smoke:deps
         shell: bash
 
-      - name: Run e2e tests
-        run: pnpm test:e2e
+      - name: Run smoke tests
+        run: pnpm test:smoke
         shell: bash
         env:
           CI: true
@@ -182,10 +182,10 @@ jobs:
         uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          artifact-name: e2e-test-results
-          report-name: E2E Tests
+          artifact-name: smoke-test-results
+          report-name: Smoke Tests
 
-      - name: Stop e2e dependencies
+      - name: Stop smoke dependencies
         if: always()
-        run: pnpm e2e:deps:down
+        run: pnpm smoke:deps:down
         shell: bash
