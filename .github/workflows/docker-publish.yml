@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - develop # TODO: remove — temporary for testing, main only long-term
 jobs:
   docker-push:
     runs-on: [prod-gen2-dind-runner]
@@ -21,5 +20,5 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Push Docker images
-        run: pnpm docker:push
+        run: pnpm docker:publish
         shell: bash

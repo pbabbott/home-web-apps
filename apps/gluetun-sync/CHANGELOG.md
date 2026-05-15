@@ -1,5 +1,11 @@
 # @abbottland/gluetun-sync
 
+## 0.1.0
+
+### Minor Changes
+
+- Update API clients for gluetun and qBittorrent breaking changes
+
 ## 0.0.10
 
 ### Patch Changes

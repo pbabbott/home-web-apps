@@ -48,7 +48,7 @@
       "cache": false,
       "dependsOn": ["^build"]
     },
-    "docker:push": {
+    "docker:publish": {
       "dependsOn": ["^docker:build"],
       "cache": false
     },
