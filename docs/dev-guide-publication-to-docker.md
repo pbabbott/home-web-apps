@@ -17,10 +17,10 @@ Be sure to run a docker build by following steps for the [Docker build process](
 
 ### Step 3 - Push all docker images to remote
 
-This command will run `docker:push` across all packages, and will avoid overwriting any existing version in a remote repository.
+This command will run `docker:publish` across all packages, and will avoid overwriting any existing version in a remote repository.
 
 ```sh
-pnpm docker:push
+pnpm docker:publish
 ```
 
 > [!NOTE]
@@ -38,13 +38,13 @@ Be sure to list `abctl` as a `devDependency`
 }
 ```
 
-### 2 - Set docker:push script
+### 2 - Set docker:publish script
 
-Each package needing docker support should have a script named `docker:push`. This can just be a call to the `abctl` CLI
+Each package needing docker support should have a script named `docker:publish`. This can just be a call to the `abctl` CLI
 
 ```json
 "scripts": {
-    "docker:push": "abctl docker push"
+    "docker:publish": "abctl docker publish"
 }
 ```
 

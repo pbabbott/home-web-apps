@@ -18,7 +18,7 @@
       "Bash(docker compose *)",
       "Bash(docker run *)",
       "Bash(pnpm docker:build)",
-      "Bash(pnpm docker:push *)",
+      "Bash(pnpm docker:publish *)",
       "Bash(pnpm changeset *)",
       "Skill(dump)",
       "Skill(caveman:caveman-commit)",

@@ -20,5 +20,5 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Push Docker images
-        run: pnpm docker:push
+        run: pnpm docker:publish
         shell: bash

@@ -23,7 +23,7 @@ For example, take a look at `apps/gluetun-sync/package.json`. In the `package.js
 ```json
   "scripts": {
     "docker:build": "abctl docker build",
-    "docker:push": "abctl docker push"
+    "docker:publish": "abctl docker publish"
   },
   "devDependencies": {
     "@abbottland/abctl": "workspace:*"

@@ -6,7 +6,7 @@
     "build": "turbo run build",
     "build:abctl": "turbo run build --filter=@abbottland/abctl",
     "docker:build": "turbo run docker:build",
-    "docker:push": "turbo run docker:push",
+    "docker:publish": "turbo run docker:publish",
     "env:generate": "turbo run env:generate",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
