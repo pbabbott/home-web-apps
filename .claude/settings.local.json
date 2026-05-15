@@ -18,7 +18,8 @@
       "Bash(docker compose *)",
       "Bash(docker run *)",
       "Bash(pnpm docker:build)",
-      "Bash(pnpm docker:push *)"
+      "Bash(pnpm docker:push *)",
+      "Bash(pnpm changeset *)"
     ]
   }
 }
