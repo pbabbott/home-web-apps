@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop # remove once this is working
 jobs:
   docker-push:
     runs-on: [prod-gen2-dind-runner]
