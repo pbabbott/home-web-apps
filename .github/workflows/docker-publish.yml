@@ -1,0 +1,25 @@
+name: Docker Publish
+on:
+  push:
+    branches:
+      - main
+      - develop # TODO: remove — temporary for testing, main only long-term
+jobs:
+  docker-push:
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Push Docker images
+        run: pnpm docker:push
+        shell: bash

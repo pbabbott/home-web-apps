@@ -20,3 +20,22 @@ jobs:
 
       - name: Install and build
         uses: ./.github/actions/install-and-build
+
+  docker-build:
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker images
+        run: pnpm docker:build
+        shell: bash
