@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - develop # TODO: remove — temporary for testing, main only long-term
 jobs:
   docker-push:
     runs-on: [prod-gen2-dind-runner]
