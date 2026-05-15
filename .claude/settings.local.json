@@ -21,7 +21,10 @@
       "Bash(pnpm docker:push *)",
       "Bash(pnpm changeset *)",
       "Skill(dump)",
-      "Skill(caveman:caveman-commit)"
+      "Skill(caveman:caveman-commit)",
+      "Bash(gh pr *)",
+      "Bash(git fetch *)",
+      "Bash(git stash *)"
     ]
   }
 }
