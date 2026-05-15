@@ -49,7 +49,7 @@
       "dependsOn": ["^build"]
     },
     "docker:publish": {
-      "dependsOn": ["^docker:build"],
+      "dependsOn": [],
       "cache": false
     },
     "docs": {
