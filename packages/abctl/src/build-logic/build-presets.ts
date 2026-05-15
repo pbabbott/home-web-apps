@@ -17,7 +17,7 @@ export const getBuildConfigFromPresetName = (presetName: string): DockerBuildCon
         context: '.',
         target: '',
         dockerfile: './Dockerfile',
-        platform: 'linux/amd64,linux/arm64',
+        platform: 'linux/amd64',
       }
     case 'pnpm-turbo-docker-build':
       return {
@@ -28,7 +28,7 @@ export const getBuildConfigFromPresetName = (presetName: string): DockerBuildCon
         context: '../../',
         target: '',
         dockerfile: '../../docker/pnpm-turbo.Dockerfile',
-        platform: 'linux/amd64,linux/arm64',
+        platform: 'linux/amd64',
       }
     default:
       throw new Error(`Unknown build preset: ${presetName}`)
