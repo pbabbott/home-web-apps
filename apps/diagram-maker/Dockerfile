@@ -8,7 +8,6 @@ RUN addgroup --system --gid 1001 nodejs \
 WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/apps/diagram-maker/.next/standalone ./
 COPY --from=builder --chown=nodejs:nodejs /app/apps/diagram-maker/.next/static     ./apps/diagram-maker/.next/static
-COPY --from=builder --chown=nodejs:nodejs /app/apps/diagram-maker/public           ./apps/diagram-maker/public
 
 USER nodejs
 
