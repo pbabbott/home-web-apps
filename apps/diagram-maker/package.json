@@ -6,7 +6,11 @@
     "dev": "next dev -p 4021",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker:build:base": "abctl docker build -c abctl.base.yml",
+    "docker:build": "abctl docker build",
+    "docker:publish:base": "abctl docker publish -c abctl.base.yml",
+    "docker:publish": "abctl docker publish"
   },
   "dependencies": {
     "@abbottland/fui-components": "workspace:*",
@@ -18,6 +22,7 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

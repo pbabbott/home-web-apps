@@ -2,7 +2,11 @@ import {initConfig} from '../../config/config-loader.js'
 import {checkRemoteImageExists, dockerBuild} from '../../docker-cli/docker-commands.js'
 import {combineBuildConfigs} from '../../build-logic/build-config-merger/build-config-merger.js'
 import {makeBuildSettings} from '../../build-logic/docker-build-settings-builder/docker-build-settings-builder.js'
-import {getImageAsLatest, getImageWithVersion} from '../../build-logic/image-reference/image-reference.js'
+import {
+  getImageAsLatest,
+  getImageWithVersion,
+  resolveBaseImage,
+} from '../../build-logic/image-reference/image-reference.js'
 import {getProjectMetadata} from '../../build-logic/project-metadata.js'
 import {BaseCommand} from '../../baseCommand.js'
 
@@ -24,6 +28,12 @@ publish the Docker image for the current project
 
     // Get metadata regarding the project, dir, and version
     const projectMetadata = getProjectMetadata()
+
+    // Resolve base image from base config if not explicitly set
+    if (config.baseConfig && !combinedBuildConfig.baseImage) {
+      combinedBuildConfig.baseImage = await resolveBaseImage(config.baseConfig, projectMetadata)
+      console.log(`🔗 Resolved base image: ${combinedBuildConfig.baseImage}`)
+    }
 
     // Determine a versioned image name & latest image name
     const imageWithVersion = getImageWithVersion(projectMetadata, combinedBuildConfig)

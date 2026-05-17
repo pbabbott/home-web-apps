@@ -1,0 +1,6 @@
+registryWithNamespace: harbor.local.abbottland.io/library
+buildPreset: pnpm-turbo-docker-build
+build:
+  repository: blog-base
+  target: builder
+  push: 'true'

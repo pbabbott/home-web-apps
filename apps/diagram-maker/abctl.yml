@@ -1,0 +1,5 @@
+baseConfig: ./abctl.base.yml
+build:
+  dockerfile: Dockerfile
+  context: .
+  platform: linux/amd64
