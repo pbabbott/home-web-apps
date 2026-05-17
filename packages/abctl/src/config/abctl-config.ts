@@ -100,4 +100,7 @@ export class DockerBuildConfig {
 
   /** Should --load be set during the build process? */
   load = 'false'
+
+  /** Should --push be set during the build process? */
+  push = 'false'
 }

@@ -1,5 +1,5 @@
 build:
-  baseImage: harbor.local.abbottland.io/library/diagram-maker-base:latest
+  baseImage: harbor.local.abbottland.io/develop/diagram-maker-base:latest
   dockerfile: Dockerfile
   context: .
   platform: linux/amd64
