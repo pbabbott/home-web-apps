@@ -44,13 +44,21 @@
       "outputs": ["playwright-report/**", "test-results/**"],
       "cache": false
     },
-    "docker:build": {
+    "docker:build:base": {
       "cache": false,
       "dependsOn": ["^build"]
     },
+    "docker:build": {
+      "cache": false,
+      "dependsOn": ["^build", "docker:build:base"]
+    },
+    "docker:publish:base": {
+      "cache": false,
+      "dependsOn": []
+    },
     "docker:publish": {
-      "dependsOn": [],
-      "cache": false
+      "cache": false,
+      "dependsOn": ["docker:publish:base"]
     },
     "docs": {
       "dependsOn": ["^build"],

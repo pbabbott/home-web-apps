@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "docker:build:base": "abctl docker build -c abctl.base.yml",
-    "docker:build": "pnpm docker:build:base && abctl docker build",
+    "docker:build": "abctl docker build",
+    "docker:publish:base": "abctl docker publish -c abctl.base.yml",
     "docker:publish": "abctl docker publish"
   },
   "dependencies": {
