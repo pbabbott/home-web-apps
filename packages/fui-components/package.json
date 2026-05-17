@@ -1,14 +1,14 @@
 {
   "name": "@abbottland/fui-components",
   "private": true,
-  "version": "0.4.3",
+  "version": "0.4.4",
   "type": "module",
   "scripts": {
     "docker:build": "abctl docker build",
     "docker:publish": "abctl docker publish",
     "build": "pnpm run build:storybook",
     "serve": "pnpm dlx serve storybook-static --listen 6006 --single",
-    "build:npm": "tsc -b && vite build",
+    "build:npm": "NODE_ENV=production tsc -b && NODE_ENV=production vite build",
     "build:npm:clean": "rm -rf dist",
     "build:storybook": "NODE_OPTIONS='--max-old-space-size=2048' storybook build",
     "lint": "eslint .",
