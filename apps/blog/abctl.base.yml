@@ -1,0 +1,6 @@
+buildPreset: pnpm-turbo-docker-build
+build:
+  repository: blog-base
+  tag: latest
+  target: builder
+  load: 'true'

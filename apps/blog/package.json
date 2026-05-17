@@ -7,7 +7,10 @@
     "dev": "next dev -p 4020",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker:build:base": "abctl docker build -c abctl.base.yml",
+    "docker:build": "pnpm docker:build:base && abctl docker build",
+    "docker:publish": "abctl docker publish"
   },
   "dependencies": {
     "@abbottland/fui-components": "workspace:*",
@@ -30,6 +33,7 @@
     "shiki": "^3.20.0"
   },
   "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "catalog:",

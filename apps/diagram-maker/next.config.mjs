@@ -2,6 +2,7 @@
 
 /** @type {NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   transpilePackages: ['@abbottland/fui-components'],
 };
 
