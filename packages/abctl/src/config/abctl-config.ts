@@ -5,6 +5,11 @@ export class AbctlConfig {
   buildPreset = ''
 
   /**
+   * Path to a base abctl config whose built image is used as BASE_IMAGE
+   */
+  baseConfig = ''
+
+  /**
    * Added to the beginning of the image name
    */
   registryWithNamespace = 'harbor.local.abbottland.io/library'

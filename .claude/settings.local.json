@@ -24,7 +24,8 @@
       "Skill(caveman:caveman-commit)",
       "Bash(gh pr *)",
       "Bash(git fetch *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(pnpm --filter @abbottland/abctl build)"
     ]
   }
 }

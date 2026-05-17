@@ -1,5 +1,5 @@
+baseConfig: ./abctl.base.yml
 build:
-  baseImage: harbor.local.abbottland.io/develop/diagram-maker-base:latest
   dockerfile: Dockerfile
   context: .
   platform: linux/amd64

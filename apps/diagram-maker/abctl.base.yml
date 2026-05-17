@@ -1,7 +1,6 @@
-registryWithNamespace: harbor.local.abbottland.io/develop
+registryWithNamespace: harbor.local.abbottland.io/library
 buildPreset: pnpm-turbo-docker-build
 build:
   repository: diagram-maker-base
-  tag: latest
   target: builder
   push: 'true'
