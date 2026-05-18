@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { gotoPage, scrollToId, SCREENSHOT_OPTIONS } from '@tests/playwright-helpers';
+import {
+  gotoPage,
+  scrollToId,
+  SCREENSHOT_OPTIONS,
+} from '@tests/playwright-helpers';
 
 test.describe('Blog listing page', () => {
   test('renders', async ({ page }) => {

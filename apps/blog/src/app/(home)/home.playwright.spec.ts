@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { gotoPage, scrollToId, SCREENSHOT_OPTIONS } from '@tests/playwright-helpers';
+import {
+  gotoPage,
+  scrollToId,
+  SCREENSHOT_OPTIONS,
+} from '@tests/playwright-helpers';
 
 test.describe('Home page', () => {
   test('renders', async ({ page }) => {
@@ -10,7 +14,10 @@ test.describe('Home page', () => {
   test('welcome-section', async ({ page }) => {
     await gotoPage(page, '/');
     await scrollToId(page, 'welcome-section');
-    await expect(page).toHaveScreenshot('welcome-section.png', SCREENSHOT_OPTIONS);
+    await expect(page).toHaveScreenshot(
+      'welcome-section.png',
+      SCREENSHOT_OPTIONS,
+    );
   });
 
   test('about-me', async ({ page }) => {
