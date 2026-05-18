@@ -148,7 +148,7 @@ export default function BlogPageClient({
 
                 {/* Blog Posts Grid */}
                 {remainingPosts.length > 0 && (
-                  <section>
+                  <section id="more-posts">
                     <Typography
                       variant="h3"
                       component="h2"
