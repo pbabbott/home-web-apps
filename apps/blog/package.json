@@ -8,6 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:ui": "pnpm run test:playwright",
+    "test:playwright": "playwright test",
+    "test:playwright:update-snapshots": "playwright test --update-snapshots",
+    "test:playwright:report": "playwright show-report",
     "docker:build:base": "abctl docker build -c abctl.base.yml",
     "docker:build": "abctl docker build",
     "docker:publish:base": "abctl docker publish -c abctl.base.yml",
@@ -35,6 +39,7 @@
   },
   "devDependencies": {
     "@abbottland/abctl": "workspace:*",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "catalog:",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "catalog:",
