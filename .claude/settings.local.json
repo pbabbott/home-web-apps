@@ -25,7 +25,8 @@
       "Bash(gh pr *)",
       "Bash(git fetch *)",
       "Bash(git stash *)",
-      "Bash(pnpm --filter @abbottland/abctl build)"
+      "Bash(pnpm --filter @abbottland/abctl build)",
+      "Bash(docker pull *)"
     ]
   }
 }

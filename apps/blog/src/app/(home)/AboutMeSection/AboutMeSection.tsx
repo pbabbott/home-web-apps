@@ -5,7 +5,10 @@ import Image from 'next/image';
 
 export default function AboutMeSection() {
   return (
-    <div className="bg-neutral-900 w-full flex flex-col items-center justify-center px-4 py-12">
+    <div
+      id="about-me"
+      className="bg-neutral-900 w-full flex flex-col items-center justify-center px-4 py-12"
+    >
       <div className="max-w-screen-lg">
         <div className="grid grid-cols-2 gap-8 mb-4">
           <Panel color="primary" className="flex-shrink-0 py-4">

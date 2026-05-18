@@ -1,5 +1,11 @@
 # fui-components
 
+## 0.4.4
+
+### Patch Changes
+
+- Fix production TypeErrors caused by fui-components dist built with jsxDEV (development JSX runtime). Lock build:npm to NODE_ENV=production so Vite always emits jsx/jsxs instead of jsxDEV.
+
 ## 0.4.3
 
 ### Patch Changes
