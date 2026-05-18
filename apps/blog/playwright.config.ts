@@ -20,26 +20,42 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4020',
     trace: 'on-first-retry',
+    storageState: {
+      cookies: [
+        {
+          name: 'is-bot',
+          value: '1',
+          domain: 'localhost',
+          path: '/',
+          expires: -1,
+          httpOnly: false,
+          secure: false,
+          sameSite: 'Strict',
+        },
+      ],
+      origins: [],
+    },
   },
   projects: [
     {
+      // Galaxy S24 device profile close enough for responsive testing
       name: 's26ultra',
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices['Galaxy S24'],
         viewport: { width: 384, height: 690 },
       },
     },
     {
-      name: 'macbook_air',
+      name: 'desktop',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 832 },
       },
     },
     {
-      name: 'tablet',
+      name: 'galaxy-tab-s7plus',
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices['Galaxy Tab S7'],
         viewport: { width: 824, height: 1149 },
       },
     },

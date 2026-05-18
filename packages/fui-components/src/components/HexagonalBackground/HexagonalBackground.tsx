@@ -6,11 +6,13 @@ import { useSparkCanvas } from './useSparkEffect';
 export type HexagonalBackgroundProps = {
   className?: string;
   style?: React.CSSProperties;
+  sparksEnabled?: boolean;
 };
 
 export function HexagonalBackground({
   className,
   style,
+  sparksEnabled = true,
 }: HexagonalBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,7 +23,7 @@ export function HexagonalBackground({
     edges: new Map(),
   });
 
-  useSparkCanvas(canvasRef, graphRef, hexes, size);
+  useSparkCanvas(canvasRef, graphRef, hexes, size, sparksEnabled);
 
   useEffect(() => {
     const el = containerRef.current;

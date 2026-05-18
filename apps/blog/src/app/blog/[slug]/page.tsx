@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getBlogPostBySlug, getBlogPostSlugs } from '../../../lib/blog';
-import StickyHeader from '../../components/StickyHeader';
-import BlogPostBannerImage from '../../components/BlogPostBannerImage';
+import StickyHeader from '@/components/StickyHeader/StickyHeader';
+import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 import MDXContent from './MDXContent';
 import BlogPostHeader from './BlogPostHeader';
 import BlogMinimap from './BlogMinimap';

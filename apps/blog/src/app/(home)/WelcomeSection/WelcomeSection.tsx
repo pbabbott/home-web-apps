@@ -2,16 +2,21 @@
 
 import Image from 'next/image';
 import { TransparentPanel, Typography } from '@abbottland/fui-components';
-import RaspberryPi from '@/app/components/RaspberryPi/RaspberryPi';
+import RaspberryPi from '@/components/RaspberryPi/RaspberryPi';
 
 export default function WelcomeSection() {
   return (
     <div
       id="welcome-section"
-      className="bg-neutral-800 w-full flex flex-col items-center px-4 py-18"
+      className="bg-neutral-800 w-full flex flex-col items-center justify-center px-4 py-18 min-h-[calc(100vh-var(--header-height))]"
     >
       <div className="flex flex-col items-center justify-center w-full max-w-screen-lg gap-6">
-        <Typography variant="h2" component="h2">
+        {/* clamp: scales from 1.5rem on small screens up to h2 natural size (2.125rem / 34px) */}
+        <Typography
+          variant="h2"
+          component="h2"
+          className="text-[clamp(1.5rem,5.5vw,2.125rem)]"
+        >
           Welcome to Abbottland.io
         </Typography>
         <hr className="w-full border-primary-500" />
@@ -19,7 +24,7 @@ export default function WelcomeSection() {
           Technical Tutorials, Architecture Insights, and Developer Experiments
         </Typography>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <Typography variant="h4" component="h4" className="mb-2">
               &gt; What this site is

@@ -189,12 +189,19 @@ export function useSparkCanvas(
   graphRef: React.RefObject<EdgeGraph>,
   hexes: Hex[],
   size: { width: number; height: number },
+  enabled = true,
 ): void {
   const sparksRef = useRef<ReturnType<typeof createSpark>[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !hexes.length || size.width <= 0 || size.height <= 0) return;
+    if (!enabled) {
+      canvas.width = size.width;
+      canvas.height = size.height;
+      canvas.getContext('2d')?.clearRect(0, 0, size.width, size.height);
+      return;
+    }
 
     const { edges, vertices } = graphRef.current ?? {
       vertices: new Map(),
@@ -238,5 +245,5 @@ export function useSparkCanvas(
 
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
-  }, [hexes, graphRef, canvasRef, size.width, size.height]);
+  }, [hexes, graphRef, canvasRef, size.width, size.height, enabled]);
 }

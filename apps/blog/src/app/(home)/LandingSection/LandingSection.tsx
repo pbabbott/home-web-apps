@@ -1,57 +1,45 @@
 'use client';
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { HexagonalBackground, Typography } from '@abbottland/fui-components';
 import ProgressiveTerminal from './ProgressiveTerminal';
 import { LandingSectionContext } from './LandingSection.Context';
 import LandingSectionTitle from './LandingSectionTitle';
-import MaskReveal from '@/app/components/MaskReveal';
+import MaskReveal from '@/components/MaskReveal/MaskReveal';
+import { useHomeContext } from '../Home.Context';
 
 export default function LandingSection() {
-  const [isXSScreen, setIsXSScreen] = useState(false);
-  const { revealTitle, showBackgroundExperience } = useContext(
-    LandingSectionContext,
-  );
-
-  // Effect to check screen size for responsive typography
-  useEffect(() => {
-    const checkScreenSize = () => {
-      // xs screen size breakpoint is at 576px
-      setIsXSScreen(window.innerWidth < 576);
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
-  /* Spacer so content starts below fixed header; height must match --header-height */
-  /* <div className="h-[var(--header-height)]" aria-hidden /> */
+  const {
+    revealTitle,
+    showControlDevices,
+    showBackgroundExperience,
+    resumeTerminal,
+  } = useContext(LandingSectionContext);
+  const { animationsEnabled } = useHomeContext();
 
   return (
     <>
-      <div className="h-[var(--header-height)] bg-neutral-700"></div>
-      <div className="relative w-full h-[calc(100vh-var(--header-height))] bg-neutral-700">
+      <div className="relative w-full h-screen bg-neutral-700">
         <MaskReveal
           reveal={showBackgroundExperience}
+          animated={animationsEnabled}
+          onComplete={resumeTerminal}
           direction="left-to-right"
           duration={2000}
-          delay={2000}
+          delay={0}
           className="absolute inset-0"
         >
-          <HexagonalBackground />
+          <HexagonalBackground sparksEnabled={animationsEnabled} />
         </MaskReveal>
 
-        <div className="relative z-10 flex flex-col pt-32 px-4 max-w-screen-md mx-auto">
-          <div className="flex flex-col min-h-[50vh] shrink-0">
-            <LandingSectionTitle
-              isXSScreen={isXSScreen}
-              reveal={revealTitle}
-              className="shrink-0"
-            />
-            <div className="flex flex-1 items-center justify-center min-h-0">
-              <ProgressiveTerminal />
-            </div>
-          </div>
+        <div className="relative z-10 flex flex-col gap-6 pt-[calc(var(--header-height)+1rem)] px-4 max-w-screen-md mx-auto">
+          <LandingSectionTitle
+            reveal={revealTitle}
+            animated={animationsEnabled}
+            onComplete={resumeTerminal}
+            revealButtons={showControlDevices}
+            onButtonsComplete={resumeTerminal}
+          />
+          <ProgressiveTerminal animated={animationsEnabled} />
         </div>
         <div className="flex items-center justify-end mt-auto py-4 absolute bottom-0 left-0 w-full">
           <Typography variant="caption" component="span">

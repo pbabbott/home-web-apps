@@ -1,7 +1,7 @@
 'use client';
 
-import { Panel, Typography } from '@abbottland/fui-components';
-import Image from 'next/image';
+import { Typography } from '@abbottland/fui-components';
+import PanelImage from '@/components/PanelImage/PanelImage';
 
 export default function AboutMeSection() {
   return (
@@ -10,16 +10,11 @@ export default function AboutMeSection() {
       className="bg-neutral-900 w-full flex flex-col items-center justify-center px-4 py-12"
     >
       <div className="max-w-screen-lg">
-        <div className="grid grid-cols-2 gap-8 mb-4">
-          <Panel color="primary" className="flex-shrink-0 py-4">
-            <Image
-              src="/home/brandon_abbott_profile_picture.jpg"
-              alt="Brandon Abbott Profile Picture"
-              sizes="100vw"
-              className="object-contain"
-              fill
-            />
-          </Panel>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+          <PanelImage
+            src="/home/brandon_abbott_profile_picture.jpg"
+            alt="Brandon Abbott Profile Picture"
+          />
           <div>
             <Typography
               variant="h3"

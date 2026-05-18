@@ -6,7 +6,7 @@ import {
   DotGridBackground,
 } from '@abbottland/fui-components';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import StickyHeader from '../components/StickyHeader';
+import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import BlogPostCard from './BlogPostCard';
 import HeroBlogPostCard from './HeroBlogPostCard';
 import CategoryList, { type CategoryFilter } from './CategoryList';
