@@ -12,7 +12,8 @@ export default defineConfig({
   // Store snapshots in __screenshots__ folders next to spec files
   // e.g., tests/blog/__screenshots__/page-s26ultra.png
   // These baseline screenshots should be committed to version control
-  snapshotPathTemplate: 'tests/__screenshots__/{testFileDir}/{arg}-{projectName}{ext}',
+  snapshotPathTemplate:
+    'tests/__screenshots__/{testFileDir}/{arg}-{projectName}{ext}',
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
   },
@@ -23,15 +24,24 @@ export default defineConfig({
   projects: [
     {
       name: 's26ultra',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 384, height: 690 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 384, height: 690 },
+      },
     },
     {
       name: 'macbook_air',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 832 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 832 },
+      },
     },
     {
       name: 'tablet',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 824, height: 1149 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 824, height: 1149 },
+      },
     },
   ],
   webServer: {
