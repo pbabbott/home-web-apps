@@ -8,30 +8,36 @@ import MaskReveal from '@/components/MaskReveal/MaskReveal';
 import { useHomeContext } from '../Home.Context';
 
 export default function LandingSection() {
-  const { revealTitle, showBackgroundExperience } = useContext(
-    LandingSectionContext,
-  );
+  const {
+    revealTitle,
+    showControlDevices,
+    showBackgroundExperience,
+    resumeTerminal,
+  } = useContext(LandingSectionContext);
   const { animationsEnabled } = useHomeContext();
 
   return (
     <>
-      <div className="h-[var(--header-height)] bg-neutral-700"></div>
-      <div className="relative w-full h-[calc(100vh-var(--header-height))] bg-neutral-700">
+      <div className="relative w-full h-screen bg-neutral-700">
         <MaskReveal
           reveal={showBackgroundExperience}
           animated={animationsEnabled}
+          onComplete={resumeTerminal}
           direction="left-to-right"
           duration={2000}
-          delay={2000}
+          delay={0}
           className="absolute inset-0"
         >
           <HexagonalBackground sparksEnabled={animationsEnabled} />
         </MaskReveal>
 
-        <div className="relative z-10 flex flex-col gap-6 pt-12 md:pt-32 px-4 max-w-screen-md mx-auto">
+        <div className="relative z-10 flex flex-col gap-6 pt-[calc(var(--header-height)+1rem)] px-4 max-w-screen-md mx-auto">
           <LandingSectionTitle
             reveal={revealTitle}
             animated={animationsEnabled}
+            onComplete={resumeTerminal}
+            revealButtons={showControlDevices}
+            onButtonsComplete={resumeTerminal}
           />
           <ProgressiveTerminal animated={animationsEnabled} />
         </div>

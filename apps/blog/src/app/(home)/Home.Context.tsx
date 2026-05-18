@@ -20,7 +20,7 @@ export default function HomeContextProvider({
   children: React.ReactNode;
 }) {
   return (
-    <HomeContext.Provider value={{ animationsEnabled: false }}>
+    <HomeContext.Provider value={{ animationsEnabled: true }}>
       {children}
     </HomeContext.Provider>
   );

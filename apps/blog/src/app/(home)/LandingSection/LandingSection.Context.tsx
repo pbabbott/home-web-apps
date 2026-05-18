@@ -3,8 +3,14 @@ import { TerminalEvent } from './TerminalEvent';
 
 export interface LandingSectionContextType {
   showBackgroundExperience: boolean;
-  /** True when INITIALIZING_WEBSITE_TITLE terminal line starts; use to trigger title mask reveal. */
   revealTitle: boolean;
+  showControlDevices: boolean;
+  isTerminalPaused: boolean;
+  startTitleReveal: () => void;
+  startControlDevicesReveal: () => void;
+  startBackgroundReveal: () => void;
+  pauseTerminal: () => void;
+  resumeTerminal: () => void;
   onTerminalEventFinished: (event: TerminalEvent) => void;
   onTerminalEventStarted: (event: TerminalEvent) => void;
 }
@@ -12,6 +18,13 @@ export interface LandingSectionContextType {
 export const LandingSectionContext = createContext<LandingSectionContextType>({
   showBackgroundExperience: false,
   revealTitle: false,
+  showControlDevices: false,
+  isTerminalPaused: false,
+  startTitleReveal: () => {},
+  startControlDevicesReveal: () => {},
+  startBackgroundReveal: () => {},
+  pauseTerminal: () => {},
+  resumeTerminal: () => {},
   onTerminalEventFinished: () => {},
   onTerminalEventStarted: () => {},
 });
@@ -24,23 +37,36 @@ export default function LandingSectionContextProvider({
   const [showBackgroundExperience, setShowBackgroundExperience] =
     useState(false);
   const [revealTitle, setRevealTitle] = useState(false);
+  const [showControlDevices, setShowControlDevices] = useState(false);
+  const [isTerminalPaused, setIsTerminalPaused] = useState(false);
+
+  const startTitleReveal = useCallback(() => setRevealTitle(true), []);
+  const startControlDevicesReveal = useCallback(
+    () => setShowControlDevices(true),
+    [],
+  );
+  const startBackgroundReveal = useCallback(
+    () => setShowBackgroundExperience(true),
+    [],
+  );
+  const pauseTerminal = useCallback(() => setIsTerminalPaused(true), []);
+  const resumeTerminal = useCallback(() => setIsTerminalPaused(false), []);
 
   const onTerminalEventFinished = useCallback(() => {}, []);
-
-  const onTerminalEventStarted = useCallback((event: TerminalEvent) => {
-    if (event === TerminalEvent.INITIALIZING_WEBSITE_TITLE) {
-      setRevealTitle(true);
-    }
-    if (event === TerminalEvent.RENDERING_BACKGROUND_EXPERIENCE) {
-      setShowBackgroundExperience(true);
-    }
-  }, []);
+  const onTerminalEventStarted = useCallback(() => {}, []);
 
   return (
     <LandingSectionContext.Provider
       value={{
         showBackgroundExperience,
         revealTitle,
+        showControlDevices,
+        isTerminalPaused,
+        startTitleReveal,
+        startControlDevicesReveal,
+        startBackgroundReveal,
+        pauseTerminal,
+        resumeTerminal,
         onTerminalEventFinished,
         onTerminalEventStarted,
       }}

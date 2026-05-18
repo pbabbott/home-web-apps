@@ -24,6 +24,8 @@ export interface MaskRevealProps {
   reveal?: boolean;
   /** When false, skips animation and renders children immediately. */
   animated?: boolean;
+  /** Called once when the reveal animation finishes. Not called when animated=false. */
+  onComplete?: () => void;
   /** Content to be revealed by the mask. */
   children: React.ReactNode;
   /** Animation duration in ms. */
@@ -38,6 +40,7 @@ export interface MaskRevealProps {
 export default function MaskReveal({
   reveal = false,
   animated = true,
+  onComplete,
   children,
   duration = 1600,
   delay = 200,
@@ -79,9 +82,10 @@ export default function MaskReveal({
       complete: () => {
         el.style.clipPath = inset(0);
         setPhase('complete');
+        onComplete?.();
       },
     });
-  }, [reveal, duration, delay, direction]);
+  }, [reveal, duration, delay, direction, onComplete]);
 
   const isClipped = animated && phase === 'idle';
 
