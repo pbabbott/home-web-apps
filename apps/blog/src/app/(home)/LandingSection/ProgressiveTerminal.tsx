@@ -63,11 +63,15 @@ const lines: TerminalLine[] = [
 
 export default function ProgressiveTerminal({
   className,
+  animated = true,
 }: {
   className?: string;
+  animated?: boolean;
 }) {
-  const [renderedLines, setRenderedLines] = useState<TerminalLine[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [renderedLines, setRenderedLines] = useState<TerminalLine[]>(
+    animated ? [] : lines,
+  );
+  const [currentIndex, setCurrentIndex] = useState(animated ? 0 : lines.length);
   const { onTerminalEventFinished, onTerminalEventStarted } = useContext(
     LandingSectionContext,
   );
@@ -99,29 +103,31 @@ export default function ProgressiveTerminal({
   return (
     <TransparentPanel
       color="dark"
-      className={extendedTwMerge('w-full h-56', className)}
+      className={extendedTwMerge('w-full h-56 overflow-hidden', className)}
     >
-      {/* Render accumulated lines */}
-      {renderedLines.map((line, i) => (
-        <Typography variant="body1" component="p" key={i}>
-          {line.text} {line.endOfLineComponent}
-        </Typography>
-      ))}
+      <div className="flex flex-col justify-end h-full">
+        {/* Render accumulated lines */}
+        {renderedLines.map((line, i) => (
+          <Typography variant="body1" component="p" key={i}>
+            {line.text} {line.endOfLineComponent}
+          </Typography>
+        ))}
 
-      {/* Typed for the current line */}
-      {currentIndex < lines.length && (
-        <Typography variant="body1" component="p">
-          <ReactTyped
-            strings={[' > ' + lines[currentIndex].text]}
-            startDelay={500}
-            typeSpeed={50}
-            showCursor={true}
-            cursorChar="_"
-            onComplete={handleLineFinished}
-            onBegin={handleLineBegin}
-          />
-        </Typography>
-      )}
+        {/* Typed for the current line */}
+        {currentIndex < lines.length && (
+          <Typography variant="body1" component="p">
+            <ReactTyped
+              strings={[' > ' + lines[currentIndex].text]}
+              startDelay={500}
+              typeSpeed={50}
+              showCursor={true}
+              cursorChar="_"
+              onComplete={handleLineFinished}
+              onBegin={handleLineBegin}
+            />
+          </Typography>
+        )}
+      </div>
     </TransparentPanel>
   );
 }

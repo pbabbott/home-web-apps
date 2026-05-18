@@ -11,7 +11,12 @@ export default function WelcomeSection() {
       className="bg-neutral-800 w-full flex flex-col items-center justify-center px-4 py-18 min-h-[calc(100vh-var(--header-height))]"
     >
       <div className="flex flex-col items-center justify-center w-full max-w-screen-lg gap-6">
-        <Typography variant="h2" component="h2">
+        {/* clamp: scales from 1.5rem on small screens up to h2 natural size (2.125rem / 34px) */}
+        <Typography
+          variant="h2"
+          component="h2"
+          className="text-[clamp(1.5rem,5.5vw,2.125rem)]"
+        >
           Welcome to Abbottland.io
         </Typography>
         <hr className="w-full border-primary-500" />

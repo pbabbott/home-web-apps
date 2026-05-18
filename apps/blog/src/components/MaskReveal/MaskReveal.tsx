@@ -22,6 +22,8 @@ const directionToInset = {
 export interface MaskRevealProps {
   /** When true, runs the mask reveal animation. Runs once when toggled to true. */
   reveal?: boolean;
+  /** When false, skips animation and renders children immediately. */
+  animated?: boolean;
   /** Content to be revealed by the mask. */
   children: React.ReactNode;
   /** Animation duration in ms. */
@@ -35,6 +37,7 @@ export interface MaskRevealProps {
 
 export default function MaskReveal({
   reveal = false,
+  animated = true,
   children,
   duration = 1600,
   delay = 200,
@@ -55,7 +58,8 @@ export default function MaskReveal({
           : '[clip-path:inset(0_0_100%_0)]';
 
   useEffect(() => {
-    if (!reveal || !maskRef.current || hasStartedRef.current) return;
+    if (!animated || !reveal || !maskRef.current || hasStartedRef.current)
+      return;
     hasStartedRef.current = true;
 
     const el = maskRef.current;
@@ -79,7 +83,7 @@ export default function MaskReveal({
     });
   }, [reveal, duration, delay, direction]);
 
-  const isClipped = phase === 'idle';
+  const isClipped = animated && phase === 'idle';
 
   return (
     <div

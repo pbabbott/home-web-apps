@@ -8,29 +8,31 @@ import Link from 'next/link';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
 
 interface LandingSectionTitleProps {
-  isXSScreen: boolean;
   /** When true, runs the mask reveal animation. Change to true when you want to reveal the title. */
   reveal?: boolean;
+  animated?: boolean;
   className?: string;
 }
 
 export default function LandingSectionTitle({
-  isXSScreen,
   reveal = false,
+  animated = true,
   className,
 }: LandingSectionTitleProps) {
   return (
     <MaskReveal
       reveal={reveal}
+      animated={animated}
       direction="left-to-right"
       duration={1500}
       delay={2250}
       className={extendedTwMerge('items-center flex-col flex', className)}
     >
+      {/* clamp: scales from 1.5rem on small screens up to h1 natural size (3rem / 48px) */}
       <Typography
-        variant={isXSScreen ? 'h2' : 'h1'}
+        variant="h1"
         component="h1"
-        className="mb-2"
+        className="mb-4 text-[clamp(1.5rem,7vw,3.5rem)]"
       >
         Abbottland.io
       </Typography>
