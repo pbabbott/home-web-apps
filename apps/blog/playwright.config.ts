@@ -27,6 +27,7 @@ export default defineConfig({
           value: '1',
           domain: 'localhost',
           path: '/',
+          expires: -1,
           httpOnly: false,
           secure: false,
           sameSite: 'Strict',
