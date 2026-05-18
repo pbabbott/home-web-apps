@@ -4,7 +4,7 @@ import { HexagonalBackground, Typography } from '@abbottland/fui-components';
 import ProgressiveTerminal from './ProgressiveTerminal';
 import { LandingSectionContext } from './LandingSection.Context';
 import LandingSectionTitle from './LandingSectionTitle';
-import MaskReveal from '@/app/components/MaskReveal';
+import MaskReveal from '@/components/MaskReveal/MaskReveal';
 
 export default function LandingSection() {
   const [isXSScreen, setIsXSScreen] = useState(false);

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import GradientMockImage from './GradientMockImage';
+import GradientMockImage from '../GradientMockImage/GradientMockImage';
 
 interface BlogPostBannerImageProps {
   bannerImage?: string;

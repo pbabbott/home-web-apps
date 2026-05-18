@@ -5,7 +5,7 @@ import {
   extendedTwMerge,
 } from '@abbottland/fui-components';
 import Link from 'next/link';
-import MaskReveal from '../../components/MaskReveal';
+import MaskReveal from '@/components/MaskReveal/MaskReveal';
 
 interface LandingSectionTitleProps {
   isXSScreen: boolean;
