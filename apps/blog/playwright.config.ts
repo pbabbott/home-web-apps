@@ -20,6 +20,20 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4020',
     trace: 'on-first-retry',
+    storageState: {
+      cookies: [
+        {
+          name: 'is-bot',
+          value: '1',
+          domain: 'localhost',
+          path: '/',
+          httpOnly: false,
+          secure: false,
+          sameSite: 'Strict',
+        },
+      ],
+      origins: [],
+    },
   },
   projects: [
     {

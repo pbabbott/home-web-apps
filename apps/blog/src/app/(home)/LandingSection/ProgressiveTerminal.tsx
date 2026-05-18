@@ -27,7 +27,8 @@ type TerminalState = {
 
 type TerminalAction =
   | { type: 'LINE_TYPED'; line: TerminalLine; eventName: TerminalEvent }
-  | { type: 'FLUSH' };
+  | { type: 'FLUSH' }
+  | { type: 'SKIP_TO_END'; lines: TerminalLine[] };
 
 function terminalReducer(
   state: TerminalState,
@@ -49,6 +50,13 @@ function terminalReducer(
         pendingCompletion: null,
       };
     }
+    case 'SKIP_TO_END':
+      return {
+        renderedLines: action.lines,
+        currentIndex: action.lines.length,
+        endComponentsShown: new Set(action.lines.map((_, i) => i)),
+        pendingCompletion: null,
+      };
     default:
       return state;
   }
@@ -163,6 +171,20 @@ export default function ProgressiveTerminal({
       pendingCompletion: null,
     }),
   );
+
+  useEffect(() => {
+    if (animated) return;
+    dispatch({ type: 'SKIP_TO_END', lines });
+    startTitleReveal();
+    startControlDevicesReveal();
+    startBackgroundReveal();
+  }, [
+    animated,
+    lines,
+    startTitleReveal,
+    startControlDevicesReveal,
+    startBackgroundReveal,
+  ]);
 
   useEffect(() => {
     if (isTerminalPaused || !state.pendingCompletion) return;
