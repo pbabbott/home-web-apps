@@ -1,5 +1,16 @@
 # fui-components
 
+## 0.5.0
+
+### Minor Changes
+
+- Button: add `component` prop for polymorphic rendering (e.g. Next.js Link), `href` prop, and `no-underline` base class
+- Button: add AsLink story and snapshot
+- HexagonButton: disable shimmer and travel-ring animations when `prefers-reduced-motion: reduce` is set
+- HexagonalBackground: disable spark canvas animation when `prefers-reduced-motion: reduce` is set
+- Playwright: `gotoStory` now emits `reducedMotion: 'reduce'` for deterministic snapshots
+- Add new baseline snapshots for HexagonButton, HexagonalBackground, Table, TiledHexagons
+
 ## 0.4.4
 
 ### Patch Changes
