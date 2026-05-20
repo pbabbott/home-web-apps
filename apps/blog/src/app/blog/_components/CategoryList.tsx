@@ -11,7 +11,7 @@ const BREAKPOINT_MAX_HORIZONTAL: {
   minWidthPx: number;
   maxHorizontal: number;
 }[] = [
-  { minWidthPx: 0, maxHorizontal: 4 }, // default
+  { minWidthPx: 0, maxHorizontal: 3 }, // default
   { minWidthPx: 640, maxHorizontal: 6 }, // sm
   { minWidthPx: 768, maxHorizontal: 6 }, // md
   { minWidthPx: 1024, maxHorizontal: 2 }, // lg

@@ -7,7 +7,7 @@ import {
   HorizontalRule,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
-import type { BlogPost } from '../../types/blog';
+import type { BlogPost } from '../../../types/blog';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 
 interface HeroBlogPostCardProps {
