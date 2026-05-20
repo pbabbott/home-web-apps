@@ -4,6 +4,7 @@ import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import LandingSection from './LandingSection/LandingSection';
 import LandingSectionContextProvider from './LandingSection/LandingSection.Context';
 import AboutMeSection from './AboutMeSection/AboutMeSection';
+import FooterSection from './FooterSection/FooterSection';
 import HomeContextProvider from './Home.Context';
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
         </LandingSectionContextProvider>
         <WelcomeSection />
         <AboutMeSection />
+        <FooterSection />
       </div>
     </HomeContextProvider>
   );

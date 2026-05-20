@@ -68,6 +68,14 @@ test.describe('Button Visual Regression Tests', () => {
     );
   });
 
+  test('as-link', async ({ page }) => {
+    await gotoStory(page, 'components-button--as-link');
+    await expect(page).toHaveScreenshot(
+      'components-button--as-link.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('variant-contained', async ({ page }) => {
     await gotoStory(page, 'components-button--variant-contained');
     await expect(page).toHaveScreenshot(

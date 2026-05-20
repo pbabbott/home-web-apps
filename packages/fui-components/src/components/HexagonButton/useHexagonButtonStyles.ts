@@ -22,6 +22,10 @@ export function useHexagonButtonStyles(
   active: boolean,
   hovered: boolean,
 ): HexagonButtonStyles {
+  const reducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   // Hover = warning-based look (amber/orange border, inner glow, fill). Active = "hover" look (shimmer, runner, blue glow).
   const fillColor = hovered
     ? COLORS.hexBgHoverWarning
@@ -40,20 +44,23 @@ export function useHexagonButtonStyles(
     : 'transparent';
   const glossOpacity = hovered ? 0.2 : active ? 0.15 : 0.08;
   const shimmerOpacity = active ? 1 : 0;
-  const shimmerAnimation = active
-    ? 'shimmerSweep 2.8s ease-in-out infinite'
-    : 'none';
+  const shimmerAnimation =
+    active && !reducedMotion
+      ? 'shimmerSweep 2.8s ease-in-out infinite'
+      : 'none';
   const travelRingVisible = active && !hovered;
   const travelRingOpacity = travelRingVisible ? 1 : 0;
   const travelRing2Opacity = travelRingVisible ? 0.7 : 0;
   const travelRingStroke = COLORS.travelRingStroke;
   const travelRing2Stroke = COLORS.travelRing2Stroke;
-  const travelRingAnimation = travelRingVisible
-    ? 'travelDash 1.8s linear infinite'
-    : 'none';
-  const travelRing2Animation = travelRingVisible
-    ? 'travelDash 2.6s linear infinite reverse'
-    : 'none';
+  const travelRingAnimation =
+    travelRingVisible && !reducedMotion
+      ? 'travelDash 1.8s linear infinite'
+      : 'none';
+  const travelRing2Animation =
+    travelRingVisible && !reducedMotion
+      ? 'travelDash 2.6s linear infinite reverse'
+      : 'none';
   // Outer drop-shadow only when active (not hovered). On hover we keep glow inside via innerGlow only.
   const svgFilter = active
     ? `drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 22px rgba(0, 212, 255, 0.2))`

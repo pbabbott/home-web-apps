@@ -1,7 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { TransparentPanel, Typography } from '@abbottland/fui-components';
+import {
+  HorizontalRule,
+  TransparentPanel,
+  Typography,
+} from '@abbottland/fui-components';
 import RaspberryPi from '@/components/RaspberryPi/RaspberryPi';
 
 export default function WelcomeSection() {
@@ -19,9 +23,10 @@ export default function WelcomeSection() {
         >
           Welcome to Abbottland.io
         </Typography>
-        <hr className="w-full border-primary-500" />
+        <HorizontalRule className="w-full" />
         <Typography variant="body1" component="p">
-          Technical Tutorials, Architecture Insights, and Developer Experiments
+          Engineering field notes - homelab stories, software lessons, and the
+          occasional wrong turn worth sharing
         </Typography>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -31,9 +36,13 @@ export default function WelcomeSection() {
             </Typography>
             <TransparentPanel color="primary" className="mb-4">
               <Typography variant="body1" component="p">
-                Abbottland.io is a blog exploring the craft of software
-                engineering - from hands-on tutorials to deep dives into
-                architecture, systems, and developer tooling.
+                I&apos;ve been building software professionally since 2010.
+                Abbottland.io is where I write about the problems that stuck
+                with me: building a Kubernetes cluster from bare metal, walking
+                a friend through connecting React to an API, or untangling why
+                my home network went sideways mid-project. Posts trace the arc
+                from confusion to clarity, including the strategies that changed
+                mid-way and the tools that both did and did not work out.
               </Typography>
             </TransparentPanel>
             <div className="flex items-center justify-center flex-col mb-4">
@@ -45,7 +54,7 @@ export default function WelcomeSection() {
                 className="mb-2"
               />
               <Typography variant="caption" component="span">
-                qBitTorrent Architecture
+                Architecture Diagrams
               </Typography>
             </div>
           </div>
@@ -66,15 +75,19 @@ export default function WelcomeSection() {
             </Typography>
             <TransparentPanel color="secondary">
               <Typography variant="body1" component="p">
-                Whether its building efficient pipelines, automating workflows,
-                or designing maintainable systems, the goal is simple: share
-                clear, practical insights that engineers can actually use.
+                Homelab deep dives (Proxmox, Kubernetes, Ansible, Terraform),
+                web development walkthroughs, and the occasional AI experiment,
+                often as a series where each post picks up where the last one
+                left off. The goal is less &quot;follow these steps&quot; and
+                more &quot;here&apos;s how I thought through it, what broke, and
+                what I learned.&quot; Come for the hot Kubernetes content. Stay
+                for the architecture diagrams.
               </Typography>
             </TransparentPanel>
           </div>
         </div>
 
-        <hr className="w-full border-primary-500" />
+        <HorizontalRule className="w-full" />
       </div>
     </div>
   );

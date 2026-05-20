@@ -71,11 +71,14 @@ export default function LandingSectionTitle({
           >
             Read Manual
           </Button>
-          <Link href="/blog">
-            <Button variant="contained" color="primary">
-              Read Blog
-            </Button>
-          </Link>
+          <Button
+            component={Link}
+            href="/blog"
+            variant="contained"
+            color="primary"
+          >
+            Read Blog
+          </Button>
         </div>
       </MaskReveal>
     </div>

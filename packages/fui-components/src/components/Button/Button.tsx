@@ -17,6 +17,8 @@ export interface ButtonProps
   color?: ButtonColor;
   children: React.ReactNode;
   onClick?: () => void;
+  component?: React.ElementType;
+  href?: string;
 }
 
 const getColorClasses = (variant: ButtonVariant, color: ButtonColor) => {
@@ -79,10 +81,11 @@ export const Button: React.FC<ButtonProps> = ({
   color = 'primary',
   children,
   className = '',
+  component,
   ...props
 }) => {
   const baseClasses =
-    'px-4 py-2 transition-colors font-monobit text-button uppercase tracking-[.1em] cursor-pointer';
+    'px-4 py-2 transition-colors font-monobit text-button uppercase tracking-[.1em] cursor-pointer no-underline';
   const variantClasses = {
     contained: 'text-neutral-50',
     outlined: 'border',
@@ -94,9 +97,15 @@ export const Button: React.FC<ButtonProps> = ({
     className,
   );
 
+  const Component = component ?? 'button';
+
   return (
-    <button type="button" className={classes} {...props}>
+    <Component
+      {...(!component && { type: 'button' })}
+      className={classes}
+      {...props}
+    >
       {children}
-    </button>
+    </Component>
   );
 };

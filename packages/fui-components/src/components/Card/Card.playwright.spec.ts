@@ -51,4 +51,12 @@ test.describe('Card Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('with-dot-grid', async ({ page }) => {
+    await gotoStory(page, 'components-card--with-dot-grid');
+    await expect(page).toHaveScreenshot(
+      'components-card--with-dot-grid.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

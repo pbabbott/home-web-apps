@@ -82,6 +82,20 @@ export const ColorAccentFalcon: Story = ButtonStory(
   'accent-falcon',
 );
 
+export const AsLink: Story = {
+  name: 'As Link (anchor)',
+  args: {
+    color: 'primary',
+    variant: 'contained',
+    children: 'Go somewhere',
+  },
+  render: (args: ButtonProps) => (
+    <Button component="a" href="#" {...args}>
+      {args.children}
+    </Button>
+  ),
+};
+
 export const VariantContained: Story = ButtonStory(
   'Contained',
   'primary',

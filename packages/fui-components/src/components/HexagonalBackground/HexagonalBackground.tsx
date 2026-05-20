@@ -23,7 +23,17 @@ export function HexagonalBackground({
     edges: new Map(),
   });
 
-  useSparkCanvas(canvasRef, graphRef, hexes, size, sparksEnabled);
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  useSparkCanvas(
+    canvasRef,
+    graphRef,
+    hexes,
+    size,
+    sparksEnabled && !prefersReducedMotion,
+  );
 
   useEffect(() => {
     const el = containerRef.current;

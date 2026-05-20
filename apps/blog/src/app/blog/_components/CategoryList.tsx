@@ -87,7 +87,7 @@ export default function CategoryList({
   }));
 
   return (
-    <div className="max-h-[50vh] pr-1">
+    <div className="pr-1">
       <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={4} />
     </div>
   );
