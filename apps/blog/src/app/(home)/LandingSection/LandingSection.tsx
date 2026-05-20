@@ -18,7 +18,7 @@ export default function LandingSection() {
 
   return (
     <>
-      <div className="relative w-full h-screen bg-neutral-700">
+      <div className="relative w-full h-dvh bg-neutral-700">
         <MaskReveal
           reveal={showBackgroundExperience}
           animated={animationsEnabled}
