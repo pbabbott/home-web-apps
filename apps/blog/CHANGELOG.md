@@ -1,5 +1,20 @@
 # blog
 
+## 0.4.0
+
+### Minor Changes
+
+- Add FooterSection with blog CTA, GitHub/LinkedIn social links, and live package version
+- Rewrite WelcomeSection copy: ethos, voice corrections, levity, no em-dashes
+- Fix LandingSection button height mismatch by using Button `component` prop instead of Link wrapper
+- Decompose BlogPageClient into BlogPageContextProvider, BlogBackground, BlogFilters, BlogFeed
+- Reorganize blog route into `_components/`, `_lib/`, `_hooks/` folders
+- Fix landing section height: `h-screen` to `h-dvh` for mobile viewport correctness
+- Apply `--header-height` CSS variable to blog page top padding
+
+- Updated dependencies:
+  - @abbottland/fui-components@0.5.0
+
 ## 0.2.5
 
 ### Patch Changes

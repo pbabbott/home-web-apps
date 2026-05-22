@@ -40,10 +40,6 @@
       "dependsOn": ["^build"],
       "cache": false
     },
-    "test:ui": {
-      "outputs": ["playwright-report/**", "test-results/**"],
-      "cache": false
-    },
     "docker:build:base": {
       "cache": false,
       "dependsOn": ["^build"]

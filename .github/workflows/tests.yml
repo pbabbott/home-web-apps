@@ -12,7 +12,7 @@ permissions:
   checks: write
   pull-requests: write
 jobs:
-  ui-tests:
+  fui-components-ui-tests:
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -48,8 +48,9 @@ jobs:
         working-directory: packages/fui-components
         shell: bash
 
-      - name: Run ui tests
+      - name: Run fui-components ui tests
         run: pnpm test:ui
+        working-directory: packages/fui-components
         shell: bash
 
       - name: Upload Playwright report artifact

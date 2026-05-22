@@ -1,5 +1,5 @@
-import { getAllBlogPosts, getAllBlogCategories } from './blogPosts';
-import BlogPageClient from './BlogPageClient';
+import { getAllBlogPosts, getAllBlogCategories } from './_lib/blogPosts';
+import BlogPageClient from './_components/BlogPageClient';
 
 export default function Blog() {
   // Fetch blog posts and categories on the server side

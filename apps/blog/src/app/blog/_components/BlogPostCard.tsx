@@ -8,7 +8,7 @@ import {
   Badge,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
-import type { BlogCategory } from '../../types/blog';
+import type { BlogCategory } from '../../../types/blog';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 
 interface BlogPostCardProps {
