@@ -31,7 +31,7 @@ export default function HomeContextProvider({
   );
 
   return (
-    <HomeContext.Provider value={{ animationsEnabled: false }}>
+    <HomeContext.Provider value={{ animationsEnabled }}>
       {children}
     </HomeContext.Provider>
   );
