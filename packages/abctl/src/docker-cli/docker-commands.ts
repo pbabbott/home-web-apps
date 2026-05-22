@@ -49,7 +49,7 @@ export const checkRemoteImageExists = async (imageWithTag: string): Promise<bool
 
 export async function dockerBuild(settings: DockerBuildSettings) {
   try {
-    const {image, context, buildArgs = {}, dockerfile, push, load, platform, target} = settings
+    const {image, context, buildArgs = {}, dockerfile, push, load, platform, target, cacheRef} = settings
     const command = 'docker'
     const args = ['buildx', 'build']
 
@@ -63,6 +63,13 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     if (platform) {
       args.push('--platform', platform)
+    }
+
+    if (cacheRef) {
+      const repoName = image.split('/').pop()!.split(':')[0]
+      const fullCacheRef = `${cacheRef}/${repoName}`
+      args.push('--cache-from', `type=registry,ref=${fullCacheRef}`)
+      args.push('--cache-to', `type=registry,ref=${fullCacheRef},mode=max`)
     }
 
     if (push) {

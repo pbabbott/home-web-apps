@@ -1,3 +1,4 @@
 buildPreset: pnpm-turbo-docker-build
 build:
   platform: linux/arm64,linux/amd64
+  buildCache: harbor.local.abbottland.io/build-cache

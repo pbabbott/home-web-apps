@@ -6,7 +6,7 @@ export const makeBuildSettings = (
   dockerBuildConfig: DockerBuildConfig,
   projectMetadata: ProjectMetadata,
 ): DockerBuildSettings => {
-  const {baseImage, context, dockerfile, load, push, ...rest} = dockerBuildConfig
+  const {baseImage, context, dockerfile, load, push, buildCache, ...rest} = dockerBuildConfig
 
   const buildArgs: Record<string, string> = {}
 
@@ -28,6 +28,7 @@ export const makeBuildSettings = (
     buildArgs,
     load: load === 'true',
     push: push === 'true',
+    ...(buildCache ? {cacheRef: buildCache} : {}),
     ...rest,
   }
 }

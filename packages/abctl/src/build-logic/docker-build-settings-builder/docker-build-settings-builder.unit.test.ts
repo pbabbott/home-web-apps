@@ -20,29 +20,43 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
     projectName: 'one-cool-app',
     version: '99.0.1',
   }
-  const sut = makeBuildSettings(image, dockerBuildConfig, projectMetadata)
 
-  // TODO: Add tests for the build settings
-  it('should set image', () => {
-    expect(sut.image).toBe(image)
+  describe('without buildCache config', () => {
+    const sut = makeBuildSettings(image, dockerBuildConfig, projectMetadata)
+
+    it('should set image', () => {
+      expect(sut.image).toBe(image)
+    })
+    it('should set context', () => {
+      expect(sut.context).toBe(dockerBuildConfig.context)
+    })
+    it('should set dockerfile', () => {
+      expect(sut.dockerfile).toBe(dockerBuildConfig.dockerfile)
+    })
+    it('should set platform', () => {
+      expect(sut.platform).toBe(dockerBuildConfig.platform)
+    })
+    it('should set target', () => {
+      expect(sut.target).toBe(dockerBuildConfig.target)
+    })
+    it('should set build args', () => {
+      expect(sut.buildArgs).toEqual({
+        BASE_IMAGE: dockerBuildConfig.baseImage,
+        PROJECT_DIR: `${projectMetadata.parentDirName}/`,
+        PROJECT: projectMetadata.projectName,
+      })
+    })
+    it('should not set cacheRef', () => {
+      expect(sut.cacheRef).toBeUndefined()
+    })
   })
-  it('should set context', () => {
-    expect(sut.context).toBe(dockerBuildConfig.context)
-  })
-  it('should set dockerfile', () => {
-    expect(sut.dockerfile).toBe(dockerBuildConfig.dockerfile)
-  })
-  it('should set platform', () => {
-    expect(sut.platform).toBe(dockerBuildConfig.platform)
-  })
-  it('should set target', () => {
-    expect(sut.target).toBe(dockerBuildConfig.target)
-  })
-  it('should set build args', () => {
-    expect(sut.buildArgs).toEqual({
-      BASE_IMAGE: dockerBuildConfig.baseImage,
-      PROJECT_DIR: `${projectMetadata.parentDirName}/`,
-      PROJECT: projectMetadata.projectName,
+
+  describe('with buildCache config', () => {
+    const cacheRegistry = 'harbor.local.abbottland.io/build-cache'
+    const sut = makeBuildSettings(image, {...dockerBuildConfig, buildCache: cacheRegistry}, projectMetadata)
+
+    it('should set cacheRef from buildCache config', () => {
+      expect(sut.cacheRef).toBe(cacheRegistry)
     })
   })
 })
