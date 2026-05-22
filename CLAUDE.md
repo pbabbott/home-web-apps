@@ -58,7 +58,16 @@ pnpm format:fix
 pnpm test:unit    # Jest unit tests (all packages)
 pnpm test:int     # Jest integration tests (requires Docker)
 pnpm test:smoke   # Jest smoke tests (requires Docker smoke stack)
-pnpm test:ui      # Playwright + Vitest tests for fui-components only
+```
+
+Run UI tests per package (no root-level command):
+
+```bash
+# From packages/fui-components
+pnpm test:ui      # Playwright + Vitest tests
+
+# From apps/blog
+pnpm test:ui      # Playwright screenshot tests
 ```
 
 See test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)

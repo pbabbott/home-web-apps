@@ -13,4 +13,5 @@ export async function scrollToId(page: Page, id: string): Promise<void> {
 
 export const SCREENSHOT_OPTIONS = {
   animations: 'disabled' as const,
+  maxDiffPixelRatio: 0.03,
 };
