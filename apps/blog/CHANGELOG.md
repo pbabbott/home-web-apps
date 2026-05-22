@@ -1,5 +1,11 @@
 # blog
 
+## 0.4.1
+
+### Patch Changes
+
+- Fix homepage animations always disabled due to hardcoded `animationsEnabled: false` in HomeContextProvider
+
 ## 0.4.0
 
 ### Minor Changes
