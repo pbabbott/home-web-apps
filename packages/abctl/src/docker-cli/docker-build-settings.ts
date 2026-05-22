@@ -7,4 +7,5 @@ export type DockerBuildSettings = {
   load?: boolean
   platform?: string
   target?: string
+  cacheRef?: string
 }

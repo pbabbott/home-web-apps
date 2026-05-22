@@ -108,4 +108,7 @@ export class DockerBuildConfig {
 
   /** Should --push be set during the build process? */
   push = 'false'
+
+  /** Registry URL used for buildx --cache-from/--cache-to (e.g. harbor.local.abbottland.io/build-cache) */
+  buildCache = ''
 }
