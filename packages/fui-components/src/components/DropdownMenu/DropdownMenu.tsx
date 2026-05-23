@@ -9,7 +9,8 @@ import { extendedTwMerge } from '../../utils/extendTwMerge';
 import { Typography } from '../Typography/Typography';
 import { DottedDecoration } from './DottedDecoration';
 
-export { DropdownCloseCtx } from './DropdownCloseCtx';
+import { DropdownCloseCtx } from './DropdownCloseCtx';
+export { DropdownCloseCtx };
 
 export const DropdownMenu: React.FC<React.ComponentProps<typeof RDM.Root>> = ({
   onOpenChange,
