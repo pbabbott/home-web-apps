@@ -28,7 +28,8 @@
       "Bash(pnpm --filter @abbottland/abctl build)",
       "Bash(docker pull *)",
       "Bash(kubectl logs *)",
-      "Bash(kubectl get pvc *)"
+      "Bash(kubectl get pvc *)",
+      "Bash(git commit *)"
     ]
   }
 }

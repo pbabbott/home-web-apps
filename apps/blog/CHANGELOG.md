@@ -1,5 +1,23 @@
 # blog
 
+## 0.5.0
+
+### Minor Changes
+
+- Add Directory dropdown navigation with new pages and extended DropdownMenuItem
+  - StickyHeader: toggle CardStackPlusIcon/CardStackMinusIcon based on dropdown open state
+  - StickyHeader: Series item (SectionIcon) navigates to /series page
+  - StickyHeader: System Architecture item (LayersIcon) navigates to /system-architecture page
+  - StickyHeader: FUI Components item navigates to fui-components.abbottland.io in new tab with OpenInNewWindowIcon
+  - DropdownMenuItem: add rightIcon prop for right-side icon slot
+  - Add /series and /system-architecture placeholder pages
+  - Set bg-neutral-800 as default site background
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @abbottland/fui-components@0.6.0
+
 ## 0.4.1
 
 ### Patch Changes

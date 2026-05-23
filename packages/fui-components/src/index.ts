@@ -66,6 +66,25 @@ export {
 export { Input, type InputProps } from './components/Input/Input';
 export { type InputColor } from './components/Input/types';
 
+// MaskReveal
+export {
+  MaskReveal,
+  type MaskRevealProps,
+  type MaskRevealDirection,
+} from './components/MaskReveal/MaskReveal';
+
+// DropdownMenu
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  type DropdownMenuContentProps,
+} from './components/DropdownMenu/DropdownMenu';
+export {
+  DropdownMenuItem,
+  type DropdownMenuItemProps,
+} from './components/DropdownMenu/DropdownMenuItem';
+
 // NavBar
 export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
 

@@ -1,5 +1,12 @@
 # @abbottland/diagram-maker
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @abbottland/fui-components@0.6.0
+
 ## 0.0.4
 
 ### Patch Changes
