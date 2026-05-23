@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <title>Abbottland.io</title>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased bg-neutral-800">{children}</body>
     </html>
   );
 }

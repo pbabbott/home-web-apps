@@ -33,46 +33,42 @@ export const NavItem = <T extends React.ElementType = 'div'>({
   const iconSize = 20;
   const lineHeight = 15;
   const circleRadius = 2;
-  const textColor = active ? 'text-primary-700' : 'text-neutral-300';
+  const textColor = active ? 'text-primary-500' : 'text-neutral-300';
   const hoverClasses =
     'transition-colors duration-300 group-hover:text-primary-500';
 
   return (
-    <Component
-      className={extendedTwMerge(
-        `group text-neutral-300 hover:cursor-pointer text-button`,
-        classes,
-      )}
-      {...props}
-    >
-      <div className="flex flex-row items-end justify-center gap-x-2">
-        {showLeftLine ? (
-          <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
-        ) : (
-          <div style={{ width: 1, height: lineHeight }} />
-        )}
-        {icon &&
-          React.createElement(icon, {
-            width: iconSize,
-            height: iconSize,
-            className: extendedTwMerge(textColor, hoverClasses),
-          })}
-        <span className={extendedTwMerge(textColor, hoverClasses)}>
-          {children}
-        </span>
+    <Component className={extendedTwMerge('block', classes)} {...props}>
+      <div className="group cursor-pointer text-neutral-300 text-button">
+        <div className="flex flex-row items-end justify-center gap-x-2">
+          {showLeftLine ? (
+            <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
+          ) : (
+            <div style={{ width: 1, height: lineHeight }} />
+          )}
+          {icon &&
+            React.createElement(icon, {
+              width: iconSize,
+              height: iconSize,
+              className: extendedTwMerge(textColor, hoverClasses),
+            })}
+          <span className={extendedTwMerge(textColor, hoverClasses)}>
+            {children}
+          </span>
 
-        {showRightLine ? (
-          <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
-        ) : (
-          <div style={{ width: 1, height: lineHeight }} />
-        )}
-      </div>
-      <div className="">
-        <ExpandableLine strokeWidth={1} />
-      </div>
+          {showRightLine ? (
+            <LineWithCircle height={lineHeight} circleRadius={circleRadius} />
+          ) : (
+            <div style={{ width: 1, height: lineHeight }} />
+          )}
+        </div>
+        <div className="">
+          <ExpandableLine strokeWidth={1} />
+        </div>
 
-      <div className={`relative top-[3px] ${textColor} ${hoverClasses}`}>
-        <ExpandableLine strokeWidth={2} />
+        <div className={`relative top-[3px] ${textColor} ${hoverClasses}`}>
+          <ExpandableLine strokeWidth={2} />
+        </div>
       </div>
     </Component>
   );
