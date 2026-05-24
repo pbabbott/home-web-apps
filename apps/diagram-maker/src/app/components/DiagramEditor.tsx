@@ -10,11 +10,15 @@ import {
   type EdgeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { neutral, EditableEdge, DefaultEdge } from '@abbottland/fui-components';
+import {
+  neutral,
+  EditableEdge,
+  DefaultEdge,
+  DefaultNode,
+  LabeledNode,
+  TextNode,
+} from '@abbottland/fui-components';
 import { useDiagramEditor } from './DiagramEditorContext';
-import { LabeledNode } from './nodes/LabeledNode';
-import { DefaultNode } from './nodes/DefaultNode';
-import { TextNode } from './nodes/TextNode';
 
 const nodeTypes: NodeTypes = {
   labeled: LabeledNode,

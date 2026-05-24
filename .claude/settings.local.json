@@ -30,7 +30,8 @@
       "Bash(kubectl logs *)",
       "Bash(kubectl get pvc *)",
       "Bash(git commit *)",
-      "Bash(pnpm tsc *)"
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm --filter diagram-maker exec tsc --noEmit)"
     ]
   }
 }

@@ -27,6 +27,15 @@ export {
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
 export {
+  DefaultNode,
+  type DefaultNodeData,
+} from './components/DiagramViewer/nodes/DefaultNode';
+export {
+  LabeledNode,
+  type LabeledNodeData,
+} from './components/DiagramViewer/nodes/LabeledNode';
+export { TextNode, type TextNodeData } from './components/TextNode/TextNode';
+export {
   DiagramViewer,
   type DiagramViewerProps,
 } from './components/DiagramViewer/DiagramViewer';
