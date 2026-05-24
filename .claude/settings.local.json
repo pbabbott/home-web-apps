@@ -29,7 +29,8 @@
       "Bash(docker pull *)",
       "Bash(kubectl logs *)",
       "Bash(kubectl get pvc *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(pnpm tsc *)"
     ]
   }
 }

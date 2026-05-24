@@ -8,19 +8,14 @@ import {
 } from '@abbottland/fui-components';
 import { PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
 import * as Switch from '@radix-ui/react-switch';
+import { useDiagramEditor } from '../DiagramEditorContext';
 import { handlePositionOptions } from './constants';
 
-interface HandlesControlProps {
-  handles: HandleConfig[];
-  onHandlesChange: (handles: HandleConfig[]) => void;
-  hasSelection: boolean;
-}
-
-export function HandlesControl({
-  handles,
-  onHandlesChange,
-  hasSelection,
-}: HandlesControlProps) {
+export function HandlesControl() {
+  const { selectedNodeIds, selectedHandles, onHandlesChange } =
+    useDiagramEditor();
+  const hasSelection = selectedNodeIds.length > 0;
+  const handles = selectedHandles;
   const canAddHandle = handles.length < 4;
 
   const addHandle = () => {

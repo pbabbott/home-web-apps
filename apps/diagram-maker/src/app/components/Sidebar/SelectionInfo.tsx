@@ -1,16 +1,10 @@
 'use client';
 
 import { Typography } from '@abbottland/fui-components';
+import { useDiagramEditor } from '../DiagramEditorContext';
 
-interface SelectionInfoProps {
-  selectedNodeIds: string[];
-  selectedEdgeIds: string[];
-}
-
-export function SelectionInfo({
-  selectedNodeIds,
-  selectedEdgeIds,
-}: SelectionInfoProps) {
+export function SelectionInfo() {
+  const { selectedNodeIds, selectedEdgeIds } = useDiagramEditor();
   const hasNodeSelection = selectedNodeIds.length > 0;
   const hasEdgeSelection = selectedEdgeIds.length > 0;
   const hasSelection = hasNodeSelection || hasEdgeSelection;

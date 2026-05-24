@@ -2,18 +2,12 @@
 
 import { Typography, Button } from '@abbottland/fui-components';
 import { ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
+import { useDiagramEditor } from '../DiagramEditorContext';
 
-interface LayerControlsProps {
-  onSendToFront: () => void;
-  onSendToBack: () => void;
-  hasSelection: boolean;
-}
+export function LayerControls() {
+  const { selectedNodeIds, onSendToFront, onSendToBack } = useDiagramEditor();
+  const hasSelection = selectedNodeIds.length > 0;
 
-export function LayerControls({
-  onSendToFront,
-  onSendToBack,
-  hasSelection,
-}: LayerControlsProps) {
   return (
     <div>
       <Typography

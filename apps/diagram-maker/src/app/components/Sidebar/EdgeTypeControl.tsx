@@ -1,23 +1,18 @@
 'use client';
 
 import { Typography } from '@abbottland/fui-components';
-
-interface EdgeTypeControlProps {
-  selectedEdgeType?: string;
-  onEdgeTypeChange: (edgeType: string) => void;
-  hasSelection: boolean;
-}
+import { useDiagramEditor } from '../DiagramEditorContext';
 
 const edgeTypeOptions = [
   { value: 'editable', label: 'Editable' },
   { value: 'default', label: 'Basic' },
 ];
 
-export function EdgeTypeControl({
-  selectedEdgeType,
-  onEdgeTypeChange,
-  hasSelection,
-}: EdgeTypeControlProps) {
+export function EdgeTypeControl() {
+  const { selectedEdgeIds, selectedEdgeType, onEdgeTypeChange } =
+    useDiagramEditor();
+  const hasSelection = selectedEdgeIds.length > 0;
+
   return (
     <div>
       <Typography
