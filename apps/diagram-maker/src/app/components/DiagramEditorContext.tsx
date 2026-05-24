@@ -63,6 +63,9 @@ interface DiagramEditorContextValue {
   selectedEdgeIds: string[];
   selectedEdgeType: string | undefined;
   onEdgeTypeChange: (edgeType: string) => void;
+  // Node type
+  selectedNodeType: string | undefined;
+  onNodeTypeChange: (nodeType: string) => void;
 }
 
 export const DiagramEditorContext =
@@ -185,6 +188,29 @@ export function DiagramEditorProvider({
     [selectedEdgeIds, setEdges],
   );
 
+  const selectedNodeType: string | undefined =
+    selectedNodeIds.length > 0
+      ? (nodes.find((n) => n.id === selectedNodeIds[0])?.type ??
+        'customDefault')
+      : undefined;
+
+  const updateSelectedNodesType = useCallback(
+    (nodeType: string) => {
+      if (selectedNodeIds.length === 0) return;
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (!selectedNodeIds.includes(node.id)) return node;
+          const data = { ...node.data };
+          if (nodeType === 'labeled' && !data.label) {
+            data.label = (data.content as string) || 'Label';
+          }
+          return { ...node, type: nodeType, data };
+        }),
+      );
+    },
+    [selectedNodeIds, setNodes],
+  );
+
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
@@ -269,6 +295,8 @@ export function DiagramEditorProvider({
     selectedEdgeIds,
     selectedEdgeType,
     onEdgeTypeChange: updateSelectedEdgesType,
+    selectedNodeType,
+    onNodeTypeChange: updateSelectedNodesType,
   };
 
   return (

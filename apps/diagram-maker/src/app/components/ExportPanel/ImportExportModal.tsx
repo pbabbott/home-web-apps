@@ -6,7 +6,7 @@ import { Button, Typography } from '@abbottland/fui-components';
 import { CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { diagrams } from '../../../diagrams';
 
-type Tab = 'export' | 'import' | 'presets';
+export type Tab = 'export' | 'import' | 'presets';
 
 interface ImportExportModalProps {
   data: { nodes: Node[]; edges: Edge[] };

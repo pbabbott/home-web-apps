@@ -1,46 +1,43 @@
 'use client';
 
-import { useState } from 'react';
-import { Node, Edge } from '@xyflow/react';
 import { Button, Typography } from '@abbottland/fui-components';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
-import { ImportExportModal } from './ImportExportModal';
 
 interface ExportPanelProps {
-  getExportData: () => { nodes: Node[]; edges: Edge[] };
-  onImport: (data: { nodes: Node[]; edges: Edge[] }) => void;
+  onClick: () => void;
+  onLoadPreset: () => void;
+  nodeCount: number;
+  edgeCount: number;
 }
 
-export function ExportPanel({ getExportData, onImport }: ExportPanelProps) {
-  const [showModal, setShowModal] = useState(false);
-
-  const exportData = getExportData();
-
+export function ExportPanel({
+  onClick,
+  onLoadPreset,
+  nodeCount,
+  edgeCount,
+}: ExportPanelProps) {
   return (
-    <>
-      <div className="flex items-center gap-2 p-3">
-        <Button
-          onClick={() => setShowModal(true)}
-          color="secondary"
-          variant="outlined"
-          className="flex items-center gap-2"
-        >
-          <MixerHorizontalIcon width={16} height={16} />
-          Import / Export
-        </Button>
+    <div className="flex items-center gap-2 p-3">
+      <Button
+        onClick={onClick}
+        color="secondary"
+        variant="outlined"
+        className="flex items-center gap-2"
+      >
+        <MixerHorizontalIcon width={16} height={16} />
+        Import / Export
+      </Button>
 
-        <Typography variant="body1" component="div" className="pr-3">
-          {exportData.nodes.length} nodes | {exportData.edges.length} edges
-        </Typography>
-      </div>
+      <Button onClick={onLoadPreset} color="accent-falcon" variant="outlined">
+        Load Preset
+      </Button>
 
-      {showModal && (
-        <ImportExportModal
-          data={exportData}
-          onImport={onImport}
-          onClose={() => setShowModal(false)}
-        />
-      )}
-    </>
+      <Typography variant="body1" component="div" className="pr-3">
+        {nodeCount} nodes | {edgeCount} edges
+      </Typography>
+    </div>
   );
 }
+
+export { ImportExportModal } from './ImportExportModal';
+export type { Tab } from './ImportExportModal';

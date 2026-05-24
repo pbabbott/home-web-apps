@@ -8,6 +8,7 @@ import { ColorSchemeControl } from './ColorSchemeControl';
 import { HandlesControl } from './HandlesControl';
 import { LayerControls } from './LayerControls';
 import { EdgeTypeControl } from './EdgeTypeControl';
+import { NodeTypeControl } from './NodeTypeControl';
 
 export function Sidebar() {
   const { selectedNodeIds, selectedEdgeIds } = useDiagramEditor();
@@ -29,6 +30,7 @@ export function Sidebar() {
             : 'opacity-0 max-h-0 pointer-events-none'
         }`}
       >
+        <NodeTypeControl />
         <ColorSchemeControl />
         <HandlesControl />
         <LayerControls />
