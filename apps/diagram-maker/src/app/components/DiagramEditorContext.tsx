@@ -171,7 +171,7 @@ export function DiagramEditorProvider({
 
   const selectedEdgeType: string | undefined =
     selectedEdgeIds.length > 0
-      ? (edges.find((e) => e.id === selectedEdgeIds[0])?.type ?? 'editable')
+      ? (edges.find((e) => e.id === selectedEdgeIds[0])?.type ?? 'default')
       : undefined;
 
   const updateSelectedEdgesType = useCallback(

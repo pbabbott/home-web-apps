@@ -2,13 +2,13 @@
 
 import { HorizontalRule } from '@abbottland/fui-components';
 import { useDiagramEditor } from '../DiagramEditorContext';
-import { NodesSection } from './NodesSection';
+import { NodesSection } from './Nodes/NodesSection';
 import { SelectionInfo } from './SelectionInfo';
-import { ColorSchemeControl } from './ColorSchemeControl';
-import { HandlesControl } from './HandlesControl';
-import { LayerControls } from './LayerControls';
-import { EdgeTypeControl } from './EdgeTypeControl';
-import { NodeTypeControl } from './NodeTypeControl';
+import { ColorSchemeControl } from './NodeProps/ColorSchemeControl';
+import { HandlesControl } from './NodeProps/HandlesControl';
+import { LayerControls } from './NodeProps/LayerControls';
+import { EdgeTypeControl } from './EdgeProps/EdgeTypeControl';
+import { NodeTypeControl } from './NodeProps/NodeTypeControl';
 
 export function Sidebar() {
   const { selectedNodeIds, selectedEdgeIds } = useDiagramEditor();

@@ -56,7 +56,7 @@ export function DiagramEditor() {
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       defaultEdgeOptions={{
-        type: 'editable',
+        type: 'basic',
         style: { stroke: neutral[300], strokeWidth: 2 },
         markerEnd: {
           type: 'arrowclosed',

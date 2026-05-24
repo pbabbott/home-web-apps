@@ -8,8 +8,8 @@ import {
 } from '@abbottland/fui-components';
 import { PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
 import * as Switch from '@radix-ui/react-switch';
-import { useDiagramEditor } from '../DiagramEditorContext';
-import { handlePositionOptions } from './constants';
+import { useDiagramEditor } from '../../DiagramEditorContext';
+import { handlePositionOptions } from '../constants';
 
 export function HandlesControl() {
   const { selectedNodeIds, selectedHandles, onHandlesChange } =

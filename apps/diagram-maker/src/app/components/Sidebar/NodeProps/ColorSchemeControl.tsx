@@ -1,8 +1,8 @@
 'use client';
 
 import { Typography, type NodeColorScheme } from '@abbottland/fui-components';
-import { useDiagramEditor } from '../DiagramEditorContext';
-import { colorSchemeOptions } from './constants';
+import { useDiagramEditor } from '../../DiagramEditorContext';
+import { colorSchemeOptions } from '../constants';
 
 export function ColorSchemeControl() {
   const { selectedNodeIds, selectedColorScheme, onColorSchemeChange } =

@@ -2,7 +2,7 @@
 
 import { Typography, Button } from '@abbottland/fui-components';
 import { ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
-import { useDiagramEditor } from '../DiagramEditorContext';
+import { useDiagramEditor } from '../../DiagramEditorContext';
 
 export function LayerControls() {
   const { selectedNodeIds, onSendToFront, onSendToBack } = useDiagramEditor();

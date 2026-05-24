@@ -23,9 +23,9 @@ export const nodeTypes = [
 ];
 
 export const colorSchemeOptions: { value: NodeColorScheme; label: string }[] = [
+  { value: 'default', label: 'Default (Neutral)' },
   { value: 'primary', label: 'Primary' },
   { value: 'secondary', label: 'Secondary' },
-  { value: 'default', label: 'Default (Neutral)' },
 ];
 
 export const handlePositionOptions: {
@@ -41,4 +41,9 @@ export const handlePositionOptions: {
 export const handleTypeOptions: { value: HandleType; label: string }[] = [
   { value: 'source', label: 'Source (out)' },
   { value: 'target', label: 'Target (in)' },
+];
+
+export const edgeTypeOptions: { value: string; label: string }[] = [
+  { value: 'default', label: 'Basic' },
+  { value: 'editable', label: 'Labeled' },
 ];

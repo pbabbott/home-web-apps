@@ -1,17 +1,13 @@
 'use client';
 
 import { Typography } from '@abbottland/fui-components';
-import { useDiagramEditor } from '../DiagramEditorContext';
+import { useDiagramEditor } from '../../DiagramEditorContext';
+import { nodeTypes } from '../constants';
 
-const edgeTypeOptions = [
-  { value: 'editable', label: 'Editable' },
-  { value: 'default', label: 'Basic' },
-];
-
-export function EdgeTypeControl() {
-  const { selectedEdgeIds, selectedEdgeType, onEdgeTypeChange } =
+export function NodeTypeControl() {
+  const { selectedNodeIds, selectedNodeType, onNodeTypeChange } =
     useDiagramEditor();
-  const hasSelection = selectedEdgeIds.length > 0;
+  const hasSelection = selectedNodeIds.length > 0;
 
   return (
     <div>
@@ -20,16 +16,16 @@ export function EdgeTypeControl() {
         component="p"
         className="text-primary-300 mb-2"
       >
-        Edge Type
+        Node Type
       </Typography>
       <select
-        value={selectedEdgeType ?? 'editable'}
-        onChange={(e) => onEdgeTypeChange(e.target.value)}
+        value={selectedNodeType ?? 'customDefault'}
+        onChange={(e) => onNodeTypeChange(e.target.value)}
         disabled={!hasSelection}
         className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-sm outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {edgeTypeOptions.map(({ value, label }) => (
-          <option key={value} value={value}>
+        {nodeTypes.map(({ type, label }) => (
+          <option key={type} value={type}>
             {label}
           </option>
         ))}
