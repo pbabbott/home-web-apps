@@ -1,7 +1,7 @@
 'use client';
 
-import { Node, NodeProps } from '@xyflow/react';
-import { BaseNode, type BaseNodeData } from '@abbottland/fui-components';
+import { type Node, type NodeProps } from '@xyflow/react';
+import { BaseNode, type BaseNodeData } from '../../BaseNode/BaseNode';
 
 export type DefaultNodeData = BaseNodeData & {
   content?: string;

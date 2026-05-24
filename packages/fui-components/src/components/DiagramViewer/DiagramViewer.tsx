@@ -1,18 +1,20 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
-  Node,
-  Edge,
-  NodeTypes,
-  EdgeTypes,
+  type Node,
+  type Edge,
+  type NodeTypes,
+  type EdgeTypes,
   Background,
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { DefaultEdge, EditableEdge } from '@abbottland/fui-components';
+import { EnterFullScreenIcon, ExitFullScreenIcon } from '@radix-ui/react-icons';
+import { DefaultEdge } from '../DefaultEdge/DefaultEdge';
+import { EditableEdge } from '../EditableEdge/EditableEdge';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
 import { TextNode } from './nodes/TextNode';
@@ -26,14 +28,12 @@ export interface DiagramViewerProps {
   className?: string;
 }
 
-// Define nodeTypes outside to prevent re-renders
 const nodeTypes: NodeTypes = {
   labeled: LabeledNode,
   customDefault: DefaultNode,
   text: TextNode,
 };
 
-// Define edgeTypes outside to prevent re-renders
 const edgeTypes: EdgeTypes = {
   editable: EditableEdge,
   default: DefaultEdge,
@@ -44,9 +44,10 @@ export function DiagramViewer({
   height = '600px',
   className = '',
 }: DiagramViewerProps) {
-  // Memoize nodes and edges to prevent unnecessary re-renders
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const nodes = useMemo(() => data.nodes, [data.nodes]);
-  // Make all edges readonly in the viewer
   const edges = useMemo(
     () =>
       data.edges.map((edge) => ({
@@ -56,9 +57,28 @@ export function DiagramViewer({
     [data.edges],
   );
 
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () =>
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void containerRef.current.requestFullscreen();
+    }
+  }, []);
+
   return (
     <div
-      className={`w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
+      ref={containerRef}
+      className={`relative w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
       style={{ height }}
     >
       <style>{`
@@ -68,13 +88,28 @@ export function DiagramViewer({
         .react-flow__nodes {
           z-index: 1;
         }
+        :fullscreen .diagram-viewer-inner {
+          height: 100%;
+        }
       `}</style>
+      <button
+        onClick={toggleFullscreen}
+        aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+        className="absolute top-2 right-2 z-10 p-1.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
+      >
+        {isFullscreen ? (
+          <ExitFullScreenIcon width={16} height={16} />
+        ) : (
+          <EnterFullScreenIcon width={16} height={16} />
+        )}
+      </button>
       <ReactFlowProvider>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          proOptions={{ hideAttribution: true }}
           fitView
           fitViewOptions={{ padding: 0.2 }}
           nodesDraggable={false}
@@ -83,7 +118,7 @@ export function DiagramViewer({
           panOnDrag={true}
           zoomOnScroll={true}
           zoomOnPinch={true}
-          className="bg-secondary-950"
+          className="bg-secondary-950 diagram-viewer-inner h-full"
         >
           <Background
             variant={BackgroundVariant.Dots}

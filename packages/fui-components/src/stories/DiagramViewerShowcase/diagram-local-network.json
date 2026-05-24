@@ -1,0 +1,137 @@
+{
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 277.75,
+        "y": 19.1640625
+      },
+      "data": {
+        "label": "Your home",
+        "content": "",
+        "width": 476,
+        "height": 248
+      },
+      "measured": {
+        "width": 476,
+        "height": 248
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_0",
+      "type": "customDefault",
+      "position": {
+        "x": 290.5,
+        "y": 120.109375
+      },
+      "data": {
+        "content": "Your other computer\n(192.168.1.200)",
+        "handles": [
+          {
+            "id": "handle-1769565766402",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_3",
+      "type": "labeled",
+      "position": {
+        "x": 534.25,
+        "y": 36.1640625
+      },
+      "data": {
+        "label": "Raspberry PI\n192.168.1.182",
+        "content": "",
+        "width": 206,
+        "height": 217
+      },
+      "measured": {
+        "width": 206,
+        "height": 217
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 543.75,
+        "y": 94.6640625
+      },
+      "data": {
+        "label": "Docker",
+        "content": "",
+        "colorScheme": "secondary",
+        "width": 184,
+        "height": 146
+      },
+      "measured": {
+        "width": 184,
+        "height": 146
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 556.75,
+        "y": 123.1640625
+      },
+      "data": {
+        "content": "n8n",
+        "handles": [
+          {
+            "id": "handle-1769565771123",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_0",
+      "sourceHandle": "handle-1769565766402",
+      "target": "node_5",
+      "targetHandle": "handle-1769565771123",
+      "id": "xy-edge__node_0handle-1769565766402-node_5handle-1769565771123",
+      "data": {
+        "label": "port\n5678"
+      },
+      "selected": false
+    }
+  ]
+}

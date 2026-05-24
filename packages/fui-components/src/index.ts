@@ -26,6 +26,10 @@ export {
 } from './components/BaseNode/BaseNode.constants';
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
+export {
+  DiagramViewer,
+  type DiagramViewerProps,
+} from './components/DiagramViewer/DiagramViewer';
 
 // Button
 export {

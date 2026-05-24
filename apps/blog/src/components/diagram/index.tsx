@@ -1,2 +1,2 @@
-export { DiagramViewer } from './DiagramViewer';
-export type { DiagramViewerProps } from './DiagramViewer';
+export { DiagramViewer } from '@abbottland/fui-components';
+export type { DiagramViewerProps } from '@abbottland/fui-components';

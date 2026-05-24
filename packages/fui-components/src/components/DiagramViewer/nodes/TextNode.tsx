@@ -1,7 +1,8 @@
 'use client';
 
-import { NodeProps, Node } from '@xyflow/react';
-import { Typography, type NodeColorScheme } from '@abbottland/fui-components';
+import { type NodeProps, type Node } from '@xyflow/react';
+import { Typography } from '../../Typography/Typography';
+import { type NodeColorScheme } from '../../BaseNode/BaseNode';
 
 export interface TextNodeData extends Record<string, unknown> {
   content?: string;
@@ -10,7 +11,6 @@ export interface TextNodeData extends Record<string, unknown> {
 
 type TextNodeType = Node<TextNodeData, 'text'>;
 
-// Text color mapping for TextNode
 const textColorStyles: Record<NodeColorScheme, string> = {
   primary: 'text-primary-300',
   secondary: 'text-secondary-100',
