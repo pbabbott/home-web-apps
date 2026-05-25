@@ -123,7 +123,7 @@ export function DiagramViewer({
             panOnDrag={true}
             zoomOnScroll={true}
             zoomOnPinch={true}
-            className="bg-secondary-950 diagram-viewer-inner h-full"
+            className="diagram-viewer-inner h-full"
           >
             <Background
               variant={BackgroundVariant.Dots}
