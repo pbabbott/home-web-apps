@@ -66,6 +66,9 @@ interface DiagramEditorContextValue {
   // Node type
   selectedNodeType: string | undefined;
   onNodeTypeChange: (nodeType: string) => void;
+  // Icon
+  selectedIconId: string | undefined;
+  onIconChange: (iconId: string | undefined) => void;
 }
 
 export const DiagramEditorContext =
@@ -194,6 +197,32 @@ export function DiagramEditorProvider({
         'customDefault')
       : undefined;
 
+  const selectedNodeIconId: string | undefined =
+    selectedNodeIds.length > 0
+      ? (nodes.find((n) => n.id === selectedNodeIds[0])?.data?.iconId as
+          | string
+          | undefined)
+      : undefined;
+
+  const updateSelectedNodesIconId = useCallback(
+    (iconId: string | undefined) => {
+      if (selectedNodeIds.length === 0) return;
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (!selectedNodeIds.includes(node.id)) return node;
+          const data = { ...node.data };
+          if (iconId === undefined) {
+            delete data.iconId;
+          } else {
+            data.iconId = iconId;
+          }
+          return { ...node, data };
+        }),
+      );
+    },
+    [selectedNodeIds, setNodes],
+  );
+
   const updateSelectedNodesType = useCallback(
     (nodeType: string) => {
       if (selectedNodeIds.length === 0) return;
@@ -297,6 +326,8 @@ export function DiagramEditorProvider({
     onEdgeTypeChange: updateSelectedEdgesType,
     selectedNodeType,
     onNodeTypeChange: updateSelectedNodesType,
+    selectedIconId: selectedNodeIconId,
+    onIconChange: updateSelectedNodesIconId,
   };
 
   return (

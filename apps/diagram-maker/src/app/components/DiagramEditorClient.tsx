@@ -1,7 +1,11 @@
 'use client';
 
 import { ReactFlowProvider } from '@xyflow/react';
-import { DiagramViewer } from '@abbottland/fui-components';
+import {
+  DiagramViewer,
+  IconRendererProvider,
+} from '@abbottland/fui-components';
+import { renderSimpleIcon } from '@abbottland/fui-icons';
 import {
   DiagramEditorProvider,
   useDiagramEditor,
@@ -36,6 +40,7 @@ function DiagramEditorLayout() {
               data={{ nodes, edges }}
               height="100%"
               className="!rounded-none !border-none"
+              renderIcon={renderSimpleIcon}
             />
           ) : (
             <DiagramEditor />
@@ -49,9 +54,11 @@ function DiagramEditorLayout() {
 export function DiagramEditorClient() {
   return (
     <ReactFlowProvider>
-      <DiagramEditorProvider>
-        <DiagramEditorLayout />
-      </DiagramEditorProvider>
+      <IconRendererProvider renderer={renderSimpleIcon}>
+        <DiagramEditorProvider>
+          <DiagramEditorLayout />
+        </DiagramEditorProvider>
+      </IconRendererProvider>
     </ReactFlowProvider>
   );
 }

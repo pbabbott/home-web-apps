@@ -21,10 +21,25 @@
       "outputs": ["storybook-static/**"],
       "dependsOn": ["@abbottland/fui-components#build:npm"]
     },
+    "@abbottland/fui-icons#build:npm": {
+      "outputs": ["dist/**"],
+      "dependsOn": []
+    },
     "@abbottland/blog#build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**"],
-      "dependsOn": ["@abbottland/fui-components#build:npm"]
+      "dependsOn": [
+        "@abbottland/fui-components#build:npm",
+        "@abbottland/fui-icons#build:npm"
+      ]
+    },
+    "@abbottland/diagram-maker#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**"],
+      "dependsOn": [
+        "@abbottland/fui-components#build:npm",
+        "@abbottland/fui-icons#build:npm"
+      ]
     },
     "test:int": {
       "outputs": ["test-results/**", "coverage/**"],

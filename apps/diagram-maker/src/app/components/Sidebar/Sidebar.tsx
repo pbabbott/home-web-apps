@@ -9,6 +9,7 @@ import { HandlesControl } from './NodeProps/HandlesControl';
 import { LayerControls } from './NodeProps/LayerControls';
 import { EdgeTypeControl } from './EdgeProps/EdgeTypeControl';
 import { NodeTypeControl } from './NodeProps/NodeTypeControl';
+import { IconControl } from './NodeProps/IconControl';
 
 export function Sidebar() {
   const { selectedNodeIds, selectedEdgeIds } = useDiagramEditor();
@@ -31,6 +32,7 @@ export function Sidebar() {
         }`}
       >
         <NodeTypeControl />
+        <IconControl />
         <ColorSchemeControl />
         <HandlesControl />
         <LayerControls />

@@ -18,6 +18,8 @@ import { EditableEdge } from '../EditableEdge/EditableEdge';
 import { LabeledNode } from './nodes/LabeledNode';
 import { DefaultNode } from './nodes/DefaultNode';
 import { TextNode } from './nodes/TextNode';
+import { IconRendererProvider } from './IconRendererContext';
+import type { IconRenderer } from '../../types/icons';
 
 export interface DiagramViewerProps {
   data: {
@@ -26,6 +28,7 @@ export interface DiagramViewerProps {
   };
   height?: string;
   className?: string;
+  renderIcon?: IconRenderer;
 }
 
 const nodeTypes: NodeTypes = {
@@ -43,6 +46,7 @@ export function DiagramViewer({
   data,
   height = '600px',
   className = '',
+  renderIcon,
 }: DiagramViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -76,12 +80,13 @@ export function DiagramViewer({
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
-      style={{ height }}
-    >
-      <style>{`
+    <IconRendererProvider renderer={renderIcon}>
+      <div
+        ref={containerRef}
+        className={`relative w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
+        style={{ height }}
+      >
+        <style>{`
         .react-flow__edges {
           z-index: 10;
         }
@@ -92,42 +97,43 @@ export function DiagramViewer({
           height: 100%;
         }
       `}</style>
-      <button
-        onClick={toggleFullscreen}
-        aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-        className="absolute top-2 right-2 z-10 p-1.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
-      >
-        {isFullscreen ? (
-          <ExitFullScreenIcon width={16} height={16} />
-        ) : (
-          <EnterFullScreenIcon width={16} height={16} />
-        )}
-      </button>
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          proOptions={{ hideAttribution: true }}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          panOnDrag={true}
-          zoomOnScroll={true}
-          zoomOnPinch={true}
-          className="bg-secondary-950 diagram-viewer-inner h-full"
+        <button
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
         >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={20}
-            size={1}
-            color="#374151"
-          />
-        </ReactFlow>
-      </ReactFlowProvider>
-    </div>
+          {isFullscreen ? (
+            <ExitFullScreenIcon width={16} height={16} />
+          ) : (
+            <EnterFullScreenIcon width={16} height={16} />
+          )}
+        </button>
+        <ReactFlowProvider>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            proOptions={{ hideAttribution: true }}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            panOnDrag={true}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            className="bg-secondary-950 diagram-viewer-inner h-full"
+          >
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={20}
+              size={1}
+              color="#374151"
+            />
+          </ReactFlow>
+        </ReactFlowProvider>
+      </div>
+    </IconRendererProvider>
   );
 }

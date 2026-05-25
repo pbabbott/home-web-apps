@@ -24,6 +24,7 @@ import {
   type HandleConfig,
   type HandlePosition,
 } from './BaseNode.constants';
+import { useIconRenderer } from '../DiagramViewer/IconRendererContext';
 
 export type NodeColorScheme = 'primary' | 'secondary' | 'default';
 
@@ -34,6 +35,7 @@ export interface BaseNodeData extends Record<string, unknown> {
   height?: number;
   colorScheme?: NodeColorScheme;
   handles?: HandleConfig[];
+  iconId?: string;
 }
 
 export type BaseNodeType = Node<BaseNodeData>;
@@ -86,6 +88,7 @@ export function BaseNode({
   showLabel = false,
 }: BaseNodeProps) {
   const { setNodes } = useReactFlow();
+  const renderIcon = useIconRenderer();
   const colorScheme = data.colorScheme ?? 'default';
   const colors = colorSchemeStyles[colorScheme];
   const handles = data.handles ?? DEFAULT_HANDLES;
@@ -235,6 +238,13 @@ export function BaseNode({
         lineClassName="!border-primary-500"
         handleClassName="!w-2.5 !h-2.5 !bg-primary-500 !border-2 !border-secondary-800 !rounded-sm"
       />
+
+      {/* Icon in top-right - only shown when iconId is set and a renderer is provided */}
+      {data.iconId && renderIcon && (
+        <div className="absolute top-2 right-2 pointer-events-none opacity-80 z-10">
+          {renderIcon({ name: data.iconId, size: 20, colored: true })}
+        </div>
+      )}
 
       {/* Label in top-left - only shown if showLabel is true */}
       {showLabel && (

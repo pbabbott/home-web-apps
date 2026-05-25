@@ -1,5 +1,12 @@
 /** @abbottland/fui-components – public API */
 
+// Icon renderer types (provider-agnostic; implementation comes from @abbottland/fui-icons)
+export type { IconRenderer, IconProps } from './types/icons';
+export {
+  IconRendererProvider,
+  useIconRenderer,
+} from './components/DiagramViewer/IconRendererContext';
+
 // Badge
 export {
   Badge,
