@@ -15,9 +15,9 @@ import '@xyflow/react/dist/style.css';
 import { EnterFullScreenIcon, ExitFullScreenIcon } from '@radix-ui/react-icons';
 import { DefaultEdge } from '../DefaultEdge/DefaultEdge';
 import { EditableEdge } from '../EditableEdge/EditableEdge';
-import { LabeledNode } from './nodes/LabeledNode';
-import { DefaultNode } from './nodes/DefaultNode';
-import { TextNode } from './nodes/TextNode';
+import { LabeledNode } from '../LabeledNode/LabeledNode';
+import { DefaultNode } from '../DefaultNode/DefaultNode';
+import { TextNode } from '../TextNode/TextNode';
 import { IconRendererProvider } from './IconRendererContext';
 import type { IconRenderer } from '../../types/icons';
 
@@ -51,7 +51,14 @@ export function DiagramViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const nodes = useMemo(() => data.nodes, [data.nodes]);
+  const nodes = useMemo(
+    () =>
+      data.nodes.map((node) => ({
+        ...node,
+        data: { ...node.data, readonly: true },
+      })),
+    [data.nodes],
+  );
   const edges = useMemo(
     () =>
       data.edges.map((edge) => ({

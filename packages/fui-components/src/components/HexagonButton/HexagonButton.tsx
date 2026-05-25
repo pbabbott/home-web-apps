@@ -37,8 +37,8 @@ export function HexagonButton({
           WebkitTapHighlightColor: 'transparent',
         }}
         onClick={onClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
         aria-pressed={active}
       >
         <svg

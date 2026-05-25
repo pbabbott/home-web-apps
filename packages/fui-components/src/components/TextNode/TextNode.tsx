@@ -8,6 +8,7 @@ import { type NodeColorScheme } from '../BaseNode/BaseNode';
 export interface TextNodeData extends Record<string, unknown> {
   content?: string;
   colorScheme?: NodeColorScheme;
+  readonly?: boolean;
 }
 
 type TextNodeType = Node<TextNodeData, 'text'>;
@@ -25,6 +26,7 @@ export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const colorScheme = data.colorScheme ?? 'default';
   const textColor = textColorStyles[colorScheme];
+  const readonly = data.readonly ?? false;
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -33,10 +35,14 @@ export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
     }
   }, [isEditing]);
 
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsEditing(true);
-  }, []);
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (readonly) return;
+      e.stopPropagation();
+      setIsEditing(true);
+    },
+    [readonly],
+  );
 
   const handleBlur = useCallback(() => {
     setIsEditing(false);

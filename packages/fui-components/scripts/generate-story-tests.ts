@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 import { chromium } from '@playwright/test';
 import ejs from 'ejs';
 
@@ -34,7 +35,11 @@ function parseStoryId(storyId: string) {
   const pathParts = categoryPath.split('-');
 
   // Skip non-component stories (like "configure-your-project--docs")
-  if (pathParts[0] !== 'components' && pathParts[0] !== 'showcase') {
+  if (
+    pathParts[0] !== 'components' &&
+    pathParts[0] !== 'showcase' &&
+    pathParts[0] !== 'diagrams'
+  ) {
     return null;
   }
 
@@ -248,6 +253,10 @@ async function generateTests() {
     }
 
     console.log('\n🎉 Test generation complete!');
+
+    console.log('\n🎨 Running formatter...');
+    execSync('pnpm format:fix', { stdio: 'inherit' });
+    console.log('✅ Format complete!');
   } catch (error) {
     console.error('❌ Error generating tests:', error);
     process.exit(1);

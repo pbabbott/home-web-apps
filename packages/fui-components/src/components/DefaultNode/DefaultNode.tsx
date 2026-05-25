@@ -1,7 +1,7 @@
 'use client';
 
 import { type Node, type NodeProps } from '@xyflow/react';
-import { BaseNode, type BaseNodeData } from '../../BaseNode/BaseNode';
+import { BaseNode, type BaseNodeData } from '../BaseNode/BaseNode';
 
 export type DefaultNodeData = BaseNodeData & {
   content?: string;

@@ -36,11 +36,11 @@ export { EditableEdge } from './components/EditableEdge/EditableEdge';
 export {
   DefaultNode,
   type DefaultNodeData,
-} from './components/DiagramViewer/nodes/DefaultNode';
+} from './components/DefaultNode/DefaultNode';
 export {
   LabeledNode,
   type LabeledNodeData,
-} from './components/DiagramViewer/nodes/LabeledNode';
+} from './components/LabeledNode/LabeledNode';
 export { TextNode, type TextNodeData } from './components/TextNode/TextNode';
 export {
   DiagramViewer,
