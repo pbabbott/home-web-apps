@@ -27,6 +27,7 @@ import {
   DEFAULT_HANDLES,
   type NodeColorScheme,
   type HandleConfig,
+  type EditableEdgeColor,
 } from '@abbottland/fui-components';
 
 let id = 0;
@@ -63,6 +64,8 @@ interface DiagramEditorContextValue {
   selectedEdgeIds: string[];
   selectedEdgeType: string | undefined;
   onEdgeTypeChange: (edgeType: string) => void;
+  selectedEdgeLabelColor: EditableEdgeColor | undefined;
+  onEdgeLabelColorChange: (color: EditableEdgeColor) => void;
   // Node type
   selectedNodeType: string | undefined;
   onNodeTypeChange: (nodeType: string) => void;
@@ -184,6 +187,26 @@ export function DiagramEditorProvider({
         eds.map((edge) =>
           selectedEdgeIds.includes(edge.id)
             ? { ...edge, type: edgeType }
+            : edge,
+        ),
+      );
+    },
+    [selectedEdgeIds, setEdges],
+  );
+
+  const selectedEdgeLabelColor: EditableEdgeColor | undefined =
+    selectedEdgeIds.length > 0
+      ? ((edges.find((e) => e.id === selectedEdgeIds[0])?.data
+          ?.color as EditableEdgeColor) ?? 'default')
+      : undefined;
+
+  const updateSelectedEdgesLabelColor = useCallback(
+    (color: EditableEdgeColor) => {
+      if (selectedEdgeIds.length === 0) return;
+      setEdges((eds) =>
+        eds.map((edge) =>
+          selectedEdgeIds.includes(edge.id)
+            ? { ...edge, data: { ...edge.data, color } }
             : edge,
         ),
       );
@@ -324,6 +347,8 @@ export function DiagramEditorProvider({
     selectedEdgeIds,
     selectedEdgeType,
     onEdgeTypeChange: updateSelectedEdgesType,
+    selectedEdgeLabelColor,
+    onEdgeLabelColorChange: updateSelectedEdgesLabelColor,
     selectedNodeType,
     onNodeTypeChange: updateSelectedNodesType,
     selectedIconId: selectedNodeIconId,

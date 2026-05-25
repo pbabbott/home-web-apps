@@ -20,6 +20,38 @@ test.describe('EditableEdge Visual Regression Tests', () => {
     );
   });
 
+  test('new-edge', async ({ page }) => {
+    await gotoStory(page, 'diagrams-editableedge--new-edge');
+    await expect(page).toHaveScreenshot(
+      'diagrams-editableedge--new-edge.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('new-edge-primary-color', async ({ page }) => {
+    await gotoStory(page, 'diagrams-editableedge--new-edge-primary-color');
+    await expect(page).toHaveScreenshot(
+      'diagrams-editableedge--new-edge-primary-color.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('editing', async ({ page }) => {
+    await gotoStory(page, 'diagrams-editableedge--editing');
+    await expect(page).toHaveScreenshot(
+      'diagrams-editableedge--editing.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('default-color', async ({ page }) => {
+    await gotoStory(page, 'diagrams-editableedge--default-color');
+    await expect(page).toHaveScreenshot(
+      'diagrams-editableedge--default-color.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('with-label', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--with-label');
     await expect(page).toHaveScreenshot(
@@ -56,14 +88,6 @@ test.describe('EditableEdge Visual Regression Tests', () => {
     await gotoStory(page, 'diagrams-editableedge--secondary-color');
     await expect(page).toHaveScreenshot(
       'diagrams-editableedge--secondary-color.png',
-      SCREENSHOT_OPTIONS,
-    );
-  });
-
-  test('default-color', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--default-color');
-    await expect(page).toHaveScreenshot(
-      'diagrams-editableedge--default-color.png',
       SCREENSHOT_OPTIONS,
     );
   });

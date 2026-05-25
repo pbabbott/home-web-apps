@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DiagramViewer, type DiagramViewerProps } from './DiagramViewer';
-import examplePostData from '../../../../../apps/diagram-maker/src/diagrams/blog-example-post.json';
+import examplePostData from './blog-example-post.json';
 
 const meta: Meta<typeof DiagramViewer> = {
   title: 'Diagrams/DiagramViewer',

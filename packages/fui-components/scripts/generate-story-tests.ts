@@ -255,7 +255,7 @@ async function generateTests() {
     console.log('\n🎉 Test generation complete!');
 
     console.log('\n🎨 Running formatter...');
-    execSync('pnpm format:fix', { stdio: 'inherit' });
+    execSync('pnpm -w format:fix', { stdio: 'inherit' });
     console.log('✅ Format complete!');
   } catch (error) {
     console.error('❌ Error generating tests:', error);

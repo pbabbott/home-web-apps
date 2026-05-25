@@ -2,6 +2,7 @@ import type {
   NodeColorScheme,
   HandlePosition,
   HandleType,
+  EditableEdgeColor,
 } from '@abbottland/fui-components';
 
 export const nodeTypes = [
@@ -46,4 +47,13 @@ export const handleTypeOptions: { value: HandleType; label: string }[] = [
 export const edgeTypeOptions: { value: string; label: string }[] = [
   { value: 'default', label: 'Basic' },
   { value: 'editable', label: 'Labeled' },
+];
+
+export const edgeLabelColorOptions: {
+  value: EditableEdgeColor;
+  label: string;
+}[] = [
+  { value: 'default', label: 'Default (Neutral)' },
+  { value: 'primary', label: 'Primary' },
+  { value: 'secondary', label: 'Secondary' },
 ];

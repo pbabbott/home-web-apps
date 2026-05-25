@@ -52,6 +52,10 @@ export default defineConfig({
         if (/^@xyflow\/react(\/.*)?$/.test(id)) {
           return true;
         }
+        // Externalize story files and their fixtures (not part of the library API)
+        if (id.includes('.stories.')) {
+          return true;
+        }
         return false;
       },
       output: {

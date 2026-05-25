@@ -8,6 +8,7 @@ import { ColorSchemeControl } from './NodeProps/ColorSchemeControl';
 import { HandlesControl } from './NodeProps/HandlesControl';
 import { LayerControls } from './NodeProps/LayerControls';
 import { EdgeTypeControl } from './EdgeProps/EdgeTypeControl';
+import { EdgeLabelColorControl } from './EdgeProps/EdgeLabelColorControl';
 import { NodeTypeControl } from './NodeProps/NodeTypeControl';
 import { IconControl } from './NodeProps/IconControl';
 
@@ -17,7 +18,7 @@ export function Sidebar() {
   const hasEdgeSelection = selectedEdgeIds.length > 0;
 
   return (
-    <aside className="w-64 bg-neutral-800 border-r border-neutral-300 p-4 flex flex-col gap-4 overflow-y-auto">
+    <aside className="w-64 h-full bg-neutral-800 border-r border-neutral-300 p-4 flex flex-col gap-4 overflow-y-auto">
       <NodesSection />
       <HorizontalRule color="secondary" />
 
@@ -25,10 +26,10 @@ export function Sidebar() {
 
       {/* Node-specific controls */}
       <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden flex flex-col gap-4 ${
+        className={`transition-all duration-300 ease-in-out flex flex-col gap-4 ${
           hasNodeSelection
-            ? 'opacity-100 max-h-[500px]'
-            : 'opacity-0 max-h-0 pointer-events-none'
+            ? 'opacity-100'
+            : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'
         }`}
       >
         <NodeTypeControl />
@@ -40,13 +41,14 @@ export function Sidebar() {
 
       {/* Edge-specific controls */}
       <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden flex flex-col gap-4 ${
+        className={`transition-all duration-300 ease-in-out flex flex-col gap-4 ${
           hasEdgeSelection
-            ? 'opacity-100 max-h-[500px]'
-            : 'opacity-0 max-h-0 pointer-events-none'
+            ? 'opacity-100'
+            : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'
         }`}
       >
         <EdgeTypeControl />
+        <EdgeLabelColorControl />
       </div>
     </aside>
   );

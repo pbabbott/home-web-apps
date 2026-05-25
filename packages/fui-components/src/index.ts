@@ -33,6 +33,7 @@ export {
 } from './components/BaseNode/BaseNode.constants';
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
+export type { EditableEdgeColor } from './components/EditableEdge/EdgeLabelContent';
 export {
   DefaultNode,
   type DefaultNodeData,

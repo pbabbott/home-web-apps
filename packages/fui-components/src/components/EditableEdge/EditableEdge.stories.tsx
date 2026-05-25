@@ -1,6 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { Edge, Node } from '@xyflow/react';
+import { within, userEvent } from 'storybook/test';
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesState,
+  useEdgesState,
+  type Edge,
+  type Node,
+  type EdgeTypes,
+  type NodeTypes,
+} from '@xyflow/react';
 import { DiagramViewer } from '../DiagramViewer/DiagramViewer';
+import { EditableEdge } from './EditableEdge';
+import { DefaultNode } from '../DefaultNode/DefaultNode';
 import type { EditableEdgeColor } from './EdgeLabelContent';
 
 type NodeColor = 'primary' | 'secondary' | 'default';
@@ -10,7 +22,7 @@ function makeNodes(
   node2Color: NodeColor = 'secondary',
   node1Label = 'Node 1',
   node2Label = 'Node 2',
-  node2X = 400,
+  node2X = 600,
 ): Node[] {
   return [
     {
@@ -76,6 +88,37 @@ function StoryContainer({
   );
 }
 
+const editableNodeTypes: NodeTypes = { customDefault: DefaultNode };
+const editableEdgeTypes: EdgeTypes = { editable: EditableEdge };
+
+function EditableStoryContainer({
+  edgeLabel = '',
+  edgeColor = 'primary',
+  node1Color = 'primary',
+  node2Color = 'secondary',
+}: StoryProps) {
+  const [nodes] = useNodesState(makeNodes(node1Color, node2Color));
+  const [edges, , onEdgesChange] = useEdgesState([
+    makeEdge(edgeLabel, edgeColor),
+  ]);
+
+  return (
+    <ReactFlowProvider>
+      <div style={{ height: '400px', width: '100%' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={editableNodeTypes}
+          edgeTypes={editableEdgeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+        />
+      </div>
+    </ReactFlowProvider>
+  );
+}
+
 const meta: Meta<typeof StoryContainer> = {
   title: 'Diagrams/EditableEdge',
   component: StoryContainer,
@@ -117,7 +160,62 @@ type Story = StoryObj<typeof StoryContainer>;
 export const Default: Story = {
   args: {
     edgeLabel: '',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+// DiagramViewer forces readonly:true on all edges, hiding "click to add label".
+// These stories use ReactFlow directly to show the interactive/editable states.
+
+// Matches what diagram-maker creates: no color set → resolveColor(undefined) → 'primary'
+export const NewEdge: Story = {
+  name: 'New Edge (Click to Add Label)',
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+export const NewEdgePrimaryColor: Story = {
+  name: 'New Edge (Primary Color)',
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
     edgeColor: 'primary',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+// Shows the textarea that appears after clicking "click to add label"
+export const Editing: Story = {
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const placeholder = await canvas.findByText(
+      'click to add label',
+      {},
+      { timeout: 5000 },
+    );
+    await userEvent.click(placeholder);
+  },
+};
+
+export const DefaultColor: Story = {
+  args: {
+    edgeLabel: 'Default edge',
+    edgeColor: 'default',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
@@ -126,7 +224,7 @@ export const Default: Story = {
 export const WithLabel: Story = {
   args: {
     edgeLabel: 'Connected',
-    edgeColor: 'primary',
+    edgeColor: 'default',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
@@ -135,7 +233,7 @@ export const WithLabel: Story = {
 export const LongLabel: Story = {
   args: {
     edgeLabel: 'This is a longer edge label',
-    edgeColor: 'primary',
+    edgeColor: 'default',
     node1Label: 'Start',
     node2Label: 'End',
   },
@@ -144,7 +242,7 @@ export const LongLabel: Story = {
 export const MultiLineLabel: Story = {
   args: {
     edgeLabel: 'Line 1\nLine 2\nLine 3',
-    edgeColor: 'primary',
+    edgeColor: 'default',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
@@ -166,18 +264,6 @@ export const SecondaryColor: Story = {
     node1Color: 'secondary',
     node2Color: 'secondary',
   },
-};
-
-export const DefaultColor: Story = {
-  render: () => (
-    <DiagramViewer
-      height="400px"
-      data={{
-        nodes: makeNodes('default', 'default', 'Node 1', 'Node 2', 450),
-        edges: [makeEdge('Blends with viewer', 'default')],
-      }}
-    />
-  ),
 };
 
 export const MultipleEdges: Story = {

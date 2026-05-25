@@ -5,6 +5,7 @@ export type EditableEdgeColor = 'primary' | 'secondary' | 'default';
 
 interface EdgeColorClasses {
   textarea: string;
+  editingWrapper: string;
   label: string;
   labelHover: string;
   placeholder: string;
@@ -17,6 +18,7 @@ function getEdgeColorClasses(color: EditableEdgeColor): EdgeColorClasses {
     case 'primary':
       return {
         textarea: 'bg-primary-900 border-primary-500',
+        editingWrapper: 'bg-primary-900 border-primary-500',
         label: 'bg-primary-800',
         labelHover: 'hover:bg-primary-700',
         placeholder: 'bg-primary-800/50',
@@ -25,6 +27,7 @@ function getEdgeColorClasses(color: EditableEdgeColor): EdgeColorClasses {
     case 'secondary':
       return {
         textarea: 'bg-secondary-900 border-secondary-500',
+        editingWrapper: 'bg-secondary-900 border-secondary-500',
         label: 'bg-secondary-800',
         labelHover: 'hover:bg-secondary-700',
         placeholder: 'bg-secondary-800/50',
@@ -32,7 +35,8 @@ function getEdgeColorClasses(color: EditableEdgeColor): EdgeColorClasses {
       };
     case 'default':
       return {
-        textarea: 'bg-neutral-800 border-neutral-800',
+        textarea: 'bg-neutral-800 border-neutral-600',
+        editingWrapper: 'border-neutral-600',
         label: '',
         labelHover: 'hover:bg-neutral-700',
         placeholder: '',
@@ -69,32 +73,37 @@ export function EdgeLabelContent({
   onStartEditing,
   onCommit,
   onKeyDown,
-  color = 'primary',
+  color = 'default',
 }: EdgeLabelContentProps) {
   const colorClasses = getEdgeColorClasses(color);
 
   if (isEditing) {
     return (
-      <textarea
-        ref={inputRef}
-        value={labelValue}
-        onChange={(e) => setLabelValue(e.target.value)}
-        onBlur={onCommit}
-        onKeyDown={onKeyDown}
-        onClick={(e) => e.stopPropagation()}
-        onInput={autoResize}
-        className={`${colorClasses.textarea} text-white px-2 py-1 outline-none border rounded text-sm min-w-[80px] resize-none`}
-        placeholder="Enter label..."
-        rows={1}
-        style={{ minHeight: '2rem', height: 'auto' }}
-      />
+      <div
+        className={`border rounded ${colorClasses.editingWrapper}`}
+        style={colorClasses.bgStyle}
+      >
+        <textarea
+          ref={inputRef}
+          value={labelValue}
+          onChange={(e) => setLabelValue(e.target.value)}
+          onBlur={onCommit}
+          onKeyDown={onKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          onInput={autoResize}
+          className={`${colorClasses.textarea} text-white px-2 py-1 outline-none text-sm min-w-[80px] resize-none`}
+          placeholder="Enter label..."
+          rows={1}
+          style={{ minHeight: '2rem', height: 'auto' }}
+        />
+      </div>
     );
   }
 
   if (labelValue) {
     return (
       <div
-        className={`px-2 ${colorClasses.label} rounded whitespace-pre-line leading-tight ${
+        className={`px-2 ${colorClasses.label} rounded whitespace-pre-line leading-none ${
           isReadonly
             ? 'cursor-default'
             : `cursor-text ${colorClasses.labelHover} transition-colors`
@@ -113,9 +122,10 @@ export function EdgeLabelContent({
     );
   }
 
+  // Ready to edit state
   return (
     <div
-      className={`px-2 py-1 ${colorClasses.placeholder} rounded border border-dashed border-neutral-600 ${
+      className={`px-2 py-1 ${colorClasses.placeholder} leading-none rounded border border-dashed border-neutral-600 ${
         isReadonly
           ? 'cursor-default'
           : `cursor-text ${colorClasses.placeholderHover} transition-colors`
