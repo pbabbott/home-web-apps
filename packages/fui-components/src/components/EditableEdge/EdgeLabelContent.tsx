@@ -53,7 +53,7 @@ interface EdgeLabelContentProps {
   isReadonly: boolean;
   labelValue: string;
   setLabelValue: (value: string) => void;
-  inputRef: React.RefObject<HTMLTextAreaElement>;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
   onStartEditing: (e: React.MouseEvent) => void;
   onCommit: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;

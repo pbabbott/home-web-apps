@@ -16,8 +16,26 @@
       "outputs": ["dist/**"],
       "dependsOn": []
     },
+    "@abbottland/fui-components#build:npm": {
+      "inputs": [
+        "src/**",
+        "!src/**/*.stories.{ts,tsx}",
+        "!src/**/*.test.{ts,tsx}",
+        "vite.config.ts",
+        "tsconfig*.json",
+        "package.json"
+      ],
+      "outputs": ["dist/**"],
+      "dependsOn": []
+    },
     "@abbottland/fui-components#build": {
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": [
+        "src/**",
+        ".storybook/**",
+        "vite.config.ts",
+        "tsconfig*.json",
+        "package.json"
+      ],
       "outputs": ["storybook-static/**"],
       "dependsOn": ["@abbottland/fui-components#build:npm"]
     },

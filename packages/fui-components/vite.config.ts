@@ -14,23 +14,27 @@ const dirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 
+const isStorybook = process.env.STORYBOOK === 'true';
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    dts({
-      insertTypesEntry: true,
-      rollupTypes: true,
-      tsconfigPath: './tsconfig.build.json',
-    }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'src/assets/fonts/*',
-          dest: 'fonts',
-        },
-      ],
-    }),
+    !isStorybook &&
+      dts({
+        insertTypesEntry: true,
+        rollupTypes: true,
+        tsconfigPath: './tsconfig.build.json',
+      }),
+    !isStorybook &&
+      viteStaticCopy({
+        targets: [
+          {
+            src: 'src/assets/fonts/*',
+            dest: 'fonts',
+          },
+        ],
+      }),
   ],
   build: {
     lib: {

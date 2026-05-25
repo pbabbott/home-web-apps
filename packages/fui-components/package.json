@@ -10,7 +10,7 @@
     "serve": "pnpm dlx serve storybook-static --listen 6006 --single",
     "build:npm": "NODE_ENV=production tsc -b && NODE_ENV=production vite build",
     "build:npm:clean": "rm -rf dist",
-    "build:storybook": "NODE_OPTIONS='--max-old-space-size=2048' storybook build",
+    "build:storybook": "NODE_OPTIONS='--max-old-space-size=3072' storybook build",
     "lint": "eslint .",
     "dev": "storybook dev -p 6006 --no-open",
     "clean": "rm -rf dist storybook-static",

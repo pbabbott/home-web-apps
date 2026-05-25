@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { DiagramViewer } from './DiagramViewer';
+import { DiagramViewer, type DiagramViewerProps } from './DiagramViewer';
 import examplePostData from '../../../../../apps/diagram-maker/src/diagrams/blog-example-post.json';
 
 const meta: Meta<typeof DiagramViewer> = {
@@ -22,7 +22,7 @@ type Story = StoryObj<typeof DiagramViewer>;
 
 export const Default: Story = {
   args: {
-    data: examplePostData,
+    data: examplePostData as DiagramViewerProps['data'],
     height: '500px',
   },
 };
