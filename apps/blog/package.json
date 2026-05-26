@@ -11,6 +11,7 @@
     "test:ui": "pnpm run test:playwright",
     "test:playwright": "playwright test",
     "test:playwright:update-snapshots": "playwright test --update-snapshots",
+    "test:playwright:update-snapshots:failed": "playwright test --last-failed --update-snapshots",
     "test:playwright:report": "playwright show-report",
     "docker:build:base": "abctl docker build -c abctl.base.yml",
     "docker:build": "abctl docker build",

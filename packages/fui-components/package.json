@@ -20,6 +20,7 @@
     "test:playwright": "playwright test",
     "test:playwright:generate": "tsx scripts/generate-story-tests.ts",
     "test:playwright:update-snapshots": "playwright test --update-snapshots",
+    "test:playwright:update-snapshots:failed": "playwright test --last-failed --update-snapshots",
     "test:playwright:report": "playwright show-report"
   },
   "main": "./dist/fui-components.umd.js",
