@@ -1,9 +1,20 @@
-name: 'pnpm setup'
-description: 'A composite action to run pnpm setup'
+name: 'install and build'
+description: 'A composite action to install dependencies and build'
 runs:
   using: 'composite'
   steps:
+    - name: Cache node_modules
+      id: node-modules-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          apps/*/node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
     - name: Install dependencies
+      if: steps.node-modules-cache.outputs.cache-hit != 'true'
       run: pnpm install --frozen-lockfile
       shell: bash
       env:

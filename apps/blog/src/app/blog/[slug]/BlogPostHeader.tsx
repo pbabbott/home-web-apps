@@ -24,19 +24,19 @@ export default function BlogPostHeader({
       >
         {title}
       </Typography>
-      <div className="flex items-center gap-4 text-neutral-400 text-sm">
-        <CalendarIcon width={20} height={20} className="text-neutral-400" />
-
-        <time dateTime={date}>{date}</time>
-        <ClockIcon width={20} height={20} className="text-neutral-400" />
-
-        <Typography
-          variant="body2"
-          component="span"
-          className="text-neutral-400"
-        >
-          {readTime}
-        </Typography>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-neutral-400 text-sm">
+        <div className="flex items-center gap-4">
+          <CalendarIcon width={20} height={20} className="text-neutral-400" />
+          <time dateTime={date}>{date}</time>
+          <ClockIcon width={20} height={20} className="text-neutral-400" />
+          <Typography
+            variant="body2"
+            component="span"
+            className="text-neutral-400"
+          >
+            {readTime}
+          </Typography>
+        </div>
 
         {categories && categories.length > 0 && (
           <div className="flex flex-wrap gap-2">

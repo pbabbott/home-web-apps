@@ -48,7 +48,10 @@ export default function StickyHeader() {
             Blog
           </NavItem>
           <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">
+            <DropdownMenuTrigger
+              className="bg-transparent border-0 p-0 cursor-pointer outline-none"
+              suppressHydrationWarning
+            >
               <NavItem
                 icon={open ? CardStackMinusIcon : CardStackPlusIcon}
                 active={open}
