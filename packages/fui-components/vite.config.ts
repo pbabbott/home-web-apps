@@ -14,23 +14,27 @@ const dirname =
     ? __dirname
     : path.dirname(fileURLToPath(import.meta.url));
 
+const isStorybook = process.env.STORYBOOK === 'true';
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    dts({
-      insertTypesEntry: true,
-      rollupTypes: true,
-      tsconfigPath: './tsconfig.build.json',
-    }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'src/assets/fonts/*',
-          dest: 'fonts',
-        },
-      ],
-    }),
+    !isStorybook &&
+      dts({
+        insertTypesEntry: true,
+        rollupTypes: true,
+        tsconfigPath: './tsconfig.build.json',
+      }),
+    !isStorybook &&
+      viteStaticCopy({
+        targets: [
+          {
+            src: 'src/assets/fonts/*',
+            dest: 'fonts',
+          },
+        ],
+      }),
   ],
   build: {
     lib: {
@@ -46,6 +50,10 @@ export default defineConfig({
         }
         // Externalize @xyflow/react imports (peer dependency for BaseNode component)
         if (/^@xyflow\/react(\/.*)?$/.test(id)) {
+          return true;
+        }
+        // Externalize story files and their fixtures (not part of the library API)
+        if (id.includes('.stories.')) {
           return true;
         }
         return false;

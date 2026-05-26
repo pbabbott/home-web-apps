@@ -1,5 +1,12 @@
 /** @abbottland/fui-components – public API */
 
+// Icon renderer types (provider-agnostic; implementation comes from @abbottland/fui-icons)
+export type { IconRenderer, IconProps } from './types/icons';
+export {
+  IconRendererProvider,
+  useIconRenderer,
+} from './components/DiagramViewer/IconRendererContext';
+
 // Badge
 export {
   Badge,
@@ -26,6 +33,20 @@ export {
 } from './components/BaseNode/BaseNode.constants';
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
+export type { EditableEdgeColor } from './components/EditableEdge/EdgeLabelContent';
+export {
+  DefaultNode,
+  type DefaultNodeData,
+} from './components/DefaultNode/DefaultNode';
+export {
+  LabeledNode,
+  type LabeledNodeData,
+} from './components/LabeledNode/LabeledNode';
+export { TextNode, type TextNodeData } from './components/TextNode/TextNode';
+export {
+  DiagramViewer,
+  type DiagramViewerProps,
+} from './components/DiagramViewer/DiagramViewer';
 
 // Button
 export {

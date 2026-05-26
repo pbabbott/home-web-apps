@@ -1,7 +1,7 @@
 {
   "name": "@abbottland/fui-components",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "docker:build": "abctl docker build",
@@ -10,7 +10,7 @@
     "serve": "pnpm dlx serve storybook-static --listen 6006 --single",
     "build:npm": "NODE_ENV=production tsc -b && NODE_ENV=production vite build",
     "build:npm:clean": "rm -rf dist",
-    "build:storybook": "NODE_OPTIONS='--max-old-space-size=2048' storybook build",
+    "build:storybook": "NODE_OPTIONS='--max-old-space-size=3072' storybook build",
     "lint": "eslint .",
     "dev": "storybook dev -p 6006 --no-open",
     "clean": "rm -rf dist storybook-static",
@@ -20,6 +20,7 @@
     "test:playwright": "playwright test",
     "test:playwright:generate": "tsx scripts/generate-story-tests.ts",
     "test:playwright:update-snapshots": "playwright test --update-snapshots",
+    "test:playwright:update-snapshots:failed": "playwright test --last-failed --update-snapshots",
     "test:playwright:report": "playwright show-report"
   },
   "main": "./dist/fui-components.umd.js",

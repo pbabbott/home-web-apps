@@ -1,0 +1,46 @@
+{
+  "name": "@abbottland/fui-icons",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "main": "./dist/fui-icons.umd.js",
+  "module": "./dist/fui-icons.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/fui-icons.es.js",
+      "require": "./dist/fui-icons.umd.js"
+    }
+  },
+  "scripts": {
+    "build:npm": "NODE_ENV=production tsc -b && NODE_ENV=production vite build",
+    "build:npm:clean": "rm -rf dist",
+    "lint": "eslint .",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "dependencies": {
+    "simple-icons": "^13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react-swc": "^4.1.0",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7",
+    "vite-plugin-dts": "^4.5.3"
+  }
+}

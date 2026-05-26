@@ -16,38 +16,46 @@ seoKeywords:
 status: 'published'
 ---
 
-import { HorizontalRule } from '@abbottland/fui-components';
+import { HorizontalRule, TransparentPanel } from '@abbottland/fui-components';
 import diagram1 from './diagram-01.json';
 import diagram2 from './diagram-02.json';
 import diagram3 from './diagram-03.json';
 
 ## Introduction
 
-So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`. In this guide, we'll use Duck DNS and Docker to give your Raspberry Pi a stable domain name so you can access it from anywhere!
+So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like `http://10.0.0.123:8080`.
 
-> This guide assumes basic comfort with Docker and your home router, but no prior experience with DNS.
+In this guide, we'll use Duck DNS and Docker to give your Raspberry Pi a stable domain name so you can access it from anywhere!
+
+<TransparentPanel color="secondary" className="mb-6">
+  **Note:** This guide assumes basic comfort with Docker and your home router,
+  but no prior experience with DNS.
+</TransparentPanel>
 
 ### The Example Setup
 
-For this article, we'll work with a simple example setup and the build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service: `n8n` which runs on port `5678`. You're accessing your `n8n` installation from another computer at home by visiting it in a web-browser at `http://192.168.1.182:5678`.
+For this article, we'll start with a simple example setup and then build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service: `n8n` which runs on port `5678`. You're accessing your `n8n` installation from another computer at home by visiting it in a web-browser at `http://192.168.1.182:5678`.
 
 Check out the diagram for a visual:
 
 <DiagramViewer data={diagram1} height="400px" className="mb-8" />
 
-> Note: I'm just using n8n as an example, this tutorial would work for any service running on your home server.
+<TransparentPanel color="secondary" className="mb-6">
+  **Note:** I'm just using n8n as an example, this tutorial would work for any
+  service running on your home server.
+</TransparentPanel>
 
 ### Access From Outside Your House
 
-Alright great! So you can access from home! But what if you want to show off your sweet n8n workflows while you're at the bar with your friends?
+Alright great! So you can access while you're at home, but what if you want to show off your sweet n8n workflows while you're at the bar with your friends?
 
-Let's add a few more pieces one step at a time:
+Let's add a few more pieces, one step at a time:
 
 #### Configure Your Router
 
 First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. This tells your router which internal device should receive traffic coming from the internet. There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port `80` get forwarded to port `5678` on our Raspberry PI which is at `192.168.1.183`.
 
-Some routers (like Eero) will also have you set up a "reservation." This is just saying that `192.168.1.183` should belong to your Raspberry PI, and the router really use that IP for any other device that might connect to your home wi-fi network.
+Some routers (like Eero) will have you set up a "reservation." This is just saying that `192.168.1.183` should belong to your Raspberry PI, and the router should not use that IP for any other device that might connect to your home wi-fi network.
 
 #### Determine Your IP address
 
@@ -57,15 +65,15 @@ For the sake of example in this tutorial, let's pretend like your ISP is Xfinity
 
 #### Test Access
 
-Now you can try to access your n8n from outside your home network! Now, you don't actually have to go to the bar to check (though I won't stop you!). An easy way to check from the "public internet" is simply to disconnect your phone from wi-fi. This will mean you'll be connected to your phone's internet like an AT&T or Verizon 5G network.
+Now you can try to access your n8n from outside your home network! Now, you don't actually have to go to the bar to check (though I won't stop you!).
+
+An easy way to check from the public internet is simply to disconnect your phone from wi-fi. This will mean you'll be connected to your phone's internet like an AT&T or Verizon 5G network.
 
 With your phone off of wifi, you should be able to see n8n by going to `http://74.165.22.113`. Your web-browser will say its "un-safe" but that's just because we haven't set up `HTTPS` yet. Ignore these safety warnings and "continue anyway."
 
-Check out the updated diagram:
+Check out our updated diagram:
 
 <DiagramViewer data={diagram2} height="400px" className="mb-8" />
-
-> Diagram too small? Scroll to zoom; click and drag to navigate around
 
 ## Time for DNS
 
@@ -75,15 +83,15 @@ If you've got everything working, you can now access your n8n workflows from any
 
 Well... almost.
 
-We have one small problem to solve. Remember that IP address `74.165.22.113` ? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home, access one of your computers, and look up your IP once again. This setup is common and its called a dynamic IP address.
+We have one small problem to solve. Remember that IP address `74.165.22.113` ? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home, access one of your computers, and look up your IP once again. This setup is common and its called a "dynamic IP address."
 
 One option you have is to contact your ISP and purchase a static ip address, but this is typically reserved for businesses and not home users.
 
-So what do we do?
+So what are we to do?
 
 ### The plan
 
-Instead of accessing your Raspberry PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway. Not only will we set up DNS, but also a Dynamic DNS service to keep up with your ever-changing IP address.
+Instead of accessing your Raspberry PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway. Not only will we set up DNS, but also a Dynamic DNS service to keep up with your ever-changing home IP address.
 
 We can do this with two steps. (The sections below explain these two steps in more detail)
 
@@ -95,7 +103,7 @@ Second, we'll need to install a new docker service on your raspberry PI. The ide
 
 Here are the basic steps for configuring Duck DNS.
 
-- First go to [https://www.duckdns.org/](https://www.duckdns.org/)
+- First go to [duckdns.org](https://www.duckdns.org/)
 - Sign in using a button at the top of the screen.
 - Add a domain. We'll do `myhouse.duckdns.org`
 - At the top of the page, notice your `token` - be sure to take note of this token. We'll need it later!
@@ -104,9 +112,9 @@ Here are the basic steps for configuring Duck DNS.
 
 Next, let's setup our new docker service to keep track of our ever-changing IP address.
 
-For this tutorial, I'm going to use an image called `linuxserver/duckdns`. Here is the full documentation for it: [https://hub.docker.com/r/linuxserver/duckdns](https://hub.docker.com/r/linuxserver/duckdns)
+For this tutorial, I'm going to use an image called `linuxserver/duckdns`. Here is the full documentation for it: [hub.docker.com/r/linuxserver/duckdns](https://hub.docker.com/r/linuxserver/duckdns)
 
-This part is pretty easy. Check out the `docker-compose` code below. We just need to list the token from earlier and the subdomain(s) we care about.
+This part is pretty easy. Check out the `docker-compose` code below. We just need to list the token from earlier and the subdomain(s) that we care about.
 
 ```yaml
 services:
@@ -133,7 +141,7 @@ Let's think about what we've just done. Your Pi is officially on the internet no
 
 And now its time to celebrate. You can now leave your home, go to the bar with some friends and show them your `n8n` service remotely. In fact, since its a public URL (`http://myhouse.duckdns.org`) it would work on their phones too!
 
-From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab.
+From here, you can layer on `HTTPS`, authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab!
 
 <HorizontalRule color="primary" className="not-prose mt-32 mb-16" />
 
@@ -153,4 +161,4 @@ It can be, as long as you secure your services, use strong passwords, and avoid 
 
 #### What port should I forward to my Raspberry Pi?
 
-That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS).
+That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS). For this tutorial, we did not setup HTTPS, so port 80 works for now.

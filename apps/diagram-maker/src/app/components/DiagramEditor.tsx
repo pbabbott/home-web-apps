@@ -1,325 +1,85 @@
 'use client';
 
-import { useCallback, useRef, useState, DragEvent } from 'react';
 import {
   ReactFlow,
-  ReactFlowProvider,
-  addEdge,
-  useNodesState,
-  useEdgesState,
   Controls,
   MiniMap,
   Background,
   BackgroundVariant,
-  Connection,
-  Node,
-  Edge,
-  ReactFlowInstance,
-  NodeTypes,
-  EdgeTypes,
-  useOnSelectionChange,
-  useUpdateNodeInternals,
+  type NodeTypes,
+  type EdgeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {
   neutral,
-  warning,
-  DEFAULT_HANDLES,
   EditableEdge,
   DefaultEdge,
-  type NodeColorScheme,
-  type HandleConfig,
+  DefaultNode,
+  LabeledNode,
+  TextNode,
 } from '@abbottland/fui-components';
-import { Sidebar } from './Sidebar/Sidebar';
-import { ExportPanel } from './ExportPanel';
-import { TipsSection } from './Sidebar/TipsSection';
-import { LabeledNode } from './nodes/LabeledNode';
-import { DefaultNode } from './nodes/DefaultNode';
-import { TextNode } from './nodes/TextNode';
+import { useDiagramEditor } from './DiagramEditorContext';
 
-const initialNodes: Node[] = [];
-const initialEdges: Edge[] = [];
-
-let id = 0;
-const getId = () => `node_${id++}`;
-
-// Define nodeTypes outside or memoize to prevent re-renders
 const nodeTypes: NodeTypes = {
   labeled: LabeledNode,
   customDefault: DefaultNode,
   text: TextNode,
 };
 
-// Define edgeTypes
 const edgeTypes: EdgeTypes = {
   editable: EditableEdge,
   default: DefaultEdge,
 };
 
-function DiagramEditorInner() {
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance | null>(null);
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
-  const updateNodeInternals = useUpdateNodeInternals();
-
-  // Track selected nodes and edges
-  useOnSelectionChange({
-    onChange: ({ nodes: selectedNodes, edges: selectedEdges }) => {
-      setSelectedNodeIds(selectedNodes.map((n) => n.id));
-      setSelectedEdgeIds(selectedEdges.map((e) => e.id));
-    },
-  });
-
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
-
-  // Send selected nodes to front (end of array = rendered on top)
-  const sendToFront = useCallback(() => {
-    if (selectedNodeIds.length === 0) return;
-    setNodes((nds) => {
-      const selected = nds.filter((n) => selectedNodeIds.includes(n.id));
-      const rest = nds.filter((n) => !selectedNodeIds.includes(n.id));
-      // Deselect all nodes after reordering
-      return [...rest, ...selected].map((n) => ({ ...n, selected: false }));
-    });
-  }, [selectedNodeIds, setNodes]);
-
-  // Send selected nodes to back (start of array = rendered behind)
-  const sendToBack = useCallback(() => {
-    if (selectedNodeIds.length === 0) return;
-    setNodes((nds) => {
-      const selected = nds.filter((n) => selectedNodeIds.includes(n.id));
-      const rest = nds.filter((n) => !selectedNodeIds.includes(n.id));
-      // Deselect all nodes after reordering
-      return [...selected, ...rest].map((n) => ({ ...n, selected: false }));
-    });
-  }, [selectedNodeIds, setNodes]);
-
-  // Get the color scheme of the first selected node (for display in sidebar)
-  const selectedNodeColorScheme: NodeColorScheme | undefined =
-    selectedNodeIds.length > 0
-      ? ((nodes.find((n) => n.id === selectedNodeIds[0])?.data
-          ?.colorScheme as NodeColorScheme) ?? 'default')
-      : undefined;
-
-  // Update color scheme for all selected nodes
-  const updateSelectedNodesColorScheme = useCallback(
-    (colorScheme: NodeColorScheme) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) =>
-          selectedNodeIds.includes(node.id)
-            ? { ...node, data: { ...node.data, colorScheme } }
-            : node,
-        ),
-      );
-    },
-    [selectedNodeIds, setNodes],
-  );
-
-  // Get handles of the first selected node (for display in sidebar)
-  const selectedNodeHandles: HandleConfig[] | undefined =
-    selectedNodeIds.length > 0
-      ? ((nodes.find((n) => n.id === selectedNodeIds[0])?.data
-          ?.handles as HandleConfig[]) ?? DEFAULT_HANDLES)
-      : undefined;
-
-  // Update handles for all selected nodes
-  const updateSelectedNodesHandles = useCallback(
-    (handles: HandleConfig[]) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) =>
-          selectedNodeIds.includes(node.id)
-            ? { ...node, data: { ...node.data, handles } }
-            : node,
-        ),
-      );
-      // Notify React Flow to update internal state for dynamically added handles
-      // Use setTimeout to ensure DOM has updated before React Flow processes the change
-      setTimeout(() => {
-        selectedNodeIds.forEach((nodeId) => {
-          updateNodeInternals(nodeId);
-        });
-      }, 0);
-    },
-    [selectedNodeIds, setNodes, updateNodeInternals],
-  );
-
-  // Get the type of the first selected edge (for display in sidebar)
-  const selectedEdgeType: string | undefined =
-    selectedEdgeIds.length > 0
-      ? (edges.find((e) => e.id === selectedEdgeIds[0])?.type ?? 'editable')
-      : undefined;
-
-  // Update edge type for all selected edges
-  const updateSelectedEdgesType = useCallback(
-    (edgeType: string) => {
-      if (selectedEdgeIds.length === 0) return;
-      setEdges((eds) =>
-        eds.map((edge) =>
-          selectedEdgeIds.includes(edge.id)
-            ? { ...edge, type: edgeType }
-            : edge,
-        ),
-      );
-    },
-    [selectedEdgeIds, setEdges],
-  );
-
-  const onDragOver = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback(
-    (event: DragEvent) => {
-      event.preventDefault();
-
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (!type || !reactFlowInstance || !reactFlowWrapper.current) {
-        return;
-      }
-
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const newNode: Node = {
-        id: getId(),
-        type,
-        position,
-        data:
-          type === 'labeled'
-            ? { label: 'Label', content: '' }
-            : type === 'text'
-              ? { content: 'Text' }
-              : { content: '' },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [reactFlowInstance, setNodes],
-  );
-
-  const getExportData = useCallback(() => {
-    return { nodes, edges };
-  }, [nodes, edges]);
-
-  const handleImport = useCallback(
-    (data: { nodes: Node[]; edges: Edge[] }) => {
-      setNodes(data.nodes);
-      setEdges(data.edges);
-      // Update the id counter to avoid conflicts
-      const maxId = Math.max(
-        0,
-        ...data.nodes.map((n) => {
-          const match = n.id.match(/node_(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        }),
-      );
-      id = maxId + 1;
-    },
-    [setNodes, setEdges],
-  );
-
-  // Convert warning color hex to rgba for drop-shadow
-  // warning[400] = '#FAA539' = rgb(250, 165, 57)
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-  const warningColorRgba = hexToRgba(warning[400], 0.8);
-
-  return (
-    <div className="flex h-screen w-full">
-      <style>{`
-        .react-flow__edges {
-          z-index: 10;
-        }
-        .react-flow__nodes {
-          z-index: 1;
-        }
-        .react-flow__edge.selected {
-          filter: drop-shadow(0 0 4px ${warningColorRgba});
-        }
-      `}</style>
-      <Sidebar
-        selectedNodeIds={selectedNodeIds}
-        onSendToFront={sendToFront}
-        onSendToBack={sendToBack}
-        selectedColorScheme={selectedNodeColorScheme}
-        onColorSchemeChange={updateSelectedNodesColorScheme}
-        selectedHandles={selectedNodeHandles}
-        onHandlesChange={updateSelectedNodesHandles}
-        selectedEdgeIds={selectedEdgeIds}
-        selectedEdgeType={selectedEdgeType}
-        onEdgeTypeChange={updateSelectedEdgesType}
-      />
-      <div className="flex-1 flex flex-col bg-neutral-900">
-        <div className="flex items-center justify-between bg-neutral-900 border-b border-neutral-300">
-          <ExportPanel getExportData={getExportData} onImport={handleImport} />
-          <div className="pr-3">
-            <TipsSection />
-          </div>
-        </div>
-        <div className="flex-1" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            defaultEdgeOptions={{
-              type: 'editable',
-              style: { stroke: neutral[300], strokeWidth: 2 },
-              markerEnd: {
-                type: 'arrowclosed',
-              },
-            }}
-            deleteKeyCode={['Backspace', 'Delete']}
-            connectOnClick={true}
-            nodesConnectable={true}
-            fitView
-            className="bg-secondary-950"
-          >
-            <Controls className="!bg-secondary-800 !border-secondary-700 !rounded-lg [&>button]:!bg-secondary-700 [&>button]:!border-secondary-600 [&>button:hover]:!bg-secondary-600 [&>button>svg]:!fill-white" />
-            <MiniMap
-              className="!bg-secondary-800 !border-secondary-700 !rounded-lg"
-              nodeColor="#6366f1"
-              maskColor="rgba(0, 0, 0, 0.5)"
-            />
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={20}
-              size={1}
-              color="#374151"
-            />
-          </ReactFlow>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function DiagramEditor() {
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    onDrop,
+    onDragOver,
+    onInit,
+  } = useDiagramEditor();
+
   return (
-    <ReactFlowProvider>
-      <DiagramEditorInner />
-    </ReactFlowProvider>
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onInit={onInit}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      defaultEdgeOptions={{
+        type: 'basic',
+        style: { stroke: neutral[300], strokeWidth: 2 },
+        markerEnd: {
+          type: 'arrowclosed',
+        },
+      }}
+      deleteKeyCode={['Backspace', 'Delete']}
+      connectOnClick={true}
+      nodesConnectable={true}
+      fitView
+      className="bg-secondary-950"
+    >
+      <Controls className="!bg-secondary-800 !border-secondary-700 !rounded-lg [&>button]:!bg-secondary-700 [&>button]:!border-secondary-600 [&>button:hover]:!bg-secondary-600 [&>button>svg]:!fill-white" />
+      <MiniMap
+        className="!bg-secondary-800 !border-secondary-700 !rounded-lg"
+        nodeColor="#6366f1"
+        maskColor="rgba(0, 0, 0, 0.5)"
+      />
+      <Background
+        variant={BackgroundVariant.Dots}
+        gap={20}
+        size={1}
+        color="#374151"
+      />
+    </ReactFlow>
   );
 }

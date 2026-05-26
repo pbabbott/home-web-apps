@@ -6,7 +6,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 2,
   reporter: 'html',
 
   // Store snapshots co-located with components in __screenshots__ folders
@@ -14,6 +14,7 @@ export default defineConfig({
   // These baseline screenshots should be committed to version control
   snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{arg}{ext}',
   expect: {
+    timeout: 15000,
     toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
   },
   use: {

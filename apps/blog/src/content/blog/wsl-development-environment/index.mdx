@@ -14,13 +14,17 @@ import { HorizontalRule, TransparentPanel } from '@abbottland/fui-components';
 
 import diagram1 from './diagram-01.json';
 
-In this article we'll take a look at setting up a development environment on Windows using WSL and how to avoid some common pitfalls. If you develop on Windows, storing your code outside of WSL can make things difficult - especially if you're used to working on a Mac. The fix is simple, keep your project inside the WSL file system, and open it from VS Code from there!
+In this article we'll take a look at setting up a development environment on Windows using WSL and how to avoid some common pitfalls.
+
+If you develop on Windows, storing your code outside of WSL can make things difficult - especially if you're used to working on a Mac.
 
 ## The importance of good tools
 
-Let's face it—development on Windows can be a bear if you're used to \*nix (Mac or Linux). On a Mac I rely on tools like `zsh`, `oh-my-zsh`, `starship`, and the usual utilities - `cd`, `ls`, `grep`, `wc`, `ps` - to stay productive.
+Let's face it - development on Windows can be a bear if you're used to \*nix (Mac or Linux). On a Mac I rely on tools like `zsh`, `oh-my-zsh`, `starship`, as well as the usual utilities - `cd`, `ls`, `grep`, `wc`, `ps` - to stay productive.
 
-On Windows, jumping into Command Prompt might seem like the obvious first step, but it's a different world: none of those bash-style utilities are there.
+On Windows, jumping into Command Prompt might seem like the obvious first step, but it's a different world: none of those bash-style utilities are present in Windows.
+
+Here is an example of what you'll see if you try to run some of those commands in Command Prompt:
 
 ```sh
 C:\Users\pbabb>grep
@@ -45,7 +49,9 @@ Alright, imagine its day 1 of building software on your windows machine and you'
 
 `C:\Users\pbabb\Documents\code`
 
-Now, imagine you set up your awesome Node.js project in this code folder. Something like `my-awesome-blog`. Once you've got your project up and running and you've ran `npm install` you're going to have a `node_modules` directory. Something like...
+Now, imagine you set up your awesome Node.js project in this code folder. Something like `my-awesome-blog`.
+
+Once you've got your project up and running and you've ran `npm install` you're going to have a `node_modules` directory. Something like...
 
 `C:\Users\pbabb\Documents\code\my-awesome-blog\node_modules`
 
@@ -67,7 +73,7 @@ This is ultimately normal and accepted by the software development community to 
 
 Alright, so we have a code folder, a project folder, and node_module has tons of files? What could go wrong?
 
-By default on Windows 11, OneDrive is enabled. This usually means any files you put into your `Documents` folder will automatically be synchronized up to the cloud. Now imagine all of those hundreds of thousands of files getting uploaded. Yeah, it can take a long time and slow your internet connection to a halt.
+On Windows 11 OneDrive is enabled by default. This usually means any files you put into your `Documents` folder will automatically be synchronized up to the cloud. Now imagine all of those hundreds of thousands of files getting uploaded. Yeah, it can take a long time and slow your internet connection to a halt.
 
 Maybe you're solving a bug dealing with a npm package version and you delete your `node_modules` directory temporarily (perhaps to re-run `npm install`). This now triggers a full-scale DELETE operation sent to OneDrive to start removing files.
 

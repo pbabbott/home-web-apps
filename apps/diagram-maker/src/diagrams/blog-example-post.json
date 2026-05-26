@@ -1,0 +1,189 @@
+{
+  "nodes": [
+    {
+      "id": "node_6",
+      "type": "labeled",
+      "position": {
+        "x": -4,
+        "y": 17.71875
+      },
+      "data": {
+        "label": "Nissa's House",
+        "content": "",
+        "width": 747,
+        "height": 292
+      },
+      "measured": {
+        "width": 747,
+        "height": 292
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 281.5032258064516,
+        "y": 71.1635248655914
+      },
+      "data": {
+        "label": "Raspberry PI\n192.168.1.123",
+        "content": "",
+        "width": 428,
+        "height": 205,
+        "colorScheme": "primary",
+        "handles": [
+          {
+            "id": "handle-1767065813874",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 428,
+        "height": 205
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 294.9956989247312,
+        "y": 138.97788978494623
+      },
+      "data": {
+        "label": "Docker",
+        "content": "",
+        "colorScheme": "secondary",
+        "width": 400,
+        "height": 115
+      },
+      "measured": {
+        "width": 400,
+        "height": 115
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 310,
+        "y": 162.71875
+      },
+      "data": {
+        "content": "Traefik\n80:80\n443:443",
+        "handles": [
+          {
+            "id": "handle-1767065250371",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 533,
+        "y": 161.71875
+      },
+      "data": {
+        "content": "n8n\n5678",
+        "handles": [
+          {
+            "id": "handle-1767065254934",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_0",
+      "type": "labeled",
+      "position": {
+        "x": 11.755913978494618,
+        "y": 67.03203965053766
+      },
+      "data": {
+        "label": "Router",
+        "content": "Reservation:\nPI is 192.168.1.123\n\nPort forwarding:\nTraffic in on port 80 goes to...\n192.186.1.182 on port 80",
+        "width": 183,
+        "height": 217,
+        "handles": [
+          {
+            "id": "handle-1767065807683",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 183,
+        "height": 217
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_3",
+      "sourceHandle": "handle-1767065250371",
+      "target": "node_5",
+      "targetHandle": "handle-1767065254934",
+      "id": "xy-edge__node_3handle-1767065250371-node_5handle-1767065254934",
+      "selected": false
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_0",
+      "sourceHandle": "handle-1767065807683",
+      "target": "node_1",
+      "targetHandle": "handle-1767065813874",
+      "id": "xy-edge__node_0handle-1767065807683-node_1handle-1767065813874",
+      "selected": false,
+      "data": {
+        "label": "443\n80"
+      }
+    }
+  ]
+}

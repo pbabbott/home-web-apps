@@ -31,6 +31,16 @@ cp .devcontainer/files/starship.toml /home/vscode/.config/starship.toml
 echo "Overwriting .zshrc file"
 cp .devcontainer/files/.zshrc /home/vscode/.zshrc
 
+echo "Setting up Turbo remote cache auth"
+. "$REPO_ROOT/scripts/turbo-auth.sh" 2>/dev/null || true
+if [ -n "$TURBO_TOKEN" ]; then
+  printf 'export TURBO_TOKEN="%s"\nexport TURBO_API="%s"\nexport TURBO_TEAM="%s"\n' \
+    "$TURBO_TOKEN" "$TURBO_API" "$TURBO_TEAM" > /home/vscode/.turbo-env
+  echo "Turbo auth configured"
+else
+  echo "Turbo auth skipped (op unavailable or not signed in)"
+fi
+
 echo "Configuring Claude"
 CLAUDE_JSON="$HOME/.claude.json"
 if [ -f "$CLAUDE_JSON" ]; then

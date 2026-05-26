@@ -10,3 +10,5 @@ DISABLE_AUTO_UPDATE=true
 DISABLE_UPDATE_PROMPT=true
 
 eval "$(starship init zsh)"
+
+[ -f ~/.turbo-env ] && source ~/.turbo-env

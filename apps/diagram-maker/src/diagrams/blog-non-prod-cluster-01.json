@@ -1,0 +1,243 @@
+{
+  "nodes": [
+    {
+      "id": "node_0",
+      "type": "labeled",
+      "position": {
+        "x": 664,
+        "y": 273.609375
+      },
+      "data": {
+        "label": "Mini PC / Proxmox",
+        "content": "",
+        "width": 202,
+        "height": 342
+      },
+      "measured": {
+        "width": 202,
+        "height": 342
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 411.5,
+        "y": 307.4140625
+      },
+      "data": {
+        "label": "Banana PI",
+        "content": "",
+        "width": 187,
+        "height": 144
+      },
+      "measured": {
+        "width": 187,
+        "height": 144
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_2",
+      "type": "customDefault",
+      "position": {
+        "x": 435.5,
+        "y": 346.9140625
+      },
+      "data": {
+        "content": "haproxy\n(load balancer)",
+        "handles": [
+          {
+            "id": "handle-1771385623028",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1771385702907",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 692.5,
+        "y": 329.9140625
+      },
+      "data": {
+        "content": "k8s worker 1\n(Ubuntu VM)",
+        "handles": [
+          {
+            "id": "handle-1771385688543",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "customDefault",
+      "position": {
+        "x": 208.5,
+        "y": 334.9140625
+      },
+      "data": {
+        "content": "Wi-Fi Router",
+        "handles": [
+          {
+            "id": "handle-1771385619608",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 693.5,
+        "y": 426.4140625
+      },
+      "data": {
+        "content": "k8s worker 2\n(Ubuntu VM)",
+        "handles": [
+          {
+            "id": "handle-1771385693692",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_6",
+      "type": "customDefault",
+      "position": {
+        "x": 694,
+        "y": 518.4140625
+      },
+      "data": {
+        "content": "k8s worker 3\n(Ubuntu VM)",
+        "handles": [
+          {
+            "id": "handle-1771385698148",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_4",
+      "sourceHandle": "handle-1771385619608",
+      "target": "node_2",
+      "targetHandle": "handle-1771385623028",
+      "id": "xy-edge__node_4handle-1771385619608-node_2handle-1771385623028",
+      "selected": false,
+      "data": {
+        "label": ""
+      }
+    },
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1771385702907",
+      "target": "node_3",
+      "targetHandle": "handle-1771385688543",
+      "id": "xy-edge__node_2handle-1771385702907-node_3handle-1771385688543",
+      "selected": false
+    },
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1771385702907",
+      "target": "node_5",
+      "targetHandle": "handle-1771385693692",
+      "id": "xy-edge__node_2handle-1771385702907-node_5handle-1771385693692",
+      "data": {
+        "label": ""
+      },
+      "selected": false
+    },
+    {
+      "type": "default",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1771385702907",
+      "target": "node_6",
+      "targetHandle": "handle-1771385698148",
+      "id": "xy-edge__node_2handle-1771385702907-node_6handle-1771385698148",
+      "selected": false
+    }
+  ]
+}

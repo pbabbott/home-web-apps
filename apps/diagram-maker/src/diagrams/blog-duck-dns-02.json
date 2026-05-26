@@ -1,0 +1,211 @@
+{
+  "nodes": [
+    {
+      "id": "node_10",
+      "type": "labeled",
+      "position": {
+        "x": 20.25,
+        "y": 120.96875
+      },
+      "data": {
+        "label": "Public Internet",
+        "content": "",
+        "width": 180,
+        "height": 127
+      },
+      "measured": {
+        "width": 180,
+        "height": 127
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 271.25,
+        "y": 32.1640625
+      },
+      "data": {
+        "label": "Your home\n74.165.22.113",
+        "content": "",
+        "width": 530,
+        "height": 281
+      },
+      "measured": {
+        "width": 530,
+        "height": 281
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "labeled",
+      "position": {
+        "x": 589.75,
+        "y": 76.1640625
+      },
+      "data": {
+        "label": "Raspberry PI\n192.168.1.182",
+        "content": "",
+        "width": 206,
+        "height": 217
+      },
+      "measured": {
+        "width": 206,
+        "height": 217
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 599.25,
+        "y": 134.6640625
+      },
+      "data": {
+        "label": "Docker",
+        "content": "",
+        "colorScheme": "secondary",
+        "width": 184,
+        "height": 146
+      },
+      "measured": {
+        "width": 184,
+        "height": 146
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 612.25,
+        "y": 163.1640625
+      },
+      "data": {
+        "content": "n8n",
+        "handles": [
+          {
+            "id": "handle-1769565771123",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_6",
+      "type": "customDefault",
+      "position": {
+        "x": 36.25,
+        "y": 148.46875
+      },
+      "data": {
+        "content": "Your phone",
+        "handles": [
+          {
+            "id": "handle-1769570105784",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_8",
+      "type": "labeled",
+      "position": {
+        "x": 291.75,
+        "y": 93.96875
+      },
+      "data": {
+        "label": "Router",
+        "content": "\nReservation:\nPI = 192.168.1.182\n\nPort Forwarding:\nTraffic on port 80...\nshould go to...\n192.168.1.182 on port 5678",
+        "width": 240,
+        "height": 210,
+        "colorScheme": "primary",
+        "handles": [
+          {
+            "id": "handle-1769570202206",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1769570202357",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 240,
+        "height": 210
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_6",
+      "sourceHandle": "handle-1769570105784",
+      "target": "node_8",
+      "targetHandle": "handle-1769570202206",
+      "id": "xy-edge__node_6handle-1769570105784-node_8handle-1769570202206",
+      "data": {
+        "label": "port\n80"
+      },
+      "selected": false
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_8",
+      "sourceHandle": "handle-1769570202357",
+      "target": "node_5",
+      "targetHandle": "handle-1769565771123",
+      "id": "xy-edge__node_8handle-1769570202357-node_5handle-1769565771123",
+      "selected": false,
+      "data": {
+        "label": "port\n5678"
+      }
+    }
+  ]
+}

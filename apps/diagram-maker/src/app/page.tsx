@@ -1,5 +1,5 @@
-import { DiagramEditor } from './components/DiagramEditor';
+import { DiagramEditorClient } from './components/DiagramEditorClient';
 
 export default function Home() {
-  return <DiagramEditor />;
+  return <DiagramEditorClient />;
 }

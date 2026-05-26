@@ -1,131 +1,120 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent } from 'storybook/test';
 import {
   ReactFlow,
   ReactFlowProvider,
-  type NodeTypes,
-  type EdgeTypes,
+  useNodesState,
+  useEdgesState,
   type Edge,
+  type Node,
+  type EdgeTypes,
+  type NodeTypes,
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { neutral } from '../../tokens/colors';
-import { BaseNode, type BaseNodeData } from '../BaseNode/BaseNode';
+import { DiagramViewer } from '../DiagramViewer/DiagramViewer';
 import { EditableEdge } from './EditableEdge';
+import { DefaultNode } from '../DefaultNode/DefaultNode';
+import type { EditableEdgeColor } from './EdgeLabelContent';
 
-// Wrapper component that renders EditableEdge between two nodes
-function EditableEdgeStoryWrapper(props: {
-  edgeLabel?: string;
-  node1Label?: string;
-  node2Label?: string;
-  node1Color?: 'primary' | 'secondary' | 'default';
-  node2Color?: 'primary' | 'secondary' | 'default';
-}) {
-  const {
-    edgeLabel,
-    node1Label = 'Node 1',
-    node2Label = 'Node 2',
-    node1Color = 'primary',
-    node2Color = 'secondary',
-  } = props;
+type NodeColor = 'primary' | 'secondary' | 'default';
 
-  // Create a custom node component that passes through to BaseNode
-  const CustomNode = ({
-    id: nodeId,
-    data: nodeData,
-    selected: nodeSelected,
-  }: {
-    id: string;
-    data: BaseNodeData;
-    selected?: boolean;
-  }) => (
-    <BaseNode
-      id={nodeId}
-      data={nodeData}
-      selected={nodeSelected}
-      showLabel={false}
-    />
-  );
-
-  // Create a custom edge component that passes through to EditableEdge
-  const CustomEdge = (edgeProps: Parameters<typeof EditableEdge>[0]) => (
-    <EditableEdge {...edgeProps} />
-  );
-
-  const nodeTypes: NodeTypes = {
-    baseNode: CustomNode,
-  };
-
-  const edgeTypes: EdgeTypes = {
-    editable: CustomEdge,
-  };
-
-  const nodes = [
+function makeNodes(
+  node1Color: NodeColor = 'primary',
+  node2Color: NodeColor = 'secondary',
+  node1Label = 'Node 1',
+  node2Label = 'Node 2',
+  node2X = 600,
+): Node[] {
+  return [
     {
       id: 'node-1',
-      type: 'baseNode',
+      type: 'customDefault',
       position: { x: 100, y: 150 },
       data: {
         content: node1Label,
         colorScheme: node1Color,
         handles: [{ id: 'right-source', type: 'source', position: 'right' }],
       },
-      selected: false,
     },
     {
       id: 'node-2',
-      type: 'baseNode',
-      position: { x: 400, y: 150 },
+      type: 'customDefault',
+      position: { x: node2X, y: 150 },
       data: {
         content: node2Label,
         colorScheme: node2Color,
         handles: [{ id: 'left-target', type: 'target', position: 'left' }],
       },
-      selected: false,
     },
   ];
+}
 
-  const edges: Edge[] = [
-    {
-      id: 'edge-1-2',
-      source: 'node-1',
-      target: 'node-2',
-      sourceHandle: 'right-source',
-      targetHandle: 'left-target',
-      type: 'editable',
-      data: {
-        label: edgeLabel,
-      },
-    },
-  ];
+function makeEdge(label: string, color: EditableEdgeColor): Edge {
+  return {
+    id: 'edge-1-2',
+    source: 'node-1',
+    target: 'node-2',
+    sourceHandle: 'right-source',
+    targetHandle: 'left-target',
+    type: 'editable',
+    data: { label, color },
+  };
+}
 
+interface StoryProps {
+  edgeLabel?: string;
+  edgeColor?: EditableEdgeColor;
+  node1Label?: string;
+  node2Label?: string;
+  node1Color?: NodeColor;
+  node2Color?: NodeColor;
+}
+
+function StoryContainer({
+  edgeLabel = '',
+  edgeColor = 'primary',
+  node1Label = 'Node 1',
+  node2Label = 'Node 2',
+  node1Color = 'primary',
+  node2Color = 'secondary',
+}: StoryProps) {
   return (
-    <div style={{ width: '100%', height: '400px', background: neutral[900] }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.5 }}
-        nodesDraggable={true}
-        nodesConnectable={true}
-        elementsSelectable={true}
-        proOptions={{ hideAttribution: true }}
-      />
-    </div>
+    <DiagramViewer
+      height="400px"
+      data={{
+        nodes: makeNodes(node1Color, node2Color, node1Label, node2Label),
+        edges: [makeEdge(edgeLabel, edgeColor)],
+      }}
+    />
   );
 }
 
-// Wrap the story wrapper with ReactFlowProvider
-function StoryContainer(props: {
-  edgeLabel?: string;
-  node1Label?: string;
-  node2Label?: string;
-  node1Color?: 'primary' | 'secondary' | 'default';
-  node2Color?: 'primary' | 'secondary' | 'default';
-}) {
+const editableNodeTypes: NodeTypes = { customDefault: DefaultNode };
+const editableEdgeTypes: EdgeTypes = { editable: EditableEdge };
+
+function EditableStoryContainer({
+  edgeLabel = '',
+  edgeColor = 'primary',
+  node1Color = 'primary',
+  node2Color = 'secondary',
+}: StoryProps) {
+  const [nodes] = useNodesState(makeNodes(node1Color, node2Color));
+  const [edges, , onEdgesChange] = useEdgesState([
+    makeEdge(edgeLabel, edgeColor),
+  ]);
+
   return (
     <ReactFlowProvider>
-      <EditableEdgeStoryWrapper {...props} />
+      <div style={{ height: '400px', width: '100%' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={editableNodeTypes}
+          edgeTypes={editableEdgeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.2 }}
+        />
+      </div>
     </ReactFlowProvider>
   );
 }
@@ -138,23 +127,19 @@ const meta: Meta<typeof StoryContainer> = {
     docs: {
       description: {
         component:
-          'An editable edge component for React Flow diagrams. Supports click-to-edit labels on edges. Click on the edge label to edit it, press Enter to save, or Escape to cancel. Requires @xyflow/react as a peer dependency.',
+          'An editable edge component for React Flow diagrams. Supports click-to-edit labels on edges. Click on the edge label to edit it, press Cmd/Ctrl+Enter to save, or Escape to cancel. Requires @xyflow/react as a peer dependency.',
       },
     },
   },
   argTypes: {
-    edgeLabel: {
-      control: 'text',
-      description: 'Initial label text for the edge',
+    edgeLabel: { control: 'text', description: 'Label text for the edge' },
+    edgeColor: {
+      control: 'select',
+      options: ['primary', 'secondary', 'default'],
+      description: 'Color scheme for the edge label',
     },
-    node1Label: {
-      control: 'text',
-      description: 'Label for the source node',
-    },
-    node2Label: {
-      control: 'text',
-      description: 'Label for the target node',
-    },
+    node1Label: { control: 'text', description: 'Label for the source node' },
+    node2Label: { control: 'text', description: 'Label for the target node' },
     node1Color: {
       control: 'select',
       options: ['primary', 'secondary', 'default'],
@@ -175,8 +160,62 @@ type Story = StoryObj<typeof StoryContainer>;
 export const Default: Story = {
   args: {
     edgeLabel: '',
-    node1Label: 'Node 1',
-    node2Label: 'Node 2',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+// DiagramViewer forces readonly:true on all edges, hiding "click to add label".
+// These stories use ReactFlow directly to show the interactive/editable states.
+
+// Matches what diagram-maker creates: no color set → resolveColor(undefined) → 'primary'
+export const NewEdge: Story = {
+  name: 'New Edge (Click to Add Label)',
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+export const NewEdgePrimaryColor: Story = {
+  name: 'New Edge (Primary Color)',
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
+    edgeColor: 'primary',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+// Shows the textarea that appears after clicking "click to add label"
+export const Editing: Story = {
+  render: (args) => <EditableStoryContainer {...args} />,
+  args: {
+    edgeLabel: '',
+    edgeColor: 'default',
+    node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const placeholder = await canvas.findByText(
+      'click to add label',
+      {},
+      { timeout: 5000 },
+    );
+    await userEvent.click(placeholder);
+  },
+};
+
+export const DefaultColor: Story = {
+  args: {
+    edgeLabel: 'Default edge',
+    edgeColor: 'default',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
@@ -185,8 +224,7 @@ export const Default: Story = {
 export const WithLabel: Story = {
   args: {
     edgeLabel: 'Connected',
-    node1Label: 'Source',
-    node2Label: 'Target',
+    edgeColor: 'default',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
@@ -195,58 +233,45 @@ export const WithLabel: Story = {
 export const LongLabel: Story = {
   args: {
     edgeLabel: 'This is a longer edge label',
+    edgeColor: 'default',
     node1Label: 'Start',
     node2Label: 'End',
-    node1Color: 'primary',
-    node2Color: 'secondary',
   },
 };
 
 export const MultiLineLabel: Story = {
   args: {
     edgeLabel: 'Line 1\nLine 2\nLine 3',
-    node1Label: 'Source',
-    node2Label: 'Target',
+    edgeColor: 'default',
     node1Color: 'primary',
+    node2Color: 'secondary',
+  },
+};
+
+export const PrimaryColor: Story = {
+  args: {
+    edgeLabel: 'Primary edge',
+    edgeColor: 'primary',
+    node1Color: 'primary',
+    node2Color: 'primary',
+  },
+};
+
+export const SecondaryColor: Story = {
+  args: {
+    edgeLabel: 'Secondary edge',
+    edgeColor: 'secondary',
+    node1Color: 'secondary',
     node2Color: 'secondary',
   },
 };
 
 export const MultipleEdges: Story = {
   render: () => {
-    const CustomNode = ({
-      id: nodeId,
-      data: nodeData,
-      selected: nodeSelected,
-    }: {
-      id: string;
-      data: BaseNodeData;
-      selected?: boolean;
-    }) => (
-      <BaseNode
-        id={nodeId}
-        data={nodeData}
-        selected={nodeSelected}
-        showLabel={false}
-      />
-    );
-
-    const CustomEdge = (edgeProps: Parameters<typeof EditableEdge>[0]) => (
-      <EditableEdge {...edgeProps} />
-    );
-
-    const nodeTypes: NodeTypes = {
-      baseNode: CustomNode,
-    };
-
-    const edgeTypes: EdgeTypes = {
-      editable: CustomEdge,
-    };
-
-    const nodes = [
+    const nodes: Node[] = [
       {
         id: 'node-1',
-        type: 'baseNode',
+        type: 'customDefault',
         position: { x: 100, y: 100 },
         data: {
           content: 'Node 1',
@@ -256,11 +281,10 @@ export const MultipleEdges: Story = {
             { id: 'bottom-source', type: 'source', position: 'bottom' },
           ],
         },
-        selected: false,
       },
       {
         id: 'node-2',
-        type: 'baseNode',
+        type: 'customDefault',
         position: { x: 400, y: 100 },
         data: {
           content: 'Node 2',
@@ -270,11 +294,10 @@ export const MultipleEdges: Story = {
             { id: 'bottom-source', type: 'source', position: 'bottom' },
           ],
         },
-        selected: false,
       },
       {
         id: 'node-3',
-        type: 'baseNode',
+        type: 'customDefault',
         position: { x: 250, y: 300 },
         data: {
           content: 'Node 3',
@@ -284,7 +307,6 @@ export const MultipleEdges: Story = {
             { id: 'left-target', type: 'target', position: 'left' },
           ],
         },
-        selected: false,
       },
     ];
 
@@ -296,9 +318,7 @@ export const MultipleEdges: Story = {
         sourceHandle: 'right-source',
         targetHandle: 'left-target',
         type: 'editable',
-        data: {
-          label: 'Horizontal',
-        },
+        data: { label: 'Horizontal', color: 'primary' },
       },
       {
         id: 'edge-1-3',
@@ -307,9 +327,7 @@ export const MultipleEdges: Story = {
         sourceHandle: 'bottom-source',
         targetHandle: 'top-target',
         type: 'editable',
-        data: {
-          label: 'Vertical',
-        },
+        data: { label: 'Vertical', color: 'secondary' },
       },
       {
         id: 'edge-2-3',
@@ -318,31 +336,10 @@ export const MultipleEdges: Story = {
         sourceHandle: 'bottom-source',
         targetHandle: 'left-target',
         type: 'editable',
-        data: {
-          label: 'Diagonal',
-        },
+        data: { label: 'Diagonal', color: 'default' },
       },
     ];
 
-    return (
-      <ReactFlowProvider>
-        <div
-          style={{ width: '100%', height: '500px', background: neutral[900] }}
-        >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.5 }}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            elementsSelectable={true}
-            proOptions={{ hideAttribution: true }}
-          />
-        </div>
-      </ReactFlowProvider>
-    );
+    return <DiagramViewer height="500px" data={{ nodes, edges }} />;
   },
 };

@@ -29,7 +29,11 @@
       "Bash(docker pull *)",
       "Bash(kubectl logs *)",
       "Bash(kubectl get pvc *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm --filter diagram-maker exec tsc --noEmit)",
+      "Bash(pnpm *)",
+      "Bash(npx eslint *)"
     ]
   }
 }
