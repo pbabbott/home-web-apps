@@ -1,0 +1,309 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - link "Abbottland.io" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]:
+            - generic [ref=e9]:
+              - img [ref=e10]
+              - img [ref=e12]
+              - generic [ref=e14]: Abbottland.io
+            - img [ref=e17]
+            - img [ref=e19]
+        - link "Blog" [ref=e20] [cursor=pointer]:
+          - /url: /blog
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - img [ref=e23]
+              - img [ref=e25]
+              - generic [ref=e27]: Blog
+              - img [ref=e28]
+            - img [ref=e31]
+            - img [ref=e33]
+        - button "Directory" [ref=e34] [cursor=pointer]:
+          - generic [ref=e36]:
+            - generic [ref=e37]:
+              - img [ref=e38]
+              - img [ref=e40]
+              - generic [ref=e42]: Directory
+              - img [ref=e43]
+            - img [ref=e46]
+            - img [ref=e48]
+      - generic [ref=e49]:
+        - img [ref=e50]
+        - img [ref=e53]
+        - img [ref=e56]
+        - img [ref=e59]
+        - img [ref=e62]
+    - article [ref=e64]:
+      - img "Expose Your Raspberry Pi to the Internet with Duck DNS (Using Docker)" [ref=e66]
+      - generic [ref=e67]:
+        - heading "Expose Your Raspberry Pi to the Internet with Duck DNS (Using Docker)" [level=1] [ref=e68]
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - img [ref=e71]
+            - time [ref=e73]: 2026-02-03
+            - img [ref=e74]
+            - generic [ref=e76]: 7 min
+          - generic [ref=e77]:
+            - generic [ref=e78]: DNS
+            - generic [ref=e79]: Docker
+            - generic [ref=e80]: Raspberry Pi
+            - generic [ref=e81]: Homelab
+      - generic [ref=e82]:
+        - heading "Introduction" [level=2] [ref=e83]
+        - paragraph [ref=e84]:
+          - text: So you've got a raspberry PI and you've started running services and containers on it. I bet you're accessing these services by going to a local network URL - something like
+          - code [ref=e85]: http://10.0.0.123:8080
+          - text: .
+        - paragraph [ref=e86]: In this guide, we'll use Duck DNS and Docker to give your Raspberry Pi a stable domain name so you can access it from anywhere!
+        - generic [ref=e87]:
+          - img [ref=e88]
+          - img [ref=e90]
+          - img [ref=e92]
+          - img [ref=e94]
+          - paragraph [ref=e96]:
+            - strong [ref=e97]: "Note:"
+            - text: This guide assumes basic comfort with Docker and your home router, but no prior experience with DNS.
+        - heading "The Example Setup" [level=3] [ref=e98]
+        - paragraph [ref=e99]:
+          - text: "For this article, we'll start with a simple example setup and then build more pieces onto it. Suppose you've just bought a Raspberry PI, you've installed docker, and now you've set up your first service:"
+          - code [ref=e100]: n8n
+          - text: which runs on port
+          - code [ref=e101]: "5678"
+          - text: . You're accessing your
+          - code [ref=e102]: n8n
+          - text: installation from another computer at home by visiting it in a web-browser at
+          - code [ref=e103]: http://192.168.1.182:5678
+          - text: .
+        - paragraph [ref=e104]: "Check out the diagram for a visual:"
+        - generic [ref=e105]:
+          - button "Enter full screen" [ref=e106]:
+            - img [ref=e107]
+          - application [ref=e109]:
+            - generic [ref=e111]:
+              - generic:
+                - generic:
+                  - img
+                  - img:
+                    - group "Edge from node_0 to node_5"
+                - generic [ref=e113]: port 5678
+                - generic:
+                  - group:
+                    - generic [ref=e115] [cursor=pointer]: Your home
+                  - group:
+                    - generic [ref=e118]: Your other computer (192.168.1.200)
+                  - group:
+                    - generic [ref=e121] [cursor=pointer]: Raspberry PI 192.168.1.182
+                  - group:
+                    - generic [ref=e124] [cursor=pointer]: Docker
+                  - group:
+                    - generic [ref=e127]: n8n
+            - img
+        - generic [ref=e130]:
+          - img [ref=e131]
+          - img [ref=e133]
+          - img [ref=e135]
+          - img [ref=e137]
+          - paragraph [ref=e139]:
+            - strong [ref=e140]: "Note:"
+            - text: I'm just using n8n as an example, this tutorial would work for any service running on your home server.
+        - heading "Access From Outside Your House" [level=3] [ref=e141]
+        - paragraph [ref=e142]: Alright great! So you can access while you're at home, but what if you want to show off your sweet n8n workflows while you're at the bar with your friends?
+        - paragraph [ref=e143]: "Let's add a few more pieces, one step at a time:"
+        - heading "Configure Your Router" [level=4] [ref=e144]
+        - paragraph [ref=e145]:
+          - text: First you'll want to make a few changes on your router. Essentially you're just going to set up port-forwarding. This tells your router which internal device should receive traffic coming from the internet. There are tons of tutorials online for handling port forwarding as its a pretty common activity to do for gaming. For this tutorial, we're going to have traffic from the public internet coming in on port
+          - code [ref=e146]: "80"
+          - text: get forwarded to port
+          - code [ref=e147]: "5678"
+          - text: on our Raspberry PI which is at
+          - code [ref=e148]: 192.168.1.183
+          - text: .
+        - paragraph [ref=e149]:
+          - text: Some routers (like Eero) will have you set up a "reservation." This is just saying that
+          - code [ref=e150]: 192.168.1.183
+          - text: should belong to your Raspberry PI, and the router should not use that IP for any other device that might connect to your home wi-fi network.
+        - heading "Determine Your IP address" [level=4] [ref=e151]
+        - paragraph [ref=e152]: Next, you'll need to figure out what your IP address is. This one is easy. Get on a device that is connected to your home wi-fi network and just google "what is my ip?" There are a dozen websites that will show what it is. I like to think of this as very similar to my home address (so don't share it around on the public internet). Really, its just the IP address that your ISP (internet service provider) has given your household.
+        - paragraph [ref=e153]:
+          - text: For the sake of example in this tutorial, let's pretend like your ISP is Xfinity and your IP address is
+          - code [ref=e154]: 74.165.22.113
+        - heading "Test Access" [level=4] [ref=e155]
+        - paragraph [ref=e156]: Now you can try to access your n8n from outside your home network! Now, you don't actually have to go to the bar to check (though I won't stop you!).
+        - paragraph [ref=e157]: An easy way to check from the public internet is simply to disconnect your phone from wi-fi. This will mean you'll be connected to your phone's internet like an AT&T or Verizon 5G network.
+        - paragraph [ref=e158]:
+          - text: With your phone off of wifi, you should be able to see n8n by going to
+          - code [ref=e159]: http://74.165.22.113
+          - text: . Your web-browser will say its "un-safe" but that's just because we haven't set up
+          - code [ref=e160]: HTTPS
+          - text: yet. Ignore these safety warnings and "continue anyway."
+        - paragraph [ref=e161]: "Check out our updated diagram:"
+        - generic [ref=e162]:
+          - button "Enter full screen" [ref=e163]:
+            - img [ref=e164]
+          - application [ref=e166]:
+            - generic [ref=e168]:
+              - generic:
+                - generic:
+                  - img
+                  - img:
+                    - group "Edge from node_6 to node_8"
+                  - img:
+                    - group "Edge from node_8 to node_5"
+                - generic:
+                  - generic [ref=e170]: port 80
+                  - generic [ref=e172]: port 5678
+                - generic:
+                  - group:
+                    - generic [ref=e174] [cursor=pointer]: Public Internet
+                  - group:
+                    - generic [ref=e177] [cursor=pointer]: Your home 74.165.22.113
+                  - group:
+                    - generic [ref=e180] [cursor=pointer]: Raspberry PI 192.168.1.182
+                  - group:
+                    - generic [ref=e183] [cursor=pointer]: Docker
+                  - group:
+                    - generic [ref=e186]: n8n
+                  - group:
+                    - generic [ref=e189]: Your phone
+                  - group:
+                    - generic [ref=e191] [cursor=pointer]:
+                      - generic [ref=e192]: Router
+                      - generic [ref=e193]: "Reservation: PI = 192.168.1.182 Port Forwarding: Traffic on port 80... should go to... 192.168.1.182 on port 5678"
+            - img
+        - heading "Time for DNS" [level=2] [ref=e197]
+        - 'heading "One Small Problem: Dynamic IP Allocation" [level=3] [ref=e198]'
+        - paragraph [ref=e199]: If you've got everything working, you can now access your n8n workflows from anywhere! Wahoo!
+        - paragraph [ref=e200]: Well... almost.
+        - paragraph [ref=e201]:
+          - text: We have one small problem to solve. Remember that IP address
+          - code [ref=e202]: 74.165.22.113
+          - text: "? Well this is the IP that your ISP just happened to give you at the time. Your ISP will likely change this IP address when you least expect it. Then, to regain access, you'd have to go home, access one of your computers, and look up your IP once again. This setup is common and its called a \"dynamic IP address.\""
+        - paragraph [ref=e203]: One option you have is to contact your ISP and purchase a static ip address, but this is typically reserved for businesses and not home users.
+        - paragraph [ref=e204]: So what are we to do?
+        - heading "The plan" [level=3] [ref=e205]
+        - paragraph [ref=e206]: Instead of accessing your Raspberry PI via your public ip address, let's set up DNS! Its way easier to remember a URL rather than those pesky IP address numbers anyway. Not only will we set up DNS, but also a Dynamic DNS service to keep up with your ever-changing home IP address.
+        - paragraph [ref=e207]: We can do this with two steps. (The sections below explain these two steps in more detail)
+        - paragraph [ref=e208]:
+          - text: First, we'll need to procure a domain name. For this tutorial we're going to use a website called duckdns.org. Its totally free and super easy to sign up and perfect for a homelab project like this. Upon signing up, you'll get to choose a subdomain of duckdns.org. For this tutorial, let's pretend like you choose
+          - code [ref=e209]: myhouse.duckdns.org
+        - paragraph [ref=e210]:
+          - text: Second, we'll need to install a new docker service on your raspberry PI. The idea with this new service is that it will check and see what your home IP address is every few minutes. Whenever it happens to change, it will update your DNS record at duckdns.org for you! That means even if your ISP changes your IP, you'll always be able to go to
+          - code [ref=e211]: myhouse.duckdns.org
+          - text: and you won't even have to think about your public IP address anymore!
+        - heading "Duck DNS" [level=3] [ref=e212]
+        - paragraph [ref=e213]: Here are the basic steps for configuring Duck DNS.
+        - list [ref=e214]:
+          - listitem [ref=e215]:
+            - text: First go to
+            - link "duckdns.org" [ref=e216] [cursor=pointer]:
+              - /url: https://www.duckdns.org/
+          - listitem [ref=e217]: Sign in using a button at the top of the screen.
+          - listitem [ref=e218]:
+            - text: Add a domain. We'll do
+            - code [ref=e219]: myhouse.duckdns.org
+          - listitem [ref=e220]:
+            - text: At the top of the page, notice your
+            - code [ref=e221]: token
+            - text: "- be sure to take note of this token. We'll need it later!"
+        - heading "DDNS with Docker" [level=3] [ref=e222]
+        - paragraph [ref=e223]: Next, let's setup our new docker service to keep track of our ever-changing IP address.
+        - paragraph [ref=e224]:
+          - text: For this tutorial, I'm going to use an image called
+          - code [ref=e225]: linuxserver/duckdns
+          - text: ". Here is the full documentation for it:"
+          - link "hub.docker.com/r/linuxserver/duckdns" [ref=e226] [cursor=pointer]:
+            - /url: https://hub.docker.com/r/linuxserver/duckdns
+        - paragraph [ref=e227]:
+          - text: This part is pretty easy. Check out the
+          - code [ref=e228]: docker-compose
+          - text: code below. We just need to list the token from earlier and the subdomain(s) that we care about.
+        - figure [ref=e229]:
+          - code [ref=e231]:
+            - generic [ref=e232]: "services:"
+            - generic [ref=e233]: "duckdns:"
+            - generic [ref=e234]: "image: lscr.io/linuxserver/duckdns:latest"
+            - generic [ref=e235]: "container_name: duckdns"
+            - generic [ref=e236]: "environment:"
+            - generic [ref=e237]: "- SUBDOMAINS=myhouse"
+            - generic [ref=e238]: "- TOKEN=token"
+            - generic [ref=e239]: "restart: unless-stopped"
+        - heading "Diagram Time" [level=3] [ref=e240]
+        - paragraph [ref=e241]: And now here is the diagram for our final stack.
+        - generic [ref=e242]:
+          - button "Enter full screen" [ref=e243]:
+            - img [ref=e244]
+          - application [ref=e246]:
+            - generic [ref=e248]:
+              - generic:
+                - generic:
+                  - img
+                  - img:
+                    - group "Edge from node_6 to node_8"
+                  - img:
+                    - group "Edge from node_8 to node_5"
+                  - img:
+                    - group "Edge from node_12 to node_13"
+                - generic:
+                  - generic [ref=e250]: http://myhouse.duckdns.org (port 80)
+                  - generic [ref=e252]: "5678"
+                  - generic [ref=e254]: token
+                - generic:
+                  - group:
+                    - generic [ref=e256] [cursor=pointer]: Public Internet
+                  - group:
+                    - generic [ref=e259] [cursor=pointer]: Your home 74.165.22.113
+                  - group:
+                    - generic [ref=e262] [cursor=pointer]: Raspberry PI 192.168.1.182
+                  - group:
+                    - generic [ref=e265] [cursor=pointer]: Docker
+                  - group:
+                    - generic [ref=e268]: n8n
+                  - group:
+                    - generic [ref=e271]: Your phone
+                  - group:
+                    - generic [ref=e273] [cursor=pointer]:
+                      - generic [ref=e274]: Router
+                      - generic [ref=e275]: "Port Forwarding: 80 -> 192.168.1.182:5678"
+                  - group:
+                    - generic [ref=e279]: linuxserver/duckdns
+                  - group:
+                    - generic [ref=e282]: Duck DNS
+            - img
+        - heading "Security" [level=3] [ref=e285]
+        - paragraph [ref=e286]:
+          - text: Let's think about what we've just done. Your Pi is officially on the internet now! This means you can access it from anywhere! Though, that also means anyone else can do so too. Mke sure you have a strong password setup on your
+          - code [ref=e287]: n8n
+          - text: instance so anyone who stumbles across this webserver can't break into your homelab. Keeping
+          - code [ref=e288]: n8n
+          - text: up-to-date is also important to avoid getting hacked.
+        - heading "Summary" [level=2] [ref=e289]
+        - paragraph [ref=e290]:
+          - text: And now its time to celebrate. You can now leave your home, go to the bar with some friends and show them your
+          - code [ref=e291]: n8n
+          - text: service remotely. In fact, since its a public URL (
+          - code [ref=e292]: http://myhouse.duckdns.org
+          - text: ) it would work on their phones too!
+        - paragraph [ref=e293]:
+          - text: From here, you can layer on
+          - code [ref=e294]: HTTPS
+          - text: ", authentication, or new services - but the hard part is done: you have created a stable doorway into your home lab!"
+        - separator [ref=e295]
+        - heading "Frequently Asked Questions" [level=3] [ref=e296]
+        - heading "Is Duck DNS free ?" [level=4] [ref=e297]
+        - paragraph [ref=e298]: Yes. Duck DNS is a free dynamic DNS service and works well for personal projects and home labs.
+        - heading "Do I need Docker to use Duck DNS?" [level=4] [ref=e299]
+        - paragraph [ref=e300]: No, but Docker makes the setup cleaner, easier to maintain, and simpler to restart automatically.
+        - heading "Is it safe to expose a Raspberry Pi to the internet?" [level=4] [ref=e301]
+        - paragraph [ref=e302]: It can be, as long as you secure your services, use strong passwords, and avoid exposing unnecessary ports. For example, don't expose port 22 for easy SSH access anywhere; there are better ways to handle this.
+        - heading "What port should I forward to my Raspberry Pi?" [level=4] [ref=e303]
+        - paragraph [ref=e304]: That depends on the service you're exposing, but common ports include 80 (HTTP) and 443 (HTTPS). For this tutorial, we did not setup HTTPS, so port 80 works for now.
+  - button "Open Next.js Dev Tools" [ref=e310] [cursor=pointer]:
+    - img [ref=e311]
+  - alert [ref=e314]
+```
