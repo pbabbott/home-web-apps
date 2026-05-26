@@ -19,23 +19,12 @@ jobs:
       - name: Setup PNPM
         uses: ./.github/actions/pnpm-setup
 
-      - name: Cache turbo build artifacts
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
-      - name: Install dependencies
-        run: pnpm install
-        shell: bash
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
 
       - name: Run PNPM Script
         run: pnpm lint
         shell: bash
-        env:
-          TURBO_TEAM: abbottland
 
   format:
     runs-on: [prod-gen2-amd64-runner]
@@ -46,9 +35,10 @@ jobs:
       - name: Setup PNPM
         uses: ./.github/actions/pnpm-setup
 
-      - name: Install dependencies
-        run: pnpm install
-        shell: bash
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+        with:
+          run-build: 'false'
 
       - name: Run PNPM Script
         run: pnpm format:check
