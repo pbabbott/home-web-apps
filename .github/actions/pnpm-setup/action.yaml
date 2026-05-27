@@ -21,7 +21,7 @@ runs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version: 26
 
     - name: Configure pnpm store path
       run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
