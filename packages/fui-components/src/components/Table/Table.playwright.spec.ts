@@ -28,6 +28,14 @@ test.describe('Table Visual Regression Tests', () => {
     );
   });
 
+  test('wide-table', async ({ page }) => {
+    await gotoStory(page, 'components-table--wide-table');
+    await expect(page).toHaveScreenshot(
+      'components-table--wide-table.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'components-table--secondary');
     await expect(page).toHaveScreenshot(

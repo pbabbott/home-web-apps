@@ -23,6 +23,7 @@ import {
   Td,
   TransparentPanel,
 } from '@abbottland/fui-components';
+import { ScrollableTable } from '../../../components/ScrollableTable/ScrollableTable';
 
 For today's article, I'll write down the steps I want to take to build a reproducible, non-production Kubernetes cluster where I can safely evolve my infrastructure before touching anything real. By the end of this series, I want to have a fully-automated path from bare metal to a GitOps-managed cluster with experiments happening only in non-prod.
 
@@ -60,51 +61,55 @@ Next, we'll take a look at how my mind maps out this mess of problems into concr
 
 Ok - there are quite a few problems I'm looking to address. Let's start by defining some of the problems and possible solutions:
 
-<Table color="primary">
-  <TableHead>
-    <TableRow>
-      <Th>Problem</Th>
-      <Th>Possible solution</Th>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    <TableRow>
-      <Td>Singular production cluster is brittle & codebase is unorganized</Td>
-      <Td>
-        Build a 2nd cluster using flux to maximize re-use across prod and
-        non-prod clusters coming up with a new pattern to organize helm
-        installations.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>ingress-nginx is no longer supported</Td>
-      <Td>Introduce Istio during cluster rebuild</Td>
-    </TableRow>
-    <TableRow>
-      <Td>Lacking confidence observability stack & storage providers</Td>
-      <Td>
-        Reintroduce these aspects one-at-a-time during cluster rebuild,
-        documenting and hardening each.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        Lack of availability in my banana pi results in the load balancer going
-        offline, knocking out all of my services.
-      </Td>
-      <Td>Move haproxy to an LXC container on Proxmox</Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        Upgrades to my Virtual Machines (including k8s versions) are tricky
-      </Td>
-      <Td>
-        Ensure Proxmox VMs are managed by some codebase. Terraform? Ansible? No
-        more ClickOps!
-      </Td>
-    </TableRow>
-  </TableBody>
-</Table>
+<ScrollableTable>
+  <Table color="primary">
+    <TableHead>
+      <TableRow>
+        <Th>Problem</Th>
+        <Th>Possible solution</Th>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      <TableRow>
+        <Td>
+          Singular production cluster is brittle & codebase is unorganized
+        </Td>
+        <Td>
+          Build a 2nd cluster using flux to maximize re-use across prod and
+          non-prod clusters coming up with a new pattern to organize helm
+          installations.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>ingress-nginx is no longer supported</Td>
+        <Td>Introduce Istio during cluster rebuild</Td>
+      </TableRow>
+      <TableRow>
+        <Td>Lacking confidence observability stack & storage providers</Td>
+        <Td>
+          Reintroduce these aspects one-at-a-time during cluster rebuild,
+          documenting and hardening each.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          Lack of availability in my banana pi results in the load balancer
+          going offline, knocking out all of my services.
+        </Td>
+        <Td>Move haproxy to an LXC container on Proxmox</Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          Upgrades to my Virtual Machines (including k8s versions) are tricky
+        </Td>
+        <Td>
+          Ensure Proxmox VMs are managed by some codebase. Terraform? Ansible?
+          No more ClickOps!
+        </Td>
+      </TableRow>
+    </TableBody>
+  </Table>
+</ScrollableTable>
 
 ### Critical Path
 
@@ -158,42 +163,44 @@ The important thing to remember is that a new cluster (powered by the newly crea
 
 For example:
 
-<Table color="primary">
-  <TableHead>
-    <TableRow>
-      <Th>URL</Th>
-      <Th>Workload</Th>
-      <Th>Facing</Th>
-      <Th>Cluster</Th>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    <TableRow>
-      <Td>*.abbottland.io</Td>
-      <Td>prod</Td>
-      <Td>public</Td>
-      <Td>Existing Cluster</Td>
-    </TableRow>
-    <TableRow>
-      <Td>*.local.abbottland.io</Td>
-      <Td>prod</Td>
-      <Td>internal</Td>
-      <Td>Existing Cluster</Td>
-    </TableRow>
-    <TableRow>
-      <Td>*.non-prod.abbottland.io</Td>
-      <Td>non-prod</Td>
-      <Td>public</Td>
-      <Td>New Cluster</Td>
-    </TableRow>
-    <TableRow>
-      <Td>*.local.non-prod.abbottland.io</Td>
-      <Td>non-prod</Td>
-      <Td>internal</Td>
-      <Td>New Cluster</Td>
-    </TableRow>
-  </TableBody>
-</Table>
+<ScrollableTable>
+  <Table color="primary">
+    <TableHead>
+      <TableRow>
+        <Th>URL</Th>
+        <Th>Workload</Th>
+        <Th>Facing</Th>
+        <Th>Cluster</Th>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      <TableRow>
+        <Td>*.abbottland.io</Td>
+        <Td>prod</Td>
+        <Td>public</Td>
+        <Td>Existing Cluster</Td>
+      </TableRow>
+      <TableRow>
+        <Td>*.local.abbottland.io</Td>
+        <Td>prod</Td>
+        <Td>internal</Td>
+        <Td>Existing Cluster</Td>
+      </TableRow>
+      <TableRow>
+        <Td>*.non-prod.abbottland.io</Td>
+        <Td>non-prod</Td>
+        <Td>public</Td>
+        <Td>New Cluster</Td>
+      </TableRow>
+      <TableRow>
+        <Td>*.local.non-prod.abbottland.io</Td>
+        <Td>non-prod</Td>
+        <Td>internal</Td>
+        <Td>New Cluster</Td>
+      </TableRow>
+    </TableBody>
+  </Table>
+</ScrollableTable>
 
 That means, `haproxy` will need to be configured to route requests based on domain-names.
 
