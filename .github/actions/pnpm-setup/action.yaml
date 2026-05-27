@@ -18,6 +18,10 @@ runs:
         restore-keys: |
           ${{ runner.os }}-node-
 
+    - name: Install libatomic (required by Node 26)
+      run: sudo apt-get install -y libatomic1
+      shell: bash
+
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
