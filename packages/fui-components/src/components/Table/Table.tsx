@@ -11,7 +11,6 @@ const borderColorClasses: Record<TableColor, string> = {
 };
 
 export type TableProps = React.TableHTMLAttributes<HTMLTableElement> & {
-  className?: string;
   color?: TableColor;
 };
 
@@ -19,46 +18,36 @@ export const Table = ({
   className,
   color = 'primary',
   ...props
-}: TableProps) => {
-  const border = borderColorClasses[color];
-  return (
-    <table
-      className={extendedTwMerge(
-        'border border-collapse w-full',
-        border,
-        className,
-      )}
-      {...props}
-    />
-  );
-};
+}: TableProps) => (
+  <table
+    className={extendedTwMerge(
+      'border border-collapse w-full',
+      borderColorClasses[color],
+      className,
+    )}
+    {...props}
+  />
+);
 
-export type TableHeadProps = React.HTMLAttributes<HTMLTableSectionElement> & {
-  className?: string;
-};
+export type TableHeadProps = React.HTMLAttributes<HTMLTableSectionElement>;
 
 export const TableHead = ({ className, ...props }: TableHeadProps) => (
   <thead className={extendedTwMerge(className)} {...props} />
 );
 
-export type TableBodyProps = React.HTMLAttributes<HTMLTableSectionElement> & {
-  className?: string;
-};
+export type TableBodyProps = React.HTMLAttributes<HTMLTableSectionElement>;
 
 export const TableBody = ({ className, ...props }: TableBodyProps) => (
   <tbody className={extendedTwMerge(className)} {...props} />
 );
 
-export type TableRowProps = React.HTMLAttributes<HTMLTableRowElement> & {
-  className?: string;
-};
+export type TableRowProps = React.HTMLAttributes<HTMLTableRowElement>;
 
 export const TableRow = ({ className, ...props }: TableRowProps) => (
   <tr className={extendedTwMerge(className)} {...props} />
 );
 
 export type ThProps = React.ThHTMLAttributes<HTMLTableCellElement> & {
-  className?: string;
   color?: TableColor;
 };
 
@@ -67,26 +56,23 @@ export const Th = ({
   color = 'primary',
   children,
   ...props
-}: ThProps) => {
-  const border = borderColorClasses[color];
-  return (
-    <th
-      className={extendedTwMerge(
-        'border px-3 py-2 text-left',
-        border,
-        className,
-      )}
-      {...props}
-    >
-      <Typography variant="body2" component="span">
-        {children}
-      </Typography>
-    </th>
-  );
-};
+}: ThProps) => (
+  <th
+    scope="col"
+    className={extendedTwMerge(
+      'border px-3 py-2 text-left',
+      borderColorClasses[color],
+      className,
+    )}
+    {...props}
+  >
+    <Typography variant="body2" component="span">
+      {children}
+    </Typography>
+  </th>
+);
 
 export type TdProps = React.TdHTMLAttributes<HTMLTableCellElement> & {
-  className?: string;
   color?: TableColor;
 };
 
@@ -95,16 +81,17 @@ export const Td = ({
   color = 'primary',
   children,
   ...props
-}: TdProps) => {
-  const border = borderColorClasses[color];
-  return (
-    <td
-      className={extendedTwMerge('border px-3 py-2', border, className)}
-      {...props}
-    >
-      <Typography variant="body2" component="span">
-        {children}
-      </Typography>
-    </td>
-  );
-};
+}: TdProps) => (
+  <td
+    className={extendedTwMerge(
+      'border px-3 py-2',
+      borderColorClasses[color],
+      className,
+    )}
+    {...props}
+  >
+    <Typography variant="body2" component="span">
+      {children}
+    </Typography>
+  </td>
+);

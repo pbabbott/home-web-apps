@@ -74,6 +74,64 @@ export const MultiColumn: Story = {
   ),
 };
 
+export const WideTable: Story = {
+  render: (args) => (
+    <div style={{ maxWidth: 300 }}>
+      <Table {...args}>
+        <TableHead>
+          <TableRow>
+            <Th>Service</Th>
+            <Th>Namespace</Th>
+            <Th>Replicas</Th>
+            <Th>CPU Request</Th>
+            <Th>Memory Limit</Th>
+            <Th>Status</Th>
+            <Th>Last Deploy</Th>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <TableRow>
+            <Td>api-gateway</Td>
+            <Td>production</Td>
+            <Td>3</Td>
+            <Td>250m</Td>
+            <Td>512Mi</Td>
+            <Td>Running</Td>
+            <Td>2025-05-26</Td>
+          </TableRow>
+          <TableRow>
+            <Td>auth-service</Td>
+            <Td>production</Td>
+            <Td>2</Td>
+            <Td>100m</Td>
+            <Td>256Mi</Td>
+            <Td>Running</Td>
+            <Td>2025-05-24</Td>
+          </TableRow>
+          <TableRow>
+            <Td>pi-led-api</Td>
+            <Td>homelab</Td>
+            <Td>1</Td>
+            <Td>50m</Td>
+            <Td>128Mi</Td>
+            <Td>Running</Td>
+            <Td>2025-05-20</Td>
+          </TableRow>
+          <TableRow>
+            <Td>gluetun-sync</Td>
+            <Td>homelab</Td>
+            <Td>1</Td>
+            <Td>50m</Td>
+            <Td>64Mi</Td>
+            <Td>CrashLoop</Td>
+            <Td>2025-05-15</Td>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  ),
+};
+
 export const Secondary: Story = {
   render: (args) => (
     <Table {...args} color="secondary">
