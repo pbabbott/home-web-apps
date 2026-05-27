@@ -1,5 +1,11 @@
 # fui-components
 
+## 0.8.0
+
+### Minor Changes
+
+- Refactor Table component to use native HTML elements with `scope="col"` on column headers for accessibility. Add WideTable Storybook story. Add ScrollableTable component to blog and wrap tables in the non-prod cluster post for horizontal overflow on small screens.
+
 ## 0.7.0
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 {
   "name": "@abbottland/fui-components",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
     "docker:build": "abctl docker build",
