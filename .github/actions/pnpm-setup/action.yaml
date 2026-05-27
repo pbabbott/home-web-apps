@@ -19,7 +19,7 @@ runs:
           ${{ runner.os }}-node-
 
     - name: Install libatomic (required by Node 26)
-      run: sudo apt-get install -y libatomic1
+      run: sudo apt-get update && sudo apt-get install -y libatomic1
       shell: bash
 
     - name: Install Node.js
