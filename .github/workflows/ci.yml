@@ -1,0 +1,557 @@
+name: CI
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+    branches:
+      - main
+
+permissions:
+  checks: write
+  pull-requests: write
+
+env:
+  REGISTRY: harbor.local.abbottland.io
+  IMAGE_REPO: harbor.local.abbottland.io/library/blog
+  PR_NUMBER: ${{ github.event.number }}
+
+jobs:
+  build:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+  docker-build:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and publish Docker images
+        run: pnpm docker:publish
+        shell: bash
+
+      - name: Tag PR-specific blog image
+        if: github.event_name == 'pull_request'
+        run: |
+          BLOG_VERSION=$(jq -r '.version' apps/blog/package.json)
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          docker buildx imagetools create \
+            -t "${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" \
+            "${{ env.IMAGE_REPO }}:${BLOG_VERSION}"
+
+  lint:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+      - name: Run PNPM Script
+        run: pnpm lint
+        shell: bash
+
+  format:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+        with:
+          run-build: 'false'
+
+      - name: Run PNPM Script
+        run: pnpm format:check
+        shell: bash
+
+  fui-components-ui-tests:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-amd64-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Install playwright system deps
+        run: pnpm exec playwright install-deps chromium
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Run fui-components ui tests
+        run: pnpm test:ui
+        working-directory: packages/fui-components
+        shell: bash
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: packages/fui-components/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/fui-components/playwright-report
+          destination_dir: reports/${{ github.run_id }}
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/${{ github.run_id }}/index.html"
+          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Playwright report: ${URL}"
+        shell: bash
+
+  blog-ui-tests:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-amd64-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-blog-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-blog-${{ runner.os }}-
+
+      - name: Install playwright
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: apps/blog
+        shell: bash
+
+      - name: Install playwright system deps
+        run: pnpm exec playwright install-deps chromium
+        working-directory: apps/blog
+        shell: bash
+
+      - name: Run blog ui tests
+        run: pnpm test:ui
+        working-directory: apps/blog
+        shell: bash
+        env:
+          CI: true
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blog-playwright-report-${{ github.run_id }}
+          path: apps/blog/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/blog/playwright-report
+          destination_dir: reports/${{ github.run_id }}/blog
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/${{ github.run_id }}/blog/index.html"
+          echo "### Blog Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Blog Playwright report: ${URL}"
+        shell: bash
+
+  unit-tests:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Run unit tests
+        run: pnpm test:unit
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: unit-test-results
+          report-name: Unit Tests
+
+  integration-tests:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build composite action
+        uses: ./.github/actions/install-and-build
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run dev dependencies
+        run: pnpm dev:deps
+        shell: bash
+
+      - name: Run integration tests
+        run: pnpm test:int
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: integration-test-results
+          report-name: Integration Tests
+
+      - name: Stop dev dependencies
+        if: always()
+        run: pnpm dev:deps:down
+        shell: bash
+
+  smoke-tests:
+    if: github.event.action != 'closed'
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: pnpm setup composite action
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install and build
+        uses: ./.github/actions/install-and-build
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run smoke dependencies build
+        run: pnpm smoke:deps:build
+        shell: bash
+
+      - name: Run smoke dependencies
+        run: pnpm smoke:deps
+        shell: bash
+
+      - name: Run smoke tests
+        run: pnpm test:smoke
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: smoke-test-results
+          report-name: Smoke Tests
+
+      - name: Stop smoke dependencies
+        if: always()
+        run: pnpm smoke:deps:down
+        shell: bash
+
+  # ── Deploy preview ───────────────────────────────────────────────────────────
+  # Runs after all CI jobs pass on a PR. The PR-specific image was already
+  # pushed by docker-build (blog:pr-{N}-{sha7}), so this job only deploys it.
+  deploy-preview:
+    needs:
+      - build
+      - docker-build
+      - lint
+      - format
+      - fui-components-ui-tests
+      - blog-ui-tests
+      - unit-tests
+      - integration-tests
+      - smoke-tests
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    name: Deploy Preview
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Resolve preview image reference
+        id: image
+        run: |
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install envsubst
+        run: |
+          if ! command -v envsubst &> /dev/null; then
+            sudo apt-get install -y gettext-base
+          fi
+
+      - name: Fetch kubeconfig from 1Password
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+        run: |
+          op read "op://Homelab/nonprod-gen2 - pr-preview kubeconfig/kubeconfig" \
+            > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> $GITHUB_ENV
+
+      - name: Create namespace and imagePullSecret
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+        run: |
+          HARBOR_JSON=$(op item get "harbor.local.abbottland.io - admin" \
+            --format=json --vault=Homelab)
+          HARBOR_USER=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="username") | .value')
+          HARBOR_PASS=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="password") | .value')
+
+          kubectl create namespace pr-${{ env.PR_NUMBER }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace pr-${{ env.PR_NUMBER }} \
+            ephemeral=true \
+            pr-number=${{ env.PR_NUMBER }} \
+            app.kubernetes.io/managed-by=github-actions \
+            --overwrite
+
+          kubectl create secret docker-registry regcred \
+            --docker-server=harbor.local.abbottland.io \
+            --docker-username="$HARBOR_USER" \
+            --docker-password="$HARBOR_PASS" \
+            -n pr-${{ env.PR_NUMBER }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply k8s manifests
+        env:
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          cat \
+            apps/blog/k8s/pr-preview/namespace.yaml \
+            apps/blog/k8s/pr-preview/deployment.yaml \
+            apps/blog/k8s/pr-preview/service.yaml \
+            apps/blog/k8s/pr-preview/httproute.yaml \
+            | envsubst '${PR_NUMBER} ${IMAGE}' \
+            | kubectl apply -f -
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/blog \
+            -n pr-${{ env.PR_NUMBER }} --timeout=180s
+
+      - name: Wait for DNS propagation
+        run: |
+          HOST="pr-${{ env.PR_NUMBER }}-blog.preview.local.abbottland.io"
+          echo "Polling DNS for $HOST..."
+          for i in $(seq 1 18); do
+            if getent hosts "$HOST" > /dev/null 2>&1; then
+              echo "DNS resolved: $(getent hosts $HOST)"
+              exit 0
+            fi
+            echo "Attempt $i/18 — not resolved, sleeping 10s..."
+            sleep 10
+          done
+          echo "Warning: DNS did not resolve within 3 minutes. Preview may not be reachable yet."
+
+      - name: Find existing PR comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- pr-preview-comment -->'
+
+      - name: Post or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pr-preview-comment -->
+            ## Preview Environment
+
+            | | |
+            |---|---|
+            | **URL** | http://pr-${{ env.PR_NUMBER }}-blog.preview.local.abbottland.io |
+            | **Image** | `${{ steps.image.outputs.image }}` |
+            | **Commit** | `${{ github.event.pull_request.head.sha }}` |
+
+            _Last updated by run [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+          edit-mode: replace
+
+  # ── Teardown preview ─────────────────────────────────────────────────────────
+  teardown-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    name: Teardown Preview
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Fetch kubeconfig from 1Password
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+        run: |
+          op read "op://Homelab/nonprod-gen2 - pr-preview kubeconfig/kubeconfig" \
+            > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> $GITHUB_ENV
+
+      - name: Delete namespace
+        run: |
+          kubectl delete namespace pr-${{ env.PR_NUMBER }} \
+            --ignore-not-found=true --wait=false
+          echo "Namespace pr-${{ env.PR_NUMBER }} deletion initiated."
+          echo "Cascade removes: Deployment, Service, HTTPRoute."
+          echo "external-dns will delete the DNS record automatically."
+
+      - name: Find existing PR comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- pr-preview-comment -->'
+
+      - name: Update PR comment
+        if: steps.find-comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- pr-preview-comment -->
+            ## Preview Environment — Torn Down
+
+            The preview environment for this PR has been deleted.
+          edit-mode: replace

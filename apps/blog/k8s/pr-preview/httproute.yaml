@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: blog
+  namespace: pr-${PR_NUMBER}
+  annotations:
+    # external-dns reads this annotation and creates an A record in Pihole
+    # pointing to the Istio Gateway IP (192.168.6.28)
+    external-dns.alpha.kubernetes.io/hostname: pr-${PR_NUMBER}-blog.preview.local.abbottland.io
+spec:
+  parentRefs:
+    - name: istio-ingress
+      namespace: istio-system
+  hostnames:
+    - pr-${PR_NUMBER}-blog.preview.local.abbottland.io
+  rules:
+    - backendRefs:
+        - name: blog
+          port: 80
