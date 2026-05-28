@@ -396,9 +396,6 @@ jobs:
         with:
           name: deps
 
-      - name: pnpm setup composite action
-        uses: ./.github/actions/pnpm-setup
-
       - name: Install and build
         uses: ./.github/actions/install-and-build
 

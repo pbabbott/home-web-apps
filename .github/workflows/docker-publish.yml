@@ -10,9 +10,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: ./.github/actions/pnpm-setup
-
       - name: Install and build
         uses: ./.github/actions/install-and-build
 

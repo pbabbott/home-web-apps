@@ -8,6 +8,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup pnpm and Node.js
+      uses: ./.github/actions/pnpm-setup
+
     - name: Cache node_modules
       id: node-modules-cache
       uses: actions/cache@v4
