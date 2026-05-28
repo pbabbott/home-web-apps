@@ -1,6 +1,12 @@
 name: PR Teardown
 
 on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to tear down
+        required: true
+        type: number
   pull_request:
     types: [closed]
     branches: [main]
@@ -9,7 +15,7 @@ permissions:
   pull-requests: write
 
 env:
-  PR_NUMBER: ${{ github.event.number }}
+  PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.number }}
 
 jobs:
   teardown-preview:
