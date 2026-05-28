@@ -20,27 +20,80 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
-  build:
+  install:
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
       - name: Setup PNPM
-        uses: ./.github/actions/pnpm-setup
+        uses: pnpm/action-setup@v4
 
+      - name: Ensure Node.js directory exists
+        run: mkdir -p ~/.nvm/versions/node
+        shell: bash
+
+      - name: Cache Node.js
+        uses: actions/cache@v4
+        with:
+          path: ~/.nvm/versions/node
+          key: ${{ runner.os }}-node-${{ hashFiles('**/.nvmrc') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install libatomic (required by Node 26)
+        run: sudo apt-get update && sudo apt-get install -y libatomic1
+        shell: bash
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      - name: Configure pnpm store path
+        run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
+        shell: bash
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Upload deps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deps
+          path: |
+            node_modules
+            packages/*/node_modules
+
+  build:
+    needs:
+      - install
+      - lint
+      - format
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
       - name: Install and build
         uses: ./.github/actions/install-and-build
 
   docker-build:
+    needs: install
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: ./.github/actions/pnpm-setup
-
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
       - name: Install and build
         uses: ./.github/actions/install-and-build
 
@@ -74,13 +127,16 @@ jobs:
             "${{ env.IMAGE_REPO }}:${BLOG_VERSION}"
 
   lint:
+    needs: install
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: ./.github/actions/pnpm-setup
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: Install and build
         uses: ./.github/actions/install-and-build
@@ -90,14 +146,16 @@ jobs:
         shell: bash
 
   format:
+    needs: install
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: ./.github/actions/pnpm-setup
-
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
       - name: Install and build
         uses: ./.github/actions/install-and-build
         with:
@@ -108,6 +166,7 @@ jobs:
         shell: bash
 
   fui-components-ui-tests:
+    needs: build
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -117,8 +176,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm setup composite action
-        uses: ./.github/actions/pnpm-setup
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
@@ -178,6 +239,7 @@ jobs:
         shell: bash
 
   blog-ui-tests:
+    needs: build
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -187,8 +249,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm setup composite action
-        uses: ./.github/actions/pnpm-setup
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
@@ -250,13 +314,16 @@ jobs:
         shell: bash
 
   unit-tests:
+    needs: build
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm setup composite action
-        uses: ./.github/actions/pnpm-setup
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
@@ -275,13 +342,16 @@ jobs:
           report-name: Unit Tests
 
   integration-tests:
+    needs: build
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: pnpm setup composite action
-        uses: ./.github/actions/pnpm-setup
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: Install and build composite action
         uses: ./.github/actions/install-and-build
@@ -315,10 +385,16 @@ jobs:
         shell: bash
 
   smoke-tests:
+    needs: build
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
 
       - name: pnpm setup composite action
         uses: ./.github/actions/pnpm-setup
