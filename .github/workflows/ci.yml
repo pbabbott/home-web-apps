@@ -170,32 +170,24 @@ jobs:
         id: playwright-cache
         uses: actions/cache@v4
         with:
-          path: playwright-browsers
+          path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
 
       - name: Install Playwright chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install chromium
         working-directory: packages/fui-components
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: packages/fui-components
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Run fui-components UI tests
         run: pnpm test:ui
         working-directory: packages/fui-components
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
@@ -253,25 +245,19 @@ jobs:
         id: playwright-cache
         uses: actions/cache@v4
         with:
-          path: playwright-browsers
+          path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
 
       - name: Install Playwright chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install chromium
         working-directory: apps/blog
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: apps/blog
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Run blog UI tests
         run: pnpm test:ui
@@ -279,7 +265,6 @@ jobs:
         shell: bash
         env:
           CI: true
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
