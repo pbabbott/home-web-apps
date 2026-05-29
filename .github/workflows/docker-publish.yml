@@ -10,8 +10,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup Turbo auth
+        run: |
+          . ./scripts/turbo-auth.sh
+          echo "TURBO_TOKEN=$TURBO_TOKEN" >> $GITHUB_ENV
+          echo "TURBO_API=$TURBO_API" >> $GITHUB_ENV
+          echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build
+        run: pnpm build
+        shell: bash
 
       - name: Install jq
         uses: dcarbone/install-jq-action@v3.2.0

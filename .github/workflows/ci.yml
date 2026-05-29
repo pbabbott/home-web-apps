@@ -23,36 +23,11 @@ jobs:
   install:
     runs-on: [prod-gen2-amd64-runner]
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v4
-
-      - name: Ensure Node.js directory exists
-        run: mkdir -p ~/.nvm/versions/node
-        shell: bash
-
-      - name: Cache Node.js
-        uses: actions/cache@v4
-        with:
-          path: ~/.nvm/versions/node
-          key: ${{ runner.os }}-node-${{ hashFiles('**/.nvmrc') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install libatomic (required by Node 26)
-        run: sudo apt-get update && sudo apt-get install -y libatomic1
-        shell: bash
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 26
-
-      - name: Configure pnpm store path
-        run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
-        shell: bash
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -64,7 +39,85 @@ jobs:
           name: deps
           path: |
             node_modules
+            apps/*/node_modules
             packages/*/node_modules
+
+  lint:
+    needs: install
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Run lint
+        run: pnpm lint
+        shell: bash
+
+  format:
+    needs: install
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Run format check
+        run: pnpm format:check
+        shell: bash
+
+  playwright-setup:
+    needs: install
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download deps artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deps
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: playwright-browsers
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: packages/fui-components
+        shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
+
+      - name: Upload Playwright browsers artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-browsers
+          path: playwright-browsers/
+          if-no-files-found: error
 
   build:
     needs:
@@ -73,29 +126,60 @@ jobs:
       - format
     runs-on: [prod-gen2-amd64-runner]
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Download deps artifact
         uses: actions/download-artifact@v4
         with:
           name: deps
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Setup Turbo auth
+        run: |
+          . ./scripts/turbo-auth.sh
+          echo "TURBO_TOKEN=$TURBO_TOKEN" >> $GITHUB_ENV
+          echo "TURBO_API=$TURBO_API" >> $GITHUB_ENV
+          echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build
+        run: pnpm build
+        shell: bash
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            packages/*/dist
+            packages/fui-components/storybook-static
+            apps/*/dist
+            apps/blog/.next
+            apps/diagram-maker/.next
 
   docker-build:
-    needs: install
+    needs:
+      - build
     runs-on: [prod-gen2-dind-runner]
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Download deps artifact
         uses: actions/download-artifact@v4
         with:
           name: deps
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
 
       - name: Install jq
         uses: dcarbone/install-jq-action@v3.2.0
@@ -125,48 +209,10 @@ jobs:
           docker buildx imagetools create \
             -t "${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" \
             "${{ env.IMAGE_REPO }}:${BLOG_VERSION}"
-
-  lint:
-    needs: install
-    runs-on: [prod-gen2-amd64-runner]
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
-
-      - name: Run PNPM Script
-        run: pnpm lint
-        shell: bash
-
-  format:
-    needs: install
-    runs-on: [prod-gen2-amd64-runner]
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
-        with:
-          run-build: 'false'
-
-      - name: Run PNPM Script
-        run: pnpm format:check
         shell: bash
 
   fui-components-ui-tests:
-    needs: build
+    needs: [build, playwright-setup]
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -181,33 +227,33 @@ jobs:
         with:
           name: deps
 
-      - name: Install and build composite action
-        uses: ./.github/actions/install-and-build
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
+          name: build
 
-      - name: Install playwright
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium
-        working-directory: packages/fui-components
-        shell: bash
+      - name: Download Playwright browsers artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-browsers
+          path: playwright-browsers/
 
-      - name: Install playwright system deps
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: packages/fui-components
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
-      - name: Run fui-components ui tests
+      - name: Run fui-components UI tests
         run: pnpm test:ui
         working-directory: packages/fui-components
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
@@ -239,7 +285,7 @@ jobs:
         shell: bash
 
   blog-ui-tests:
-    needs: build
+    needs: [build, playwright-setup]
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -254,35 +300,34 @@ jobs:
         with:
           name: deps
 
-      - name: Install and build composite action
-        uses: ./.github/actions/install-and-build
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-blog-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-blog-${{ runner.os }}-
+          name: build
 
-      - name: Install playwright
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium
-        working-directory: apps/blog
-        shell: bash
+      - name: Download Playwright browsers artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-browsers
+          path: playwright-browsers/
 
-      - name: Install playwright system deps
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: apps/blog
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
-      - name: Run blog ui tests
+      - name: Run blog UI tests
         run: pnpm test:ui
         working-directory: apps/blog
         shell: bash
         env:
           CI: true
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
@@ -325,8 +370,13 @@ jobs:
         with:
           name: deps
 
-      - name: Install and build composite action
-        uses: ./.github/actions/install-and-build
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
 
       - name: Run unit tests
         run: pnpm test:unit
@@ -353,8 +403,13 @@ jobs:
         with:
           name: deps
 
-      - name: Install and build composite action
-        uses: ./.github/actions/install-and-build
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -396,8 +451,13 @@ jobs:
         with:
           name: deps
 
-      - name: Install and build
-        uses: ./.github/actions/install-and-build
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
