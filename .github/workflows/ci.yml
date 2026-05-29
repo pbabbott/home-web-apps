@@ -54,43 +54,6 @@ jobs:
         run: pnpm format:check
         shell: bash
 
-  playwright-setup:
-    runs-on: [prod-gen2-amd64-runner]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm and Node.js
-        uses: ./.github/actions/pnpm-setup
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        shell: bash
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: playwright-browsers
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: Install Playwright chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install chromium
-        working-directory: packages/fui-components
-        shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
-
-      - name: Upload Playwright browsers artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-browsers
-          path: playwright-browsers/
-          if-no-files-found: error
-
   build:
     needs:
       - lint
@@ -181,7 +144,7 @@ jobs:
         shell: bash
 
   fui-components-ui-tests:
-    needs: [build, playwright-setup]
+    needs: [build]
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -196,18 +159,29 @@ jobs:
         with:
           name: build
 
-      - name: Download Playwright browsers artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-browsers
-          path: playwright-browsers/
-
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         shell: bash
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: playwright-browsers
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: packages/fui-components
+        shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
@@ -253,7 +227,7 @@ jobs:
         shell: bash
 
   blog-ui-tests:
-    needs: [build, playwright-setup]
+    needs: [build]
     runs-on: [prod-gen2-amd64-runner]
     permissions:
       checks: write
@@ -268,18 +242,29 @@ jobs:
         with:
           name: build
 
-      - name: Download Playwright browsers artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: playwright-browsers
-          path: playwright-browsers/
-
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         shell: bash
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: playwright-browsers
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+        working-directory: apps/blog
+        shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/playwright-browsers
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
