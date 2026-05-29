@@ -343,7 +343,7 @@ jobs:
           report-name: Unit Tests
 
   integration-tests:
-    needs: build
+    needs: [build, docker-build]
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -390,7 +390,7 @@ jobs:
         shell: bash
 
   smoke-tests:
-    needs: build
+    needs: [build, docker-build]
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
