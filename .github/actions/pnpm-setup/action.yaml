@@ -30,3 +30,11 @@ runs:
     - name: Configure pnpm store path
       run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
       shell: bash
+
+    - name: Cache pnpm store
+      uses: actions/cache@v4
+      with:
+        path: /home/runner/.local/share/pnpm/store
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-

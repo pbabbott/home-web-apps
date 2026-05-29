@@ -20,7 +20,7 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
-  install:
+  lint:
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
@@ -33,67 +33,39 @@ jobs:
         run: pnpm install --frozen-lockfile
         shell: bash
 
-      - name: Upload deps artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: deps
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-
-  lint:
-    needs: install
-    runs-on: [prod-gen2-amd64-runner]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
-      - name: Setup pnpm and Node.js
-        uses: ./.github/actions/pnpm-setup
-
       - name: Run lint
         run: pnpm lint
         shell: bash
 
   format:
-    needs: install
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Run format check
         run: pnpm format:check
         shell: bash
 
   playwright-setup:
-    needs: install
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -121,7 +93,6 @@ jobs:
 
   build:
     needs:
-      - install
       - lint
       - format
     runs-on: [prod-gen2-amd64-runner]
@@ -129,13 +100,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Setup Turbo auth
         run: |
@@ -168,11 +138,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -180,6 +145,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Install jq
         uses: dcarbone/install-jq-action@v3.2.0
@@ -222,11 +191,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -240,6 +204,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
@@ -295,11 +263,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -313,6 +276,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
@@ -365,11 +332,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -377,6 +339,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Run unit tests
         run: pnpm test:unit
@@ -398,11 +364,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -410,6 +371,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
@@ -446,11 +411,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download deps artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deps
-
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -458,6 +418,10 @@ jobs:
 
       - name: Setup pnpm and Node.js
         uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Setup test environment
         uses: ./.github/actions/setup-test-env
