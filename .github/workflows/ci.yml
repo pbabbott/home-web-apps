@@ -205,6 +205,7 @@ jobs:
         shell: bash
         env:
           DEBUG: pw:install*
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
@@ -299,6 +300,7 @@ jobs:
         shell: bash
         env:
           DEBUG: pw:install*
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
