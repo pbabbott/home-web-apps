@@ -174,48 +174,28 @@ jobs:
         run: pnpm install --frozen-lockfile
         shell: bash
 
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - name: Pre-install diagnostics
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: |
-          echo "=== disk ===" && df -h
-          echo "=== memory ===" && free -h
-          echo "=== cpu ===" && nproc
-          echo "=== playwright cache dir ===" && du -sh ~/.cache/ms-playwright 2>/dev/null || echo "(empty)"
-        shell: bash
-
       - name: Install Playwright chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        timeout-minutes: 5
-        run: |
-          while true; do
-            echo "--- monitor $(date) --- disk: $(df -h / | awk 'NR==2{print $4}') free, mem: $(free -h | awk '/^Mem/{print $4}') free"
-            sleep 30
-          done &
-          MONITOR=$!
-          pnpm exec playwright install chromium
-          kill $MONITOR 2>/dev/null || true
+        timeout-minutes: 15
+        run: pnpm exec playwright install chromium
         working-directory: packages/fui-components
         shell: bash
         env:
-          DEBUG: pw:install*
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
           PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: packages/fui-components
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
 
       - name: Run fui-components UI tests
         run: pnpm test:ui
         working-directory: packages/fui-components
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
@@ -269,43 +249,21 @@ jobs:
         run: pnpm install --frozen-lockfile
         shell: bash
 
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - name: Pre-install diagnostics
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: |
-          echo "=== disk ===" && df -h
-          echo "=== memory ===" && free -h
-          echo "=== cpu ===" && nproc
-          echo "=== playwright cache dir ===" && du -sh ~/.cache/ms-playwright 2>/dev/null || echo "(empty)"
-        shell: bash
-
       - name: Install Playwright chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        timeout-minutes: 5
-        run: |
-          while true; do
-            echo "--- monitor $(date) --- disk: $(df -h / | awk 'NR==2{print $4}') free, mem: $(free -h | awk '/^Mem/{print $4}') free"
-            sleep 30
-          done &
-          MONITOR=$!
-          pnpm exec playwright install chromium
-          kill $MONITOR 2>/dev/null || true
+        timeout-minutes: 15
+        run: pnpm exec playwright install chromium
         working-directory: apps/blog
         shell: bash
         env:
-          DEBUG: pw:install*
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
           PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: apps/blog
         shell: bash
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
 
       - name: Run blog UI tests
         run: pnpm test:ui
