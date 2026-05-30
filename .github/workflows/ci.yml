@@ -398,6 +398,13 @@ jobs:
         run: pnpm smoke:deps
         shell: bash
 
+      - name: Dump smoke container logs
+        if: failure()
+        run: |
+          cd apps/gluetun-sync
+          docker compose --ansi=never -f ./docker-compose.yaml --profile smoke logs --no-color || true
+        shell: bash
+
       - name: Run smoke tests
         run: pnpm test:smoke
         shell: bash
