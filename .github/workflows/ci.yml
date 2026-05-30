@@ -473,9 +473,14 @@ jobs:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
         run: |
-          op read "op://Homelab/nonprod-gen2 - pr-preview kubeconfig/kubeconfig" \
+          mkdir -p ./temp
+          op item get "Kubeconfig Admin" --format=json --vault=Homelab \
+            | jq -r '.fields[] | select(.label=="kubeconfig") | .value' \
             > "$RUNNER_TEMP/kubeconfig"
+          rm -rf ./temp
           chmod 600 "$RUNNER_TEMP/kubeconfig"
+          export KUBECONFIG="$RUNNER_TEMP/kubeconfig"
+          kubectl config use-context prod-gen2
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> $GITHUB_ENV
 
       - name: Create namespace and imagePullSecret
