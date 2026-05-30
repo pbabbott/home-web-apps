@@ -153,7 +153,12 @@ jobs:
 
   fui-components-ui-tests:
     needs: [build]
-    runs-on: [prod-gen2-amd64-runner]
+    runs-on: [prod-gen2-dind-runner]
+    container:
+      image: harbor.local.abbottland.io/library/playwright-runner:latest
+      credentials:
+        username: ${{ secrets.HARBOR_USER }}
+        password: ${{ secrets.HARBOR_PASS }}
     permissions:
       checks: write
       pull-requests: write
@@ -167,35 +172,18 @@ jobs:
         with:
           name: build
 
-      - name: Setup pnpm and Node.js
-        uses: ./.github/actions/pnpm-setup
+      - name: Configure pnpm
+        run: echo "node-linker=hoisted" >> .npmrc
+        shell: bash
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         shell: bash
 
-      - name: Install Playwright chromium
-        timeout-minutes: 15
-        run: pnpm exec playwright install chromium
-        working-directory: packages/fui-components
-        shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
-          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
-
-      - name: Install Playwright system deps
-        run: pnpm exec playwright install-deps chromium
-        working-directory: packages/fui-components
-        shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
-
       - name: Run fui-components UI tests
         run: pnpm test:ui
         working-directory: packages/fui-components
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
@@ -254,16 +242,11 @@ jobs:
         run: pnpm exec playwright install chromium
         working-directory: apps/blog
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
-          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
 
       - name: Install Playwright system deps
         run: pnpm exec playwright install-deps chromium
         working-directory: apps/blog
         shell: bash
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.local/share/pnpm/store/playwright-browsers
 
       - name: Run blog UI tests
         run: pnpm test:ui
