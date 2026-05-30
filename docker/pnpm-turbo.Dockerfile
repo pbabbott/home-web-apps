@@ -49,7 +49,7 @@ CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 FROM development AS builder
 
 RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
-RUN rm -rf ./**/*/src
+RUN rm -rf apps/*/src packages/*/src
 
 ###############################################################
 # Final Image

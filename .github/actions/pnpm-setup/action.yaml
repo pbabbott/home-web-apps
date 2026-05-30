@@ -30,7 +30,3 @@ runs:
     - name: Configure pnpm store path
       run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
       shell: bash
-
-    - name: Configure pnpm node-linker
-      run: echo "node-linker=hoisted" >> .npmrc
-      shell: bash
