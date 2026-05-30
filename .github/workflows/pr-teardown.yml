@@ -22,29 +22,21 @@ jobs:
     name: Teardown Preview
     runs-on: [prod-gen2-amd64-runner]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Fetch kubeconfig from 1Password
+      - name: Teardown preview environment
+        run: bash ./scripts/teardown-preview.sh
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
-        run: |
-          op read "op://Homelab/nonprod-gen2 - pr-preview kubeconfig/kubeconfig" \
-            > "$RUNNER_TEMP/kubeconfig"
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> $GITHUB_ENV
-
-      - name: Delete namespace
-        run: |
-          kubectl delete namespace pr-${{ env.PR_NUMBER }} \
-            --ignore-not-found=true --wait=false
-          echo "Namespace pr-${{ env.PR_NUMBER }} deletion initiated."
-          echo "Cascade removes: Deployment, Service, HTTPRoute."
-          echo "external-dns will delete the DNS record automatically."
+          PR_NUMBER: ${{ env.PR_NUMBER }}
 
       - name: Find existing PR comment
         id: find-comment

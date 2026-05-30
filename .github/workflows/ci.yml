@@ -427,16 +427,16 @@ jobs:
   # Runs after all CI jobs pass on a PR. The PR-specific image was already
   # pushed by docker-build (blog:pr-{N}-{sha7}), so this job only deploys it.
   deploy-preview:
-    # needs:
-    #   - build
-    #   - docker-build
-    #   - lint
-    #   - format
-    #   - fui-components-ui-tests
-    #   - blog-ui-tests
-    #   - unit-tests
-    #   - integration-tests
-    #   - smoke-tests
+    needs:
+      - build
+      - docker-build
+      - lint
+      - format
+      - fui-components-ui-tests
+      - blog-ui-tests
+      - unit-tests
+      - integration-tests
+      - smoke-tests
     if: github.event_name == 'pull_request'
     name: Deploy Preview
     runs-on: [prod-gen2-amd64-runner]
@@ -448,13 +448,6 @@ jobs:
 
       - name: Install jq
         uses: dcarbone/install-jq-action@v3.2.0
-
-      - name: Resolve preview image reference
-        id: image
-        run: |
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          SHORT_SHA="${HEAD_SHA::7}"
-          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
@@ -468,77 +461,20 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gettext-base
           fi
 
-      - name: Fetch kubeconfig from 1Password
+      - name: Resolve preview image reference
+        id: image
+        run: |
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Deploy preview environment
+        run: bash ./scripts/deploy-preview.sh
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
           OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
-        run: |
-          mkdir -p ./temp
-          op item get "Kubeconfig Admin" --format=json --vault=Homelab \
-            | jq -r '.fields[] | select(.label=="kubeconfig") | .value' \
-            > "$RUNNER_TEMP/kubeconfig"
-          rm -rf ./temp
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          export KUBECONFIG="$RUNNER_TEMP/kubeconfig"
-          kubectl config use-context prod-gen2
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> $GITHUB_ENV
-
-      - name: Create namespace and imagePullSecret
-        env:
-          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
-          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
-        run: |
-          HARBOR_JSON=$(op item get "harbor.local.abbottland.io - admin" \
-            --format=json --vault=Homelab)
-          HARBOR_USER=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="username") | .value')
-          HARBOR_PASS=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="password") | .value')
-
-          kubectl create namespace pr-${{ env.PR_NUMBER }} \
-            --dry-run=client -o yaml | kubectl apply -f -
-          kubectl label namespace pr-${{ env.PR_NUMBER }} \
-            ephemeral=true \
-            pr-number=${{ env.PR_NUMBER }} \
-            app.kubernetes.io/managed-by=github-actions \
-            --overwrite
-
-          kubectl create secret docker-registry regcred \
-            --docker-server=harbor.local.abbottland.io \
-            --docker-username="$HARBOR_USER" \
-            --docker-password="$HARBOR_PASS" \
-            -n pr-${{ env.PR_NUMBER }} \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Apply k8s manifests
-        env:
           PR_NUMBER: ${{ env.PR_NUMBER }}
           IMAGE: ${{ steps.image.outputs.image }}
-        run: |
-          cat \
-            apps/blog/k8s/pr-preview/namespace.yaml \
-            apps/blog/k8s/pr-preview/deployment.yaml \
-            apps/blog/k8s/pr-preview/service.yaml \
-            apps/blog/k8s/pr-preview/httproute.yaml \
-            | envsubst '${PR_NUMBER} ${IMAGE}' \
-            | kubectl apply -f -
-
-      - name: Wait for rollout
-        run: |
-          kubectl rollout status deployment/blog \
-            -n pr-${{ env.PR_NUMBER }} --timeout=180s
-
-      - name: Wait for DNS propagation
-        run: |
-          HOST="pr-${{ env.PR_NUMBER }}-blog.preview.local.abbottland.io"
-          echo "Polling DNS for $HOST..."
-          for i in $(seq 1 18); do
-            if getent hosts "$HOST" > /dev/null 2>&1; then
-              echo "DNS resolved: $(getent hosts $HOST)"
-              exit 0
-            fi
-            echo "Attempt $i/18 — not resolved, sleeping 10s..."
-            sleep 10
-          done
-          echo "Warning: DNS did not resolve within 3 minutes. Preview may not be reachable yet."
 
       - name: Find existing PR comment
         id: find-comment
