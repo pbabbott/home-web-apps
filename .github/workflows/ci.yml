@@ -221,7 +221,7 @@ jobs:
 
   blog-ui-tests:
     needs: [build]
-    runs-on: [prod-gen2-amd64-runner]
+    runs-on: [prod-gen2-dind-runner]
     permissions:
       checks: write
       pull-requests: write
@@ -235,30 +235,27 @@ jobs:
         with:
           name: build
 
-      - name: Setup pnpm and Node.js
-        uses: ./.github/actions/pnpm-setup
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        shell: bash
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
 
-      - name: Install Playwright chromium
-        timeout-minutes: 15
-        run: pnpm exec playwright install chromium
-        working-directory: apps/blog
-        shell: bash
-
-      - name: Install Playwright system deps
-        run: pnpm exec playwright install-deps chromium
-        working-directory: apps/blog
-        shell: bash
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
       - name: Run blog UI tests
-        run: pnpm test:ui
-        working-directory: apps/blog
-        shell: bash
-        env:
-          CI: true
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            -e CI=true \
+            harbor.local.abbottland.io/library/playwright-runner:latest \
+            bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd apps/blog && pnpm test:ui"
 
       - name: Upload Playwright report artifact
         uses: actions/upload-artifact@v4
