@@ -465,7 +465,7 @@ jobs:
       - name: Install envsubst
         run: |
           if ! command -v envsubst &> /dev/null; then
-            sudo apt-get install -y gettext-base
+            sudo apt-get update && sudo apt-get install -y gettext-base
           fi
 
       - name: Fetch kubeconfig from 1Password
