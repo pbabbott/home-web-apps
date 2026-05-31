@@ -11,11 +11,13 @@ const getImage = (projectMetadata: ProjectMetadata, combinedBuildConfig: DockerB
   return `${config.registryWithNamespace}/${repositoryName}:${tag}`
 }
 
+const getTagOverride = (): string => process.env.ABCTL_IMAGE_TAG ?? ''
+
 export const getImageWithVersion = (
   projectMetadata: ProjectMetadata,
   combinedBuildConfig: DockerBuildConfig,
 ): string => {
-  const tag = combinedBuildConfig.tag || projectMetadata.version
+  const tag = getTagOverride() || combinedBuildConfig.tag || projectMetadata.version
   return getImage(projectMetadata, combinedBuildConfig, tag)
 }
 
@@ -25,6 +27,6 @@ export const getImageAsLatest = (projectMetadata: ProjectMetadata, combinedBuild
 export const resolveBaseImage = async (baseConfigPath: string, projectMetadata: ProjectMetadata): Promise<string> => {
   const baseAbctlConfig = await loadConfig(new AbctlConfig(), baseConfigPath)
   const repositoryName = baseAbctlConfig.build.repository || projectMetadata.projectName
-  const tag = baseAbctlConfig.build.tag || projectMetadata.version
+  const tag = getTagOverride() || baseAbctlConfig.build.tag || projectMetadata.version
   return `${baseAbctlConfig.registryWithNamespace}/${repositoryName}:${tag}`
 }

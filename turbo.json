@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["CI"],
+  "globalPassThroughEnv": ["CI", "ABCTL_IMAGE_TAG"],
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -94,6 +94,7 @@
       "outputs": ["docs/**"]
     },
     "lint": {
+      "outputs": [],
       "dependsOn": ["^build"]
     },
     "dev": {

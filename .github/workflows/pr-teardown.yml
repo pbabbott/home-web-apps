@@ -1,0 +1,59 @@
+name: PR Teardown
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to tear down
+        required: true
+        type: number
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+env:
+  PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.number }}
+
+jobs:
+  teardown-preview:
+    name: Teardown Preview
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Teardown preview environment
+        run: bash ./scripts/teardown-preview.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+
+      - name: Find existing PR comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- pr-preview-comment -->'
+
+      - name: Update PR comment
+        if: steps.find-comment.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          body: |
+            <!-- pr-preview-comment -->
+            ## Preview Environment — Torn Down
+
+            The preview environment for this PR has been deleted.
+          edit-mode: replace

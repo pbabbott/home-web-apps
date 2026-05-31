@@ -87,6 +87,7 @@ if [ "$HTTP_STATUS" != "200" ]; then
 fi
 echo "  OK — image found."
 
+
 # ── Namespace + imagePullSecret ───────────────────────────────────────────────
 kubectl create namespace "pr-${PR_NUMBER}" \
     --dry-run=client -o yaml | kubectl apply -f -
