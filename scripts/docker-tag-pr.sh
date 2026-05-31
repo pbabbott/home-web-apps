@@ -14,4 +14,6 @@ SOURCE_TAG="${IMAGE_REPO}:sha-${SHORT_SHA}"
 PR_TAG="${IMAGE_REPO}:pr-${PR_NUMBER}"
 
 echo "Tagging ${SOURCE_TAG} → ${PR_TAG}"
-docker buildx imagetools create --tag "${PR_TAG}" "${SOURCE_TAG}"
+docker pull "${SOURCE_TAG}"
+docker tag "${SOURCE_TAG}" "${PR_TAG}"
+docker push "${PR_TAG}"
