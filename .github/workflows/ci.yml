@@ -136,8 +136,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker images
-        run: pnpm docker:build
+      - name: Free runner disk space
+        run: docker system prune -f
+        shell: bash
+
+      - name: Build blog Docker image
+        run: pnpm turbo run docker:build --filter=@abbottland/blog
         shell: bash
 
       - name: Publish SHA-tagged blog image
