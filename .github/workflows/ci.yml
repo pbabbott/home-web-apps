@@ -137,18 +137,16 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and publish Docker images
-        run: pnpm docker:publish
+        run: pnpm docker:build
         shell: bash
 
-      - name: Tag PR-specific blog image
+      - name: Publish PR-specific blog image
         if: github.event_name == 'pull_request'
         run: |
-          BLOG_VERSION=$(jq -r '.version' apps/blog/package.json)
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
-          docker buildx imagetools create \
-            -t "${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" \
-            "${{ env.IMAGE_REPO }}:${BLOG_VERSION}"
+          export ABCTL_IMAGE_TAG="pr-${{ env.PR_NUMBER }}-${SHORT_SHA}"
+          pnpm turbo run docker:publish --filter=@abbottland/blog
         shell: bash
 
   fui-components-ui-tests:
