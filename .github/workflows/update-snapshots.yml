@@ -1,0 +1,104 @@
+name: Update UI Snapshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to update snapshots for
+        required: true
+        type: choice
+        options:
+          - fui-components
+          - blog
+
+permissions:
+  contents: write
+
+jobs:
+  update-snapshots:
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve package path
+        id: pkg
+        run: |
+          if [ "${{ inputs.package }}" = "fui-components" ]; then
+            echo "dir=packages/fui-components" >> $GITHUB_OUTPUT
+          else
+            echo "dir=apps/blog" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup Turbo auth
+        run: |
+          . ./scripts/turbo-auth.sh
+          echo "TURBO_TOKEN=$TURBO_TOKEN" >> $GITHUB_ENV
+          echo "TURBO_API=$TURBO_API" >> $GITHUB_ENV
+          echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build
+        run: pnpm build
+        shell: bash
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run UI tests
+        id: run-tests
+        continue-on-error: true
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            -e CI=true \
+            harbor.local.abbottland.io/library/playwright-runner:latest \
+            bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd ${{ steps.pkg.outputs.dir }} && pnpm test:ui"
+        shell: bash
+
+      - name: Regenerate snapshots for failed tests
+        if: steps.run-tests.outcome == 'failure'
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            harbor.local.abbottland.io/library/playwright-runner:latest \
+            bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd ${{ steps.pkg.outputs.dir }} && pnpm test:playwright:update-snapshots -- --last-failed"
+        shell: bash
+
+      - name: Commit updated snapshots
+        if: steps.run-tests.outcome == 'failure'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No snapshot changes detected — all failures were non-visual"
+          else
+            git commit -m "chore(${{ inputs.package }}): update playwright snapshots [skip ci]"
+            git push
+          fi
+        shell: bash
