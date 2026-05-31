@@ -11,7 +11,7 @@
     "env:generate": "abctl secrets generate-env",
     "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d --quiet-pull",
     "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
-    "smoke:deps": "docker compose --ansi=never -f ./docker-compose.yaml --profile smoke up -d --quiet-pull",
+    "smoke:deps": "docker compose --ansi=never -f ./docker-compose.yaml --profile smoke up -d --quiet-pull --wait",
     "smoke:deps:build": "docker compose --ansi=never -f ./docker-compose.yaml --profile smoke build",
     "smoke:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml --profile smoke down -v",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",

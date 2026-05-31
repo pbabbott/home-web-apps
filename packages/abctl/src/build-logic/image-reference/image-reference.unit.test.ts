@@ -40,4 +40,22 @@ describe('@abbottland/abctl/docker-build-settings-builder imageReference', () =>
     const {registryWithNamespace} = config
     expect(imageWithVersion).toBe(`${registryWithNamespace}/one-cool-app-override:99.0.1`)
   })
+
+  it('should use ABCTL_IMAGE_TAG when set, overriding config tag and version', () => {
+    process.env.ABCTL_IMAGE_TAG = 'pr-104-abc1234'
+    const dockerBuildConfig: DockerBuildConfig = {
+      baseImage: 'node:22-alpine',
+      context: '../../',
+      dockerfile: '../../docker/pnpm-turbo.Dockerfile',
+      platform: 'linux/arm64',
+      repository: 'one-cool-app-override',
+      tag: 'some-config-tag',
+      target: 'builder',
+      load: 'false',
+    }
+    const imageWithVersion = getImageWithVersion(projectMetadata, dockerBuildConfig)
+    const {registryWithNamespace} = config
+    expect(imageWithVersion).toBe(`${registryWithNamespace}/one-cool-app-override:pr-104-abc1234`)
+    delete process.env.ABCTL_IMAGE_TAG
+  })
 })

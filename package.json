@@ -37,7 +37,7 @@
     "turbo": "^2.5.0"
   },
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=26.0.0",
     "npm": ">=7.0.0"
   },
   "packageManager": "pnpm@10.15.0",

@@ -7,7 +7,7 @@ services:
       context: ../../
       dockerfile: docker/pnpm-turbo.Dockerfile
       args:
-        BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
+        BASE_IMAGE: harbor.local.abbottland.io/library/node-26-alpine:1.0.0
         PROJECT_DIR: apps/
         PROJECT: gluetun-sync
     ports:

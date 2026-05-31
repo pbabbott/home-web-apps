@@ -9,9 +9,8 @@ catalog:
   express: ^5.0.3
   '@types/express': '^5.0.3'
 
-  # Node is at 22.X, and @types/node is at 22.X
-  # Once I upgrade to Node 24, I can upgrade @types/node to 24.X
-  '@types/node': '^22'
+  # Node is at 26.X. @types/node has no v26 release yet; using latest available (25.x).
+  '@types/node': '^25'
 
   # Jest is at 29.X and ts-jest is at 29.X
   # Waiting for ts-jest to update to 30.X

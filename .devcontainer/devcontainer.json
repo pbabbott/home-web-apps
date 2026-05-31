@@ -6,7 +6,7 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/node:1.7.1": {
-      "version": "22",
+      "version": "26",
       "pnpmVersion": "10.15.0"
     },
     "ghcr.io/devcontainers/features/common-utils:2.5.7": {

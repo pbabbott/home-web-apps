@@ -1,0 +1,503 @@
+name: CI
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+
+permissions:
+  checks: write
+  pull-requests: write
+
+env:
+  REGISTRY: harbor.local.abbottland.io
+  IMAGE_REPO: harbor.local.abbottland.io/library/blog
+  PR_NUMBER: ${{ github.event.number }}
+
+jobs:
+  lint:
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup Turbo auth
+        run: |
+          . ./scripts/turbo-auth.sh
+          echo "TURBO_TOKEN=$TURBO_TOKEN" >> $GITHUB_ENV
+          echo "TURBO_API=$TURBO_API" >> $GITHUB_ENV
+          echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Run lint
+        run: pnpm lint
+        shell: bash
+
+  format:
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Run format check
+        run: pnpm format:check
+        shell: bash
+
+  build:
+    needs:
+      - lint
+      - format
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup Turbo auth
+        run: |
+          . ./scripts/turbo-auth.sh
+          echo "TURBO_TOKEN=$TURBO_TOKEN" >> $GITHUB_ENV
+          echo "TURBO_API=$TURBO_API" >> $GITHUB_ENV
+          echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build
+        run: pnpm build
+        shell: bash
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            packages/*/dist
+            packages/fui-components/storybook-static
+            apps/*/dist
+            apps/blog/.next
+            apps/diagram-maker/.next
+
+  docker-build:
+    needs:
+      - build
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and publish Docker images
+        run: pnpm docker:build
+        shell: bash
+
+      - name: Publish PR-specific blog image
+        if: github.event_name == 'pull_request'
+        run: |
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          export ABCTL_IMAGE_TAG="pr-${{ env.PR_NUMBER }}-${SHORT_SHA}"
+          pnpm turbo run docker:publish --filter=@abbottland/blog
+        shell: bash
+
+  fui-components-ui-tests:
+    needs: [build]
+    runs-on: [prod-gen2-dind-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run fui-components UI tests
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            -e CI=true \
+            harbor.local.abbottland.io/library/playwright-runner:latest \
+            bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd packages/fui-components && pnpm test:ui"
+        shell: bash
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: packages/fui-components/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/fui-components/playwright-report
+          destination_dir: reports/fui-components/${{ github.run_id }}
+          keep_files: true
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/fui-components/${{ github.run_id }}/index.html"
+          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Playwright report: ${URL}"
+        shell: bash
+
+  blog-ui-tests:
+    needs: [build]
+    runs-on: [prod-gen2-dind-runner]
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run blog UI tests
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            -e CI=true \
+            harbor.local.abbottland.io/library/playwright-runner:latest \
+            bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd apps/blog && pnpm test:ui"
+
+      - name: Upload Playwright report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blog-playwright-report-${{ github.run_id }}
+          path: apps/blog/playwright-report/
+          if-no-files-found: warn
+
+      - name: Publish Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/blog/playwright-report
+          destination_dir: reports/blog/${{ github.run_id }}
+          keep_files: true
+
+      - name: Print Playwright report URL
+        if: always()
+        run: |
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+          URL="https://${ORG}.github.io/${REPO_NAME}/reports/blog/${{ github.run_id }}/index.html"
+          echo "### Blog Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "Blog Playwright report: ${URL}"
+        shell: bash
+
+  unit-tests:
+    needs: build
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Run unit tests
+        run: pnpm test:unit
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: unit-test-results
+          report-name: Unit Tests
+
+  integration-tests:
+    needs: [build, docker-build]
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run dev dependencies
+        run: pnpm dev:deps
+        shell: bash
+
+      - name: Run integration tests
+        run: pnpm test:int
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: integration-test-results
+          report-name: Integration Tests
+
+      - name: Stop dev dependencies
+        if: always()
+        run: pnpm dev:deps:down
+        shell: bash
+
+  smoke-tests:
+    needs: [build, docker-build]
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-env
+        with:
+          op-connect-host: https://op-connect.local.abbottland.io
+          op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Run smoke dependencies build
+        run: pnpm smoke:deps:build
+        shell: bash
+
+      - name: Run smoke dependencies
+        run: pnpm smoke:deps
+        shell: bash
+
+      - name: Dump smoke container logs
+        if: failure()
+        run: |
+          cd apps/gluetun-sync
+          docker compose --ansi=never -f ./docker-compose.yaml --profile smoke logs --no-color || true
+        shell: bash
+
+      - name: Run smoke tests
+        run: pnpm test:smoke
+        shell: bash
+        env:
+          CI: true
+
+      - name: Publish test results
+        uses: ./.github/actions/publish-test-results
+        if: ${{ !cancelled() }}
+        with:
+          artifact-name: smoke-test-results
+          report-name: Smoke Tests
+
+      - name: Stop smoke dependencies
+        if: always()
+        run: pnpm smoke:deps:down
+        shell: bash
+
+  # ── Deploy preview ───────────────────────────────────────────────────────────
+  # Runs after all CI jobs pass on a PR. The PR-specific image was already
+  # pushed by docker-build (blog:pr-{N}-{sha7}), so this job only deploys it.
+  deploy-preview:
+    needs:
+      - build
+      - docker-build
+      - lint
+      - format
+      - fui-components-ui-tests
+      - blog-ui-tests
+      - unit-tests
+      - integration-tests
+      - smoke-tests
+    if: github.event_name == 'pull_request'
+    name: Deploy Preview
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install envsubst
+        run: |
+          if ! command -v envsubst &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y gettext-base
+          fi
+
+      - name: Resolve preview image reference
+        id: image
+        run: |
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Deploy preview environment
+        run: bash ./scripts/deploy-preview.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          IMAGE: ${{ steps.image.outputs.image }}
+
+      - name: Find existing PR comment
+        id: find-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ env.PR_NUMBER }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- pr-preview-comment -->'
+
+      - name: Post or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ env.PR_NUMBER }}
+          body: |
+            <!-- pr-preview-comment -->
+            ## Preview Environment
+
+            | | |
+            |---|---|
+            | **URL** | https://pr-${{ env.PR_NUMBER }}-blog.local.abbottland.io |
+            | **Image** | `${{ steps.image.outputs.image }}` |
+            | **Commit** | `${{ github.event.pull_request.head.sha }}` |
+
+            _Last updated by run [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+          edit-mode: replace

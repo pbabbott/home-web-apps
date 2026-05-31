@@ -53,8 +53,10 @@ publish the Docker image for the current project
     // This will perform a push on the versioned image
     await dockerBuild(dockerBuildSettings)
 
-    // This will perform a push on the latest image
-    dockerBuildSettings.image = imageAsLatest
-    await dockerBuild(dockerBuildSettings)
+    // Skip :latest when building with a custom tag override (e.g. PR preview images)
+    if (!process.env.ABCTL_IMAGE_TAG) {
+      dockerBuildSettings.image = imageAsLatest
+      await dockerBuild(dockerBuildSettings)
+    }
   }
 }

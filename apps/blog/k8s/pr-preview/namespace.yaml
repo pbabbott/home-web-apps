@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pr-${PR_NUMBER}
+  labels:
+    app.kubernetes.io/managed-by: github-actions
+    ephemeral: 'true'
+    pr-number: '${PR_NUMBER}'
