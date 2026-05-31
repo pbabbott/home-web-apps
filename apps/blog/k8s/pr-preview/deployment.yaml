@@ -22,6 +22,9 @@ spec:
       containers:
         - name: blog
           image: '${IMAGE}'
+          env:
+            - name: IMAGE_TAG
+              value: '${IMAGE_TAG}'
           ports:
             - containerPort: 3000
           readinessProbe:

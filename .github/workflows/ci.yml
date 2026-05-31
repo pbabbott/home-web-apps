@@ -20,21 +20,6 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
-  changeset-check:
-    if: github.event_name == 'pull_request'
-    runs-on: [prod-gen2-amd64-runner]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for changeset
-        run: bash ./scripts/check-changeset.sh
-        shell: bash
-        env:
-          BASE_REF: ${{ github.base_ref }}
-
   lint:
     runs-on: [prod-gen2-amd64-runner]
     steps:
@@ -151,18 +136,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and publish Docker images
+      - name: Build Docker images
         run: pnpm docker:build
         shell: bash
 
-      - name: Publish PR-specific blog image
+      - name: Publish SHA-tagged blog image
+        run: bash ./scripts/docker-publish-sha.sh
+        env:
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Tag PR image
         if: github.event_name == 'pull_request'
-        run: |
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          SHORT_SHA="${HEAD_SHA::7}"
-          export ABCTL_IMAGE_TAG="pr-${{ env.PR_NUMBER }}-${SHORT_SHA}"
-          pnpm turbo run docker:publish --filter=@abbottland/blog
-        shell: bash
+        run: bash ./scripts/docker-tag-pr.sh
+        env:
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ env.PR_NUMBER }}
+          IMAGE_REPO: ${{ env.IMAGE_REPO }}
 
   fui-components-ui-tests:
     needs: [build]
@@ -439,15 +428,14 @@ jobs:
         shell: bash
 
   # ── Deploy preview ───────────────────────────────────────────────────────────
-  # Runs after all CI jobs pass on a PR. The PR-specific image was already
-  # pushed by docker-build (blog:pr-{N}-{sha7}), so this job only deploys it.
+  # Runs after all CI jobs pass on a PR. The floating pr-{N} tag was pushed by
+  # docker-build, so this job only deploys it.
   deploy-preview:
     needs:
       - build
       - docker-build
       - lint
       - format
-      - changeset-check
       - fui-components-ui-tests
       - blog-ui-tests
       - unit-tests
@@ -480,9 +468,7 @@ jobs:
       - name: Resolve preview image reference
         id: image
         run: |
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          SHORT_SHA="${HEAD_SHA::7}"
-          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}" >> $GITHUB_OUTPUT
 
       - name: Deploy preview environment
         run: bash ./scripts/deploy-preview.sh

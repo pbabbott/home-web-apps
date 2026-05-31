@@ -80,9 +80,9 @@ if [ "$HTTP_STATUS" != "200" ]; then
     echo "Error: image not found in registry (HTTP ${HTTP_STATUS})."
     echo "  ${IMAGE}"
     echo ""
-    echo "CI 'Publish PR-specific blog image' step may not have run yet."
-    echo "Either wait for CI or build/push manually:"
-    echo "  HEAD_SHA=${HEAD_SHA} pnpm turbo run docker:publish --filter=@abbottland/blog"
+    echo "CI 'Tag PR image' step may not have run yet."
+    echo "Either wait for CI or push manually:"
+    echo "  COMMIT_SHA=${HEAD_SHA} PR_NUMBER=${PR_NUMBER} bash ./scripts/docker-tag-pr.sh"
     exit 1
 fi
 echo "  OK — image found."
@@ -105,13 +105,13 @@ kubectl create secret docker-registry regcred \
     --dry-run=client -o yaml | kubectl apply -f -
 
 # ── Apply manifests ───────────────────────────────────────────────────────────
-export PR_NUMBER IMAGE
+export PR_NUMBER IMAGE IMAGE_TAG
 awk 'FNR==1 && NR>1{print "---"}1' \
     apps/blog/k8s/pr-preview/namespace.yaml \
     apps/blog/k8s/pr-preview/deployment.yaml \
     apps/blog/k8s/pr-preview/service.yaml \
     apps/blog/k8s/pr-preview/httproute.yaml \
-    | envsubst '${PR_NUMBER} ${IMAGE}' \
+    | envsubst '${PR_NUMBER} ${IMAGE} ${IMAGE_TAG}' \
     | kubectl apply -f -
 
 # ── Wait for rollout ──────────────────────────────────────────────────────────
