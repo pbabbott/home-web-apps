@@ -495,7 +495,7 @@ jobs:
 
             | | |
             |---|---|
-            | **URL** | http://pr-${{ env.PR_NUMBER }}-blog.preview.local.abbottland.io |
+            | **URL** | https://pr-${{ env.PR_NUMBER }}-blog.local.abbottland.io |
             | **Image** | `${{ steps.image.outputs.image }}` |
             | **Commit** | `${{ github.event.pull_request.head.sha }}` |
 

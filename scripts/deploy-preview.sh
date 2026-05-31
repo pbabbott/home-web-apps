@@ -97,7 +97,7 @@ kubectl rollout status deployment/blog \
     -n "pr-${PR_NUMBER}" --timeout=180s
 
 # ── Wait for DNS ──────────────────────────────────────────────────────────────
-HOST="pr-${PR_NUMBER}-blog.preview.local.abbottland.io"
+HOST="pr-${PR_NUMBER}-blog.local.abbottland.io"
 echo "Polling DNS for $HOST..."
 for i in $(seq 1 18); do
     if getent hosts "$HOST" > /dev/null 2>&1; then
@@ -112,5 +112,5 @@ if ! getent hosts "$HOST" > /dev/null 2>&1; then
 fi
 
 echo ""
-echo "Preview URL: http://${HOST}"
+echo "Preview URL: https://${HOST}"
 echo "Image: ${IMAGE}"
