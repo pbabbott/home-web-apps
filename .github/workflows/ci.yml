@@ -20,6 +20,21 @@ env:
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
+  changeset-check:
+    if: github.event_name == 'pull_request'
+    runs-on: [prod-gen2-amd64-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changeset
+        run: bash ./scripts/check-changeset.sh
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+
   lint:
     runs-on: [prod-gen2-amd64-runner]
     steps:
@@ -432,6 +447,7 @@ jobs:
       - docker-build
       - lint
       - format
+      - changeset-check
       - fui-components-ui-tests
       - blog-ui-tests
       - unit-tests
