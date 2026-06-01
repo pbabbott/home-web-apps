@@ -3,7 +3,7 @@ import {ProjectMetadata} from '../project-metadata.js'
 import {makeBuildSettings} from './docker-build-settings-builder.js'
 
 describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', () => {
-  const image = 'one_cool_image'
+  const image = 'one_cool_image:20260101-001-abc1234'
 
   const dockerBuildConfig: DockerBuildConfig = {
     baseImage: 'node:22-alpine',
@@ -39,15 +39,32 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
     it('should set target', () => {
       expect(sut.target).toBe(dockerBuildConfig.target)
     })
-    it('should set build args', () => {
+    it('should set build args with IMAGE_TAG from image ref when env var not set', () => {
       expect(sut.buildArgs).toEqual({
         BASE_IMAGE: dockerBuildConfig.baseImage,
         PROJECT_DIR: `${projectMetadata.parentDirName}/`,
         PROJECT: projectMetadata.projectName,
+        IMAGE_TAG: '20260101-001-abc1234',
       })
     })
     it('should not set cacheRef', () => {
       expect(sut.cacheRef).toBeUndefined()
+    })
+  })
+
+  describe('with IMAGE_TAG env var set', () => {
+    const envTag = '20260601-042-dc38225'
+
+    beforeEach(() => {
+      process.env.IMAGE_TAG = envTag
+    })
+    afterEach(() => {
+      delete process.env.IMAGE_TAG
+    })
+
+    it('should prefer IMAGE_TAG env var over image ref tag', () => {
+      const sut = makeBuildSettings(image, dockerBuildConfig, projectMetadata)
+      expect(sut.buildArgs?.IMAGE_TAG).toBe(envTag)
     })
   })
 
