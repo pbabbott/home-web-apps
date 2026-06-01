@@ -24,8 +24,8 @@ export default function BlogPostHeader({
       >
         {title}
       </Typography>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-neutral-400 text-sm">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-2 text-neutral-400 text-sm">
+        <div className="flex items-center gap-4 mb-4">
           <CalendarIcon width={20} height={20} className="text-neutral-400" />
           <time dateTime={date}>{date}</time>
           <ClockIcon width={20} height={20} className="text-neutral-400" />
@@ -41,7 +41,7 @@ export default function BlogPostHeader({
         {categories && categories.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
-              <Badge key={category} color="primary">
+              <Badge key={category} color="dark">
                 {category}
               </Badge>
             ))}

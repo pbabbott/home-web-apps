@@ -58,7 +58,7 @@ export default function HeroBlogPostCard({
             {post.categories && post.categories.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {post.categories.map((category) => (
-                  <Badge key={category} color="primary">
+                  <Badge key={category} color="dark">
                     {category}
                   </Badge>
                 ))}

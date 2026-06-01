@@ -65,7 +65,7 @@ export default function BlogPostCard({
       {categories && categories.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {categories.map((category) => (
-            <Badge key={category} color="primary">
+            <Badge key={category} color="dark">
               {category}
             </Badge>
           ))}
