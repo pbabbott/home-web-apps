@@ -28,7 +28,8 @@
             "type": "target",
             "position": "top"
           }
-        ]
+        ],
+        "iconId": "proxmox"
       },
       "measured": {
         "width": 511,
@@ -54,7 +55,8 @@
             "position": "bottom"
           }
         ],
-        "colorScheme": "primary"
+        "colorScheme": "primary",
+        "iconId": "haproxy"
       },
       "measured": {
         "width": 150,
@@ -75,7 +77,8 @@
         "content": "",
         "width": 860,
         "height": 118,
-        "colorScheme": "secondary"
+        "colorScheme": "secondary",
+        "iconId": "ansible"
       },
       "measured": {
         "width": 860,
@@ -193,7 +196,8 @@
         "content": "",
         "width": 211,
         "height": 123,
-        "colorScheme": "secondary"
+        "colorScheme": "secondary",
+        "iconId": "terraform"
       },
       "measured": {
         "width": 211,
@@ -280,7 +284,8 @@
             "type": "target",
             "position": "bottom"
           }
-        ]
+        ],
+        "iconId": "radix-desktop"
       },
       "measured": {
         "width": 150,

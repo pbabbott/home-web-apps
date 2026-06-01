@@ -4,14 +4,15 @@
       "id": "node_10",
       "type": "labeled",
       "position": {
-        "x": -85.8041601255887,
-        "y": 17.36670918367348
+        "x": -131.91812779057676,
+        "y": 16.51274681950703
       },
       "data": {
         "label": "Public Internet",
         "content": "",
         "width": 180,
-        "height": 127
+        "height": 127,
+        "iconId": "radix-globe"
       },
       "measured": {
         "width": 180,
@@ -25,17 +26,18 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 276.7672684458399,
-        "y": 30.938002845368885
+        "x": 241.75481151501572,
+        "y": 30.084040481202436
       },
       "data": {
         "label": "Your home\n74.165.22.113",
         "content": "",
-        "width": 558,
-        "height": 345
+        "width": 597,
+        "height": 345,
+        "iconId": "radix-home"
       },
       "measured": {
-        "width": 558,
+        "width": 597,
         "height": 345
       },
       "selected": false,
@@ -53,7 +55,8 @@
         "label": "Raspberry PI\n192.168.1.182",
         "content": "",
         "width": 232,
-        "height": 288
+        "height": 288,
+        "iconId": "raspberry-pi"
       },
       "measured": {
         "width": 232,
@@ -75,7 +78,8 @@
         "content": "",
         "colorScheme": "default",
         "width": 216,
-        "height": 223
+        "height": 223,
+        "iconId": "docker"
       },
       "measured": {
         "width": 216,
@@ -89,8 +93,8 @@
       "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 612.25,
-        "y": 163.1640625
+        "x": 621.25,
+        "y": 166.1640625
       },
       "data": {
         "content": "n8n",
@@ -101,11 +105,12 @@
             "position": "left"
           }
         ],
-        "width": 186,
-        "height": 80
+        "width": 183,
+        "height": 80,
+        "iconId": "n8n"
       },
       "measured": {
-        "width": 186,
+        "width": 183,
         "height": 80
       },
       "selected": false,
@@ -116,8 +121,8 @@
       "id": "node_6",
       "type": "customDefault",
       "position": {
-        "x": -71.64324960753531,
-        "y": 49.157917974882274
+        "x": -117.75721727252338,
+        "y": 48.303955610715825
       },
       "data": {
         "content": "Your phone",
@@ -127,7 +132,8 @@
             "type": "source",
             "position": "bottom"
           }
-        ]
+        ],
+        "iconId": "radix-mobile"
       },
       "measured": {
         "width": 150,
@@ -140,8 +146,8 @@
       "id": "node_8",
       "type": "labeled",
       "position": {
-        "x": 288.07182103610677,
-        "y": 135.65477825745685
+        "x": 274.07182103610677,
+        "y": 154.65477825745685
       },
       "data": {
         "label": "Router",
@@ -160,7 +166,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "router"
       },
       "measured": {
         "width": 240,
@@ -174,7 +181,7 @@
       "id": "node_12",
       "type": "customDefault",
       "position": {
-        "x": 611.8237833594978,
+        "x": 616.8237833594978,
         "y": 257.9422586342229
       },
       "data": {
@@ -245,7 +252,7 @@
       "data": {
         "label": "http://myhouse.duckdns.org\n(port 80)"
       },
-      "selected": true
+      "selected": false
     },
     {
       "type": "editable",

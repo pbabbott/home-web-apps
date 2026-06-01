@@ -50,6 +50,12 @@ interface DiagramEditorContextValue {
   // Export / Import
   getExportData: () => { nodes: Node[]; edges: Edge[] };
   onImport: (data: { nodes: Node[]; edges: Edge[] }) => void;
+  // Local diagrams (dev only)
+  activeLocalDiagramPath: string | null;
+  onLoadLocalDiagram: (
+    filePath: string,
+    data: { nodes: Node[]; edges: Edge[] },
+  ) => void;
   // Style
   warningColorRgba: string;
   // Node selection
@@ -99,6 +105,9 @@ export function DiagramEditorProvider({
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
   const [viewerMode, setViewerMode] = useState(false);
+  const [activeLocalDiagramPath, setActiveLocalDiagramPath] = useState<
+    string | null
+  >(null);
   const updateNodeInternals = useUpdateNodeInternals();
 
   useOnSelectionChange({
@@ -314,6 +323,14 @@ export function DiagramEditorProvider({
     [setNodes, setEdges],
   );
 
+  const onLoadLocalDiagram = useCallback(
+    (filePath: string, data: { nodes: Node[]; edges: Edge[] }) => {
+      handleImport(data);
+      setActiveLocalDiagramPath(filePath);
+    },
+    [handleImport],
+  );
+
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -336,6 +353,8 @@ export function DiagramEditorProvider({
     onToggleViewerMode: () => setViewerMode((v) => !v),
     getExportData,
     onImport: handleImport,
+    activeLocalDiagramPath,
+    onLoadLocalDiagram,
     warningColorRgba,
     selectedNodeIds,
     selectedColorScheme: selectedNodeColorScheme,

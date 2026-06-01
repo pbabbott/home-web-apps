@@ -1,11 +1,14 @@
 'use client';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import { Typography } from '@abbottland/fui-components';
-import { DiagramViewer } from '@/components/diagram';
+import { DiagramViewer, type DiagramViewerProps } from '@/components/diagram';
 import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
 import Footer from '@/components/Footer/Footer';
+import diagram01 from './diagram-01.json';
+import diagram02 from './diagram-02.json';
+import diagram03 from './diagram-03.json';
 
 const emptyDiagram = { nodes: [], edges: [] };
 
@@ -43,6 +46,7 @@ interface ArchSectionProps {
   heading: string;
   description: string;
   diagramHeight?: string;
+  data?: DiagramViewerProps['data'];
 }
 
 function ArchSection({
@@ -50,6 +54,7 @@ function ArchSection({
   heading,
   description,
   diagramHeight = '400px',
+  data = emptyDiagram,
 }: ArchSectionProps) {
   return (
     <section className="mb-20">
@@ -71,7 +76,7 @@ function ArchSection({
         {description}
       </Typography>
       <DiagramViewer
-        data={emptyDiagram}
+        data={data}
         height={diagramHeight}
         className="bg-neutral-800"
       />
@@ -104,6 +109,7 @@ export default function SystemArchitectureClient() {
             heading="System Context"
             description="Highest-order topology. One user device. One residential uplink. One Kubernetes cluster. Scope: everything that matters, nothing that doesn't. Complexity: acceptable."
             diagramHeight="360px"
+            data={diagram01 as DiagramViewerProps['data']}
           />
 
           <ArchSection
@@ -111,6 +117,7 @@ export default function SystemArchitectureClient() {
             heading="Infrastructure Containers"
             description="Cluster internals exposed. Ingress controllers, application services, and persistent storage rendered as discrete units. Internal networking partially abstracted. Complexity: elevated."
             diagramHeight="480px"
+            data={diagram02 as DiagramViewerProps['data']}
           />
 
           <ArchSection
@@ -118,6 +125,7 @@ export default function SystemArchitectureClient() {
             heading="Service Components"
             description="Maximum resolution. Individual service components, inter-process communication, and dependency chains fully mapped. Cognitive load: non-trivial. Proceed with intent."
             diagramHeight="600px"
+            data={diagram03 as DiagramViewerProps['data']}
           />
         </div>
       </main>

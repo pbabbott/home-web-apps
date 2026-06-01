@@ -103,18 +103,19 @@ export function EdgeLabelContent({
   if (labelValue) {
     return (
       <div
-        className={`px-2 ${colorClasses.label} rounded whitespace-pre-line leading-none ${
+        className={`px-2 ${colorClasses.label} rounded whitespace-pre-line ${
           isReadonly
             ? 'cursor-default'
             : `cursor-text ${colorClasses.labelHover} transition-colors`
         }`}
-        style={colorClasses.bgStyle}
+        style={{ lineHeight: 0.2, ...colorClasses.bgStyle }}
         onClick={onStartEditing}
       >
         <Typography
           variant="caption"
           component="span"
           className="text-neutral-200"
+          style={{ lineHeight: 0.8 }}
         >
           {labelValue}
         </Typography>
