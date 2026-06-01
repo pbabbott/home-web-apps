@@ -14,6 +14,6 @@ secrets:
       - secretName: harbor.local.abbottland.io - admin
         secretKey: password
         envVarName: HARBOR_PASSWORD
-      - secretName: GitHub Personal Access Token
-        secretKey: token
+      - secretName: Github PAT
+        secretKey: github_pat
         envVarName: GITHUB_TOKEN
