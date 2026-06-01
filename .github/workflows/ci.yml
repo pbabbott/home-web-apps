@@ -145,14 +145,6 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
-      - name: Tag PR image
-        if: github.event_name == 'pull_request'
-        run: bash ./scripts/docker-tag-pr.sh
-        env:
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ env.PR_NUMBER }}
-          IMAGE_REPO: ${{ env.IMAGE_REPO }}
-
   fui-components-ui-tests:
     needs: [build]
     runs-on: [prod-gen2-dind-runner]
@@ -470,7 +462,7 @@ jobs:
         run: |
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
-          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "image=${{ env.IMAGE_REPO }}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Deploy preview environment
         run: bash ./scripts/deploy-preview.sh

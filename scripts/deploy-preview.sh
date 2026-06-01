@@ -4,7 +4,7 @@
 #   PR_NUMBER=42 bash ./scripts/deploy-preview.sh
 #
 # CI passes additional vars to be explicit:
-#   PR_NUMBER=42 HEAD_SHA=<full-sha> IMAGE=<repo>:pr-42-<sha7> bash ./scripts/deploy-preview.sh
+#   PR_NUMBER=42 HEAD_SHA=<full-sha> IMAGE=<repo>:sha-<sha7> bash ./scripts/deploy-preview.sh
 
 set -euo pipefail
 
@@ -22,7 +22,7 @@ SHORT_SHA="${HEAD_SHA::7}"
 
 IMAGE_SOURCE="env"
 if [ -z "${IMAGE:-}" ]; then
-    IMAGE="${IMAGE_REPO}:pr-${PR_NUMBER:-}-${SHORT_SHA}"
+    IMAGE="${IMAGE_REPO}:sha-${SHORT_SHA}"
     IMAGE_SOURCE="derived"
 fi
 
@@ -81,9 +81,9 @@ if [ "$HTTP_STATUS" != "200" ]; then
     echo "Error: image not found in registry (HTTP ${HTTP_STATUS})."
     echo "  ${IMAGE}"
     echo ""
-    echo "CI 'Tag PR image' step may not have run yet."
+    echo "CI 'Publish SHA-tagged images' step may not have run yet."
     echo "Either wait for CI or push manually:"
-    echo "  COMMIT_SHA=${HEAD_SHA} PR_NUMBER=${PR_NUMBER} bash ./scripts/docker-tag-pr.sh"
+    echo "  COMMIT_SHA=${HEAD_SHA} bash ./scripts/docker-publish-sha.sh"
     exit 1
 fi
 echo "  OK — image found."
