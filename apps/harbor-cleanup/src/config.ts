@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import cron from 'node-cron';
 import {
   ConfigSection,
   EnvironmentVariable,
@@ -42,6 +43,15 @@ export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   prodKeepCount: number = 5;
 
+  @EnvironmentVariable()
+  cronExpression: string = '0 3 * * *';
+
+  @EnvironmentVariable({
+    variableName: 'TZ',
+    variableType: EnvironmentVariableType.STRING,
+  })
+  TZ: string = 'America/Chicago';
+
   @ConfigSection({ sectionPrefix: 'HARBOR' })
   harbor = new HarborConfig();
 
@@ -74,6 +84,10 @@ export const validateConfig = () => {
   if (!config.gitHub.owner) errors.push('GITHUB_OWNER');
   if (!config.gitHub.repo) errors.push('GITHUB_REPO');
   if (!config.cleanupRepositories) errors.push('CLEANUP_REPOSITORIES');
+  if (!config.cronExpression) errors.push('CLEANUP_CRON_EXPRESSION');
+  if (!cron.validate(config.cronExpression))
+    errors.push('CLEANUP_CRON_EXPRESSION is not a valid cron expression');
+  if (!config.TZ) errors.push('TZ');
 
   if (errors.length) {
     errors.forEach((x) => console.error('Missing config variable: ' + x));

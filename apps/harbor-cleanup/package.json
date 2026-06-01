@@ -20,7 +20,9 @@
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
     "@kubernetes/client-node": "^0.22.3",
+    "cronstrue": "^2.59.0",
     "express": "catalog:",
+    "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
@@ -31,6 +33,7 @@
     "@types/express": "catalog:",
     "@types/jest": "catalog:",
     "@types/node": "catalog:",
+    "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.3",
     "dotenv": "^16.6.1",
     "jest": "catalog:",
