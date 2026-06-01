@@ -1,0 +1,19 @@
+buildPreset: pnpm-turbo-docker-build
+build:
+  buildCache: harbor.local.abbottland.io/build-cache
+secrets:
+  generateEnv: true
+  envFile: .env
+  envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: harbor.local.abbottland.io - admin
+        secretKey: username
+        envVarName: HARBOR_USERNAME
+      - secretName: harbor.local.abbottland.io - admin
+        secretKey: password
+        envVarName: HARBOR_PASSWORD
+      - secretName: Github PAT
+        secretKey: github_pat
+        envVarName: GITHUB_TOKEN

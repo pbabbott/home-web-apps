@@ -19,6 +19,7 @@ export const makeBuildSettings = (
     // The trailing slash is needed here because of the dockerfile.
     buildArgs.PROJECT_DIR = `${projectMetadata.parentDirName}/`
     buildArgs.PROJECT = projectMetadata.projectName
+    buildArgs.IMAGE_TAG = image.split(':').pop() ?? ''
   }
 
   return {
