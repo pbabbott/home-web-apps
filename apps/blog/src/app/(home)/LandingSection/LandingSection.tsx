@@ -1,7 +1,7 @@
 'use client';
 import { useContext } from 'react';
 import { HexagonalBackground, Typography } from '@abbottland/fui-components';
-import ProgressiveTerminal from './ProgressiveTerminal';
+import LandingTerminal from './LandingTerminal';
 import { LandingSectionContext } from './LandingSection.Context';
 import LandingSectionTitle from './LandingSectionTitle';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
@@ -39,7 +39,7 @@ export default function LandingSection() {
             revealButtons={showControlDevices}
             onButtonsComplete={resumeTerminal}
           />
-          <ProgressiveTerminal animated={animationsEnabled} />
+          <LandingTerminal animated={animationsEnabled} />
         </div>
         <div className="flex items-center justify-end mt-auto py-4 absolute bottom-0 left-0 w-full">
           <Typography variant="caption" component="span">

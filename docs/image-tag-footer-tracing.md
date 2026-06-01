@@ -2,12 +2,17 @@
 
 Documents how `IMAGE_TAG` flows from source code to the live footer value.
 
-## Footer source
+## Footer sources
+
+This pattern is used in two apps.
+
+### blog
 
 `apps/blog/src/app/(home)/FooterSection/FooterSection.tsx`
 
 ```tsx
 const imageTag = process.env.IMAGE_TAG ?? 'dev';
+// rendered as <Typography variant="body1">{imageTag}</Typography>
 ```
 
 `apps/blog/next.config.mjs`
@@ -18,7 +23,26 @@ env: {
 },
 ```
 
-The `env` block in `next.config.mjs` inlines `IMAGE_TAG` into the Next.js bundle at **build time**. The home page is `'use client'`, which means it is statically pre-rendered (SSG) during `next build` — the footer HTML is generated once and baked in. The runtime pod env var does **not** re-render the footer.
+### diagram-maker
+
+`apps/diagram-maker/src/app/components/DiagramEditorClient.tsx`
+
+```tsx
+// small footer bar beneath the diagram editor
+<Typography variant="caption" className="text-neutral-600">
+  {process.env.IMAGE_TAG ?? 'dev'}
+</Typography>
+```
+
+`apps/diagram-maker/next.config.mjs`
+
+```js
+env: {
+  IMAGE_TAG: process.env.IMAGE_TAG ?? 'dev',
+},
+```
+
+The `env` block in `next.config.mjs` inlines `IMAGE_TAG` into the Next.js bundle at **build time** for both apps. Both pages/components are `'use client'` and statically pre-rendered (SSG) during `next build` — the version HTML is generated once and baked in. The runtime pod env var does **not** re-render the footer.
 
 ---
 
@@ -38,14 +62,14 @@ set-image-tag.sh
 
 ### Step details
 
-| Step | Where                                 | What happens                                                                                                |
-| ---- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 1    | `ci.yml` `build` job                  | `set-image-tag.sh` runs, writes `IMAGE_TAG=sha-<sha7>` to `$GITHUB_ENV`                                     |
-| 2    | `ci.yml` `build` job                  | `pnpm build` runs with `IMAGE_TAG` in environment                                                           |
-| 3    | `apps/blog/next.config.mjs`           | `env: { IMAGE_TAG }` inlines value into `next build` output                                                 |
-| 4    | `turbo.json` `@abbottland/blog#build` | `"env": ["IMAGE_TAG"]` includes the value in the Turbo cache key — different SHA = cache miss = fresh build |
-| 5    | `.next/server/app/index.html`         | Footer HTML contains the baked `sha-<sha7>` value                                                           |
-| 6    | `ci.yml` `build` job                  | `.next/**` artifact uploaded                                                                                |
+| Step | Where                                                                    | What happens                                                                                                |
+| ---- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 1    | `ci.yml` `build` job                                                     | `set-image-tag.sh` runs, writes `IMAGE_TAG=sha-<sha7>` to `$GITHUB_ENV`                                     |
+| 2    | `ci.yml` `build` job                                                     | `pnpm build` runs with `IMAGE_TAG` in environment                                                           |
+| 3    | `apps/blog/next.config.mjs`, `apps/diagram-maker/next.config.mjs`        | `env: { IMAGE_TAG }` inlines value into each app's `next build` output                                      |
+| 4    | `turbo.json` `@abbottland/blog#build`, `@abbottland/diagram-maker#build` | `"env": ["IMAGE_TAG"]` includes the value in the Turbo cache key — different SHA = cache miss = fresh build |
+| 5    | `.next/server/app/index.html` (both apps)                                | Version HTML contains the baked `sha-<sha7>` value                                                          |
+| 6    | `ci.yml` `build` job                                                     | `.next/**` artifacts uploaded                                                                               |
 
 ---
 
@@ -113,6 +137,8 @@ This sets `IMAGE_TAG` as a Node.js process env var in the running pod. For dynam
 
 ## Why it showed `dev` before the fix
 
+Applies to `blog`; same root cause would affect `diagram-maker` if it had been built before the fix.
+
 1. `next build` in the CI `build` job ran with no `IMAGE_TAG` set → `'dev'` fallback baked in
 2. Turbo remote cache stored this `dev` output
 3. Docker build (`pnpm-turbo.Dockerfile`) ran `turbo build` → cache hit → reused `dev` output
@@ -122,11 +148,13 @@ This sets `IMAGE_TAG` as a Node.js process env var in the running pod. For dynam
 
 ## Files changed to fix this
 
-| File                                                  | Change                                                       |
-| ----------------------------------------------------- | ------------------------------------------------------------ |
-| `apps/blog/next.config.mjs`                           | Added `env: { IMAGE_TAG }` to inline at build time           |
-| `docker/pnpm-turbo.Dockerfile`                        | Added `ARG IMAGE_TAG` / `ENV IMAGE_TAG` before `turbo build` |
-| `packages/abctl/.../docker-build-settings-builder.ts` | Pass `IMAGE_TAG` build arg (extracted from image tag)        |
-| `turbo.json`                                          | Added `"env": ["IMAGE_TAG"]` to `@abbottland/blog#build`     |
-| `scripts/set-image-tag.sh`                            | New script: computes `sha-<sha7>`, writes to `$GITHUB_ENV`   |
-| `.github/workflows/ci.yml`                            | Call `set-image-tag.sh` before `pnpm build` in `build` job   |
+| File                                                            | Change                                                                                              |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `apps/blog/next.config.mjs`                                     | Added `env: { IMAGE_TAG }` to inline at build time                                                  |
+| `apps/diagram-maker/next.config.mjs`                            | Same `env: { IMAGE_TAG }` — already present                                                         |
+| `apps/diagram-maker/src/app/components/DiagramEditorClient.tsx` | Added `Typography caption` footer bar beneath diagram editor showing `IMAGE_TAG`                    |
+| `docker/pnpm-turbo.Dockerfile`                                  | Added `ARG IMAGE_TAG` / `ENV IMAGE_TAG` before `turbo build`                                        |
+| `packages/abctl/.../docker-build-settings-builder.ts`           | Pass `IMAGE_TAG` build arg (extracted from image tag)                                               |
+| `turbo.json`                                                    | Added `"env": ["IMAGE_TAG"]` to both `@abbottland/blog#build` and `@abbottland/diagram-maker#build` |
+| `scripts/set-image-tag.sh`                                      | New script: computes `sha-<sha7>`, writes to `$GITHUB_ENV`                                          |
+| `.github/workflows/ci.yml`                                      | Call `set-image-tag.sh` before `pnpm build` in `build` job                                          |

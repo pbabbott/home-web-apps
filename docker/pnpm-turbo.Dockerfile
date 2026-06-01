@@ -4,7 +4,7 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS base
 RUN npm install pnpm turbo --global
-RUN pnpm config set store-dir ~/.pnpm-store
+RUN pnpm config set store-dir /root/.pnpm-store
 
 ###############################################################
 # Prune other projects from the monorepo
@@ -31,7 +31,7 @@ COPY --from=pruner /app/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /app/out/json/ .
 
 # First install the dependencies (as they change less often)
-RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store pnpm install --frozen-lockfile
 
 ###############################################################
 # Build the project (suitable for development)
@@ -51,7 +51,7 @@ CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 ###############################################################
 FROM development AS builder
 
-RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm prune --prod --no-optional
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store pnpm prune --prod --no-optional
 RUN rm -rf apps/*/src packages/*/src
 
 ###############################################################

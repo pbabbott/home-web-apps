@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Button, Typography, HorizontalRule } from '@abbottland/fui-components';
 import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons';
 
-export default function FooterSection() {
+export default function Footer() {
   const imageTag = process.env.IMAGE_TAG ?? 'dev';
   return (
     <footer className="bg-neutral-950 w-full">
