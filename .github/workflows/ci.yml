@@ -141,6 +141,13 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          buildkitd-config-inline: |
+            [registry."docker.io"]
+              mirrors = ["harbor.local.abbottland.io/proxy-dockerhub"]
+            [registry."ghcr.io"]
+              mirrors = ["harbor.local.abbottland.io/proxy-ghcr"]
 
       - name: Free runner disk space
         run: docker system prune -f
