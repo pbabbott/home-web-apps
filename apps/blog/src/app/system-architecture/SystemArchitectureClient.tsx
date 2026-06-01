@@ -1,24 +1,125 @@
 'use client';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import { Typography } from '@abbottland/fui-components';
+import { DiagramViewer } from '@/components/diagram';
+import ProgressiveTerminal, {
+  type TerminalLine,
+} from '@/components/ProgressiveTerminal/ProgressiveTerminal';
+import Footer from '@/components/Footer/Footer';
+
+const emptyDiagram = { nodes: [], edges: [] };
+
+const introLines: TerminalLine[] = [
+  {
+    text: 'Initializing self-inspection routine... ',
+    endOfLineComponent: <span className="text-success-500">DONE</span>,
+  },
+  {
+    text: 'Target system: ',
+    endOfLineComponent: <span className="text-neutral-100">abbottland.io</span>,
+  },
+  {
+    text: 'Resolving abstraction levels... ',
+    endOfLineComponent: (
+      <span className="text-success-500">3 LEVELS FOUND</span>
+    ),
+  },
+  {
+    text: 'Generating infrastructure map... ',
+    endOfLineComponent: <span className="text-success-500">DONE</span>,
+  },
+  {
+    text: 'Rendering architecture powering this site.',
+  },
+  {
+    text: 'Expect increasing complexity.',
+  },
+];
+
+interface ArchSectionProps {
+  levelLabel: string;
+  heading: string;
+  description: string;
+  diagramHeight?: string;
+}
+
+function ArchSection({
+  levelLabel,
+  heading,
+  description,
+  diagramHeight = '400px',
+}: ArchSectionProps) {
+  return (
+    <section className="mb-20">
+      <Typography
+        variant="caption"
+        component="p"
+        className="text-neutral-500 mb-2"
+      >
+        {levelLabel}
+      </Typography>
+      <Typography variant="h2" component="h2" className="text-neutral-100 mb-3">
+        {heading}
+      </Typography>
+      <Typography
+        variant="body1"
+        component="p"
+        className="text-neutral-400 mb-6 max-w-2xl"
+      >
+        {description}
+      </Typography>
+      <DiagramViewer
+        data={emptyDiagram}
+        height={diagramHeight}
+        className="bg-neutral-800"
+      />
+    </section>
+  );
+}
 
 export default function SystemArchitectureClient() {
   return (
-    <div>
+    <div className="min-h-screen bg-neutral-900">
       <StickyHeader />
       <main className="pt-20 px-4">
-        <Typography
-          variant="h1"
-          component="h1"
-          className="text-neutral-100 mb-4"
-        >
-          System Architecture
-        </Typography>
-        <Typography variant="body1" component="p" className="text-neutral-400">
-          SECTION UNAVAILABLE. Construction protocols active. Content scheduled
-          for future deployment.
-        </Typography>
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-16">
+            <Typography
+              variant="h1"
+              component="h1"
+              className="text-neutral-100 mb-6"
+            >
+              System Architecture
+            </Typography>
+            <ProgressiveTerminal
+              lines={introLines}
+              className="max-w-2xl bg-neutral-950"
+            />
+          </div>
+
+          <ArchSection
+            levelLabel="Context Level :: C1"
+            heading="System Context"
+            description="Highest-order topology. One user device. One residential uplink. One Kubernetes cluster. Scope: everything that matters, nothing that doesn't. Complexity: acceptable."
+            diagramHeight="360px"
+          />
+
+          <ArchSection
+            levelLabel="Container Level :: C2"
+            heading="Infrastructure Containers"
+            description="Cluster internals exposed. Ingress controllers, application services, and persistent storage rendered as discrete units. Internal networking partially abstracted. Complexity: elevated."
+            diagramHeight="480px"
+          />
+
+          <ArchSection
+            levelLabel="Component Level :: C3"
+            heading="Service Components"
+            description="Maximum resolution. Individual service components, inter-process communication, and dependency chains fully mapped. Cognitive load: non-trivial. Proceed with intent."
+            diagramHeight="600px"
+          />
+        </div>
       </main>
+      <Footer />
     </div>
   );
 }

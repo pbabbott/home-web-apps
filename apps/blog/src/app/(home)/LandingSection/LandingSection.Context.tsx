@@ -1,5 +1,4 @@
 import { createContext, useCallback, useState } from 'react';
-import { TerminalEvent } from './TerminalEvent';
 
 export interface LandingSectionContextType {
   showBackgroundExperience: boolean;
@@ -11,8 +10,6 @@ export interface LandingSectionContextType {
   startBackgroundReveal: () => void;
   pauseTerminal: () => void;
   resumeTerminal: () => void;
-  onTerminalEventFinished: (event: TerminalEvent) => void;
-  onTerminalEventStarted: (event: TerminalEvent) => void;
 }
 
 export const LandingSectionContext = createContext<LandingSectionContextType>({
@@ -25,8 +22,6 @@ export const LandingSectionContext = createContext<LandingSectionContextType>({
   startBackgroundReveal: () => {},
   pauseTerminal: () => {},
   resumeTerminal: () => {},
-  onTerminalEventFinished: () => {},
-  onTerminalEventStarted: () => {},
 });
 
 export default function LandingSectionContextProvider({
@@ -52,9 +47,6 @@ export default function LandingSectionContextProvider({
   const pauseTerminal = useCallback(() => setIsTerminalPaused(true), []);
   const resumeTerminal = useCallback(() => setIsTerminalPaused(false), []);
 
-  const onTerminalEventFinished = useCallback(() => {}, []);
-  const onTerminalEventStarted = useCallback(() => {}, []);
-
   return (
     <LandingSectionContext.Provider
       value={{
@@ -67,8 +59,6 @@ export default function LandingSectionContextProvider({
         startBackgroundReveal,
         pauseTerminal,
         resumeTerminal,
-        onTerminalEventFinished,
-        onTerminalEventStarted,
       }}
     >
       {children}
