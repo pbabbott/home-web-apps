@@ -3,16 +3,18 @@
 import { Button, Typography } from '@abbottland/fui-components';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 
+const isLocal = process.env.NODE_ENV === 'development';
+
 interface ExportPanelProps {
   onClick: () => void;
-  onLoadPreset: () => void;
+  onLoadLocalDiagrams: () => void;
   nodeCount: number;
   edgeCount: number;
 }
 
 export function ExportPanel({
   onClick,
-  onLoadPreset,
+  onLoadLocalDiagrams,
   nodeCount,
   edgeCount,
 }: ExportPanelProps) {
@@ -28,9 +30,15 @@ export function ExportPanel({
         Import / Export
       </Button>
 
-      <Button onClick={onLoadPreset} color="accent-falcon" variant="outlined">
-        Load Preset
-      </Button>
+      {isLocal && (
+        <Button
+          onClick={onLoadLocalDiagrams}
+          color="accent-falcon"
+          variant="outlined"
+        >
+          Local Diagrams
+        </Button>
+      )}
 
       <Typography variant="body1" component="div" className="pr-3">
         {nodeCount} nodes | {edgeCount} edges

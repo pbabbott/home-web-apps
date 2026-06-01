@@ -1,12 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import { Button, Typography } from '@abbottland/fui-components';
 import { CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
-import { diagrams } from '../../../diagrams';
+import { useDiagramEditor } from '../DiagramEditorContext';
 
-export type Tab = 'export' | 'import' | 'presets';
+export type Tab = 'export' | 'import' | 'local-diagrams';
+
+const isLocal = process.env.NODE_ENV === 'development';
+
+interface LocalDiagram {
+  label: string;
+  filePath: string;
+  blogPost: string;
+  data: { nodes: Node[]; edges: Edge[] };
+}
 
 interface ImportExportModalProps {
   data: { nodes: Node[]; edges: Edge[] };
@@ -21,10 +30,23 @@ export function ImportExportModal({
   onClose,
   defaultTab = 'export',
 }: ImportExportModalProps) {
+  const { onLoadLocalDiagram } = useDiagramEditor();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [copied, setCopied] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
+  const [localDiagrams, setLocalDiagrams] = useState<LocalDiagram[]>([]);
+  const [loadingLocal, setLoadingLocal] = useState(false);
+
+  useEffect(() => {
+    if (!isLocal || activeTab !== 'local-diagrams') return;
+    setLoadingLocal(true);
+    fetch('/api/local-diagrams')
+      .then((r) => r.json())
+      .then((d: LocalDiagram[]) => setLocalDiagrams(d))
+      .catch(console.error)
+      .finally(() => setLoadingLocal(false));
+  }, [activeTab]);
 
   const handleCopyToClipboard = async () => {
     const json = JSON.stringify(data, null, 2);
@@ -103,12 +125,14 @@ export function ImportExportModal({
           >
             Import
           </button>
-          <button
-            className={tabClass('presets')}
-            onClick={() => setActiveTab('presets')}
-          >
-            Presets
-          </button>
+          {isLocal && (
+            <button
+              className={tabClass('local-diagrams')}
+              onClick={() => setActiveTab('local-diagrams')}
+            >
+              Local Diagrams
+            </button>
+          )}
         </div>
 
         {activeTab === 'export' && (
@@ -183,35 +207,56 @@ export function ImportExportModal({
             </div>
           </>
         )}
-        {activeTab === 'presets' && (
-          <ul className="flex-1 overflow-auto flex flex-col gap-1">
-            {diagrams.map((diagram) => (
-              <li key={diagram.id}>
-                <button
-                  onClick={() => {
-                    onImport(diagram.data as { nodes: Node[]; edges: Edge[] });
-                    onClose();
-                  }}
-                  className="w-full text-left px-4 py-3 rounded-lg bg-secondary-900 hover:bg-secondary-700 border border-secondary-700 hover:border-primary-500 transition-colors"
-                >
-                  <Typography
-                    variant="body1"
-                    component="span"
-                    className="block text-secondary-100"
-                  >
-                    {diagram.label}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    component="span"
-                    className="block text-secondary-400 mt-0.5"
-                  >
-                    {diagram.blogPost}
-                  </Typography>
-                </button>
-              </li>
-            ))}
-          </ul>
+
+        {activeTab === 'local-diagrams' && isLocal && (
+          <>
+            {loadingLocal ? (
+              <Typography
+                variant="body1"
+                component="p"
+                className="text-secondary-400"
+              >
+                Loading...
+              </Typography>
+            ) : localDiagrams.length === 0 ? (
+              <Typography
+                variant="body1"
+                component="p"
+                className="text-secondary-400"
+              >
+                No diagram JSON files found in blog content.
+              </Typography>
+            ) : (
+              <ul className="flex-1 overflow-auto flex flex-col gap-1">
+                {localDiagrams.map((diagram) => (
+                  <li key={diagram.filePath}>
+                    <button
+                      onClick={() => {
+                        onLoadLocalDiagram(diagram.filePath, diagram.data);
+                        onClose();
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-lg bg-secondary-900 hover:bg-secondary-700 border border-secondary-700 hover:border-primary-500 transition-colors"
+                    >
+                      <Typography
+                        variant="body1"
+                        component="span"
+                        className="block text-secondary-100"
+                      >
+                        {diagram.label}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        className="block text-secondary-400 mt-0.5"
+                      >
+                        {diagram.blogPost}
+                      </Typography>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </div>
     </div>
