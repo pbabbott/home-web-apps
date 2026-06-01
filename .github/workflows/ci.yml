@@ -151,7 +151,7 @@ jobs:
               mirrors = ["harbor.local.abbottland.io/proxy-ghcr"]
 
       - name: Free runner disk space
-        run: docker system prune -f
+        run: docker system prune -af
         shell: bash
 
       - name: Publish SHA-tagged images
