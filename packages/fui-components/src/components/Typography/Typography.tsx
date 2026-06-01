@@ -37,8 +37,8 @@ export const Typography: React.FC<TypographyProps> = ({
 }) => {
   const baseClasses = 'text-neutral-50';
   const variantClasses = {
-    h1: 'font-ethnocentric text-h1 uppercase',
-    h2: 'font-ethnocentric text-h2 uppercase',
+    h1: 'font-ethnocentric text-[2.125rem] sm:text-h1 leading-none uppercase',
+    h2: 'font-ethnocentric text-[1.75rem] sm:text-h2 leading-none uppercase',
     h3: 'font-monobit text-h3 uppercase',
     h4: 'font-monobit text-h4 uppercase',
     h5: 'font-monobit text-h5 uppercase',

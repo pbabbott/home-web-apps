@@ -4,7 +4,7 @@
 #   PR_NUMBER=42 bash ./scripts/deploy-preview.sh
 #
 # CI passes additional vars to be explicit:
-#   PR_NUMBER=42 HEAD_SHA=<full-sha> IMAGE=<repo>:pr-42-<sha7> bash ./scripts/deploy-preview.sh
+#   PR_NUMBER=42 HEAD_SHA=<full-sha> IMAGE=<repo>:sha-<sha7> bash ./scripts/deploy-preview.sh
 
 set -euo pipefail
 
@@ -22,7 +22,7 @@ SHORT_SHA="${HEAD_SHA::7}"
 
 IMAGE_SOURCE="env"
 if [ -z "${IMAGE:-}" ]; then
-    IMAGE="${IMAGE_REPO}:pr-${PR_NUMBER:-}-${SHORT_SHA}"
+    IMAGE="${IMAGE_REPO}:sha-${SHORT_SHA}"
     IMAGE_SOURCE="derived"
 fi
 
@@ -66,6 +66,29 @@ HARBOR_JSON=$(op item get "harbor.local.abbottland.io - admin" --format=json --v
 HARBOR_USER=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="username") | .value')
 HARBOR_PASS=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="password") | .value')
 
+# ── Verify image exists in registry ──────────────────────────────────────────
+REGISTRY_HOST="${IMAGE%%/*}"
+REPO_AND_TAG="${IMAGE#*/}"
+REPO_NAME="${REPO_AND_TAG%:*}"
+IMAGE_TAG="${REPO_AND_TAG##*:}"
+echo "Checking image exists: ${IMAGE}..."
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json" \
+    -u "${HARBOR_USER}:${HARBOR_PASS}" \
+    "https://${REGISTRY_HOST}/v2/${REPO_NAME}/manifests/${IMAGE_TAG}")
+if [ "$HTTP_STATUS" != "200" ]; then
+    echo ""
+    echo "Error: image not found in registry (HTTP ${HTTP_STATUS})."
+    echo "  ${IMAGE}"
+    echo ""
+    echo "CI 'Publish SHA-tagged images' step may not have run yet."
+    echo "Either wait for CI or push manually:"
+    echo "  COMMIT_SHA=${HEAD_SHA} bash ./scripts/docker-publish-sha.sh"
+    exit 1
+fi
+echo "  OK — image found."
+
+
 # ── Namespace + imagePullSecret ───────────────────────────────────────────────
 kubectl create namespace "pr-${PR_NUMBER}" \
     --dry-run=client -o yaml | kubectl apply -f -
@@ -83,13 +106,13 @@ kubectl create secret docker-registry regcred \
     --dry-run=client -o yaml | kubectl apply -f -
 
 # ── Apply manifests ───────────────────────────────────────────────────────────
-export PR_NUMBER IMAGE
+export PR_NUMBER IMAGE IMAGE_TAG
 awk 'FNR==1 && NR>1{print "---"}1' \
     apps/blog/k8s/pr-preview/namespace.yaml \
     apps/blog/k8s/pr-preview/deployment.yaml \
     apps/blog/k8s/pr-preview/service.yaml \
     apps/blog/k8s/pr-preview/httproute.yaml \
-    | envsubst '${PR_NUMBER} ${IMAGE}' \
+    | envsubst '${PR_NUMBER} ${IMAGE} ${IMAGE_TAG}' \
     | kubectl apply -f -
 
 # ── Wait for rollout ──────────────────────────────────────────────────────────

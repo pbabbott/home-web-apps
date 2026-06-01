@@ -136,18 +136,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and publish Docker images
-        run: pnpm docker:build
+      - name: Free runner disk space
+        run: docker system prune -f
         shell: bash
 
-      - name: Publish PR-specific blog image
-        if: github.event_name == 'pull_request'
-        run: |
-          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          SHORT_SHA="${HEAD_SHA::7}"
-          export ABCTL_IMAGE_TAG="pr-${{ env.PR_NUMBER }}-${SHORT_SHA}"
-          pnpm turbo run docker:publish --filter=@abbottland/blog
-        shell: bash
+      - name: Publish SHA-tagged images
+        run: bash ./scripts/docker-publish-sha.sh
+        env:
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
   fui-components-ui-tests:
     needs: [build]
@@ -424,8 +420,8 @@ jobs:
         shell: bash
 
   # ── Deploy preview ───────────────────────────────────────────────────────────
-  # Runs after all CI jobs pass on a PR. The PR-specific image was already
-  # pushed by docker-build (blog:pr-{N}-{sha7}), so this job only deploys it.
+  # Runs after all CI jobs pass on a PR. The floating pr-{N} tag was pushed by
+  # docker-build, so this job only deploys it.
   deploy-preview:
     needs:
       - build
@@ -466,7 +462,7 @@ jobs:
         run: |
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
-          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "image=${{ env.IMAGE_REPO }}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Deploy preview environment
         run: bash ./scripts/deploy-preview.sh

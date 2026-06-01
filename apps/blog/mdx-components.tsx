@@ -5,7 +5,7 @@ import { Typography } from '@abbottland/fui-components';
 import { DiagramViewer } from './src/components/diagram';
 // See: https://nextjs.org/docs/app/api-reference/file-conventions/mdx-components
 
-const baseClasses = 'not-prose mb-8';
+const baseClasses = 'mb-8';
 
 const components: MDXComponents = {
   h1: ({ children, ...props }) => (
@@ -75,6 +75,35 @@ const components: MDXComponents = {
     >
       {children}
     </Typography>
+  ),
+  ul: ({ children, ...props }) => (
+    <ul
+      className="list-disc pl-8 mb-8 space-y-1 font-monobit text-body1 text-neutral-50"
+      {...props}
+    >
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }) => (
+    <ol
+      className="list-decimal pl-8 mb-8 space-y-1 font-monobit text-body1 text-neutral-50"
+      {...props}
+    >
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }) => (
+    <li className="font-monobit text-body1 text-neutral-50" {...props}>
+      {children}
+    </li>
+  ),
+  blockquote: ({ children, ...props }) => (
+    <blockquote
+      className="border-l-4 border-primary-500 pl-6 mb-8 text-neutral-300 font-monobit text-body1"
+      {...props}
+    >
+      {children}
+    </blockquote>
   ),
   DiagramViewer,
 };

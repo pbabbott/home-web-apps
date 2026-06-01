@@ -27,4 +27,12 @@ test.describe('TypographyShowcase Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('blog-mobile', async ({ page }) => {
+    await gotoStory(page, 'showcase-typography--blog-mobile');
+    await expect(page).toHaveScreenshot(
+      'showcase-typography--blog-mobile.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

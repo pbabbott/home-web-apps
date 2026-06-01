@@ -2,8 +2,30 @@ import type { Preview } from '@storybook/react-vite';
 import { withThemeByDataAttribute } from '@storybook/addon-themes';
 import '../globals.css';
 
+export const viewports = {
+  s26ultra: {
+    name: 'S26 Ultra (Mobile)',
+    styles: { width: '384px', height: '690px' },
+    type: 'mobile' as const,
+  },
+  galaxyTabS7Plus: {
+    name: 'Galaxy Tab S7+ (Tablet)',
+    styles: { width: '824px', height: '1149px' },
+    type: 'tablet' as const,
+  },
+  desktop: {
+    name: 'Desktop',
+    styles: { width: '1280px', height: '832px' },
+    type: 'desktop' as const,
+  },
+};
+
 const preview: Preview = {
   parameters: {
+    viewport: {
+      options: viewports,
+    },
+
     backgrounds: {
       default: 'dark',
       options: {

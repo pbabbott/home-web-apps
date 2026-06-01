@@ -63,7 +63,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       <BlogMinimap />
       <article
         id="blog-article"
-        className="prose prose-invert mx-auto max-w-3xl px-4 py-24 text-neutral-100"
+        className="mx-auto max-w-3xl px-4 py-24 text-neutral-100"
       >
         <BlogPostBannerImage
           bannerImage={post.bannerImage}
@@ -78,9 +78,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           readTime={post.readTime}
           categories={post.categories}
         />
-        <div className="prose-headings:text-neutral-100 prose-p:text-neutral-300 prose-a:text-primary-400 prose-code:text-accent-purple-300 prose-pre:bg-neutral-900 prose-pre:border prose-pre:border-neutral-700">
-          <MDXContent slug={slug} />
-        </div>
+        <MDXContent slug={slug} />
       </article>
     </div>
   );

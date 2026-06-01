@@ -1,20 +1,20 @@
 import Link from 'next/link';
 import { Button, Typography, HorizontalRule } from '@abbottland/fui-components';
 import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons';
-import pkg from '../../../../package.json';
 
 export default function FooterSection() {
+  const imageTag = process.env.IMAGE_TAG ?? 'dev';
   return (
     <footer className="bg-neutral-950 w-full">
       <div className="max-w-screen-lg mx-auto px-6 py-12">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">
-          {/* Identity + version */}
+          {/* Identity + image tag */}
           <div className="flex flex-col items-center sm:items-start gap-1">
             <Typography variant="h6" className="text-neutral-100">
               Brandon Abbott
             </Typography>
             <Typography variant="body1" className="text-neutral-500">
-              v{pkg.version}
+              {imageTag}
             </Typography>
           </div>
 

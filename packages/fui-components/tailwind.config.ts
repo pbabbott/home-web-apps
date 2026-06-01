@@ -7,12 +7,12 @@ const config: Config = {
   theme: {
     extend: {
       fontSize: {
-        h1: ['3rem', { lineHeight: '1' }], // 48px
-        h2: ['2.125rem', { lineHeight: '1' }], // 34px
-        h3: ['4.25rem', { lineHeight: '.7' }], // 68px
-        h4: ['3.5rem', { lineHeight: '.8' }], // 56px
-        h5: ['2.5rem', { lineHeight: '.8' }], // 40px
-        h6: ['2.25rem', { lineHeight: '.8' }], // 36px
+        h1: ['2.625rem', { lineHeight: '.9' }], // 42px
+        h2: ['2.25rem', { lineHeight: '.9' }], // 36px
+        h3: ['4.25rem', { lineHeight: '.5' }], // 68px
+        h4: ['3.5rem', { lineHeight: '.5' }], // 56px
+        h5: ['2.5rem', { lineHeight: '.5' }], // 40px
+        h6: ['2.25rem', { lineHeight: '.5' }], // 36px
         body1: ['2rem', { lineHeight: '.8' }], // 32px
         body2: ['1.75rem', { lineHeight: '.8' }], // 28px
         button: ['1.75rem', { lineHeight: '.8' }], // 28px

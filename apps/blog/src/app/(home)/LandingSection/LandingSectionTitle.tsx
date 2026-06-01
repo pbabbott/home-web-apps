@@ -39,11 +39,10 @@ export default function LandingSectionTitle({
         delay={0}
         className="items-center flex-col flex"
       >
-        {/* clamp: scales from 1.5rem on small screens up to h1 natural size (3rem / 48px) */}
         <Typography
           variant="h1"
           component="h1"
-          className="mb-2 text-[clamp(1.5rem,7vw,3.5rem)]"
+          className="mb-2 text-[2rem] sm:text-h1"
         >
           Abbottland.io
         </Typography>

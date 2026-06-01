@@ -34,7 +34,9 @@
       "Bash(pnpm --filter diagram-maker exec tsc --noEmit)",
       "Bash(pnpm *)",
       "Bash(npx eslint *)",
-      "WebFetch(domain:www.radix-ui.com)"
+      "WebFetch(domain:www.radix-ui.com)",
+      "Bash(git push)",
+      "Bash(git push -u origin *)"
     ]
   }
 }

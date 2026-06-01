@@ -20,7 +20,7 @@ export default function BlogPostHeader({
       <Typography
         variant="h1"
         component="h1"
-        className="w-fit text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-neutral-50 to-accent-falcon-300"
+        className="w-full text-transparent bg-clip-text bg-gradient-to-r from-primary-500 via-neutral-50 to-accent-falcon-300 mb-4"
       >
         {title}
       </Typography>
