@@ -468,7 +468,9 @@ jobs:
       - name: Resolve preview image reference
         id: image
         run: |
-          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}" >> $GITHUB_OUTPUT
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          SHORT_SHA="${HEAD_SHA::7}"
+          echo "image=${{ env.IMAGE_REPO }}:pr-${{ env.PR_NUMBER }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Deploy preview environment
         run: bash ./scripts/deploy-preview.sh

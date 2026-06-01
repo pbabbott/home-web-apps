@@ -11,7 +11,7 @@ IMAGE_REPO="${IMAGE_REPO:-harbor.local.abbottland.io/library/blog}"
 
 SHORT_SHA="${COMMIT_SHA::7}"
 SOURCE_TAG="${IMAGE_REPO}:sha-${SHORT_SHA}"
-PR_TAG="${IMAGE_REPO}:pr-${PR_NUMBER}"
+PR_TAG="${IMAGE_REPO}:pr-${PR_NUMBER}-${SHORT_SHA}"
 
 echo "Tagging ${SOURCE_TAG} → ${PR_TAG}"
 docker pull "${SOURCE_TAG}"
