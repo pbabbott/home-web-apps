@@ -4,13 +4,13 @@
       "id": "node_8",
       "type": "labeled",
       "position": {
-        "x": 428.367135293793,
-        "y": 668.4275071245897
+        "x": 495.0022847878241,
+        "y": 669.7470150353627
       },
       "data": {
         "label": "Ingress Pattern",
         "content": "",
-        "width": 527,
+        "width": 393,
         "height": 119,
         "handles": [
           {
@@ -26,7 +26,7 @@
         ]
       },
       "measured": {
-        "width": 527,
+        "width": 393,
         "height": 119
       },
       "selected": false,
@@ -119,24 +119,8 @@
         "y": 513.6640625
       },
       "data": {
-        "content": "Grafana"
-      },
-      "measured": {
-        "width": 150,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node_2",
-      "type": "customDefault",
-      "position": {
-        "x": 610.867135293793,
-        "y": 695.4275071245897
-      },
-      "data": {
-        "content": "cert-manager"
+        "content": "Grafana",
+        "iconId": "grafana"
       },
       "measured": {
         "width": 150,
@@ -149,18 +133,22 @@
       "id": "node_3",
       "type": "customDefault",
       "position": {
-        "x": 444.867135293793,
-        "y": 697.9275071245897
+        "x": 516.1205624755294,
+        "y": 695.9482452584303
       },
       "data": {
-        "content": "Istio"
+        "content": "Istio",
+        "iconId": "kubernetes",
+        "width": 169,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 169,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
       "id": "node_5",
@@ -187,7 +175,8 @@
         "y": 514.1640625
       },
       "data": {
-        "content": "Prometheus"
+        "content": "Prometheus",
+        "iconId": "prometheus"
       },
       "measured": {
         "width": 150,
@@ -200,12 +189,13 @@
       "id": "node_9",
       "type": "customDefault",
       "position": {
-        "x": 773.867135293793,
-        "y": 695.9275071245897
+        "x": 697.3356764689652,
+        "y": 694.6079992138167
       },
       "data": {
         "content": "Load Balancer\n(haproxy)",
-        "colorScheme": "primary"
+        "colorScheme": "primary",
+        "iconId": "haproxy"
       },
       "measured": {
         "width": 150,
@@ -267,7 +257,8 @@
         "y": 870.1331318798832
       },
       "data": {
-        "content": "Proxmox with Terraform"
+        "content": "Proxmox with Terraform",
+        "iconId": "terraform"
       },
       "measured": {
         "width": 150,
@@ -284,7 +275,8 @@
         "y": 870.7928858352697
       },
       "data": {
-        "content": "Refine Ansible Playbooks"
+        "content": "Refine Ansible Playbooks",
+        "iconId": "ansible"
       },
       "measured": {
         "width": 150,

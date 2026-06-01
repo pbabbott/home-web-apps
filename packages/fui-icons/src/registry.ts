@@ -215,11 +215,25 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
 
   // custom icons (not in simple-icons)
   {
+    id: 'banana',
+    label: 'Banana',
+    slug: 'banana',
+    source: 'custom',
+    keywords: ['fruit', 'yellow'],
+  },
+  {
     id: 'haproxy',
     label: 'HAProxy',
     slug: 'haproxy',
     source: 'custom',
     keywords: ['load-balancer', 'proxy'],
+  },
+  {
+    id: 'router',
+    label: 'Router',
+    slug: 'router',
+    source: 'custom',
+    keywords: ['network', 'wifi', 'gateway'],
   },
 
   // radix icons (generic symbols for diagrams)

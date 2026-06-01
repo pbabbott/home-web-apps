@@ -28,7 +28,8 @@
             "type": "target",
             "position": "top"
           }
-        ]
+        ],
+        "iconId": "proxmox"
       },
       "measured": {
         "width": 511,

@@ -166,7 +166,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "router"
       },
       "measured": {
         "width": 240,
