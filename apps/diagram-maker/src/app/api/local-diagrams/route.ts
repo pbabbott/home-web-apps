@@ -22,7 +22,7 @@ async function readBlogPostDate(blogPostDir: string): Promise<string> {
 
 async function walkJsonFiles(
   dir: string,
-  baseDir: string,
+  srcDir: string,
 ): Promise<LocalDiagram[]> {
   const results: LocalDiagram[] = [];
   let entries;
@@ -34,9 +34,9 @@ async function walkJsonFiles(
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      results.push(...(await walkJsonFiles(fullPath, baseDir)));
+      results.push(...(await walkJsonFiles(fullPath, srcDir)));
     } else if (entry.isFile() && entry.name.endsWith('.json')) {
-      const rel = path.relative(baseDir, fullPath);
+      const rel = path.relative(srcDir, fullPath);
       const parts = rel.split(path.sep);
       try {
         const raw = await readFile(fullPath, 'utf-8');
@@ -62,14 +62,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const contentDir = path.resolve(process.cwd(), '../blog/src/content/blog');
-  const diagrams = await walkJsonFiles(contentDir, contentDir);
+  const blogSrcDir = path.resolve(process.cwd(), '../blog/src');
+  const contentDir = path.join(blogSrcDir, 'content/blog');
+  const systemArchDir = path.join(blogSrcDir, 'app/system-architecture');
 
-  diagrams.sort((a, b) => {
+  const [blogDiagrams, archDiagrams] = await Promise.all([
+    walkJsonFiles(contentDir, blogSrcDir),
+    walkJsonFiles(systemArchDir, blogSrcDir),
+  ]);
+
+  blogDiagrams.sort((a, b) => {
     if (b.date !== a.date) return b.date.localeCompare(a.date);
     if (a.blogPost !== b.blogPost) return a.blogPost.localeCompare(b.blogPost);
     return a.filePath.localeCompare(b.filePath);
   });
 
-  return NextResponse.json(diagrams);
+  return NextResponse.json([...archDiagrams, ...blogDiagrams]);
 }

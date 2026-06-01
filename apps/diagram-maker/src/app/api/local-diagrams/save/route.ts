@@ -22,9 +22,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const contentDir = path.resolve(process.cwd(), '../blog/src/content/blog');
-  const fullPath = path.resolve(contentDir, filePath);
-  if (!fullPath.startsWith(contentDir + path.sep)) {
+  const blogSrcDir = path.resolve(process.cwd(), '../blog/src');
+  const fullPath = path.resolve(blogSrcDir, filePath);
+  if (!fullPath.startsWith(blogSrcDir + path.sep)) {
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }
 

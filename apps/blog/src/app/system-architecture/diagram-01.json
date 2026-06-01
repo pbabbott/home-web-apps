@@ -1,0 +1,145 @@
+{
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "customDefault",
+      "position": {
+        "x": -210.55290303831532,
+        "y": 167.3478194331294
+      },
+      "data": {
+        "content": "End User\n(You)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1780350157858",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "labeled",
+      "position": {
+        "x": 415.30775362605635,
+        "y": 135.66673881446815
+      },
+      "data": {
+        "label": "My House",
+        "content": "",
+        "iconId": "radix-home",
+        "width": 192,
+        "height": 133
+      },
+      "measured": {
+        "width": 192,
+        "height": 133
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 438.30775362605635,
+        "y": 168.16673881446815
+      },
+      "data": {
+        "content": "Kubernetes Cluster",
+        "iconId": "kubernetes",
+        "colorScheme": "secondary",
+        "handles": [
+          {
+            "id": "handle-1780350262382",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "customDefault",
+      "position": {
+        "x": 187.8085342840463,
+        "y": 168.2527951452669
+      },
+      "data": {
+        "content": "Cloudflare",
+        "iconId": "cloudflare",
+        "handles": [
+          {
+            "id": "handle-1780350413493",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1780350413669",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_1",
+      "sourceHandle": "handle-1780350157858",
+      "target": "node_4",
+      "targetHandle": "handle-1780350413493",
+      "id": "xy-edge__node_1handle-1780350157858-node_4handle-1780350413493",
+      "selected": false,
+      "data": {
+        "label": "https://abbottland.io",
+        "color": "default"
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_4",
+      "sourceHandle": "handle-1780350413669",
+      "target": "node_3",
+      "targetHandle": "handle-1780350262382",
+      "id": "xy-edge__node_4handle-1780350413669-node_3handle-1780350262382",
+      "selected": false
+    }
+  ]
+}
