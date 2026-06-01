@@ -3,6 +3,24 @@ import { ReactFlow, ReactFlowProvider, type NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { neutral } from '../../tokens/colors';
 import { BaseNode, type BaseNodeProps, type BaseNodeData } from './BaseNode';
+import { IconRendererProvider } from '../DiagramViewer/IconRendererContext';
+import type { IconRenderer } from '../../types/icons';
+
+const placeholderIcon: IconRenderer = ({ size }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <rect x="2" y="2" width="20" height="20" rx="3" fill="#3b82f6" />
+    <rect x="7" y="7" width="4" height="4" fill="white" opacity="0.9" />
+    <rect x="13" y="7" width="4" height="4" fill="white" opacity="0.9" />
+    <rect x="7" y="13" width="4" height="4" fill="white" opacity="0.9" />
+    <rect x="13" y="13" width="4" height="4" fill="white" opacity="0.9" />
+  </svg>
+);
 
 // Wrapper component that renders BaseNode inside a minimal ReactFlow canvas
 function BaseNodeStoryWrapper(
@@ -63,6 +81,19 @@ function StoryContainer(props: Omit<BaseNodeProps, 'id'> & { id?: string }) {
   return (
     <ReactFlowProvider>
       <BaseNodeStoryWrapper {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+// Wrap with ReactFlowProvider + IconRendererProvider for icon stories
+function StoryContainerWithIcon(
+  props: Omit<BaseNodeProps, 'id'> & { id?: string },
+) {
+  return (
+    <ReactFlowProvider>
+      <IconRendererProvider renderer={placeholderIcon}>
+        <BaseNodeStoryWrapper {...props} />
+      </IconRendererProvider>
     </ReactFlowProvider>
   );
 }
@@ -207,6 +238,35 @@ export const MultilineContent: Story = {
       colorScheme: 'primary',
       width: 180,
       height: 100,
+    },
+    showLabel: true,
+    selected: false,
+  },
+};
+
+type IconStory = StoryObj<typeof StoryContainerWithIcon>;
+
+export const DefaultWithIcon: IconStory = {
+  render: (args) => <StoryContainerWithIcon {...args} />,
+  args: {
+    data: {
+      content: 'Node with icon',
+      colorScheme: 'primary',
+      iconId: 'placeholder',
+    },
+    showLabel: false,
+    selected: false,
+  },
+};
+
+export const LabeledWithIcon: IconStory = {
+  render: (args) => <StoryContainerWithIcon {...args} />,
+  args: {
+    data: {
+      label: 'Service',
+      content: 'Node with icon in label',
+      colorScheme: 'secondary',
+      iconId: 'placeholder',
     },
     showLabel: true,
     selected: false,

@@ -239,19 +239,17 @@ export function BaseNode({
         handleClassName="!w-2.5 !h-2.5 !bg-primary-500 !border-2 !border-secondary-800 !rounded-sm"
       />
 
-      {/* Icon in top-right - only shown when iconId is set and a renderer is provided */}
-      {data.iconId && renderIcon && (
-        <div className="absolute top-2 right-2 pointer-events-none opacity-80 z-10">
-          {renderIcon({ name: data.iconId, size: 20, colored: true })}
-        </div>
-      )}
-
       {/* Label in top-left - only shown if showLabel is true */}
       {showLabel && (
         <div
-          className={`absolute -top-3 left-2 px-2 py-0.5 ${colors.labelBg} ${borderClasses} text-xs font-medium z-10`}
+          className={`absolute -top-3 left-2 px-2 py-0.5 ${colors.labelBg} ${borderClasses} text-xs font-medium z-10 flex items-center gap-1`}
           onDoubleClick={handleLabelDoubleClick}
         >
+          {data.iconId && renderIcon && (
+            <div className="pointer-events-none flex-shrink-0">
+              {renderIcon({ name: data.iconId, size: 14, colored: true })}
+            </div>
+          )}
           {isEditingLabel ? (
             <textarea
               ref={labelInputRef}
@@ -278,12 +276,17 @@ export function BaseNode({
 
       {/* Node content area - double-click to edit */}
       <div
-        className={`h-full flex items-center ${showLabel ? 'justify-start' : 'justify-center'} overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'}`}
+        className={`h-full flex items-center ${showLabel ? 'justify-start' : 'justify-center'} overflow-hidden ${showLabel ? 'p-3 pt-5' : 'p-3'} gap-2`}
         onDoubleClick={!isEditingContent ? handleContentDoubleClick : undefined}
         style={{
           pointerEvents: isEditingContent ? 'auto' : 'none',
         }}
       >
+        {!showLabel && data.iconId && renderIcon && (
+          <div className="pointer-events-none flex-shrink-0">
+            {renderIcon({ name: data.iconId, size: 18, colored: true })}
+          </div>
+        )}
         {isEditingContent ? (
           <textarea
             ref={contentInputRef}
