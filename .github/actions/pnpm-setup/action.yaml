@@ -3,24 +3,24 @@ description: 'A composite action to run pnpm setup'
 runs:
   using: 'composite'
   steps:
+    - name: Install libatomic (required by pnpm/Node 26)
+      run: sudo apt-get update && sudo apt-get install -y libatomic1
+      shell: bash
+
     - name: Setup PNPM
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v6
 
     - name: Ensure Node.js directory exists
       run: mkdir -p ~/.nvm/versions/node
       shell: bash
 
     - name: Cache Node.js
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.nvm/versions/node
         key: ${{ runner.os }}-node-${{ hashFiles('**/.nvmrc') }}
         restore-keys: |
           ${{ runner.os }}-node-
-
-    - name: Install libatomic (required by Node 26)
-      run: sudo apt-get update && sudo apt-get install -y libatomic1
-      shell: bash
 
     - name: Install Node.js
       uses: actions/setup-node@v4

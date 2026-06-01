@@ -7,3 +7,5 @@ next-env.d.ts
 
 packages/abctl/README.md
 packages/abctl/oclif.manifest.json
+
+claude-sessions/
