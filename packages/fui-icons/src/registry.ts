@@ -108,6 +108,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['web-server', 'proxy', 'load-balancer'],
   },
   {
+    id: 'n8n',
+    label: 'n8n',
+    slug: 'n8n',
+    source: 'simple',
+    keywords: ['automation', 'workflow', 'integration'],
+  },
+  {
     id: 'nodejs',
     label: 'Node.js',
     slug: 'nodedotjs',
@@ -134,6 +141,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'postgresql',
     source: 'simple',
     keywords: ['database', 'sql', 'rdbms'],
+  },
+  {
+    id: 'proxmox',
+    label: 'Proxmox',
+    slug: 'proxmox',
+    source: 'simple',
+    keywords: ['virtualization', 'hypervisor', 'homelab'],
   },
   {
     id: 'prometheus',
@@ -215,6 +229,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'GlobeIcon',
     source: 'radix',
     keywords: ['web', 'internet', 'network', 'world'],
+  },
+  {
+    id: 'radix-home',
+    label: 'Home',
+    slug: 'HomeIcon',
+    source: 'radix',
+    keywords: ['house', 'home', 'local', 'origin'],
   },
   {
     id: 'radix-desktop',
