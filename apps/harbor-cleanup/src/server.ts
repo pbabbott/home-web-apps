@@ -5,6 +5,7 @@ import {
 } from '@abbottland/express';
 import { doCleanup } from './controllers/cleanup';
 import { getStatus } from './controllers/status';
+import { getMetrics } from './controllers/metrics';
 import { config } from './config';
 
 export const createServer = (): Express => {
@@ -13,7 +14,10 @@ export const createServer = (): Express => {
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
 
-  app.post('/cleanup', doCleanup).get('/status', getStatus);
+  app
+    .post('/cleanup', doCleanup)
+    .get('/status', getStatus)
+    .get('/metrics', getMetrics);
 
   return app;
 };

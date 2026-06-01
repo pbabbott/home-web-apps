@@ -3,7 +3,7 @@ import {ProjectMetadata} from '../project-metadata.js'
 import {makeBuildSettings} from './docker-build-settings-builder.js'
 
 describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', () => {
-  const image = 'one_cool_image'
+  const image = 'one_cool_image:20260101-1-abc1234'
 
   const dockerBuildConfig: DockerBuildConfig = {
     baseImage: 'node:22-alpine',
@@ -44,6 +44,7 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
         BASE_IMAGE: dockerBuildConfig.baseImage,
         PROJECT_DIR: `${projectMetadata.parentDirName}/`,
         PROJECT: projectMetadata.projectName,
+        IMAGE_TAG: '20260101-1-abc1234',
       })
     })
     it('should not set cacheRef', () => {
