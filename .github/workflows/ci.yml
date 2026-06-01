@@ -140,11 +140,7 @@ jobs:
         run: docker system prune -f
         shell: bash
 
-      - name: Build blog Docker image
-        run: pnpm turbo run docker:build --filter=@abbottland/blog
-        shell: bash
-
-      - name: Publish SHA-tagged blog image
+      - name: Publish SHA-tagged images
         run: bash ./scripts/docker-publish-sha.sh
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}

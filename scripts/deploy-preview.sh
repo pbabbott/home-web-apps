@@ -73,6 +73,7 @@ REPO_NAME="${REPO_AND_TAG%:*}"
 IMAGE_TAG="${REPO_AND_TAG##*:}"
 echo "Checking image exists: ${IMAGE}..."
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json" \
     -u "${HARBOR_USER}:${HARBOR_PASS}" \
     "https://${REGISTRY_HOST}/v2/${REPO_NAME}/manifests/${IMAGE_TAG}")
 if [ "$HTTP_STATUS" != "200" ]; then
