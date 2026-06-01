@@ -1,7 +1,9 @@
 import { KubeConfig, CoreV1Api } from '@kubernetes/client-node';
+import { RequestThrottler } from '../throttle.js';
 
 export class KubernetesClient {
   private coreApi: CoreV1Api | null = null;
+  private readonly throttler = new RequestThrottler(200);
 
   constructor() {
     try {
@@ -21,6 +23,7 @@ export class KubernetesClient {
     if (!this.coreApi) return new Set();
 
     try {
+      await this.throttler.wait();
       const res = await this.coreApi.listPodForAllNamespaces();
       const tags = new Set<string>();
 

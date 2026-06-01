@@ -1,3 +1,5 @@
+import { RequestThrottler } from '../throttle.js';
+
 export interface HarborTag {
   name: string;
 }
@@ -10,6 +12,7 @@ export interface HarborArtifact {
 export class HarborClient {
   private readonly baseUrl: string;
   private readonly authHeader: string;
+  private readonly throttler = new RequestThrottler(200);
 
   constructor(host: string, username: string, password: string) {
     this.baseUrl = `https://${host}/api/v2.0`;
@@ -27,6 +30,7 @@ export class HarborClient {
 
     while (true) {
       const url = `${this.baseUrl}/projects/${project}/repositories/${encodeURIComponent(repository)}/artifacts?with_tag=true&page_size=${pageSize}&page=${page}`;
+      await this.throttler.wait();
       const res = await fetch(url, {
         headers: { Authorization: this.authHeader, Accept: 'application/json' },
       });
@@ -54,6 +58,7 @@ export class HarborClient {
     tag: string,
   ): Promise<void> {
     const url = `${this.baseUrl}/projects/${project}/repositories/${encodeURIComponent(repository)}/artifacts/${encodeURIComponent(digest)}/tags/${encodeURIComponent(tag)}`;
+    await this.throttler.wait();
     const res = await fetch(url, {
       method: 'DELETE',
       headers: { Authorization: this.authHeader },

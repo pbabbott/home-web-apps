@@ -1,3 +1,5 @@
+import { RequestThrottler } from '../throttle.js';
+
 export type PullRequestState = 'open' | 'closed';
 
 export interface PullRequest {
@@ -10,6 +12,7 @@ export class GitHubClient {
   private readonly baseUrl = 'https://api.github.com';
   private readonly authHeader: string;
   private readonly repoPath: string;
+  private readonly throttler = new RequestThrottler(200);
 
   constructor(token: string, owner: string, repo: string) {
     this.authHeader = `Bearer ${token}`;
@@ -18,6 +21,7 @@ export class GitHubClient {
 
   async getPullRequest(prNumber: number): Promise<PullRequest | null> {
     const url = `${this.baseUrl}/repos/${this.repoPath}/pulls/${prNumber}`;
+    await this.throttler.wait();
     const res = await fetch(url, {
       headers: {
         Authorization: this.authHeader,
@@ -50,6 +54,7 @@ export class GitHubClient {
 
     while (true) {
       const url = `${this.baseUrl}/repos/${this.repoPath}/pulls?state=open&per_page=100&page=${page}`;
+      await this.throttler.wait();
       const res = await fetch(url, {
         headers: {
           Authorization: this.authHeader,
