@@ -14,7 +14,7 @@ test.describe('Panel Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-panel--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-panel--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Panel Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'components-panel--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-panel--primary.png',
       SCREENSHOT_OPTIONS,
     );

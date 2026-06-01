@@ -19,6 +19,5 @@ export const STANDARD_VIEWPORT = { width: 1280, height: 720 };
  * Standard screenshot options for visual regression tests
  */
 export const SCREENSHOT_OPTIONS = {
-  fullPage: true,
   animations: 'disabled' as const,
 };

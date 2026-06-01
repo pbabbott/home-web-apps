@@ -14,7 +14,7 @@ test.describe('LabeledNode Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-labelednode--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-labelednode--default.png',
       SCREENSHOT_OPTIONS,
     );

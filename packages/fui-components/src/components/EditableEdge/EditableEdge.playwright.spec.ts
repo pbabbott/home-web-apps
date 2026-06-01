@@ -14,7 +14,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('new-edge', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--new-edge');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--new-edge.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('new-edge-primary-color', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--new-edge-primary-color');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--new-edge-primary-color.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('editing', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--editing');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--editing.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('default-color', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--default-color');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--default-color.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('with-label', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--with-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--with-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,7 +62,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('long-label', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--long-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--long-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -70,7 +70,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('multi-line-label', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--multi-line-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--multi-line-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -78,7 +78,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('primary-color', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--primary-color');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--primary-color.png',
       SCREENSHOT_OPTIONS,
     );
@@ -86,7 +86,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('secondary-color', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--secondary-color');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--secondary-color.png',
       SCREENSHOT_OPTIONS,
     );
@@ -94,7 +94,7 @@ test.describe('EditableEdge Visual Regression Tests', () => {
 
   test('multiple-edges', async ({ page }) => {
     await gotoStory(page, 'diagrams-editableedge--multiple-edges');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-editableedge--multiple-edges.png',
       SCREENSHOT_OPTIONS,
     );

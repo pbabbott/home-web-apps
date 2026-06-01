@@ -14,7 +14,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('body-2', async ({ page }) => {
     await gotoStory(page, 'components-typography--body-2');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--body-2.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('body-1', async ({ page }) => {
     await gotoStory(page, 'components-typography--body-1');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--body-1.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('caption', async ({ page }) => {
     await gotoStory(page, 'components-typography--caption');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--caption.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('small', async ({ page }) => {
     await gotoStory(page, 'components-typography--small');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--small.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('button', async ({ page }) => {
     await gotoStory(page, 'components-typography--button');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--button.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-1', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-1');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-1.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,7 +62,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-2', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-2');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-2.png',
       SCREENSHOT_OPTIONS,
     );
@@ -70,7 +70,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-3', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-3');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-3.png',
       SCREENSHOT_OPTIONS,
     );
@@ -78,7 +78,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-4', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-4');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-4.png',
       SCREENSHOT_OPTIONS,
     );
@@ -86,7 +86,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-5', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-5');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-5.png',
       SCREENSHOT_OPTIONS,
     );
@@ -94,7 +94,7 @@ test.describe('Typography Visual Regression Tests', () => {
 
   test('h-6', async ({ page }) => {
     await gotoStory(page, 'components-typography--h-6');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-typography--h-6.png',
       SCREENSHOT_OPTIONS,
     );

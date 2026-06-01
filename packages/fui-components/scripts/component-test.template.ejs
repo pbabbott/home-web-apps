@@ -11,7 +11,7 @@ test.describe('<%= componentName %> Visual Regression Tests', () => {
 <% tests.forEach(function(testCase) { %>
   test('<%- testCase.name %>', async ({ page }) => {
     await gotoStory(page, '<%- testCase.storyId %>');
-    await expect(page).toHaveScreenshot('<%- testCase.screenshotName %>', SCREENSHOT_OPTIONS);
+    await expect(page.locator('#storybook-root')).toHaveScreenshot('<%- testCase.screenshotName %>', SCREENSHOT_OPTIONS);
   });
 
 <% }); %>

@@ -14,7 +14,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-card--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'components-card--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'components-card--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('large', async ({ page }) => {
     await gotoStory(page, 'components-card--large');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--large.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('large-primary', async ({ page }) => {
     await gotoStory(page, 'components-card--large-primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--large-primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('Card Visual Regression Tests', () => {
 
   test('with-dot-grid', async ({ page }) => {
     await gotoStory(page, 'components-card--with-dot-grid');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-card--with-dot-grid.png',
       SCREENSHOT_OPTIONS,
     );

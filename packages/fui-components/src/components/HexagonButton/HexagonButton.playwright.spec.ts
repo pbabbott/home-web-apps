@@ -14,7 +14,7 @@ test.describe('HexagonButton Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-hexagonbutton--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonbutton--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('HexagonButton Visual Regression Tests', () => {
 
   test('with-label', async ({ page }) => {
     await gotoStory(page, 'components-hexagonbutton--with-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonbutton--with-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -33,7 +33,7 @@ test.describe('HexagonButton Visual Regression Tests', () => {
       page,
       'components-hexagonbutton--with-label-and-lower-label',
     );
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonbutton--with-label-and-lower-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -41,7 +41,7 @@ test.describe('HexagonButton Visual Regression Tests', () => {
 
   test('long-label', async ({ page }) => {
     await gotoStory(page, 'components-hexagonbutton--long-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonbutton--long-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -49,7 +49,7 @@ test.describe('HexagonButton Visual Regression Tests', () => {
 
   test('active', async ({ page }) => {
     await gotoStory(page, 'components-hexagonbutton--active');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonbutton--active.png',
       SCREENSHOT_OPTIONS,
     );

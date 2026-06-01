@@ -28,7 +28,7 @@ export interface BadgeProps {
   className?: string;
 }
 
-const POINT_DEPTH = 16; // px — fixed regardless of badge width
+const POINT_DEPTH = 10; // px — fixed regardless of badge width
 
 function hexPoints(w: number, h: number): string {
   const p = POINT_DEPTH;

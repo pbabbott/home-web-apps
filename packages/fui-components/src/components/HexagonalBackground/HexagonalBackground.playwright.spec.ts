@@ -14,7 +14,7 @@ test.describe('HexagonalBackground Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-hexagonalbackground--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-hexagonalbackground--default.png',
       SCREENSHOT_OPTIONS,
     );

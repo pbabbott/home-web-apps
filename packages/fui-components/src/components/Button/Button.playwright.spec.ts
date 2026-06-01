@@ -14,7 +14,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-primary', async ({ page }) => {
     await gotoStory(page, 'components-button--color-primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-secondary', async ({ page }) => {
     await gotoStory(page, 'components-button--color-secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-success', async ({ page }) => {
     await gotoStory(page, 'components-button--color-success');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-success.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-error', async ({ page }) => {
     await gotoStory(page, 'components-button--color-error');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-error.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-warning', async ({ page }) => {
     await gotoStory(page, 'components-button--color-warning');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-accent-purple', async ({ page }) => {
     await gotoStory(page, 'components-button--color-accent-purple');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,7 +62,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('color-accent-falcon', async ({ page }) => {
     await gotoStory(page, 'components-button--color-accent-falcon');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--color-accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
@@ -70,7 +70,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('as-link', async ({ page }) => {
     await gotoStory(page, 'components-button--as-link');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--as-link.png',
       SCREENSHOT_OPTIONS,
     );
@@ -78,7 +78,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('variant-contained', async ({ page }) => {
     await gotoStory(page, 'components-button--variant-contained');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--variant-contained.png',
       SCREENSHOT_OPTIONS,
     );
@@ -86,7 +86,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('variant-outlined', async ({ page }) => {
     await gotoStory(page, 'components-button--variant-outlined');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--variant-outlined.png',
       SCREENSHOT_OPTIONS,
     );
@@ -94,7 +94,7 @@ test.describe('Button Visual Regression Tests', () => {
 
   test('variant-text', async ({ page }) => {
     await gotoStory(page, 'components-button--variant-text');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--variant-text.png',
       SCREENSHOT_OPTIONS,
     );

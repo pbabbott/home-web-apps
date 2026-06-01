@@ -52,5 +52,9 @@ const NavbarWithDropdown = () => {
 };
 
 export const InsideFixedHeader: Story = {
-  render: () => <NavbarWithDropdown />,
+  render: () => (
+    <div className="relative h-20 w-full">
+      <NavbarWithDropdown />
+    </div>
+  ),
 };

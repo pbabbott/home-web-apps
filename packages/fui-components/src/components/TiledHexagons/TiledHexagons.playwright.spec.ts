@@ -14,7 +14,7 @@ test.describe('TiledHexagons Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-tiledhexagons--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-tiledhexagons--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('TiledHexagons Visual Regression Tests', () => {
 
   test('custom-grid', async ({ page }) => {
     await gotoStory(page, 'components-tiledhexagons--custom-grid');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-tiledhexagons--custom-grid.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('TiledHexagons Visual Regression Tests', () => {
 
   test('custom-gap-three-columns', async ({ page }) => {
     await gotoStory(page, 'components-tiledhexagons--custom-gap-three-columns');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-tiledhexagons--custom-gap-three-columns.png',
       SCREENSHOT_OPTIONS,
     );

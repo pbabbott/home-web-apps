@@ -14,7 +14,7 @@ test.describe('DiagramViewer Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-diagramviewer--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-diagramviewer--default.png',
       SCREENSHOT_OPTIONS,
     );
