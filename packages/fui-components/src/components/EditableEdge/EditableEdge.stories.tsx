@@ -241,8 +241,8 @@ export const LongLabel: Story = {
 
 export const MultiLineLabel: Story = {
   args: {
-    edgeLabel: 'Line 1\nLine 2\nLine 3',
-    edgeColor: 'default',
+    edgeLabel: 'Line 1\nLine 2',
+    edgeColor: 'primary',
     node1Color: 'primary',
     node2Color: 'secondary',
   },
