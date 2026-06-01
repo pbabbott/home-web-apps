@@ -54,7 +54,7 @@ export default function BlogPostCard({
   };
 
   return (
-    <Card color="primary" size={size} onClick={handleCardClick}>
+    <Card color="primary" size={size} onClick={handleCardClick} className="flex flex-col h-full">
       <BlogPostBannerImage
         bannerImage={bannerImage}
         slug={slug}
@@ -62,6 +62,13 @@ export default function BlogPostCard({
         containerClassName="w-full h-32 rounded-md mb-4 overflow-hidden relative"
         imageSizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
+      <Typography
+        variant="h3"
+        component="h3"
+        className="w-fit text-transparent bg-clip-text bg-neutral-200 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-primary-500 group-hover:via-neutral-50 group-hover:to-accent-falcon-300 mb-4"
+      >
+        {title}
+      </Typography>
       {categories && categories.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {categories.map((category) => (
@@ -71,13 +78,6 @@ export default function BlogPostCard({
           ))}
         </div>
       )}
-      <Typography
-        variant="h3"
-        component="h3"
-        className="w-fit text-transparent bg-clip-text bg-neutral-200 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-primary-500 group-hover:via-neutral-50 group-hover:to-accent-falcon-300"
-      >
-        {title}
-      </Typography>
       <Typography
         variant="body2"
         className="mb-4 text-neutral-300 transition-all duration-300 group-hover:text-neutral-50 line-clamp-3"
@@ -94,11 +94,13 @@ export default function BlogPostCard({
           {readTime}
         </Typography>
       </div>
+      <div className="mt-auto">
       <HorizontalRule color="primary" />
       <div className="flex justify-end">
         <Button color="primary" variant="text" onClick={handleReadMore}>
           &gt; READ_MORE
         </Button>
+      </div>
       </div>
     </Card>
   );

@@ -36,6 +36,13 @@ export default function BlogFeed() {
         <>
           {heroPost && (
             <section className="mb-16">
+              <Typography
+                variant="h3"
+                component="h2"
+                className="text-neutral-300 mb-8 border-l-4 border-primary-500 pl-4"
+              >
+                Featured Transmission
+              </Typography>
               <HeroBlogPostCard post={heroPost} />
             </section>
           )}
@@ -47,7 +54,7 @@ export default function BlogFeed() {
                 component="h2"
                 className="text-neutral-300 mb-8 border-l-4 border-primary-500 pl-4"
               >
-                More Posts
+                Record Database
               </Typography>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {remainingPosts.map((post) => (

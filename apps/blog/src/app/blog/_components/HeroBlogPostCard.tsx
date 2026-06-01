@@ -53,63 +53,50 @@ export default function HeroBlogPostCard({
         </div>
 
         {/* Content */}
-        <div className="flex flex-col flex-grow justify-between">
-          <div>
-            {post.categories && post.categories.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                {post.categories.map((category) => (
-                  <Badge key={category} color="dark">
-                    {category}
-                  </Badge>
-                ))}
-              </div>
-            )}
-            <Typography
-              variant="h2"
-              component="h2"
-              className="w-fit text-transparent bg-clip-text bg-neutral-100 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-primary-500 group-hover:via-neutral-50 group-hover:to-accent-falcon-300 mb-4"
-            >
-              {post.title}
-            </Typography>
-            <Typography
-              variant="body1"
-              className="mb-6 text-neutral-300 transition-all duration-300 group-hover:text-neutral-50"
-            >
-              {post.excerpt}
-            </Typography>
-          </div>
-
-          <div>
-            <div className="flex flex-row gap-x-4 items-center mb-4">
-              <div className="flex items-center gap-x-2">
-                <CalendarIcon width={18} height={18} className={subTextColor} />
-                <Typography
-                  variant="body2"
-                  component="span"
-                  className={subTextColor}
-                >
-                  {post.date}
-                </Typography>
-              </div>
-              <div className="flex items-center gap-x-2">
-                <ClockIcon width={18} height={18} className={subTextColor} />
-                <Typography
-                  variant="body2"
-                  component="span"
-                  className={subTextColor}
-                >
-                  {post.readTime}
-                </Typography>
-              </div>
+        <div className="flex flex-col flex-grow">
+          <Typography
+            variant="h2"
+            component="h2"
+            className="w-fit text-transparent bg-clip-text bg-neutral-100 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-primary-500 group-hover:via-neutral-50 group-hover:to-accent-falcon-300 mb-4"
+          >
+            {post.title}
+          </Typography>
+          {post.categories && post.categories.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {post.categories.map((category) => (
+                <Badge key={category} color="dark">
+                  {category}
+                </Badge>
+              ))}
             </div>
-            <HorizontalRule color="primary" />
-            <div className="flex justify-end mt-4">
-              <Button color="primary" variant="text" onClick={handleReadMore}>
-                &gt; READ_MORE
-              </Button>
+          )}
+          <Typography
+            variant="body1"
+            className="mb-6 text-neutral-300 transition-all duration-300 group-hover:text-neutral-50"
+          >
+            {post.excerpt}
+          </Typography>
+          <div className="flex flex-row gap-x-4 items-center">
+            <div className="flex items-center gap-x-2">
+              <CalendarIcon width={18} height={18} className={subTextColor} />
+              <Typography variant="body2" component="span" className={subTextColor}>
+                {post.date}
+              </Typography>
+            </div>
+            <div className="flex items-center gap-x-2">
+              <ClockIcon width={18} height={18} className={subTextColor} />
+              <Typography variant="body2" component="span" className={subTextColor}>
+                {post.readTime}
+              </Typography>
             </div>
           </div>
         </div>
+      </div>
+      <HorizontalRule color="primary" />
+      <div className="flex justify-end">
+        <Button color="primary" variant="text" onClick={handleReadMore}>
+          &gt; READ_MORE
+        </Button>
       </div>
     </Card>
   );

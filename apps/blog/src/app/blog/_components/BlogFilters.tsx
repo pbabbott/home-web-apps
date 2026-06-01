@@ -25,7 +25,7 @@ export default function BlogFilters() {
           Filters
         </Typography>
 
-        <div className="relative border">
+        <div className="relative border max-w-[75%]">
           <MagnifyingGlassIcon
             className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none z-10"
             width={18}

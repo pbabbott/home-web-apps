@@ -71,11 +71,18 @@ function StoryContainerWithIcon({
   selected,
   readonly,
 }: StoryProps) {
-  const data: TextNodeData = { content, colorScheme, readonly, iconId: 'placeholder' };
+  const data: TextNodeData = {
+    content,
+    colorScheme,
+    readonly,
+    iconId: 'placeholder',
+  };
   return (
     <ReactFlowProvider>
       <IconRendererProvider renderer={placeholderIcon}>
-        <div style={{ width: '100%', height: '300px', background: neutral[900] }}>
+        <div
+          style={{ width: '100%', height: '300px', background: neutral[900] }}
+        >
           <ReactFlow
             nodes={[
               {
