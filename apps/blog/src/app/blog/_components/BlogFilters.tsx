@@ -17,14 +17,7 @@ export default function BlogFilters() {
 
   return (
     <aside className="w-full lg:w-[18%] lg:min-w-[200px] lg:max-w-[280px] lg:shrink-0">
-      <div className="sticky top-28 space-y-6">
-        <Typography
-          variant="subtitle1"
-          className="text-neutral-400 font-medium uppercase tracking-wider"
-        >
-          Filters
-        </Typography>
-
+      <div className="sticky top-16 space-y-4">
         <div className="relative border max-w-[75%]">
           <MagnifyingGlassIcon
             className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none z-10"
@@ -41,6 +34,13 @@ export default function BlogFilters() {
             className="w-full pl-9"
           />
         </div>
+
+        <Typography
+          variant="subtitle1"
+          className="text-neutral-400 font-medium uppercase tracking-wider"
+        >
+          SELECT DOMAIN
+        </Typography>
 
         <CategoryList
           categories={categories}
