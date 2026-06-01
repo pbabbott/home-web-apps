@@ -4,14 +4,14 @@ runs:
   using: 'composite'
   steps:
     - name: Setup PNPM
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v6
 
     - name: Ensure Node.js directory exists
       run: mkdir -p ~/.nvm/versions/node
       shell: bash
 
     - name: Cache Node.js
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.nvm/versions/node
         key: ${{ runner.os }}-node-${{ hashFiles('**/.nvmrc') }}

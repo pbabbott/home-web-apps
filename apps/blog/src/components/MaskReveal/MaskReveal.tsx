@@ -85,7 +85,7 @@ export default function MaskReveal({
         onComplete?.();
       },
     });
-  }, [reveal, duration, delay, direction, onComplete]);
+  }, [animated, reveal, duration, delay, direction, onComplete]);
 
   const isClipped = animated && phase === 'idle';
 
