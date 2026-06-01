@@ -29,10 +29,12 @@ const introLines: TerminalLine[] = [
     endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
   {
-    text: 'Rendering architecture powering this site.',
+    text: 'Rendering architecture powering this site... ',
+    endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
   {
-    text: 'Expect increasing complexity.',
+    text: 'Advising human to expect increasing complexity... ',
+    endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
 ];
 
