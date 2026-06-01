@@ -4,6 +4,7 @@ import { ReactFlowProvider } from '@xyflow/react';
 import {
   DiagramViewer,
   IconRendererProvider,
+  Typography,
 } from '@abbottland/fui-components';
 import { renderSimpleIcon } from '@abbottland/fui-icons';
 import {
@@ -45,6 +46,11 @@ function DiagramEditorLayout() {
           ) : (
             <DiagramEditor />
           )}
+        </div>
+        <div className="px-3 py-1 text-right bg-neutral-950">
+          <Typography variant="caption" className="text-neutral-600">
+            {process.env.IMAGE_TAG ?? 'dev'}
+          </Typography>
         </div>
       </div>
     </div>
