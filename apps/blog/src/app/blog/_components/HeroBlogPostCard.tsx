@@ -79,13 +79,21 @@ export default function HeroBlogPostCard({
           <div className="flex flex-row gap-x-4 items-center">
             <div className="flex items-center gap-x-2">
               <CalendarIcon width={18} height={18} className={subTextColor} />
-              <Typography variant="body2" component="span" className={subTextColor}>
+              <Typography
+                variant="body2"
+                component="span"
+                className={subTextColor}
+              >
                 {post.date}
               </Typography>
             </div>
             <div className="flex items-center gap-x-2">
               <ClockIcon width={18} height={18} className={subTextColor} />
-              <Typography variant="body2" component="span" className={subTextColor}>
+              <Typography
+                variant="body2"
+                component="span"
+                className={subTextColor}
+              >
                 {post.readTime}
               </Typography>
             </div>

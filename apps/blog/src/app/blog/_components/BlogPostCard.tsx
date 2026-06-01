@@ -54,7 +54,12 @@ export default function BlogPostCard({
   };
 
   return (
-    <Card color="primary" size={size} onClick={handleCardClick} className="flex flex-col h-full">
+    <Card
+      color="primary"
+      size={size}
+      onClick={handleCardClick}
+      className="flex flex-col h-full"
+    >
       <BlogPostBannerImage
         bannerImage={bannerImage}
         slug={slug}
@@ -95,12 +100,12 @@ export default function BlogPostCard({
         </Typography>
       </div>
       <div className="mt-auto">
-      <HorizontalRule color="primary" />
-      <div className="flex justify-end">
-        <Button color="primary" variant="text" onClick={handleReadMore}>
-          &gt; READ_MORE
-        </Button>
-      </div>
+        <HorizontalRule color="primary" />
+        <div className="flex justify-end">
+          <Button color="primary" variant="text" onClick={handleReadMore}>
+            &gt; READ_MORE
+          </Button>
+        </div>
       </div>
     </Card>
   );
