@@ -38,7 +38,8 @@ export class ApplicationConfig {
   showConfig: boolean = false;
 
   @EnvironmentVariable()
-  cleanupRepositories: string = 'blog';
+  cleanupRepositories: string =
+    'blog,diagram-maker,fui-components,gluetun-sync,harbor-cleanup';
 
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   prodKeepCount: number = 5;
