@@ -16,4 +16,4 @@ export ABCTL_IMAGE_TAG="sha-${SHORT_SHA}"
 export IMAGE_TAG="${DATE}-${PADDED_RUN}-${SHORT_SHA}"
 
 echo "Publishing app images with Docker tag: ${ABCTL_IMAGE_TAG} (IMAGE_TAG: ${IMAGE_TAG})"
-pnpm turbo run docker:publish --filter='./apps/*'
+pnpm turbo run docker:publish --filter='./apps/*' --filter='./packages/fui-components'

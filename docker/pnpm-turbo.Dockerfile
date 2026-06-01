@@ -38,6 +38,9 @@ RUN --mount=type=cache,id=pnpm,target=~/.pnpm-store pnpm install --frozen-lockfi
 ###############################################################
 FROM npm AS development
 
+ARG IMAGE_TAG=""
+ENV IMAGE_TAG=${IMAGE_TAG}
+
 # Copy source code of isolated subworkspace
 COPY --from=pruner /app/out/full .
 RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
