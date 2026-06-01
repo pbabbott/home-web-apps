@@ -24,6 +24,7 @@
     "react-dom": "catalog:"
   },
   "dependencies": {
+    "@radix-ui/react-icons": "^1.3.2",
     "simple-icons": "^13"
   },
   "devDependencies": {

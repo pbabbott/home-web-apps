@@ -69,3 +69,6 @@ package-lock.json
 playwright-report
 
 1password-credentials.json
+
+next-env.d.ts
+*.tsbuildinfo

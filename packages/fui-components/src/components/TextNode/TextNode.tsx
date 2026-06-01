@@ -4,11 +4,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { type NodeProps, useReactFlow, type Node } from '@xyflow/react';
 import { Typography } from '../Typography/Typography';
 import { type NodeColorScheme } from '../BaseNode/BaseNode';
+import { useIconRenderer } from '../DiagramViewer/IconRendererContext';
 
 export interface TextNodeData extends Record<string, unknown> {
   content?: string;
   colorScheme?: NodeColorScheme;
   readonly?: boolean;
+  iconId?: string;
 }
 
 type TextNodeType = Node<TextNodeData, 'text'>;
@@ -27,6 +29,7 @@ export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
   const colorScheme = data.colorScheme ?? 'default';
   const textColor = textColorStyles[colorScheme];
   const readonly = data.readonly ?? false;
+  const renderIcon = useIconRenderer();
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -72,11 +75,16 @@ export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
   return (
     <div
       className={`
-        min-w-[50px] min-h-[24px] px-1
+        min-w-[50px] min-h-[24px] px-1 flex items-center gap-2
         ${selected ? 'outline outline-2 outline-primary-500 outline-offset-2 rounded' : ''}
       `}
       onDoubleClick={handleDoubleClick}
     >
+      {data.iconId && renderIcon && (
+        <div className="pointer-events-none flex-shrink-0">
+          {renderIcon({ name: data.iconId, size: 18, colored: true })}
+        </div>
+      )}
       {isEditing ? (
         <textarea
           ref={inputRef}

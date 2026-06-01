@@ -1,12 +1,23 @@
 'use client';
 
 import { Suspense, use } from 'react';
+import type { ElementType } from 'react';
 import type { SimpleIcon } from 'simple-icons';
+import * as RadixIcons from '@radix-ui/react-icons';
 import type { IconProps } from './types';
 import { loadIcon } from './loaders';
 import { lookupById } from './registry';
+import { CUSTOM_ICONS } from './customIconsMap';
 
-interface ResolvedIconProps {
+const fallback = (size: number) => (
+  <span
+    style={{ display: 'inline-block', width: size, height: size }}
+    aria-hidden="true"
+  />
+);
+
+// simple-icons renderer
+interface ResolvedSimpleIconProps {
   slug: string;
   size: number;
   colored: boolean;
@@ -14,13 +25,13 @@ interface ResolvedIconProps {
   ariaLabel: string;
 }
 
-function ResolvedIcon({
+function ResolvedSimpleIcon({
   slug,
   size,
   colored,
   className,
   ariaLabel,
-}: ResolvedIconProps) {
+}: ResolvedSimpleIconProps) {
   const icon = use(loadIcon(slug)) as SimpleIcon | null;
   if (!icon) return null;
   return (
@@ -47,21 +58,45 @@ export function Icon({
 }: IconProps) {
   const def = lookupById(name);
   if (!def) return null;
+
+  const ariaLabel = title ?? def.label;
+
+  if (def.source === 'custom') {
+    const CustomComponent = CUSTOM_ICONS[def.slug];
+    if (!CustomComponent) return null;
+    return (
+      <CustomComponent
+        size={size}
+        className={className}
+        aria-label={ariaLabel}
+      />
+    );
+  }
+
+  if (def.source === 'radix') {
+    const RadixComponent = RadixIcons[def.slug as keyof typeof RadixIcons] as
+      | ElementType
+      | undefined;
+    if (!RadixComponent) return null;
+    return (
+      <RadixComponent
+        width={size}
+        height={size}
+        className={['text-neutral-200', className].filter(Boolean).join(' ')}
+        aria-label={ariaLabel}
+      />
+    );
+  }
+
+  // source === 'simple'
   return (
-    <Suspense
-      fallback={
-        <span
-          style={{ display: 'inline-block', width: size, height: size }}
-          aria-hidden="true"
-        />
-      }
-    >
-      <ResolvedIcon
+    <Suspense fallback={fallback(size)}>
+      <ResolvedSimpleIcon
         slug={def.slug}
         size={size}
         colored={colored}
         className={className}
-        ariaLabel={title ?? def.label}
+        ariaLabel={ariaLabel}
       />
     </Suspense>
   );

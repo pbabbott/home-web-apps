@@ -14,7 +14,7 @@ test.describe('DefaultNode Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-defaultnode--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-defaultnode--default.png',
       SCREENSHOT_OPTIONS,
     );

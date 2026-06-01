@@ -42,7 +42,7 @@ export default function LandingSectionTitle({
         <Typography
           variant="h1"
           component="h1"
-          className="mb-2 text-[2rem] sm:text-h1"
+          className="mb-4 text-[2rem] sm:text-h1"
         >
           Abbottland.io
         </Typography>

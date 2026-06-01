@@ -14,7 +14,7 @@ test.describe('HorizontalRule Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-horizontalrule--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-horizontalrule--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('HorizontalRule Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'components-horizontalrule--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-horizontalrule--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('HorizontalRule Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'components-horizontalrule--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-horizontalrule--secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('HorizontalRule Visual Regression Tests', () => {
 
   test('custom-spacing', async ({ page }) => {
     await gotoStory(page, 'components-horizontalrule--custom-spacing');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-horizontalrule--custom-spacing.png',
       SCREENSHOT_OPTIONS,
     );

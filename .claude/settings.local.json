@@ -37,7 +37,8 @@
       "WebFetch(domain:www.radix-ui.com)",
       "Bash(git push)",
       "Bash(git push -u origin *)",
-      "Bash(gh run *)"
+      "Bash(gh run *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

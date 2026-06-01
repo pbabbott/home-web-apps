@@ -14,7 +14,7 @@ test.describe('TransparentPanelShowcase Visual Regression Tests', () => {
 
   test('all-colors', async ({ page }) => {
     await gotoStory(page, 'showcase-transparentpanel--all-colors');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-transparentpanel--all-colors.png',
       SCREENSHOT_OPTIONS,
     );

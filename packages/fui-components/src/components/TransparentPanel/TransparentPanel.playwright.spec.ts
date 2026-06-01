@@ -14,7 +14,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('dark', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--dark');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--dark.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('white', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--white');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--white.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('success', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--success');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--success.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,7 +62,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('error', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--error');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--error.png',
       SCREENSHOT_OPTIONS,
     );
@@ -70,7 +70,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('warning', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--warning');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--warning.png',
       SCREENSHOT_OPTIONS,
     );
@@ -78,7 +78,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('accent-purple', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--accent-purple');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
@@ -86,7 +86,7 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
 
   test('accent-falcon', async ({ page }) => {
     await gotoStory(page, 'components-transparentpanel--accent-falcon');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-transparentpanel--accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );

@@ -19,6 +19,7 @@ const meta = {
         'warning',
         'accent-purple',
         'accent-falcon',
+        'dark',
       ],
       description: 'The color scheme of the badge',
     },
@@ -63,3 +64,4 @@ export const ColorAccentFalcon: Story = BadgeStory(
   'Accent Falcon',
   'accent-falcon',
 );
+export const ColorDark: Story = BadgeStory('Dark', 'dark');

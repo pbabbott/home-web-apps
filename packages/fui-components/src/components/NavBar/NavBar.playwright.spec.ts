@@ -14,7 +14,7 @@ test.describe('NavBar Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-navbar--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-navbar--default.png',
       SCREENSHOT_OPTIONS,
     );

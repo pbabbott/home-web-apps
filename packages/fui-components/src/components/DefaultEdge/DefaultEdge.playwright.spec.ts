@@ -14,7 +14,7 @@ test.describe('DefaultEdge Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-defaultedge--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-defaultedge--default.png',
       SCREENSHOT_OPTIONS,
     );

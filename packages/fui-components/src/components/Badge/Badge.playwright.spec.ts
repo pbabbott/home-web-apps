@@ -14,7 +14,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-primary', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-secondary', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-success', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-success');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-success.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-error', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-error');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-error.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-warning', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-warning');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-accent-purple', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-accent-purple');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,8 +62,16 @@ test.describe('Badge Visual Regression Tests', () => {
 
   test('color-accent-falcon', async ({ page }) => {
     await gotoStory(page, 'components-badge--color-accent-falcon');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-badge--color-accent-falcon.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('color-dark', async ({ page }) => {
+    await gotoStory(page, 'components-badge--color-dark');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-badge--color-dark.png',
       SCREENSHOT_OPTIONS,
     );
   });

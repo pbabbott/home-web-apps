@@ -6,14 +6,22 @@ import {
   Icon,
   useIconSearch,
   type FuiIconDefinition,
+  type IconSource,
 } from '@abbottland/fui-icons';
 import { useDiagramEditor } from '../../DiagramEditorContext';
+
+const TABS: { label: string; source: IconSource }[] = [
+  { label: 'Brands', source: 'simple' },
+  { label: 'Custom', source: 'custom' },
+  { label: 'Radix', source: 'radix' },
+];
 
 export function IconControl() {
   const { selectedNodeIds, selectedIconId, onIconChange } = useDiagramEditor();
   const hasSelection = selectedNodeIds.length > 0;
   const [query, setQuery] = useState('');
-  const results = useIconSearch(query);
+  const [activeSource, setActiveSource] = useState<IconSource>('simple');
+  const results = useIconSearch(query, activeSource);
 
   return (
     <div>
@@ -27,6 +35,21 @@ export function IconControl() {
       <div
         className={`transition-opacity ${hasSelection ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}
       >
+        <div className="flex gap-1 mb-2">
+          {TABS.map((tab) => (
+            <button
+              key={tab.source}
+              onClick={() => setActiveSource(tab.source)}
+              className={`flex-1 px-2 py-1 rounded text-xs border transition-colors ${
+                activeSource === tab.source
+                  ? 'bg-primary-700 border-primary-400 text-primary-100'
+                  : 'bg-neutral-800 border-primary-700 text-primary-400 hover:bg-primary-800'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
         <input
           type="text"
           placeholder="Search icons…"
@@ -48,7 +71,7 @@ export function IconControl() {
                 ${
                   selectedIconId === def.id
                     ? 'bg-primary-700 border-primary-400 text-primary-100'
-                    : 'bg-primary-900 border-primary-700 text-primary-300 hover:bg-primary-800'
+                    : 'bg-neutral-800 border-primary-700 text-primary-300 hover:bg-primary-800'
                 }
               `}
             >

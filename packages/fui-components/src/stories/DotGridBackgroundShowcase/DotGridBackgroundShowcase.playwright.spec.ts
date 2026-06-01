@@ -14,7 +14,7 @@ test.describe('DotGridBackgroundShowcase Visual Regression Tests', () => {
 
   test('all-colors', async ({ page }) => {
     await gotoStory(page, 'showcase-dotgridbackground--all-colors');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-dotgridbackground--all-colors.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('DotGridBackgroundShowcase Visual Regression Tests', () => {
 
   test('active', async ({ page }) => {
     await gotoStory(page, 'showcase-dotgridbackground--active');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-dotgridbackground--active.png',
       SCREENSHOT_OPTIONS,
     );

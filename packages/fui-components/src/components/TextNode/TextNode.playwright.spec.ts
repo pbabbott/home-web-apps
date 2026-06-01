@@ -14,7 +14,7 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('selected', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--selected');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--selected.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('readonly', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--readonly');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--readonly.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,8 +54,16 @@ test.describe('TextNode Visual Regression Tests', () => {
 
   test('multiline', async ({ page }) => {
     await gotoStory(page, 'diagrams-textnode--multiline');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-textnode--multiline.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('with-icon', async ({ page }) => {
+    await gotoStory(page, 'diagrams-textnode--with-icon');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-textnode--with-icon.png',
       SCREENSHOT_OPTIONS,
     );
   });

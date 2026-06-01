@@ -14,7 +14,7 @@ test.describe('NavItem Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-navitem--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-navitem--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('NavItem Visual Regression Tests', () => {
 
   test('active', async ({ page }) => {
     await gotoStory(page, 'components-navitem--active');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-navitem--active.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('NavItem Visual Regression Tests', () => {
 
   test('without-lines', async ({ page }) => {
     await gotoStory(page, 'components-navitem--without-lines');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-navitem--without-lines.png',
       SCREENSHOT_OPTIONS,
     );

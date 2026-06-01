@@ -14,7 +14,7 @@ test.describe('NavbarShowcase Visual Regression Tests', () => {
 
   test('inside-fixed-header', async ({ page }) => {
     await gotoStory(page, 'showcase-navbar--inside-fixed-header');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-navbar--inside-fixed-header.png',
       SCREENSHOT_OPTIONS,
     );

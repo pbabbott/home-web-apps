@@ -14,7 +14,7 @@ test.describe('Table Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-table--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-table--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('Table Visual Regression Tests', () => {
 
   test('multi-column', async ({ page }) => {
     await gotoStory(page, 'components-table--multi-column');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-table--multi-column.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('Table Visual Regression Tests', () => {
 
   test('wide-table', async ({ page }) => {
     await gotoStory(page, 'components-table--wide-table');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-table--wide-table.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('Table Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'components-table--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-table--secondary.png',
       SCREENSHOT_OPTIONS,
     );

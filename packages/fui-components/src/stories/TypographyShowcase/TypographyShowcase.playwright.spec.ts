@@ -14,7 +14,7 @@ test.describe('TypographyShowcase Visual Regression Tests', () => {
 
   test('variants', async ({ page }) => {
     await gotoStory(page, 'showcase-typography--variants');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-typography--variants.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('TypographyShowcase Visual Regression Tests', () => {
 
   test('blog', async ({ page }) => {
     await gotoStory(page, 'showcase-typography--blog');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-typography--blog.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('TypographyShowcase Visual Regression Tests', () => {
 
   test('blog-mobile', async ({ page }) => {
     await gotoStory(page, 'showcase-typography--blog-mobile');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-typography--blog-mobile.png',
       SCREENSHOT_OPTIONS,
     );

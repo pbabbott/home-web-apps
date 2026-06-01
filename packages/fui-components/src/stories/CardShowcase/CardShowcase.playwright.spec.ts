@@ -14,7 +14,7 @@ test.describe('CardShowcase Visual Regression Tests', () => {
 
   test('all-colors', async ({ page }) => {
     await gotoStory(page, 'showcase-card--all-colors');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-card--all-colors.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('CardShowcase Visual Regression Tests', () => {
 
   test('blog-post', async ({ page }) => {
     await gotoStory(page, 'showcase-card--blog-post');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-card--blog-post.png',
       SCREENSHOT_OPTIONS,
     );

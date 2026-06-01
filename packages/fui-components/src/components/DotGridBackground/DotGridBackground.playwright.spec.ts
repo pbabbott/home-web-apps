@@ -14,7 +14,7 @@ test.describe('DotGridBackground Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'components-dotgridbackground--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-dotgridbackground--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('DotGridBackground Visual Regression Tests', () => {
 
   test('active', async ({ page }) => {
     await gotoStory(page, 'components-dotgridbackground--active');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-dotgridbackground--active.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('DotGridBackground Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'components-dotgridbackground--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-dotgridbackground--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('DotGridBackground Visual Regression Tests', () => {
 
   test('primary-active', async ({ page }) => {
     await gotoStory(page, 'components-dotgridbackground--primary-active');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-dotgridbackground--primary-active.png',
       SCREENSHOT_OPTIONS,
     );

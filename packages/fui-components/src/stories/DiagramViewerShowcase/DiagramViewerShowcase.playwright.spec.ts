@@ -14,7 +14,7 @@ test.describe('DiagramViewerShowcase Visual Regression Tests', () => {
 
   test('local-network', async ({ page }) => {
     await gotoStory(page, 'showcase-diagramviewer--local-network');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-diagramviewer--local-network.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('DiagramViewerShowcase Visual Regression Tests', () => {
 
   test('with-port-forwarding', async ({ page }) => {
     await gotoStory(page, 'showcase-diagramviewer--with-port-forwarding');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-diagramviewer--with-port-forwarding.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('DiagramViewerShowcase Visual Regression Tests', () => {
 
   test('full-network-with-duck-dns', async ({ page }) => {
     await gotoStory(page, 'showcase-diagramviewer--full-network-with-duck-dns');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-diagramviewer--full-network-with-duck-dns.png',
       SCREENSHOT_OPTIONS,
     );

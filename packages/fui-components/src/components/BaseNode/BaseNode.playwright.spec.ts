@@ -14,7 +14,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('default', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--default');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--default.png',
       SCREENSHOT_OPTIONS,
     );
@@ -22,7 +22,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('with-label', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--with-label');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--with-label.png',
       SCREENSHOT_OPTIONS,
     );
@@ -30,7 +30,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('primary', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--primary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--primary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -38,7 +38,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('secondary', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--secondary');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--secondary.png',
       SCREENSHOT_OPTIONS,
     );
@@ -46,7 +46,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('selected', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--selected');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--selected.png',
       SCREENSHOT_OPTIONS,
     );
@@ -54,7 +54,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('with-handles', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--with-handles');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--with-handles.png',
       SCREENSHOT_OPTIONS,
     );
@@ -62,7 +62,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('labeled-with-handles', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--labeled-with-handles');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--labeled-with-handles.png',
       SCREENSHOT_OPTIONS,
     );
@@ -70,7 +70,7 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('custom-size', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--custom-size');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--custom-size.png',
       SCREENSHOT_OPTIONS,
     );
@@ -78,8 +78,24 @@ test.describe('BaseNode Visual Regression Tests', () => {
 
   test('multiline-content', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--multiline-content');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'diagrams-basenode--multiline-content.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('default-with-icon', async ({ page }) => {
+    await gotoStory(page, 'diagrams-basenode--default-with-icon');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-basenode--default-with-icon.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('labeled-with-icon', async ({ page }) => {
+    await gotoStory(page, 'diagrams-basenode--labeled-with-icon');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-basenode--labeled-with-icon.png',
       SCREENSHOT_OPTIONS,
     );
   });

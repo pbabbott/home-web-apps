@@ -14,7 +14,7 @@ test.describe('ButtonShowcase Visual Regression Tests', () => {
 
   test('colors-and-variants', async ({ page }) => {
     await gotoStory(page, 'showcase-button--colors-and-variants');
-    await expect(page).toHaveScreenshot(
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'showcase-button--colors-and-variants.png',
       SCREENSHOT_OPTIONS,
     );
