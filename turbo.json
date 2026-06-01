@@ -45,6 +45,7 @@
     },
     "@abbottland/blog#build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["IMAGE_TAG"],
       "outputs": [".next/**"],
       "dependsOn": [
         "@abbottland/fui-components#build:npm",

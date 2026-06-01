@@ -86,6 +86,12 @@ jobs:
           echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
         shell: bash
 
+      - name: Set image tag
+        run: bash ./scripts/set-image-tag.sh
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
       - name: Build
         run: pnpm build
         shell: bash
