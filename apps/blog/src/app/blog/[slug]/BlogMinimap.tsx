@@ -421,7 +421,9 @@ export default function BlogMinimap() {
   const [articleDocTop, setArticleDocTop] = useState(0);
   const [minimapHeight, setMinimapHeight] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window !== 'undefined' ? window.innerHeight : 0,
+  );
   const [visible, setVisible] = useState(false);
 
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -475,8 +477,6 @@ export default function BlogMinimap() {
 
   // Scroll and resize listeners
   useEffect(() => {
-    setViewportHeight(window.innerHeight);
-
     const onScroll = () => setScrollTop(window.scrollY);
     const onResize = () => {
       setViewportHeight(window.innerHeight);
