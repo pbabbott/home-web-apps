@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import { Button, Typography } from '@abbottland/fui-components';
-import { CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
+import * as Checkbox from '@radix-ui/react-checkbox';
+import { CheckIcon, CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useDiagramEditor } from '../DiagramEditorContext';
 
 export type Tab = 'export' | 'import' | 'local-diagrams';
@@ -14,6 +15,7 @@ interface LocalDiagram {
   label: string;
   filePath: string;
   blogPost: string;
+  isComplete: boolean;
   data: { nodes: Node[]; edges: Edge[] };
 }
 
@@ -37,6 +39,18 @@ export function ImportExportModal({
   const [importError, setImportError] = useState<string | null>(null);
   const [localDiagrams, setLocalDiagrams] = useState<LocalDiagram[]>([]);
   const [loadingLocal, setLoadingLocal] = useState(false);
+
+  const toggleCompleted = (filePath: string, current: boolean) => {
+    const isComplete = !current;
+    setLocalDiagrams((prev) =>
+      prev.map((d) => (d.filePath === filePath ? { ...d, isComplete } : d)),
+    );
+    fetch('/api/local-diagrams/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath, isComplete }),
+    }).catch(console.error);
+  };
 
   useEffect(() => {
     if (!isLocal || activeTab !== 'local-diagrams') return;
@@ -227,20 +241,28 @@ export function ImportExportModal({
                 No diagram JSON files found in blog content.
               </Typography>
             ) : (
-              <ul className="flex-1 overflow-auto flex flex-col gap-1">
+              <ul className="flex-1 overflow-auto flex flex-col gap-1 pr-2">
                 {localDiagrams.map((diagram) => (
-                  <li key={diagram.filePath}>
+                  <li
+                    key={diagram.filePath}
+                    className="flex items-stretch gap-2"
+                  >
                     <button
                       onClick={() => {
-                        onLoadLocalDiagram(diagram.filePath, diagram.data);
+                        onLoadLocalDiagram(
+                          diagram.filePath,
+                          diagram.data,
+                          diagram.isComplete,
+                          diagram.label,
+                        );
                         onClose();
                       }}
-                      className="w-full text-left px-4 py-3 rounded-lg bg-secondary-900 hover:bg-secondary-700 border border-secondary-700 hover:border-primary-500 transition-colors"
+                      className={`flex-1 text-left px-4 py-3 rounded-lg border transition-colors ${diagram.isComplete ? 'bg-success-900 hover:bg-success-800 border-success-500 hover:border-success-400' : 'bg-secondary-900 hover:bg-secondary-700 border-secondary-700 hover:border-primary-500'}`}
                     >
                       <Typography
                         variant="body1"
                         component="span"
-                        className="block text-secondary-100"
+                        className={`block ${diagram.isComplete ? 'text-neutral-300' : 'text-secondary-100'}`}
                       >
                         {diagram.label}
                       </Typography>
@@ -252,6 +274,18 @@ export function ImportExportModal({
                         {diagram.blogPost}
                       </Typography>
                     </button>
+                    <Checkbox.Root
+                      checked={diagram.isComplete}
+                      onCheckedChange={() =>
+                        toggleCompleted(diagram.filePath, diagram.isComplete)
+                      }
+                      title="Mark complete"
+                      className="flex items-center justify-center w-10 shrink-0 rounded-lg bg-secondary-900 border border-secondary-700 hover:border-success-400 transition-colors cursor-pointer"
+                    >
+                      <Checkbox.Indicator>
+                        <CheckIcon className="text-success-400 w-4 h-4" />
+                      </Checkbox.Indicator>
+                    </Checkbox.Root>
                   </li>
                 ))}
               </ul>

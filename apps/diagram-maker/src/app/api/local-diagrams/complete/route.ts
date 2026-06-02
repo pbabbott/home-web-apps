@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
 export async function POST(request: Request) {
@@ -14,14 +14,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { filePath, data, isComplete } = body as {
+  const { filePath, isComplete } = body as {
     filePath?: string;
-    data?: unknown;
     isComplete?: boolean;
   };
-  if (typeof filePath !== 'string' || !data) {
+  if (typeof filePath !== 'string' || typeof isComplete !== 'boolean') {
     return NextResponse.json(
-      { error: 'Missing filePath or data' },
+      { error: 'Missing filePath or isComplete' },
       { status: 400 },
     );
   }
@@ -32,11 +31,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }
 
-  const payload =
-    typeof isComplete === 'boolean'
-      ? { ...(data as object), isComplete }
-      : data;
+  const raw = await readFile(fullPath, 'utf-8');
+  const data = JSON.parse(raw) as Record<string, unknown>;
+  data.isComplete = isComplete;
+  await writeFile(fullPath, JSON.stringify(data, null, 2) + '\n');
 
-  await writeFile(fullPath, JSON.stringify(payload, null, 2) + '\n');
   return NextResponse.json({ success: true });
 }

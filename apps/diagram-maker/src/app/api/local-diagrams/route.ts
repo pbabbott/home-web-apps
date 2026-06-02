@@ -7,6 +7,7 @@ interface LocalDiagram {
   filePath: string;
   blogPost: string;
   date: string;
+  isComplete: boolean;
   data: { nodes: unknown[]; edges: unknown[] };
 }
 
@@ -40,13 +41,18 @@ async function walkJsonFiles(
       const parts = rel.split(path.sep);
       try {
         const raw = await readFile(fullPath, 'utf-8');
-        const data = JSON.parse(raw) as { nodes: unknown[]; edges: unknown[] };
+        const data = JSON.parse(raw) as {
+          nodes: unknown[];
+          edges: unknown[];
+          isComplete?: boolean;
+        };
         const date = await readBlogPostDate(path.dirname(fullPath));
         results.push({
           label: parts.join(' / '),
           filePath: rel,
           blogPost: parts[0],
           date,
+          isComplete: data.isComplete === true,
           data,
         });
       } catch {

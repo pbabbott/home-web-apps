@@ -52,10 +52,15 @@ interface DiagramEditorContextValue {
   onImport: (data: { nodes: Node[]; edges: Edge[] }) => void;
   // Local diagrams (dev only)
   activeLocalDiagramPath: string | null;
+  activeLocalDiagramLabel: string | null;
+  activeLocalDiagramIsComplete: boolean;
   onLoadLocalDiagram: (
     filePath: string,
     data: { nodes: Node[]; edges: Edge[] },
+    isComplete: boolean,
+    label: string,
   ) => void;
+  onToggleActiveLocalDiagramComplete: () => void;
   // Style
   warningColorRgba: string;
   // Node selection
@@ -108,6 +113,11 @@ export function DiagramEditorProvider({
   const [activeLocalDiagramPath, setActiveLocalDiagramPath] = useState<
     string | null
   >(null);
+  const [activeLocalDiagramLabel, setActiveLocalDiagramLabel] = useState<
+    string | null
+  >(null);
+  const [activeLocalDiagramIsComplete, setActiveLocalDiagramIsComplete] =
+    useState(false);
   const updateNodeInternals = useUpdateNodeInternals();
 
   useOnSelectionChange({
@@ -324,12 +334,37 @@ export function DiagramEditorProvider({
   );
 
   const onLoadLocalDiagram = useCallback(
-    (filePath: string, data: { nodes: Node[]; edges: Edge[] }) => {
+    (
+      filePath: string,
+      data: { nodes: Node[]; edges: Edge[] },
+      isComplete: boolean,
+      label: string,
+    ) => {
       handleImport(data);
       setActiveLocalDiagramPath(filePath);
+      setActiveLocalDiagramIsComplete(isComplete);
+      setActiveLocalDiagramLabel(label);
     },
     [handleImport],
   );
+
+  const activeLocalDiagramPathRef = useRef(activeLocalDiagramPath);
+  activeLocalDiagramPathRef.current = activeLocalDiagramPath;
+
+  const onToggleActiveLocalDiagramComplete = useCallback(() => {
+    setActiveLocalDiagramIsComplete((prev) => {
+      const next = !prev;
+      const path = activeLocalDiagramPathRef.current;
+      if (path) {
+        fetch('/api/local-diagrams/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath: path, isComplete: next }),
+        }).catch(console.error);
+      }
+      return next;
+    });
+  }, []);
 
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -354,7 +389,10 @@ export function DiagramEditorProvider({
     getExportData,
     onImport: handleImport,
     activeLocalDiagramPath,
+    activeLocalDiagramLabel,
+    activeLocalDiagramIsComplete,
     onLoadLocalDiagram,
+    onToggleActiveLocalDiagramComplete,
     warningColorRgba,
     selectedNodeIds,
     selectedColorScheme: selectedNodeColorScheme,

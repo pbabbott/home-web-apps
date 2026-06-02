@@ -60,7 +60,7 @@ const components: MDXComponents = {
   ),
   pre: ({ children, ...props }) => (
     <pre
-      className="not-prose whitespace-pre-wrap break-words overflow-wrap-anywhere"
+      className="not-prose whitespace-pre-wrap break-words overflow-wrap-anywhere mb-4"
       {...props}
     >
       {children}

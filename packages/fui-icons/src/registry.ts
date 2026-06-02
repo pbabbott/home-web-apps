@@ -31,6 +31,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['linux', 'os'],
   },
   {
+    id: 'duckdns',
+    label: 'DuckDNS',
+    slug: 'duckdns',
+    source: 'custom',
+    keywords: ['dns', 'dynamic dns', 'networking', 'ddns'],
+  },
+  {
     id: 'docker',
     label: 'Docker',
     slug: 'docker',
@@ -197,6 +204,20 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'terraform',
     source: 'simple',
     keywords: ['iac', 'devops', 'hashicorp'],
+  },
+  {
+    id: 'traefik-mesh',
+    label: 'Traefik Mesh',
+    slug: 'traefikmesh',
+    source: 'simple',
+    keywords: ['proxy', 'mesh', 'networking', 'kubernetes'],
+  },
+  {
+    id: 'traefik-proxy',
+    label: 'Traefik Proxy',
+    slug: 'traefikproxy',
+    source: 'simple',
+    keywords: ['proxy', 'reverse-proxy', 'load-balancer', 'networking'],
   },
   {
     id: 'typescript',

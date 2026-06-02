@@ -4,13 +4,13 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 261.04935957603425,
-        "y": 175.6462647531845
+        "x": 232.54935957603425,
+        "y": 167.1462647531845
       },
       "data": {
         "label": "Proxmox Host",
         "content": "",
-        "width": 511,
+        "width": 538,
         "height": 151,
         "handles": [
           {
@@ -32,7 +32,7 @@
         "iconId": "proxmox"
       },
       "measured": {
-        "width": 511,
+        "width": 538,
         "height": 151
       },
       "selected": false,
@@ -43,8 +43,8 @@
       "id": "node_2",
       "type": "customDefault",
       "position": {
-        "x": 301.8487191520682,
-        "y": 218.77571418988833
+        "x": 288.3487191520682,
+        "y": 223.27571418988836
       },
       "data": {
         "content": "Template VM\n(golden image)",
@@ -53,35 +53,48 @@
             "id": "handle-1773667255039",
             "type": "target",
             "position": "bottom"
+          },
+          {
+            "id": "handle-1780363484413",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1780363569673",
+            "type": "source",
+            "position": "right"
           }
         ],
         "colorScheme": "primary",
-        "iconId": "haproxy"
+        "iconId": "radix-file",
+        "width": 187,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 187,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
       "id": "node_3",
       "type": "labeled",
       "position": {
-        "x": -74.53081701688217,
-        "y": 350.8278094477867
+        "x": -97.53081701688211,
+        "y": 349.3278094477867
       },
       "data": {
         "label": "Ansible",
         "content": "",
-        "width": 860,
+        "width": 879,
         "height": 118,
         "colorScheme": "secondary",
         "iconId": "ansible"
       },
       "measured": {
-        "width": 860,
+        "width": 879,
         "height": 118
       },
       "selected": false,
@@ -140,11 +153,11 @@
       "id": "node_8",
       "type": "customDefault",
       "position": {
-        "x": 259.904053898059,
-        "y": 374.8419012270648
+        "x": 261.404053898059,
+        "y": 375.3419012270648
       },
       "data": {
-        "content": "3 - Configure VM",
+        "content": "3 - Configure VM Template",
         "handles": [
           {
             "id": "handle-1773667396257",
@@ -164,8 +177,8 @@
       "id": "node_9",
       "type": "customDefault",
       "position": {
-        "x": 426.59393748934417,
-        "y": 377.251297442207
+        "x": 427.59393748934417,
+        "y": 372.251297442207
       },
       "data": {
         "content": "4 - Finalize VM\nTemplate",
@@ -188,20 +201,20 @@
       "id": "node_10",
       "type": "labeled",
       "position": {
-        "x": 464.90782539371884,
-        "y": 7.9269929007137705
+        "x": 406.90782539371884,
+        "y": 3.4269929007137705
       },
       "data": {
         "label": "Terraform",
         "content": "",
-        "width": 211,
-        "height": 123,
+        "width": 189,
+        "height": 124,
         "colorScheme": "secondary",
         "iconId": "terraform"
       },
       "measured": {
-        "width": 211,
-        "height": 123
+        "width": 189,
+        "height": 124
       },
       "selected": false,
       "dragging": false,
@@ -211,8 +224,8 @@
       "id": "node_11",
       "type": "customDefault",
       "position": {
-        "x": 495.13112877349556,
-        "y": 37.74901543255875
+        "x": 427.13112877349556,
+        "y": 31.24901543255875
       },
       "data": {
         "content": "5 - Create fleet from template",
@@ -235,13 +248,19 @@
       "id": "node_12",
       "type": "customDefault",
       "position": {
-        "x": 535.2120501787484,
-        "y": 190.84773458462695
+        "x": 580.2120501787484,
+        "y": 203.34773458462695
       },
       "data": {
         "content": "",
         "colorScheme": "primary",
-        "handles": []
+        "handles": [
+          {
+            "id": "handle-1780363574277",
+            "type": "target",
+            "position": "left"
+          }
+        ]
       },
       "measured": {
         "width": 150,
@@ -254,8 +273,8 @@
       "id": "node_13",
       "type": "customDefault",
       "position": {
-        "x": 549.1408591914864,
-        "y": 203.9059930340689
+        "x": 590.6408591914864,
+        "y": 211.9059930340689
       },
       "data": {
         "content": "",
@@ -272,8 +291,8 @@
       "id": "node_14",
       "type": "customDefault",
       "position": {
-        "x": 568.2929715840012,
-        "y": 222.18755486328752
+        "x": 602.2929715840012,
+        "y": 223.18755486328752
       },
       "data": {
         "content": "Fleet of VMs",
@@ -298,8 +317,8 @@
       "id": "node_15",
       "type": "customDefault",
       "position": {
-        "x": 606.5971963690308,
-        "y": 374.5339034401092
+        "x": 603.0971963690308,
+        "y": 371.0339034401092
       },
       "data": {
         "content": "6 - Configure Fleet",
@@ -334,22 +353,6 @@
       "target": "node_1",
       "targetHandle": "handle-1773667330472",
       "id": "xy-edge__node_4handle-1773667247566-node_1handle-1773667330472",
-      "selected": false
-    },
-    {
-      "type": "default",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_6",
-      "sourceHandle": "handle-1773667300767",
-      "target": "node_1",
-      "targetHandle": "handle-1773667330472",
-      "id": "xy-edge__node_6handle-1773667300767-node_1handle-1773667330472",
       "selected": false
     },
     {
@@ -431,6 +434,36 @@
       "targetHandle": "handle-1773668062450",
       "id": "xy-edge__node_11handle-1773667665814-node_1handle-1773668062450",
       "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_6",
+      "sourceHandle": "handle-1773667300767",
+      "target": "node_2",
+      "targetHandle": "handle-1780363484413",
+      "id": "xy-edge__node_6handle-1773667300767-node_2handle-1780363484413"
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1780363569673",
+      "target": "node_12",
+      "targetHandle": "handle-1780363574277",
+      "id": "xy-edge__node_2handle-1780363569673-node_12handle-1780363574277"
     }
   ]
 }
