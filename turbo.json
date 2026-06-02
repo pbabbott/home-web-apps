@@ -97,7 +97,7 @@
     },
     "lint": {
       "outputs": [],
-      "dependsOn": ["^build:npm"]
+      "dependsOn": ["^build"]
     },
     "dev": {
       "cache": false,
