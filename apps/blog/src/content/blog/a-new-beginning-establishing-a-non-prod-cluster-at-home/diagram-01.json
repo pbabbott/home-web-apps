@@ -34,7 +34,7 @@
         "content": "",
         "width": 245,
         "height": 134,
-        "iconId": "proxmox"
+        "iconId": "banana"
       },
       "measured": {
         "width": 245,
@@ -255,5 +255,6 @@
       "id": "xy-edge__node_2handle-1771385702907-node_6handle-1771385698148",
       "selected": false
     }
-  ]
+  ],
+  "isComplete": false
 }

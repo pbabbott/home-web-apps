@@ -475,6 +475,8 @@ export default function BlogMinimap() {
 
   // Scroll and resize listeners
   useEffect(() => {
+    setViewportHeight(window.innerHeight);
+
     const onScroll = () => setScrollTop(window.scrollY);
     const onResize = () => {
       setViewportHeight(window.innerHeight);

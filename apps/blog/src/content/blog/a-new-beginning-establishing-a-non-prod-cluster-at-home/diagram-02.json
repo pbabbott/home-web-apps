@@ -158,14 +158,18 @@
         "y": 341.79692720620704
       },
       "data": {
-        "content": "3rd Party\nApps"
+        "content": "3rd Party\nApps",
+        "iconId": "kubernetes",
+        "width": 184,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 184,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
       "id": "node_7",
@@ -338,5 +342,6 @@
       },
       "selected": false
     }
-  ]
+  ],
+  "isComplete": false
 }
