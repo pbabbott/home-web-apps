@@ -35,6 +35,25 @@ TODO: set this up against pi-led-api
 
 - Centralize linting, tidying up with pnpm features
 
+## Eliminate build:npm dependency from lint (source types)
+
+Currently `lint` in turbo.json depends on `^build:npm` so tsc in blog/diagram-maker can
+resolve types from `fui-components` and `fui-icons` (both point `types` at `./dist/index.d.ts`).
+
+Goal: switch to the Turborepo "Just-in-Time" internal package pattern so lint needs zero
+upstream build.
+
+Steps:
+
+1. In `packages/fui-components/package.json` and `packages/fui-icons/package.json`, change
+   `types` and the `exports["."].types` field from `./dist/index.d.ts` → `./src/index.ts`
+2. Set `lint` `dependsOn` in `turbo.json` back to `[]`
+3. Verify tsc in blog and diagram-maker resolves correctly (`moduleResolution: "bundler"` already
+   supports `.ts` source imports from packages)
+
+Both packages are private/internal, so no external consumers are affected. The `build:npm` script
+stays intact for actual deploy builds.
+
 # fui-components
 
 - ✅ rebuild component library from scratch following tutorials online
