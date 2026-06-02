@@ -349,7 +349,9 @@ export function DiagramEditorProvider({
   );
 
   const activeLocalDiagramPathRef = useRef(activeLocalDiagramPath);
-  activeLocalDiagramPathRef.current = activeLocalDiagramPath;
+  useEffect(() => {
+    activeLocalDiagramPathRef.current = activeLocalDiagramPath;
+  }, [activeLocalDiagramPath]);
 
   const onToggleActiveLocalDiagramComplete = useCallback(() => {
     setActiveLocalDiagramIsComplete((prev) => {
