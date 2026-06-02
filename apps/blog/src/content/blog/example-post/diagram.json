@@ -4,18 +4,19 @@
       "id": "node_6",
       "type": "labeled",
       "position": {
-        "x": -4,
-        "y": 17.71875
+        "x": 2,
+        "y": 29.71875
       },
       "data": {
         "label": "Nissa's House",
         "content": "",
-        "width": 747,
-        "height": 292
+        "width": 724,
+        "height": 265,
+        "iconId": "radix-home"
       },
       "measured": {
-        "width": 747,
-        "height": 292
+        "width": 724,
+        "height": 265
       },
       "selected": false,
       "resizing": false,
@@ -40,7 +41,8 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "raspberry-pi"
       },
       "measured": {
         "width": 428,
@@ -54,19 +56,20 @@
       "id": "node_4",
       "type": "labeled",
       "position": {
-        "x": 294.9956989247312,
-        "y": 138.97788978494623
+        "x": 292.4956989247312,
+        "y": 129.97788978494623
       },
       "data": {
         "label": "Docker",
         "content": "",
         "colorScheme": "secondary",
-        "width": 400,
-        "height": 115
+        "width": 407,
+        "height": 137,
+        "iconId": "docker"
       },
       "measured": {
-        "width": 400,
-        "height": 115
+        "width": 407,
+        "height": 137
       },
       "selected": false,
       "dragging": false,
@@ -87,7 +90,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "traefik-proxy"
       },
       "measured": {
         "width": 150,
@@ -100,8 +104,8 @@
       "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 533,
-        "y": 161.71875
+        "x": 534,
+        "y": 162.71875
       },
       "data": {
         "content": "n8n\n5678",
@@ -111,7 +115,8 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "n8n"
       },
       "measured": {
         "width": 150,
@@ -138,7 +143,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "router"
       },
       "measured": {
         "width": 183,
@@ -182,8 +188,10 @@
       "id": "xy-edge__node_0handle-1767065807683-node_1handle-1767065813874",
       "selected": false,
       "data": {
-        "label": "443\n80"
+        "label": "443\n80",
+        "color": "secondary"
       }
     }
-  ]
+  ],
+  "isComplete": true
 }

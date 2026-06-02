@@ -159,6 +159,7 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
+          BASE_REF: ${{ github.base_ref }}
 
   fui-components-ui-tests:
     needs: [build]
