@@ -44,6 +44,22 @@ test.describe('BaseNode Visual Regression Tests', () => {
     );
   });
 
+  test('dark', async ({ page }) => {
+    await gotoStory(page, 'diagrams-basenode--dark');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-basenode--dark.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('white', async ({ page }) => {
+    await gotoStory(page, 'diagrams-basenode--white');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-basenode--white.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('selected', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--selected');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

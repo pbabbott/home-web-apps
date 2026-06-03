@@ -25,8 +25,15 @@ export const nodeTypes = [
 
 export const colorSchemeOptions: { value: NodeColorScheme; label: string }[] = [
   { value: 'default', label: 'Default (Neutral)' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'white', label: 'White' },
   { value: 'primary', label: 'Primary' },
   { value: 'secondary', label: 'Secondary' },
+  { value: 'success', label: 'Success' },
+  { value: 'error', label: 'Error' },
+  { value: 'warning', label: 'Warning' },
+  { value: 'accent-purple', label: 'Accent Purple' },
+  { value: 'accent-falcon', label: 'Accent Falcon' },
 ];
 
 export const handlePositionOptions: {

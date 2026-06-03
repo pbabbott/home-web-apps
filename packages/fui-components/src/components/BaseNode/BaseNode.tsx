@@ -26,7 +26,17 @@ import {
 } from './BaseNode.constants';
 import { useIconRenderer } from '../DiagramViewer/IconRendererContext';
 
-export type NodeColorScheme = 'primary' | 'secondary' | 'default';
+export type NodeColorScheme =
+  | 'default'
+  | 'dark'
+  | 'white'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'error'
+  | 'warning'
+  | 'accent-purple'
+  | 'accent-falcon';
 
 export interface BaseNodeData extends Record<string, unknown> {
   label?: string;
@@ -53,6 +63,24 @@ const colorSchemeStyles: Record<
   NodeColorScheme,
   { bg: string; border: string; labelBg: string; text: string }
 > = {
+  default: {
+    bg: 'bg-neutral-800',
+    border: 'border-neutral-600',
+    labelBg: 'bg-neutral-700',
+    text: 'text-neutral-200',
+  },
+  dark: {
+    bg: 'bg-neutral-900',
+    border: 'border-neutral-900',
+    labelBg: 'bg-neutral-800',
+    text: 'text-neutral-400',
+  },
+  white: {
+    bg: 'bg-neutral-200',
+    border: 'border-neutral-400',
+    labelBg: 'bg-neutral-300',
+    text: 'text-neutral-800',
+  },
   primary: {
     bg: 'bg-neutral-900',
     border: 'border-primary-600',
@@ -65,11 +93,35 @@ const colorSchemeStyles: Record<
     labelBg: 'bg-neutral-900',
     text: 'text-secondary-200',
   },
-  default: {
-    bg: 'bg-neutral-800',
-    border: 'border-neutral-600',
-    labelBg: 'bg-neutral-700',
-    text: 'text-neutral-200',
+  success: {
+    bg: 'bg-neutral-900',
+    border: 'border-success-500',
+    labelBg: 'bg-neutral-900',
+    text: 'text-success-300',
+  },
+  error: {
+    bg: 'bg-neutral-900',
+    border: 'border-error-600',
+    labelBg: 'bg-neutral-900',
+    text: 'text-error-300',
+  },
+  warning: {
+    bg: 'bg-neutral-900',
+    border: 'border-warning-500',
+    labelBg: 'bg-neutral-900',
+    text: 'text-warning-300',
+  },
+  'accent-purple': {
+    bg: 'bg-neutral-900',
+    border: 'border-accent-purple-500',
+    labelBg: 'bg-neutral-900',
+    text: 'text-accent-purple-300',
+  },
+  'accent-falcon': {
+    bg: 'bg-neutral-900',
+    border: 'border-accent-falcon-600',
+    labelBg: 'bg-neutral-900',
+    text: 'text-accent-falcon-300',
   },
 };
 

@@ -6,20 +6,22 @@ import {
   ReactFlowProvider,
   type Node,
   type Edge,
-  type NodeTypes,
-  type EdgeTypes,
   Background,
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { EnterFullScreenIcon, ExitFullScreenIcon } from '@radix-ui/react-icons';
-import { DefaultEdge } from '../DefaultEdge/DefaultEdge';
-import { EditableEdge } from '../EditableEdge/EditableEdge';
-import { LabeledNode } from '../LabeledNode/LabeledNode';
-import { DefaultNode } from '../DefaultNode/DefaultNode';
-import { TextNode } from '../TextNode/TextNode';
+import { neutral, withOpacity } from '../../tokens/colors';
+import { DiagramControls } from '../DiagramControls/DiagramControls';
+import { DiagramMinimap } from '../DiagramMinimap/DiagramMinimap';
 import { IconRendererProvider } from './IconRendererContext';
 import type { IconRenderer } from '../../types/icons';
+import {
+  nodeTypes,
+  edgeTypes,
+  diagramContainerClass,
+  diagramFlowStyles,
+  diagramProOptions,
+} from '../diagramShared';
 
 export interface DiagramViewerProps {
   data: {
@@ -29,24 +31,64 @@ export interface DiagramViewerProps {
   height?: string;
   className?: string;
   renderIcon?: IconRenderer;
+  showMinimap?: boolean;
 }
 
-const nodeTypes: NodeTypes = {
-  labeled: LabeledNode,
-  customDefault: DefaultNode,
-  text: TextNode,
-};
+interface DiagramViewerInnerProps {
+  nodes: Node[];
+  edges: Edge[];
+  isFullscreen: boolean;
+  toggleFullscreen: () => void;
+  showMinimap: boolean;
+}
 
-const edgeTypes: EdgeTypes = {
-  editable: EditableEdge,
-  default: DefaultEdge,
-};
+function DiagramViewerInner({
+  nodes,
+  edges,
+  isFullscreen,
+  toggleFullscreen,
+  showMinimap,
+}: DiagramViewerInnerProps) {
+  return (
+    <>
+      <DiagramControls
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+      />
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        proOptions={diagramProOptions}
+        fitView
+        fitViewOptions={{ padding: 0.2 }}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        panOnDrag={true}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        className="diagram-viewer-inner h-full"
+      >
+        <Background
+          variant={BackgroundVariant.Lines}
+          gap={20}
+          size={2}
+          color={withOpacity(neutral[800], 0.5)}
+        />
+        {showMinimap && <DiagramMinimap />}
+      </ReactFlow>
+    </>
+  );
+}
 
 export function DiagramViewer({
   data,
   height = '600px',
   className = '',
   renderIcon,
+  showMinimap = false,
 }: DiagramViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -90,55 +132,22 @@ export function DiagramViewer({
     <IconRendererProvider renderer={renderIcon}>
       <div
         ref={containerRef}
-        className={`relative w-full rounded-lg overflow-hidden border border-neutral-700 ${className}`}
+        className={`${diagramContainerClass} ${className}`}
         style={{ height }}
       >
-        <style>{`
-        .react-flow__edges {
-          z-index: 10;
-        }
-        .react-flow__nodes {
-          z-index: 1;
-        }
+        <style>{`${diagramFlowStyles}
         :fullscreen .diagram-viewer-inner {
           height: 100%;
         }
       `}</style>
-        <button
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded bg-neutral-800/80 hover:bg-neutral-700 text-neutral-300 hover:text-white transition-colors"
-        >
-          {isFullscreen ? (
-            <ExitFullScreenIcon width={16} height={16} />
-          ) : (
-            <EnterFullScreenIcon width={16} height={16} />
-          )}
-        </button>
         <ReactFlowProvider>
-          <ReactFlow
+          <DiagramViewerInner
             nodes={nodes}
             edges={edges}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            proOptions={{ hideAttribution: true }}
-            fitView
-            fitViewOptions={{ padding: 0.2 }}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
-            panOnDrag={true}
-            zoomOnScroll={true}
-            zoomOnPinch={true}
-            className="diagram-viewer-inner h-full"
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={20}
-              size={1}
-              color="#374151"
-            />
-          </ReactFlow>
+            isFullscreen={isFullscreen}
+            toggleFullscreen={toggleFullscreen}
+            showMinimap={showMinimap}
+          />
         </ReactFlowProvider>
       </div>
     </IconRendererProvider>

@@ -1,26 +1,207 @@
 {
   "nodes": [
     {
-      "id": "node_0",
+      "id": "node_1",
       "type": "customDefault",
       "position": {
-        "x": 528.5,
-        "y": 331.609375
+        "x": -377.86370490661176,
+        "y": 277.4915376890131
       },
       "data": {
-        "content": "Content scheduled for future deployment.",
-        "width": 231,
-        "height": 130
+        "content": "End User\n(You)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1780435470617",
+            "type": "source",
+            "position": "right"
+          }
+        ]
       },
       "measured": {
-        "width": 231,
-        "height": 130
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "labeled",
+      "position": {
+        "x": 50.32893259267257,
+        "y": 125.95807438574346
+      },
+      "data": {
+        "label": "My House",
+        "content": "",
+        "iconId": "radix-home",
+        "width": 626,
+        "height": 347,
+        "colorScheme": "dark"
+      },
+      "measured": {
+        "width": 626,
+        "height": 347
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_3",
+      "type": "labeled",
+      "position": {
+        "x": 235.55312308858868,
+        "y": 198.56769187100537
+      },
+      "data": {
+        "content": "",
+        "iconId": "kubernetes",
+        "colorScheme": "secondary",
+        "handles": [],
+        "label": "Kubernetes Cluster",
+        "width": 340,
+        "height": 246
+      },
+      "measured": {
+        "width": 340,
+        "height": 246
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 384.6664310535731,
+        "y": 273.4834227370106
+      },
+      "data": {
+        "content": "Blog Website",
+        "iconId": "radix-globe",
+        "width": 182,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1780435480905",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 182,
+        "height": 80
       },
       "selected": false,
       "resizing": false,
       "dragging": false
+    },
+    {
+      "id": "node_7",
+      "type": "labeled",
+      "position": {
+        "x": -131.90078502040592,
+        "y": 256.4704426291695
+      },
+      "data": {
+        "label": "Ingress Pattern",
+        "content": "",
+        "colorScheme": "accent-falcon",
+        "width": 439,
+        "height": 122,
+        "handles": [
+          {
+            "id": "handle-1780435463920",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1780435464077",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 439,
+        "height": 122
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_8",
+      "type": "customDefault",
+      "position": {
+        "x": -106.89146167298433,
+        "y": 283.75334082635663
+      },
+      "data": {
+        "content": "Cloudflare",
+        "iconId": "cloudflare"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_9",
+      "type": "customDefault",
+      "position": {
+        "x": 56.80592751013867,
+        "y": 282.9954825431012
+      },
+      "data": {
+        "content": "Load Balancer",
+        "iconId": "haproxy"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
     }
   ],
-  "edges": [],
+  "edges": [
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_1",
+      "sourceHandle": "handle-1780435470617",
+      "target": "node_7",
+      "targetHandle": "handle-1780435463920",
+      "id": "xy-edge__node_1handle-1780435470617-node_7handle-1780435463920"
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_7",
+      "sourceHandle": "handle-1780435464077",
+      "target": "node_5",
+      "targetHandle": "handle-1780435480905",
+      "id": "xy-edge__node_7handle-1780435464077-node_5handle-1780435480905"
+    }
+  ],
   "isComplete": false
 }

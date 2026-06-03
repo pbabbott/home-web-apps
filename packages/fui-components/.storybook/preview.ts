@@ -31,13 +31,18 @@ const preview: Preview = {
       options: {
         dark: {
           name: 'Dark',
-          // This is neutral-800 from tailwind.config.ts
+          // neutral-800 from tailwind.config.ts
           value: '#2E373B',
         },
         light: {
           name: 'Light',
-          // This is neutral-50 from tailwind.config.ts
+          // neutral-50 from tailwind.config.ts
           value: '#F8F8F8',
+        },
+        diagram: {
+          name: 'Diagram',
+          // secondary-950 from tailwind.config.ts — matches diagram editor/viewer canvas
+          value: '#003C3D',
         },
       },
     },

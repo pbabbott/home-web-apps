@@ -9,7 +9,8 @@ export type ButtonColor =
   | 'error'
   | 'warning'
   | 'accent-purple'
-  | 'accent-falcon';
+  | 'accent-falcon'
+  | 'neutral';
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -70,6 +71,13 @@ const getColorClasses = (variant: ButtonVariant, color: ButtonColor) => {
       outlined:
         'border-accent-falcon-400 text-accent-falcon-400 hover:bg-accent-falcon-400 hover:text-neutral-50 group-hover:bg-accent-falcon-400 group-hover:text-neutral-50',
       text: 'text-accent-falcon-400 hover:bg-accent-falcon-400 hover:text-neutral-50 group-hover:bg-accent-falcon-400 group-hover:text-neutral-50',
+    },
+    neutral: {
+      contained:
+        'bg-neutral-900 hover:bg-neutral-700 group-hover:bg-neutral-700 border border-neutral-800',
+      outlined:
+        'border-neutral-700 text-neutral-400 hover:bg-neutral-700 hover:text-neutral-50 group-hover:bg-neutral-700 group-hover:text-neutral-50',
+      text: 'text-neutral-400 hover:bg-neutral-700 hover:text-neutral-50 group-hover:bg-neutral-700 group-hover:text-neutral-50',
     },
   };
 

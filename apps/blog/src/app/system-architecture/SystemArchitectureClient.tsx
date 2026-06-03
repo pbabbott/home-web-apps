@@ -1,7 +1,11 @@
 'use client';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
-import { Typography } from '@abbottland/fui-components';
-import { DiagramViewer, type DiagramViewerProps } from '@/components/diagram';
+import {
+  Typography,
+  DiagramViewer,
+  type DiagramViewerProps,
+} from '@abbottland/fui-components';
+import { renderSimpleIcon } from '@abbottland/fui-icons';
 import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
@@ -78,7 +82,7 @@ function ArchSection({
       <DiagramViewer
         data={data}
         height={diagramHeight}
-        className="bg-neutral-800"
+        renderIcon={renderSimpleIcon}
       />
     </section>
   );

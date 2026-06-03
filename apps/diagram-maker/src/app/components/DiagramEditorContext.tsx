@@ -14,8 +14,6 @@ import {
   addEdge,
   useNodesState,
   useEdgesState,
-  useOnSelectionChange,
-  useUpdateNodeInternals,
   type Connection,
   type Node,
   type Edge,
@@ -108,8 +106,6 @@ export function DiagramEditorProvider({
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([]);
   const [viewerMode, setViewerMode] = useState(false);
   const [activeLocalDiagramPath, setActiveLocalDiagramPath] = useState<
     string | null
@@ -119,14 +115,8 @@ export function DiagramEditorProvider({
   >(null);
   const [activeLocalDiagramIsComplete, setActiveLocalDiagramIsComplete] =
     useState(false);
-  const updateNodeInternals = useUpdateNodeInternals();
-
-  useOnSelectionChange({
-    onChange: ({ nodes: selectedNodes, edges: selectedEdges }) => {
-      setSelectedNodeIds(selectedNodes.map((n) => n.id));
-      setSelectedEdgeIds(selectedEdges.map((e) => e.id));
-    },
-  });
+  const selectedNodeIds = nodes.filter((n) => n.selected).map((n) => n.id);
+  const selectedEdgeIds = edges.filter((e) => e.selected).map((e) => e.id);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -187,12 +177,8 @@ export function DiagramEditorProvider({
             : node,
         ),
       );
-      // setTimeout ensures DOM updates before React Flow processes handle changes
-      setTimeout(() => {
-        selectedNodeIds.forEach((nodeId) => updateNodeInternals(nodeId));
-      }, 0);
     },
-    [selectedNodeIds, setNodes, updateNodeInternals],
+    [selectedNodeIds, setNodes],
   );
 
   const selectedEdgeType: string | undefined =
