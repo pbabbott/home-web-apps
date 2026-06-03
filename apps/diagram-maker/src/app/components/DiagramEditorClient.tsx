@@ -1,8 +1,8 @@
 'use client';
 
-import { ReactFlowProvider } from '@xyflow/react';
 import {
   DiagramViewer,
+  DiagramEditor,
   IconRendererProvider,
   Typography,
 } from '@abbottland/fui-components';
@@ -11,13 +11,23 @@ import {
   DiagramEditorProvider,
   useDiagramEditor,
 } from './DiagramEditorContext';
-import { DiagramEditor } from './DiagramEditor';
 import { Sidebar } from './Sidebar/Sidebar';
 import { Header } from './Header';
 
 function DiagramEditorLayout() {
-  const { nodes, edges, reactFlowWrapper, viewerMode, warningColorRgba } =
-    useDiagramEditor();
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    onDrop,
+    onDragOver,
+    onInit,
+    reactFlowWrapper,
+    viewerMode,
+    warningColorRgba,
+  } = useDiagramEditor();
 
   return (
     <div className="flex h-screen w-full">
@@ -44,7 +54,18 @@ function DiagramEditorLayout() {
               renderIcon={renderSimpleIcon}
             />
           ) : (
-            <DiagramEditor />
+            <DiagramEditor
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onInit={onInit}
+              height="100%"
+              className="!rounded-none !border-none"
+            />
           )}
         </div>
         <div className="px-3 py-1 text-right bg-neutral-950">
@@ -59,12 +80,10 @@ function DiagramEditorLayout() {
 
 export function DiagramEditorClient() {
   return (
-    <ReactFlowProvider>
-      <IconRendererProvider renderer={renderSimpleIcon}>
-        <DiagramEditorProvider>
-          <DiagramEditorLayout />
-        </DiagramEditorProvider>
-      </IconRendererProvider>
-    </ReactFlowProvider>
+    <IconRendererProvider renderer={renderSimpleIcon}>
+      <DiagramEditorProvider>
+        <DiagramEditorLayout />
+      </DiagramEditorProvider>
+    </IconRendererProvider>
   );
 }

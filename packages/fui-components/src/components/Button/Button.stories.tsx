@@ -28,8 +28,9 @@ const meta = {
         'success',
         'error',
         'warning',
-        'accentPurple',
-        'accentFalcon',
+        'accent-purple',
+        'accent-falcon',
+        'neutral',
       ],
       description: 'The color scheme of the button',
     },
@@ -81,6 +82,7 @@ export const ColorAccentFalcon: Story = ButtonStory(
   'AccentFalcon',
   'accent-falcon',
 );
+export const ColorNeutral: Story = ButtonStory('Neutral', 'neutral');
 
 export const AsLink: Story = {
   name: 'As Link (anchor)',

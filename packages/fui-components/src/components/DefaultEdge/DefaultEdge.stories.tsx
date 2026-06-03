@@ -45,6 +45,7 @@ const meta: Meta<typeof StoryContainer> = {
   component: StoryContainer,
   parameters: {
     layout: 'padded',
+    backgrounds: { default: 'diagram' },
     docs: {
       description: {
         component:

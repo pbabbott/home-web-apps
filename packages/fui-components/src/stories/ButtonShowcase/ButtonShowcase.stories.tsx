@@ -36,6 +36,7 @@ export const ColorsAndVariants: Story = {
       <ButtonVariants color="warning" />
       <ButtonVariants color="accent-purple" />
       <ButtonVariants color="accent-falcon" />
+      <ButtonVariants color="neutral" />
     </div>
   ),
 };

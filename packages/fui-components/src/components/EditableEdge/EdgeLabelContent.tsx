@@ -81,7 +81,7 @@ export function EdgeLabelContent({
     return (
       <div
         className={`border rounded ${colorClasses.editingWrapper}`}
-        style={colorClasses.bgStyle}
+        style={{ lineHeight: 0.2, ...colorClasses.bgStyle }}
       >
         <textarea
           ref={inputRef}
@@ -131,7 +131,7 @@ export function EdgeLabelContent({
           ? 'cursor-default'
           : `cursor-text ${colorClasses.placeholderHover} transition-colors`
       }`}
-      style={colorClasses.bgStyle}
+      style={{ lineHeight: 0.2, ...colorClasses.bgStyle }}
       onClick={onStartEditing}
     >
       {!isReadonly && (

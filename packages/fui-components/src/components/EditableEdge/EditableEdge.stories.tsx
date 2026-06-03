@@ -1,25 +1,23 @@
+import { useCallback } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { within, userEvent } from 'storybook/test';
 import {
-  ReactFlow,
   ReactFlowProvider,
   useNodesState,
   useEdgesState,
+  addEdge,
   type Edge,
   type Node,
-  type EdgeTypes,
-  type NodeTypes,
+  type Connection,
 } from '@xyflow/react';
 import { DiagramViewer } from '../DiagramViewer/DiagramViewer';
-import { EditableEdge } from './EditableEdge';
-import { DefaultNode } from '../DefaultNode/DefaultNode';
+import { DiagramEditor } from '../DiagramEditor/DiagramEditor';
 import type { EditableEdgeColor } from './EdgeLabelContent';
-
-type NodeColor = 'primary' | 'secondary' | 'default';
+import type { NodeColorScheme } from '../BaseNode/BaseNode';
 
 function makeNodes(
-  node1Color: NodeColor = 'primary',
-  node2Color: NodeColor = 'secondary',
+  node1Color: NodeColorScheme = 'primary',
+  node2Color: NodeColorScheme = 'secondary',
   node1Label = 'Node 1',
   node2Label = 'Node 2',
   node2X = 600,
@@ -65,8 +63,8 @@ interface StoryProps {
   edgeColor?: EditableEdgeColor;
   node1Label?: string;
   node2Label?: string;
-  node1Color?: NodeColor;
-  node2Color?: NodeColor;
+  node1Color?: NodeColorScheme;
+  node2Color?: NodeColorScheme;
 }
 
 function StoryContainer({
@@ -88,33 +86,33 @@ function StoryContainer({
   );
 }
 
-const editableNodeTypes: NodeTypes = { customDefault: DefaultNode };
-const editableEdgeTypes: EdgeTypes = { editable: EditableEdge };
-
 function EditableStoryContainer({
   edgeLabel = '',
   edgeColor = 'primary',
   node1Color = 'primary',
   node2Color = 'secondary',
 }: StoryProps) {
-  const [nodes] = useNodesState(makeNodes(node1Color, node2Color));
-  const [edges, , onEdgesChange] = useEdgesState([
+  const [nodes, , onNodesChange] = useNodesState(
+    makeNodes(node1Color, node2Color),
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState([
     makeEdge(edgeLabel, edgeColor),
   ]);
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  );
 
   return (
     <ReactFlowProvider>
-      <div style={{ height: '400px', width: '100%' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={editableNodeTypes}
-          edgeTypes={editableEdgeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.2 }}
-        />
-      </div>
+      <DiagramEditor
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        height="400px"
+      />
     </ReactFlowProvider>
   );
 }
@@ -124,6 +122,7 @@ const meta: Meta<typeof StoryContainer> = {
   component: StoryContainer,
   parameters: {
     layout: 'padded',
+    backgrounds: { default: 'diagram' },
     docs: {
       description: {
         component:
@@ -165,9 +164,6 @@ export const Default: Story = {
     node2Color: 'secondary',
   },
 };
-
-// DiagramViewer forces readonly:true on all edges, hiding "click to add label".
-// These stories use ReactFlow directly to show the interactive/editable states.
 
 // Matches what diagram-maker creates: no color set → resolveColor(undefined) → 'primary'
 export const NewEdge: Story = {

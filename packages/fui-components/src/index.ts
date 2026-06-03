@@ -47,6 +47,10 @@ export {
   DiagramViewer,
   type DiagramViewerProps,
 } from './components/DiagramViewer/DiagramViewer';
+export {
+  DiagramEditor,
+  type DiagramEditorProps,
+} from './components/DiagramEditor/DiagramEditor';
 
 // Button
 export {

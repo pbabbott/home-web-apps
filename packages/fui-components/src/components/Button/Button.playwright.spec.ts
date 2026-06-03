@@ -68,6 +68,14 @@ test.describe('Button Visual Regression Tests', () => {
     );
   });
 
+  test('color-neutral', async ({ page }) => {
+    await gotoStory(page, 'components-button--color-neutral');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-button--color-neutral.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('as-link', async ({ page }) => {
     await gotoStory(page, 'components-button--as-link');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

@@ -4,8 +4,8 @@
       "id": "node_1",
       "type": "customDefault",
       "position": {
-        "x": -210.55290303831532,
-        "y": 167.3478194331294
+        "x": -57.638445984920025,
+        "y": 209.05176226587355
       },
       "data": {
         "content": "End User\n(You)",
@@ -29,19 +29,19 @@
       "id": "node_2",
       "type": "labeled",
       "position": {
-        "x": 415.30775362605635,
-        "y": 135.66673881446815
+        "x": 179.56463233540524,
+        "y": 133.92907452977047
       },
       "data": {
         "label": "My House",
         "content": "",
         "iconId": "radix-home",
-        "width": 192,
-        "height": 133
+        "width": 289,
+        "height": 188
       },
       "measured": {
-        "width": 192,
-        "height": 133
+        "width": 289,
+        "height": 188
       },
       "selected": false,
       "dragging": false,
@@ -49,82 +49,58 @@
     },
     {
       "id": "node_3",
-      "type": "customDefault",
+      "type": "labeled",
       "position": {
-        "x": 438.30775362605635,
-        "y": 168.16673881446815
+        "x": 203.72307519187035,
+        "y": 172.8005102403286
       },
       "data": {
-        "content": "Kubernetes Cluster",
+        "content": "",
         "iconId": "kubernetes",
         "colorScheme": "secondary",
-        "handles": [
-          {
-            "id": "handle-1780350262382",
-            "type": "target",
-            "position": "left"
-          }
-        ]
+        "handles": [],
+        "label": "Kubernetes Cluster",
+        "width": 244,
+        "height": 137
       },
       "measured": {
-        "width": 150,
-        "height": 80
+        "width": 244,
+        "height": 137
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
-      "id": "node_4",
+      "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 187.8085342840463,
-        "y": 168.2527951452669
+        "x": 230.81382527489387,
+        "y": 209.18074829697176
       },
       "data": {
-        "content": "Cloudflare",
-        "iconId": "cloudflare",
+        "content": "Blog Website",
+        "iconId": "radix-globe",
+        "width": 182,
+        "height": 80,
         "handles": [
           {
-            "id": "handle-1780350413493",
+            "id": "handle-1780434942479",
             "type": "target",
             "position": "left"
-          },
-          {
-            "id": "handle-1780350413669",
-            "type": "source",
-            "position": "right"
           }
         ]
       },
       "measured": {
-        "width": 150,
+        "width": 182,
         "height": 80
       },
       "selected": false,
+      "resizing": false,
       "dragging": false
     }
   ],
   "edges": [
-    {
-      "type": "editable",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_1",
-      "sourceHandle": "handle-1780350157858",
-      "target": "node_4",
-      "targetHandle": "handle-1780350413493",
-      "id": "xy-edge__node_1handle-1780350157858-node_4handle-1780350413493",
-      "selected": false,
-      "data": {
-        "label": "https://abbottland.io",
-        "color": "default"
-      }
-    },
     {
       "type": "basic",
       "style": {
@@ -134,12 +110,11 @@
       "markerEnd": {
         "type": "arrowclosed"
       },
-      "source": "node_4",
-      "sourceHandle": "handle-1780350413669",
-      "target": "node_3",
-      "targetHandle": "handle-1780350262382",
-      "id": "xy-edge__node_4handle-1780350413669-node_3handle-1780350262382",
-      "selected": false
+      "source": "node_1",
+      "sourceHandle": "handle-1780350157858",
+      "target": "node_5",
+      "targetHandle": "handle-1780434942479",
+      "id": "xy-edge__node_1handle-1780350157858-node_5handle-1780434942479"
     }
   ],
   "isComplete": false

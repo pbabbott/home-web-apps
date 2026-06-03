@@ -1,9 +1,17 @@
+import { useCallback } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ReactFlow, ReactFlowProvider, type NodeTypes } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { neutral } from '../../tokens/colors';
-import { BaseNode, type BaseNodeProps, type BaseNodeData } from './BaseNode';
-import { IconRendererProvider } from '../DiagramViewer/IconRendererContext';
+import {
+  ReactFlowProvider,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  type Node,
+  type Edge,
+  type Connection,
+} from '@xyflow/react';
+import { DiagramViewer } from '../DiagramViewer/DiagramViewer';
+import { DiagramEditor } from '../DiagramEditor/DiagramEditor';
+import type { NodeColorScheme } from './BaseNode';
 import type { IconRenderer } from '../../types/icons';
 
 const placeholderIcon: IconRenderer = ({ size }) => (
@@ -22,79 +30,66 @@ const placeholderIcon: IconRenderer = ({ size }) => (
   </svg>
 );
 
-// Wrapper component that renders BaseNode inside a minimal ReactFlow canvas
-function BaseNodeStoryWrapper(
-  props: Omit<BaseNodeProps, 'id'> & { id?: string },
-) {
-  const { id = 'story-node', data, selected, showLabel } = props;
+interface StoryProps {
+  content: string;
+  colorScheme: NodeColorScheme;
+  label?: string;
+  showLabel: boolean;
+}
 
-  // Create a custom node component that passes through to BaseNode
-  const CustomNode = ({
-    id: nodeId,
-    data: nodeData,
-    selected: nodeSelected,
-  }: {
-    id: string;
-    data: BaseNodeData;
-    selected?: boolean;
-  }) => (
-    <BaseNode
-      id={nodeId}
-      data={nodeData}
-      selected={nodeSelected}
-      showLabel={showLabel}
-    />
-  );
-
-  const nodeTypes: NodeTypes = {
-    baseNode: CustomNode,
-  };
-
-  const nodes = [
+function SelectedContainer() {
+  const [nodes, , onNodesChange] = useNodesState<Node>([
     {
-      id,
-      type: 'baseNode',
-      position: { x: 50, y: 50 },
-      data,
-      selected,
+      id: 'node-1',
+      type: 'customDefault',
+      position: { x: 100, y: 100 },
+      data: {
+        content: 'Selected node',
+        colorScheme: 'primary' as NodeColorScheme,
+      },
+      selected: true,
     },
-  ];
-
+  ]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  );
   return (
-    <div style={{ width: '100%', height: '400px', background: neutral[900] }}>
-      <ReactFlow
+    <ReactFlowProvider>
+      <DiagramEditor
         nodes={nodes}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.5 }}
-        nodesDraggable={true}
-        nodesConnectable={true}
-        elementsSelectable={true}
-        proOptions={{ hideAttribution: true }}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        height="300px"
       />
-    </div>
-  );
-}
-
-// Wrap the story wrapper with ReactFlowProvider
-function StoryContainer(props: Omit<BaseNodeProps, 'id'> & { id?: string }) {
-  return (
-    <ReactFlowProvider>
-      <BaseNodeStoryWrapper {...props} />
     </ReactFlowProvider>
   );
 }
 
-// Wrap with ReactFlowProvider + IconRendererProvider for icon stories
-function StoryContainerWithIcon(
-  props: Omit<BaseNodeProps, 'id'> & { id?: string },
-) {
+function StoryContainer({
+  content,
+  colorScheme,
+  label,
+  showLabel,
+}: StoryProps) {
   return (
-    <ReactFlowProvider>
-      <IconRendererProvider renderer={placeholderIcon}>
-        <BaseNodeStoryWrapper {...props} />
-      </IconRendererProvider>
-    </ReactFlowProvider>
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: showLabel ? 'labeled' : 'customDefault',
+            position: { x: 100, y: 100 },
+            data: { content, colorScheme, label },
+          },
+        ],
+        edges: [],
+      }}
+    />
   );
 }
 
@@ -103,6 +98,7 @@ const meta: Meta<typeof StoryContainer> = {
   component: StoryContainer,
   parameters: {
     layout: 'padded',
+    backgrounds: { default: 'diagram' },
     docs: {
       description: {
         component:
@@ -111,17 +107,30 @@ const meta: Meta<typeof StoryContainer> = {
     },
   },
   argTypes: {
+    content: { control: 'text', description: 'Text content inside the node' },
+    colorScheme: {
+      control: 'select',
+      options: [
+        'default',
+        'dark',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'error',
+        'warning',
+        'accent-purple',
+        'accent-falcon',
+      ],
+      description: 'Color scheme',
+    },
+    label: {
+      control: 'text',
+      description: 'Label badge text (requires showLabel: true)',
+    },
     showLabel: {
       control: 'boolean',
-      description: 'Whether to show the label badge above the node',
-    },
-    selected: {
-      control: 'boolean',
-      description: 'Whether the node is selected',
-    },
-    data: {
-      description:
-        'Node data including content, label, dimensions, and color scheme',
+      description: 'Show label badge above node',
     },
   },
 };
@@ -132,143 +141,204 @@ type Story = StoryObj<typeof StoryContainer>;
 
 export const Default: Story = {
   args: {
-    data: {
-      content: 'Default Node',
-      colorScheme: 'default',
-    },
+    content: 'Default Node',
+    colorScheme: 'default',
     showLabel: false,
-    selected: false,
   },
 };
 
 export const WithLabel: Story = {
   args: {
-    data: {
-      label: 'My Label',
-      content: 'Node with a label badge',
-      colorScheme: 'default',
-    },
+    label: 'My Label',
+    content: 'Node with a label badge',
+    colorScheme: 'default',
     showLabel: true,
-    selected: false,
   },
 };
 
 export const Primary: Story = {
   args: {
-    data: {
-      content: 'Primary color scheme',
-      colorScheme: 'primary',
-    },
+    content: 'Primary color scheme',
+    colorScheme: 'primary',
     showLabel: false,
-    selected: false,
   },
 };
 
 export const Secondary: Story = {
   args: {
-    data: {
-      content: 'Secondary color scheme',
-      colorScheme: 'secondary',
-    },
+    content: 'Secondary color scheme',
+    colorScheme: 'secondary',
     showLabel: false,
-    selected: false,
+  },
+};
+
+export const Dark: Story = {
+  args: {
+    content: 'Dark color scheme',
+    colorScheme: 'dark',
+    showLabel: false,
+  },
+};
+
+export const White: Story = {
+  args: {
+    content: 'White color scheme',
+    colorScheme: 'white',
+    showLabel: false,
   },
 };
 
 export const Selected: Story = {
-  args: {
-    data: {
-      content: 'Selected node',
-      colorScheme: 'primary',
-    },
-    showLabel: false,
-    selected: true,
-  },
+  render: () => <SelectedContainer />,
 };
 
 export const WithHandles: Story = {
-  args: {
-    data: {
-      content: 'Node with handles',
-      colorScheme: 'primary',
-      handles: [
-        { id: 'top-target', type: 'target', position: 'top' },
-        { id: 'bottom-source', type: 'source', position: 'bottom' },
-      ],
-    },
-    showLabel: false,
-    selected: false,
-  },
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'customDefault',
+            position: { x: 100, y: 100 },
+            data: {
+              content: 'Node with handles',
+              colorScheme: 'primary',
+              handles: [
+                { id: 'top-target', type: 'target', position: 'top' },
+                { id: 'bottom-source', type: 'source', position: 'bottom' },
+              ],
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };
 
 export const LabeledWithHandles: Story = {
-  args: {
-    data: {
-      label: 'API Service',
-      content: 'Handles requests from clients',
-      colorScheme: 'secondary',
-      handles: [
-        { id: 'left-in', type: 'target', position: 'left' },
-        { id: 'right-out', type: 'source', position: 'right' },
-      ],
-    },
-    showLabel: true,
-    selected: false,
-  },
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'labeled',
+            position: { x: 100, y: 100 },
+            data: {
+              label: 'API Service',
+              content: 'Handles requests from clients',
+              colorScheme: 'secondary',
+              handles: [
+                { id: 'left-in', type: 'target', position: 'left' },
+                { id: 'right-out', type: 'source', position: 'right' },
+              ],
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };
 
 export const CustomSize: Story = {
-  args: {
-    data: {
-      content: 'Custom sized node (250x120)',
-      colorScheme: 'default',
-      width: 250,
-      height: 120,
-    },
-    showLabel: false,
-    selected: false,
-  },
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'customDefault',
+            position: { x: 100, y: 80 },
+            data: {
+              content: 'Custom sized node (250x120)',
+              colorScheme: 'default',
+              width: 250,
+              height: 120,
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };
 
 export const MultilineContent: Story = {
-  args: {
-    data: {
-      label: 'Details',
-      content: 'Line 1\nLine 2\nLine 3',
-      colorScheme: 'primary',
-      width: 180,
-      height: 100,
-    },
-    showLabel: true,
-    selected: false,
-  },
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'labeled',
+            position: { x: 100, y: 80 },
+            data: {
+              label: 'Details',
+              content: 'Line 1\nLine 2\nLine 3',
+              colorScheme: 'primary',
+              width: 180,
+              height: 100,
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };
 
-type IconStory = StoryObj<typeof StoryContainerWithIcon>;
-
-export const DefaultWithIcon: IconStory = {
-  render: (args) => <StoryContainerWithIcon {...args} />,
-  args: {
-    data: {
-      content: 'Node with icon',
-      colorScheme: 'primary',
-      iconId: 'placeholder',
-    },
-    showLabel: false,
-    selected: false,
-  },
+export const DefaultWithIcon: Story = {
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      renderIcon={placeholderIcon}
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'customDefault',
+            position: { x: 100, y: 100 },
+            data: {
+              content: 'Node with icon',
+              colorScheme: 'primary',
+              iconId: 'placeholder',
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };
 
-export const LabeledWithIcon: IconStory = {
-  render: (args) => <StoryContainerWithIcon {...args} />,
-  args: {
-    data: {
-      label: 'Service',
-      content: 'Node with icon in label',
-      colorScheme: 'secondary',
-      iconId: 'placeholder',
-    },
-    showLabel: true,
-    selected: false,
-  },
+export const LabeledWithIcon: Story = {
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      renderIcon={placeholderIcon}
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'labeled',
+            position: { x: 100, y: 100 },
+            data: {
+              label: 'Service',
+              content: 'Node with icon in label',
+              colorScheme: 'secondary',
+              iconId: 'placeholder',
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
 };

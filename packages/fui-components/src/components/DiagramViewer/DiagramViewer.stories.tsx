@@ -7,6 +7,7 @@ const meta: Meta<typeof DiagramViewer> = {
   component: DiagramViewer,
   parameters: {
     layout: 'padded',
+    backgrounds: { default: 'diagram' },
     docs: {
       description: {
         component:

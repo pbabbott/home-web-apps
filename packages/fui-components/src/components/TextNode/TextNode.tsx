@@ -16,9 +16,16 @@ export interface TextNodeData extends Record<string, unknown> {
 type TextNodeType = Node<TextNodeData, 'text'>;
 
 const textColorStyles: Record<NodeColorScheme, string> = {
+  default: 'text-neutral-200',
+  dark: 'text-neutral-400',
+  white: 'text-neutral-800',
   primary: 'text-primary-300',
   secondary: 'text-secondary-100',
-  default: 'text-neutral-200',
+  success: 'text-success-300',
+  error: 'text-error-300',
+  warning: 'text-warning-300',
+  'accent-purple': 'text-accent-purple-300',
+  'accent-falcon': 'text-accent-falcon-300',
 };
 
 export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
