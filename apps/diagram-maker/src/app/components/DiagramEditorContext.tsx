@@ -76,6 +76,8 @@ interface DiagramEditorContextValue {
   onEdgeTypeChange: (edgeType: string) => void;
   selectedEdgeLabelColor: EditableEdgeColor | undefined;
   onEdgeLabelColorChange: (color: EditableEdgeColor) => void;
+  selectedEdgeActive: boolean | undefined;
+  onEdgeActiveChange: (active: boolean) => void;
   // Node type
   selectedNodeType: string | undefined;
   onNodeTypeChange: (nodeType: string) => void;
@@ -213,6 +215,30 @@ export function DiagramEditorProvider({
         eds.map((edge) =>
           selectedEdgeIds.includes(edge.id)
             ? { ...edge, data: { ...edge.data, color } }
+            : edge,
+        ),
+      );
+    },
+    [selectedEdgeIds, setEdges],
+  );
+
+  const selectedEdgeActive: boolean | undefined =
+    selectedEdgeIds.length > 0
+      ? ((edges.find((e) => e.id === selectedEdgeIds[0])?.data
+          ?.active as boolean) ?? false)
+      : undefined;
+
+  const updateSelectedEdgesActive = useCallback(
+    (active: boolean) => {
+      if (selectedEdgeIds.length === 0) return;
+      setEdges((eds) =>
+        eds.map((edge) =>
+          selectedEdgeIds.includes(edge.id)
+            ? {
+                ...edge,
+                zIndex: active ? 20 : 0,
+                data: { ...edge.data, active },
+              }
             : edge,
         ),
       );
@@ -395,6 +421,8 @@ export function DiagramEditorProvider({
     onEdgeTypeChange: updateSelectedEdgesType,
     selectedEdgeLabelColor,
     onEdgeLabelColorChange: updateSelectedEdgesLabelColor,
+    selectedEdgeActive,
+    onEdgeActiveChange: updateSelectedEdgesActive,
     selectedNodeType,
     onNodeTypeChange: updateSelectedNodesType,
     selectedIconId: selectedNodeIconId,

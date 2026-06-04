@@ -9,6 +9,7 @@ import { HandlesControl } from './NodeProps/HandlesControl';
 import { LayerControls } from './NodeProps/LayerControls';
 import { EdgeTypeControl } from './EdgeProps/EdgeTypeControl';
 import { EdgeLabelColorControl } from './EdgeProps/EdgeLabelColorControl';
+import { EdgeActiveControl } from './EdgeProps/EdgeActiveControl';
 import { NodeTypeControl } from './NodeProps/NodeTypeControl';
 import { IconControl } from './NodeProps/IconControl';
 
@@ -49,6 +50,7 @@ export function Sidebar() {
       >
         <EdgeTypeControl />
         <EdgeLabelColorControl />
+        <EdgeActiveControl />
       </div>
     </aside>
   );

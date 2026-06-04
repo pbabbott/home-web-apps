@@ -114,8 +114,13 @@
       "sourceHandle": "handle-1780350157858",
       "target": "node_5",
       "targetHandle": "handle-1780434942479",
-      "id": "xy-edge__node_1handle-1780350157858-node_5handle-1780434942479"
+      "id": "xy-edge__node_1handle-1780350157858-node_5handle-1780434942479",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
     }
   ],
-  "isComplete": false
+  "isComplete": true
 }
