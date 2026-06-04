@@ -31,6 +31,7 @@ export {
   type HandleType,
   type HandleConfig,
 } from './components/BaseNode/BaseNode.constants';
+export { BaseEdge, type BaseEdgeProps } from './components/BaseEdge/BaseEdge';
 export { DefaultEdge } from './components/DefaultEdge/DefaultEdge';
 export { EditableEdge } from './components/EditableEdge/EditableEdge';
 export type { EditableEdgeColor } from './components/EditableEdge/EdgeLabelContent';

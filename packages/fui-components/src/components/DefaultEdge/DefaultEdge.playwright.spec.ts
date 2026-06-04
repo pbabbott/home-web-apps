@@ -19,4 +19,12 @@ test.describe('DefaultEdge Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('active', async ({ page }) => {
+    await gotoStory(page, 'diagrams-defaultedge--active');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-defaultedge--active.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });
