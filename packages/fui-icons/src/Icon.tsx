@@ -67,7 +67,7 @@ export function Icon({
     return (
       <CustomComponent
         size={size}
-        className={className}
+        className={['text-neutral-200', className].filter(Boolean).join(' ')}
         aria-label={ariaLabel}
       />
     );

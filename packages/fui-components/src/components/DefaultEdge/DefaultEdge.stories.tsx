@@ -25,19 +25,24 @@ const nodes: Node[] = [
   },
 ];
 
-const edges: Edge[] = [
-  {
+function makeEdge(active: boolean): Edge {
+  return {
     id: 'edge-1-2',
     source: 'node-1',
     target: 'node-2',
     sourceHandle: 'right-source',
     targetHandle: 'left-target',
     type: 'default',
-  },
-];
+    data: { active },
+    // Elevate above other edges so the spark paints on top when edges overlap.
+    zIndex: active ? 20 : 0,
+  };
+}
 
-function StoryContainer() {
-  return <DiagramViewer height="400px" data={{ nodes, edges }} />;
+function StoryContainer({ active = false }: { active?: boolean }) {
+  return (
+    <DiagramViewer height="400px" data={{ nodes, edges: [makeEdge(active)] }} />
+  );
 }
 
 const meta: Meta<typeof StoryContainer> = {
@@ -49,9 +54,12 @@ const meta: Meta<typeof StoryContainer> = {
     docs: {
       description: {
         component:
-          'A simple smooth-step edge for React Flow diagrams. No label or color options — use EditableEdge for interactive edges.',
+          'A simple smooth-step edge for React Flow diagrams. Pass `data.active = true` to enable the animated spark effect.',
       },
     },
+  },
+  argTypes: {
+    active: { control: 'boolean', description: 'Enable spark animation' },
   },
 };
 
@@ -59,4 +67,10 @@ export default meta;
 
 type Story = StoryObj<typeof StoryContainer>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: { active: false },
+};
+
+export const Active: Story = {
+  args: { active: true },
+};

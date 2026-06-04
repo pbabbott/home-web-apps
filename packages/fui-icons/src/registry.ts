@@ -236,6 +236,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
 
   // custom icons (not in simple-icons)
   {
+    id: 'cylinder',
+    label: 'Cylinder',
+    slug: 'cylinder',
+    source: 'custom',
+    keywords: ['database', 'storage', 'volume', 'db', 'canister'],
+  },
+  {
     id: 'banana',
     label: 'Banana',
     slug: 'banana',
@@ -439,6 +446,34 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'DotFilledIcon',
     source: 'radix',
     keywords: ['node', 'point', 'status'],
+  },
+  {
+    id: 'radix-paper-plane',
+    label: 'Paper Plane',
+    slug: 'PaperPlaneIcon',
+    source: 'radix',
+    keywords: ['send', 'message', 'email', 'submit', 'deploy'],
+  },
+  {
+    id: 'radix-video',
+    label: 'Video',
+    slug: 'VideoIcon',
+    source: 'radix',
+    keywords: ['video', 'camera', 'stream', 'media', 'record'],
+  },
+  {
+    id: 'radix-eye-open',
+    label: 'Eye',
+    slug: 'EyeOpenIcon',
+    source: 'radix',
+    keywords: ['view', 'watch', 'observe', 'monitor', 'visibility'],
+  },
+  {
+    id: 'radix-upload',
+    label: 'Upload',
+    slug: 'UploadIcon',
+    source: 'radix',
+    keywords: ['upload', 'push', 'publish', 'deploy', 'transfer'],
   },
 ];
 
