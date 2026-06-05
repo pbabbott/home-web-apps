@@ -17,7 +17,7 @@ export const edgeTypes: EdgeTypes = {
 };
 
 export const diagramContainerClass =
-  'relative w-full rounded-lg overflow-hidden border border-neutral-700 bg-neutral-700';
+  'relative w-full overflow-hidden border border-neutral-700 bg-neutral-700';
 
 export const diagramProOptions = { hideAttribution: true } as const;
 

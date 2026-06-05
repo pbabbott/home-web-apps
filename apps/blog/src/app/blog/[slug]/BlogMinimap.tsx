@@ -69,8 +69,8 @@ const C = {
   tableBorder: primary[800], // #008E91 — muted teal row / column grid lines
   imagePrimary: primary[400], // #63FDFF — teal end of image gradient
   imageAccent: accentPurple[300], // #AC8CFF — light purple end of image gradient
-  diagramPrimary: secondary[400], // #2BC9FF — blue end of diagram gradient
-  diagramAccent: accentPurple[400], // #8F63FF — deeper purple end of diagram gradient
+  diagramBg: neutral[700], // diagram canvas background
+  diagramGrid: neutral[800], // grid line color (matches DiagramViewer Background)
   thumbAccent: primary[400], // #63FDFF — viewport indicator borders
 } as const;
 
@@ -578,18 +578,23 @@ export default function BlogMinimap() {
             const scaledHeight = block.height * scale;
 
             if (t === 'DIAGRAM') {
+              const gridColor = toRgba(C.diagramGrid, 0.5);
               return (
                 <div
                   key={i}
-                  className="absolute"
+                  className="absolute overflow-hidden"
                   style={{
                     top: scaledTop,
                     height: Math.max(8, scaledHeight),
                     left: 4,
                     right: 4,
-                    background: toRgba(C.diagramPrimary, 0.18),
+                    backgroundColor: C.diagramBg,
                     borderRadius: 1,
-                    border: `1px solid ${toRgba(C.diagramPrimary, 0.75)}`,
+                    border: `1px solid ${C.codeBlockBorder}`,
+                    backgroundImage: [
+                      `repeating-linear-gradient(0deg, transparent, transparent 7px, ${gridColor} 7px, ${gridColor} 8px)`,
+                      `repeating-linear-gradient(90deg, transparent, transparent 7px, ${gridColor} 7px, ${gridColor} 8px)`,
+                    ].join(', '),
                   }}
                 />
               );
