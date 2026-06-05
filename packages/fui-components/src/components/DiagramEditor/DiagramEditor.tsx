@@ -80,7 +80,7 @@ export function DiagramEditor({
         nodesConnectable={true}
         fitView
         proOptions={diagramProOptions}
-        className="bg-secondary-950 h-full"
+        className="h-full"
       >
         <DiagramControls />
         <DiagramMinimap />
