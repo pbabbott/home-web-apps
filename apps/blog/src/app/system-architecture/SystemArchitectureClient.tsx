@@ -10,9 +10,9 @@ import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
 import Footer from '@/components/Footer/Footer';
+import { ServiceComponentsTabs } from './ServiceComponentsTabs';
 import diagram01 from './diagram-01.json';
 import diagram02 from './diagram-02.json';
-import diagram03 from './diagram-03.json';
 
 const emptyDiagram = { nodes: [], edges: [] };
 
@@ -124,13 +124,32 @@ export default function SystemArchitectureClient() {
             data={diagram02 as DiagramViewerProps['data']}
           />
 
-          <ArchSection
-            levelLabel="Component Level :: C3"
-            heading="Service Components"
-            description="Maximum resolution. Individual service components, inter-process communication, and dependency chains fully mapped. Cognitive load: non-trivial. Proceed with intent."
-            diagramHeight="600px"
-            data={diagram03 as DiagramViewerProps['data']}
-          />
+          <section className="mb-20">
+            <Typography
+              variant="caption"
+              component="p"
+              className="text-neutral-500 mb-2"
+            >
+              Component Level :: C3
+            </Typography>
+            <Typography
+              variant="h2"
+              component="h2"
+              className="text-neutral-100 mb-3"
+            >
+              Service Components
+            </Typography>
+            <Typography
+              variant="body1"
+              component="p"
+              className="text-neutral-400 mb-6 max-w-2xl"
+            >
+              Maximum resolution. Individual service components, inter-process
+              communication, and dependency chains fully mapped. Cognitive load:
+              non-trivial. Proceed with intent.
+            </Typography>
+            <ServiceComponentsTabs />
+          </section>
         </div>
       </main>
       <Footer />
