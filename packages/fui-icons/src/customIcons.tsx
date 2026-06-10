@@ -106,6 +106,45 @@ export const CylinderIcon: FC<SvgIconProps> = ({ size, className }) => (
   </svg>
 );
 
+export const HardDriveIcon: FC<SvgIconProps> = ({ size, className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* lucide/hard-drive — ISC license */}
+    <path d="M10 16h.01" />
+    <path d="M2.212 11.577a2 2 0 0 0-.212.896V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.527a2 2 0 0 0-.212-.896L18.55 5.11A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+    <path d="M21.946 12.013H2.054" />
+    <path d="M6 16h.01" />
+  </svg>
+);
+
+export const FolderIcon: FC<SvgIconProps> = ({ size, className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* lucide/folder — ISC license */}
+    <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+  </svg>
+);
+
 export const HaproxyIcon: FC<SvgIconProps> = ({ size, className }) => (
   <svg
     viewBox="0 0 24 24"
