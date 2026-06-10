@@ -257,6 +257,20 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['load-balancer', 'proxy'],
   },
   {
+    id: 'folder',
+    label: 'Folder',
+    slug: 'folder',
+    source: 'custom',
+    keywords: ['directory', 'files', 'storage', 'path', 'dir'],
+  },
+  {
+    id: 'hard-drive',
+    label: 'Hard Drive',
+    slug: 'hard-drive',
+    source: 'custom',
+    keywords: ['disk', 'storage', 'hdd', 'drive', 'volume'],
+  },
+  {
     id: 'router',
     label: 'Router',
     slug: 'router',

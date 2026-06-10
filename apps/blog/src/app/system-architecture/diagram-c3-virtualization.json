@@ -2,13 +2,1353 @@
   "nodes": [
     {
       "id": "node_0",
+      "type": "labeled",
+      "position": {
+        "x": -443.3242374618665,
+        "y": -125.15713674935752
+      },
+      "data": {
+        "label": "Proxmox",
+        "content": "",
+        "iconId": "proxmox",
+        "width": 2487,
+        "height": 865,
+        "colorScheme": "warning"
+      },
+      "measured": {
+        "width": 2487,
+        "height": 865
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_30",
+      "type": "labeled",
+      "position": {
+        "x": -425.55278566407924,
+        "y": 103.32857462489983
+      },
+      "data": {
+        "content": "",
+        "iconId": "hard-drive",
+        "colorScheme": "primary",
+        "label": "Secondary SATA SSD (2TB)",
+        "width": 288,
+        "height": 242
+      },
+      "measured": {
+        "width": 288,
+        "height": 242
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_7",
+      "type": "labeled",
+      "position": {
+        "x": 386.9258343028339,
+        "y": 83.61715981093172
+      },
+      "data": {
+        "label": "Virtual Machines",
+        "content": "",
+        "colorScheme": "secondary",
+        "width": 916,
+        "height": 469,
+        "handles": [
+          {
+            "id": "handle-1780840954837",
+            "type": "target",
+            "position": "right"
+          },
+          {
+            "id": "handle-1781059004236",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1781059080744",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 916,
+        "height": 469
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_12",
+      "type": "labeled",
+      "position": {
+        "x": 402.9239039918331,
+        "y": 122.09976093299818
+      },
+      "data": {
+        "label": "Kubernetes Prod",
+        "content": "",
+        "width": 278,
+        "height": 394,
+        "iconId": "kubernetes",
+        "handles": []
+      },
+      "measured": {
+        "width": 278,
+        "height": 394
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "labeled",
+      "position": {
+        "x": 1395.3195079107732,
+        "y": 85.39573813384082
+      },
+      "data": {
+        "label": "local-lvm",
+        "content": "",
+        "colorScheme": "warning",
+        "iconId": "cylinder",
+        "width": 256,
+        "height": 466,
+        "handles": [
+          {
+            "id": "handle-1780840814117",
+            "type": "target",
+            "position": "right"
+          },
+          {
+            "id": "handle-1780840963845",
+            "type": "source",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 256,
+        "height": 466
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_2",
+      "type": "text",
+      "position": {
+        "x": 1408.2653985507247,
+        "y": 118.51721014492767
+      },
+      "data": {
+        "content": "Each VM gets a -disk-0 \nand a -cloudinit disk\n(930.5GB)"
+      },
+      "measured": {
+        "width": 230,
+        "height": 77
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "labeled",
+      "position": {
+        "x": 899.7289325983364,
+        "y": -102.90958009396422
+      },
+      "data": {
+        "label": "VM Template",
+        "content": "",
+        "iconId": "radix-stack",
+        "colorScheme": "secondary",
+        "width": 253,
+        "height": 139,
+        "handles": [
+          {
+            "id": "handle-1781059130833",
+            "type": "target",
+            "position": "right"
+          },
+          {
+            "id": "handle-1781059131386",
+            "type": "source",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 253,
+        "height": 139
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
       "type": "customDefault",
-      "position": { "x": 1006.5, "y": 461.109375 },
-      "data": { "content": "Virtualization" },
-      "measured": { "width": 150, "height": 80 },
+      "position": {
+        "x": 922.7289325983364,
+        "y": -76.40958009396421
+      },
+      "data": {
+        "content": "ansible-template-ubuntu-noble",
+        "iconId": "radix-desktop",
+        "width": 201,
+        "height": 80
+      },
+      "measured": {
+        "width": 201,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_6",
+      "type": "labeled",
+      "position": {
+        "x": 1396.8321267429906,
+        "y": 575.2365642679563
+      },
+      "data": {
+        "label": "Local",
+        "content": "Storage for the Proxmox Host Operating System.  (100GB)",
+        "iconId": "cylinder",
+        "colorScheme": "warning",
+        "width": 256,
+        "height": 146,
+        "handles": [
+          {
+            "id": "handle-1780840805969",
+            "type": "target",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 256,
+        "height": 146
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_8",
+      "type": "customDefault",
+      "position": {
+        "x": 412.4348621949242,
+        "y": 151.45082005849073
+      },
+      "data": {
+        "content": "tf-prod-k8s-controller-1\n(#204) 192.168.6.24",
+        "iconId": "radix-desktop",
+        "width": 253,
+        "height": 80
+      },
+      "measured": {
+        "width": 253,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_9",
+      "type": "customDefault",
+      "position": {
+        "x": 413.0946161503108,
+        "y": 239.85785008027463
+      },
+      "data": {
+        "content": "tf-prod-k8s-worker-1\n(#205) 192.168.6.25",
+        "iconId": "radix-desktop",
+        "width": 253,
+        "height": 80
+      },
+      "measured": {
+        "width": 253,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_10",
+      "type": "customDefault",
+      "position": {
+        "x": 415.0738780164701,
+        "y": 329.5843880128315
+      },
+      "data": {
+        "content": "tf-prod-k8s-worker-2\n(#206) 192.168.6.26",
+        "width": 250,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 250,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_11",
+      "type": "customDefault",
+      "position": {
+        "x": 413.0946161503107,
+        "y": 418.65117199000167
+      },
+      "data": {
+        "content": "tf-prod-k8s-worker-3 \n(#207) 192.168.6.27",
+        "width": 252,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 252,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_13",
+      "type": "labeled",
+      "position": {
+        "x": 693.1613881690208,
+        "y": 122.20194380620231
+      },
+      "data": {
+        "label": "Kubernetes non-prod",
+        "content": "",
+        "iconId": "kubernetes",
+        "width": 310,
+        "height": 393
+      },
+      "measured": {
+        "width": 310,
+        "height": 393
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_14",
+      "type": "customDefault",
+      "position": {
+        "x": 708.8749206227661,
+        "y": 155.3376580742379
+      },
+      "data": {
+        "content": "tf-nonprod-k8s-controller-1\n(#301) 192.168.6.31",
+        "width": 277,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 277,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_15",
+      "type": "customDefault",
+      "position": {
+        "x": 708.874920622766,
+        "y": 243.33765807423802
+      },
+      "data": {
+        "content": "tf-nonprod-k8s-worker-1\n(#301) 192.168.6.32",
+        "width": 279,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 279,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_17",
+      "type": "customDefault",
+      "position": {
+        "x": 708.8749206227661,
+        "y": 331.337658074238
+      },
+      "data": {
+        "content": "tf-nonprod-k8s-worker-2\n(#302) 192.168.6.33",
+        "width": 279,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 279,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_18",
+      "type": "customDefault",
+      "position": {
+        "x": 705.874920622766,
+        "y": 420.337658074238
+      },
+      "data": {
+        "content": "tf-nonprod-k8s-worker-3\n(#303) 192.168.6.34",
+        "width": 282,
+        "height": 80,
+        "iconId": "radix-desktop"
+      },
+      "measured": {
+        "width": 282,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_20",
+      "type": "labeled",
+      "position": {
+        "x": 1026.3455483939965,
+        "y": 122.99837213225382
+      },
+      "data": {
+        "label": "Developer Jumpbox",
+        "content": "",
+        "width": 256,
+        "height": 122,
+        "iconId": "radix-code"
+      },
+      "measured": {
+        "width": 256,
+        "height": 122
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_21",
+      "type": "customDefault",
+      "position": {
+        "x": 1034.3455483939965,
+        "y": 156.99837213225382
+      },
+      "data": {
+        "content": "marauders-map\n(500) 192.168.5.91 (DHCP)",
+        "iconId": "radix-desktop",
+        "width": 241,
+        "height": 80
+      },
+      "measured": {
+        "width": 241,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_22",
+      "type": "customDefault",
+      "position": {
+        "x": 1414.4404871568345,
+        "y": 206.35917921983912
+      },
+      "data": {
+        "content": "",
+        "width": 192,
+        "height": 85,
+        "iconId": "hard-drive"
+      },
+      "measured": {
+        "width": 192,
+        "height": 85
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_23",
+      "type": "customDefault",
+      "position": {
+        "x": 1415.4051610698775,
+        "y": 338.5321864662159
+      },
+      "data": {
+        "content": "",
+        "width": 173,
+        "height": 80
+      },
+      "measured": {
+        "width": 173,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_24",
+      "type": "customDefault",
+      "position": {
+        "x": 1422.0944726640805,
+        "y": 216.30936037925932
+      },
+      "data": {
+        "content": "",
+        "iconId": "hard-drive",
+        "width": 192,
+        "height": 80
+      },
+      "measured": {
+        "width": 192,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_25",
+      "type": "customDefault",
+      "position": {
+        "x": 1430.5138567220517,
+        "y": 227.79033864012888
+      },
+      "data": {
+        "content": "vm-204-cloud-init (4.19MB)",
+        "width": 192,
+        "height": 83,
+        "iconId": "hard-drive"
+      },
+      "measured": {
+        "width": 192,
+        "height": 83
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_26",
+      "type": "customDefault",
+      "position": {
+        "x": 1426.0926610698777,
+        "y": 348.44432414737526
+      },
+      "data": {
+        "content": "",
+        "width": 172,
+        "height": 80
+      },
+      "measured": {
+        "width": 172,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_27",
+      "type": "customDefault",
+      "position": {
+        "x": 1436.1470088959647,
+        "y": 360.32022994447675
+      },
+      "data": {
+        "content": "vm-204-disk-0\n(34.36GB)",
+        "iconId": "hard-drive",
+        "width": 176,
+        "height": 80
+      },
+      "measured": {
+        "width": 176,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_28",
+      "type": "labeled",
+      "position": {
+        "x": 1765.812356914022,
+        "y": 382.27757306735407
+      },
+      "data": {
+        "content": "",
+        "iconId": "hard-drive",
+        "colorScheme": "primary",
+        "width": 248,
+        "height": 157,
+        "handles": [
+          {
+            "id": "handle-1780840798000",
+            "type": "source",
+            "position": "left"
+          }
+        ],
+        "label": "Onboard Storage\nNVME SSD (1TB)"
+      },
+      "measured": {
+        "width": 248,
+        "height": 157
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_29",
+      "type": "labeled",
+      "position": {
+        "x": 216.21162458263612,
+        "y": -323.6263725633581
+      },
+      "data": {
+        "label": "pbabbott/home-playbooks",
+        "content": "",
+        "iconId": "github",
+        "width": 1198,
+        "height": 183,
+        "colorScheme": "dark"
+      },
+      "measured": {
+        "width": 1198,
+        "height": 183
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_31",
+      "type": "labeled",
+      "position": {
+        "x": -12.425477235772874,
+        "y": 112.76538612729652
+      },
+      "data": {
+        "label": "etcd-ssd",
+        "content": "",
+        "colorScheme": "warning",
+        "width": 242,
+        "height": 180,
+        "handles": [
+          {
+            "id": "handle-1781058908141",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1781059010601",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 242,
+        "height": 180
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_32",
+      "type": "labeled",
+      "position": {
+        "x": -15.49539681069875,
+        "y": 312.74830601189444
+      },
+      "data": {
+        "label": "fast-ssd",
+        "content": "",
+        "colorScheme": "warning",
+        "width": 247,
+        "height": 216,
+        "handles": [
+          {
+            "id": "handle-1781058923491",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1781059015794",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 247,
+        "height": 216
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_34",
+      "type": "labeled",
+      "position": {
+        "x": 616.7766250925274,
+        "y": -288.8141784497784
+      },
+      "data": {
+        "label": "playbooks",
+        "content": "",
+        "iconId": "ansible",
+        "width": 758,
+        "height": 131
+      },
+      "measured": {
+        "width": 758,
+        "height": 131
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_33",
+      "type": "labeled",
+      "position": {
+        "x": 1041.7978200799057,
+        "y": -251.14184525771537
+      },
+      "data": {
+        "content": "Configures template and finalizes it in proxmox",
+        "width": 299,
+        "height": 80,
+        "iconId": "ansible",
+        "label": "ansible-template-ubuntu-noble",
+        "handles": [
+          {
+            "id": "handle-1781059139069",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 299,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_35",
+      "type": "labeled",
+      "position": {
+        "x": 269.9979682732799,
+        "y": -283.43349464249866
+      },
+      "data": {
+        "label": "terraform",
+        "content": "Provisions Prod & Non-prod fleet in proxmox",
+        "iconId": "terraform",
+        "width": 311,
+        "height": 119,
+        "handles": [
+          {
+            "id": "handle-1781059060807",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 311,
+        "height": 119
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_38",
+      "type": "labeled",
+      "position": {
+        "x": 661.210659113935,
+        "y": -250.5909477571103
+      },
+      "data": {
+        "label": "kubernetes-gen2",
+        "content": "Installs kubernetes onto target hosts",
+        "iconId": "ansible",
+        "width": 355,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1781059056066",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 355,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_41",
+      "type": "text",
+      "position": {
+        "x": -77.037046726195,
+        "y": -13.021441515405165
+      },
+      "data": {
+        "content": "TODO: Need to clean up these \ndisks. Only 2 are needed (1 per \netcd instance), but there's 1 \nper vm. 7*22GB=154GB wasted \nspace",
+        "colorScheme": "error"
+      },
+      "measured": {
+        "width": 306,
+        "height": 128
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_42",
+      "type": "customDefault",
+      "position": {
+        "x": 8.922273031701948,
+        "y": 155.42296457648592
+      },
+      "data": {
+        "content": "",
+        "width": 168,
+        "height": 80
+      },
+      "measured": {
+        "width": 168,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_43",
+      "type": "customDefault",
+      "position": {
+        "x": 16.92227303170195,
+        "y": 164.92296457648592
+      },
+      "data": {
+        "content": "",
+        "width": 170,
+        "height": 80
+      },
+      "measured": {
+        "width": 170,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_44",
+      "type": "customDefault",
+      "position": {
+        "x": 24.42227303170192,
+        "y": 174.42296457648592
+      },
+      "data": {
+        "content": "vm-204-disk-0\n(21GB each)",
+        "iconId": "hard-drive",
+        "width": 173,
+        "height": 81,
+        "handles": []
+      },
+      "measured": {
+        "width": 173,
+        "height": 81
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_46",
+      "type": "customDefault",
+      "position": {
+        "x": 0.33118010780320617,
+        "y": 343.3930919749042
+      },
+      "data": {
+        "content": "",
+        "width": 189,
+        "height": 80
+      },
+      "measured": {
+        "width": 189,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_47",
+      "type": "customDefault",
+      "position": {
+        "x": 10.887243393986338,
+        "y": 353.9491552610874
+      },
+      "data": {
+        "content": "",
+        "width": 186,
+        "height": 80
+      },
+      "measured": {
+        "width": 186,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_48",
+      "type": "customDefault",
+      "position": {
+        "x": 24.082322501715268,
+        "y": 370.44300414574866
+      },
+      "data": {
+        "content": "vm-204-disk-0\n(275GB)",
+        "width": 186,
+        "height": 80,
+        "iconId": "hard-drive"
+      },
+      "measured": {
+        "width": 186,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_50",
+      "type": "text",
+      "position": {
+        "x": -0.6863613843810299,
+        "y": 469.36023224654616
+      },
+      "data": {
+        "content": "/dev/sdb -> /mnt/ssd"
+      },
+      "measured": {
+        "width": 214,
+        "height": 26
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_51",
+      "type": "text",
+      "position": {
+        "x": -4.1324564493720715,
+        "y": 260.2971316370858
+      },
+      "data": {
+        "content": "/dev/sdc -> /mnt/etcd"
+      },
+      "measured": {
+        "width": 224,
+        "height": 26
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_49",
+      "type": "customDefault",
+      "position": {
+        "x": -372.42914675572706,
+        "y": 136.98860591258165
+      },
+      "data": {
+        "content": "/dev/sda1\n275GB",
+        "iconId": "hard-drive",
+        "handles": [
+          {
+            "id": "handle-1781058840099",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_45",
+      "type": "customDefault",
+      "position": {
+        "x": -373.1150980889149,
+        "y": 239.25825222725
+      },
+      "data": {
+        "content": "/dev/sda2\n1.73TB",
+        "iconId": "hard-drive",
+        "handles": [
+          {
+            "id": "handle-1781058896795",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_54",
+      "type": "text",
+      "position": {
+        "x": -80.64077577757585,
+        "y": 535.6297985912591
+      },
+      "data": {
+        "content": "TODO: The same is happening for \nthese disks. They're not needed \nfor controller nodes",
+        "colorScheme": "error"
+      },
+      "measured": {
+        "width": 308,
+        "height": 77
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_55",
+      "type": "customDefault",
+      "position": {
+        "x": 1787.0073601508552,
+        "y": 443.00173260334554
+      },
+      "data": {
+        "content": "/dev/nvme01n1p3\n999GB",
+        "width": 202,
+        "height": 80,
+        "iconId": "hard-drive"
+      },
+      "measured": {
+        "width": 202,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_56",
+      "type": "text",
+      "position": {
+        "x": 1209.1867613536856,
+        "y": -102.99969292567624
+      },
+      "data": {
+        "content": "Ansible playbook configures the VM.\nThen it goes into proxmox to mark \nit as a template"
+      },
+      "measured": {
+        "width": 338,
+        "height": 77
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_57",
+      "type": "text",
+      "position": {
+        "x": 483.30177763515655,
+        "y": -100.93664367025147
+      },
+      "data": {
+        "content": "Terraform provisions the k8s VMs\nAnsible bootstraps k8s onto them."
+      },
+      "measured": {
+        "width": 324,
+        "height": 51
+      },
       "selected": false,
       "dragging": false
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_28",
+      "sourceHandle": "handle-1780840798000",
+      "target": "node_1",
+      "targetHandle": "handle-1780840814117",
+      "id": "xy-edge__node_28handle-1780840798000-node_1handle-1780840814117",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_28",
+      "sourceHandle": "handle-1780840798000",
+      "target": "node_6",
+      "targetHandle": "handle-1780840805969",
+      "id": "xy-edge__node_28handle-1780840798000-node_6handle-1780840805969",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_1",
+      "sourceHandle": "handle-1780840963845",
+      "target": "node_7",
+      "targetHandle": "handle-1780840954837",
+      "id": "xy-edge__node_1handle-1780840963845-node_7handle-1780840954837",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_45",
+      "sourceHandle": "handle-1781058896795",
+      "target": "node_32",
+      "targetHandle": "handle-1781058923491",
+      "id": "xy-edge__node_45handle-1781058896795-node_32handle-1781058923491",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_49",
+      "sourceHandle": "handle-1781058840099",
+      "target": "node_31",
+      "targetHandle": "handle-1781058908141",
+      "id": "xy-edge__node_49handle-1781058840099-node_31handle-1781058908141",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_31",
+      "sourceHandle": "handle-1781059010601",
+      "target": "node_7",
+      "targetHandle": "handle-1781059004236",
+      "id": "xy-edge__node_31handle-1781059010601-node_7handle-1781059004236",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_32",
+      "sourceHandle": "handle-1781059015794",
+      "target": "node_7",
+      "targetHandle": "handle-1781059004236",
+      "id": "xy-edge__node_32handle-1781059015794-node_7handle-1781059004236",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_38",
+      "sourceHandle": "handle-1781059056066",
+      "target": "node_7",
+      "targetHandle": "handle-1781059080744",
+      "id": "xy-edge__node_38handle-1781059056066-node_7handle-1781059080744",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_35",
+      "sourceHandle": "handle-1781059060807",
+      "target": "node_7",
+      "targetHandle": "handle-1781059080744",
+      "id": "xy-edge__node_35handle-1781059060807-node_7handle-1781059080744",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_33",
+      "sourceHandle": "handle-1781059139069",
+      "target": "node_4",
+      "targetHandle": "handle-1781059130833",
+      "id": "xy-edge__node_33handle-1781059139069-node_4handle-1781059130833",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_4",
+      "sourceHandle": "handle-1781059131386",
+      "target": "node_7",
+      "targetHandle": "handle-1781059080744",
+      "id": "xy-edge__node_4handle-1781059131386-node_7handle-1781059080744",
+      "selected": false
+    }
+  ],
+  "isComplete": true
 }
