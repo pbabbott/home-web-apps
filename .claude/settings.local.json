@@ -38,7 +38,8 @@
       "Bash(git push)",
       "Bash(git push -u origin *)",
       "Bash(gh run *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(gh issue *)"
     ]
   }
 }
