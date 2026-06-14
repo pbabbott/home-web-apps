@@ -32,6 +32,10 @@ export async function gotoPage(page: Page, path: string): Promise<void> {
 
 export async function scrollToId(page: Page, id: string): Promise<void> {
   await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+  // Wait for all lazy-loaded images triggered by scroll to finish loading
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll('img')).every((img) => img.complete),
+  );
   await page.waitForTimeout(300);
 }
 
