@@ -8,6 +8,7 @@ import {
   Badge,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
+import { navigate } from '@/lib/navigate';
 import type { BlogCategory } from '../../../types/blog';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 
@@ -40,7 +41,7 @@ export default function BlogPostCard({
     if (onClick) {
       onClick();
     } else if (slug) {
-      window.location.href = `/blog/${slug}`;
+      navigate(`/blog/${slug}`);
     }
   };
 
@@ -49,7 +50,7 @@ export default function BlogPostCard({
     if (onClick) {
       onClick();
     } else if (slug) {
-      window.location.href = `/blog/${slug}`;
+      navigate(`/blog/${slug}`);
     }
   };
 

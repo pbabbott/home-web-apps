@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '@abbottland/fui-components/globals.css';
 import './globals.css';
+import ProxyNavigationFixer from '@/components/ProxyNavigationFixer/ProxyNavigationFixer';
 
 export const metadata: Metadata = {
   title: 'Abbottland.io',
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <title>Abbottland.io</title>
-      <body className="antialiased bg-neutral-800">{children}</body>
+      <body className="antialiased bg-neutral-800">
+        <ProxyNavigationFixer />
+        {children}
+      </body>
     </html>
   );
 }

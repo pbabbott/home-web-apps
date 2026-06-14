@@ -5,6 +5,7 @@ import createMDX from '@next/mdx';
 /** @type {NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
   env: {
     IMAGE_TAG: process.env.IMAGE_TAG ?? 'dev',
   },
@@ -13,6 +14,8 @@ const nextConfig = {
   // Optionally, add any other Next.js config below
   transpilePackages: ['@abbottland/fui-components', '@xyflow/react'],
   images: {
+    loader: 'custom',
+    loaderFile: './src/lib/imageLoader.ts',
     remotePatterns: [
       {
         protocol: 'http',
@@ -23,8 +26,6 @@ const nextConfig = {
         hostname: '**',
       },
     ],
-    // Allow unoptimized images from API routes
-    unoptimized: false,
   },
 };
 
