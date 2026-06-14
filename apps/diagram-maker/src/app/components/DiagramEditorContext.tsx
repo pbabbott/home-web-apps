@@ -41,6 +41,7 @@ interface DiagramEditorContextValue {
   onConnect: (params: Connection) => void;
   onDrop: (event: DragEvent) => void;
   onDragOver: (event: DragEvent) => void;
+  addNodeAtScreenPosition: (type: string, x: number, y: number) => void;
   onInit: (instance: ReactFlowInstance) => void;
   reactFlowWrapper: RefObject<HTMLDivElement | null>;
   // Viewer mode
@@ -328,6 +329,29 @@ export function DiagramEditorProvider({
     [reactFlowInstance, setNodes],
   );
 
+  const addNodeAtScreenPosition = useCallback(
+    (type: string, x: number, y: number) => {
+      if (!reactFlowInstance || !reactFlowWrapper.current) return;
+      const rect = reactFlowWrapper.current.getBoundingClientRect();
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom)
+        return;
+      const position = reactFlowInstance.screenToFlowPosition({ x, y });
+      const newNode: Node = {
+        id: getId(),
+        type,
+        position,
+        data:
+          type === 'labeled'
+            ? { label: 'Label', content: '' }
+            : type === 'text'
+              ? { content: 'Text' }
+              : { content: '' },
+      };
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [reactFlowInstance, setNodes],
+  );
+
   const getExportData = useCallback(() => ({ nodes, edges }), [nodes, edges]);
 
   const handleImport = useCallback(
@@ -397,6 +421,7 @@ export function DiagramEditorProvider({
     onConnect,
     onDrop,
     onDragOver,
+    addNodeAtScreenPosition,
     onInit: setReactFlowInstance,
     reactFlowWrapper,
     viewerMode,
