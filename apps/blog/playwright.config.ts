@@ -61,7 +61,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm dev',
+    // Clear NEXT_PUBLIC_BASE_PATH so a fresh server always uses localhost image paths
+    command: 'NEXT_PUBLIC_BASE_PATH= pnpm dev',
     url: 'http://localhost:4020',
     reuseExistingServer: !process.env.CI,
     // timeout: 120_000,

@@ -29,7 +29,6 @@ export default function BlogPostBannerImage({
           fill
           className="object-cover"
           sizes={imageSizes}
-          unoptimized
         />
       ) : (
         <GradientMockImage seed={slug} />

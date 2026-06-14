@@ -7,6 +7,7 @@ import {
   HorizontalRule,
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
+import { navigate } from '@/lib/navigate';
 import type { BlogPost } from '../../../types/blog';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 
@@ -25,7 +26,7 @@ export default function HeroBlogPostCard({
     if (onClick) {
       onClick();
     } else if (post.slug) {
-      window.location.href = `/blog/${post.slug}`;
+      navigate(`/blog/${post.slug}`);
     }
   };
 
@@ -34,7 +35,7 @@ export default function HeroBlogPostCard({
     if (onClick) {
       onClick();
     } else if (post.slug) {
-      window.location.href = `/blog/${post.slug}`;
+      navigate(`/blog/${post.slug}`);
     }
   };
 

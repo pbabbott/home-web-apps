@@ -5,6 +5,7 @@ import { Button, Typography } from '@abbottland/fui-components';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { CheckIcon, EyeOpenIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { useDiagramEditor } from './DiagramEditorContext';
+import { resolveUrl } from '@/lib/url';
 import { ExportPanel, ImportExportModal, Tab } from './ExportPanel';
 
 const isLocal = process.env.NODE_ENV === 'development';
@@ -29,7 +30,7 @@ export function Header() {
     if (!activeLocalDiagramPath) return;
     setSaving(true);
     try {
-      await fetch('/api/local-diagrams/save', {
+      await fetch(resolveUrl('/api/local-diagrams/save'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

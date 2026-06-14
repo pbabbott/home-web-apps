@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@abbottland/fui-components';
+import { navigate } from '@/lib/navigate';
 import {
   CubeIcon,
   FileTextIcon,
@@ -18,11 +19,11 @@ import {
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function StickyHeader() {
   const pathname = usePathname();
-  const router = useRouter();
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -66,13 +67,13 @@ export default function StickyHeader() {
             >
               <DropdownMenuItem
                 icon={SectionIcon}
-                onSelect={() => router.push('/series')}
+                onSelect={() => navigate('/series')}
               >
                 Series
               </DropdownMenuItem>
               <DropdownMenuItem
                 icon={LayersIcon}
-                onSelect={() => router.push('/system-architecture')}
+                onSelect={() => navigate('/system-architecture')}
               >
                 System Architecture
               </DropdownMenuItem>
