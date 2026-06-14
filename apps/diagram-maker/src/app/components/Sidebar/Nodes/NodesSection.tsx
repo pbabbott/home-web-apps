@@ -1,7 +1,7 @@
 'use client';
 
 import { Typography } from '@abbottland/fui-components';
-import { DragEvent, TouchEvent, useState, useRef, useCallback } from 'react';
+import { DragEvent, TouchEvent, useState, useRef } from 'react';
 import { nodeTypes } from '../constants';
 import { NodePreview } from './NodePreview';
 import { useDiagramEditor } from '../../DiagramEditorContext';
@@ -33,28 +33,21 @@ export function NodesSection() {
     setDragGhost({ type, label, x: touch.clientX, y: touch.clientY });
   };
 
-  const onTouchMove = useCallback((event: TouchEvent<HTMLDivElement>) => {
+  const onTouchMove = (event: TouchEvent<HTMLDivElement>) => {
     if (!touchNodeRef.current) return;
     const touch = event.touches[0];
     setDragGhost((prev) =>
       prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null,
     );
-  }, []);
+  };
 
-  const onTouchEnd = useCallback(
-    (event: TouchEvent<HTMLDivElement>) => {
-      if (!touchNodeRef.current) return;
-      const touch = event.changedTouches[0];
-      addNodeAtScreenPosition(
-        touchNodeRef.current,
-        touch.clientX,
-        touch.clientY,
-      );
-      touchNodeRef.current = null;
-      setDragGhost(null);
-    },
-    [addNodeAtScreenPosition],
-  );
+  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (!touchNodeRef.current) return;
+    const touch = event.changedTouches[0];
+    addNodeAtScreenPosition(touchNodeRef.current, touch.clientX, touch.clientY);
+    touchNodeRef.current = null;
+    setDragGhost(null);
+  };
 
   return (
     <>
