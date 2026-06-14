@@ -6,6 +6,7 @@ import { Button, Typography } from '@abbottland/fui-components';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { CheckIcon, CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useDiagramEditor } from '../DiagramEditorContext';
+import { resolveUrl } from '@/lib/url';
 
 export type Tab = 'export' | 'import' | 'local-diagrams';
 
@@ -45,7 +46,7 @@ export function ImportExportModal({
     setLocalDiagrams((prev) =>
       prev.map((d) => (d.filePath === filePath ? { ...d, isComplete } : d)),
     );
-    fetch('/api/local-diagrams/complete', {
+    fetch(resolveUrl('/api/local-diagrams/complete'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ filePath, isComplete }),
@@ -55,7 +56,7 @@ export function ImportExportModal({
   useEffect(() => {
     if (!isLocal || activeTab !== 'local-diagrams') return;
     setLoadingLocal(true);
-    fetch('/api/local-diagrams')
+    fetch(resolveUrl('/api/local-diagrams'))
       .then((r) => r.json())
       .then((d: LocalDiagram[]) => setLocalDiagrams(d))
       .catch(console.error)
