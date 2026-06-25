@@ -1,6 +1,10 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getBlogPostBySlug, getBlogPostSlugs } from '../../../lib/blog';
+import {
+  getBlogPostBySlug,
+  getBlogPostSlugs,
+  getSeriesTotal,
+} from '../../../lib/blog';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 import MDXContent from './MDXContent';
@@ -57,6 +61,10 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
+  const series = post.series
+    ? { ...post.series, total: getSeriesTotal(post.series.id) }
+    : undefined;
+
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
       <StickyHeader />
@@ -77,6 +85,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           date={post.date}
           readTime={post.readTime}
           categories={post.categories}
+          series={series}
         />
         <MDXContent slug={slug} />
       </article>
