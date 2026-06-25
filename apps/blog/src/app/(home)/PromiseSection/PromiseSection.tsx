@@ -139,23 +139,22 @@ export default function PromiseSection() {
 
         <div className="flex flex-col gap-4 text-center max-w-2xl">
           <Typography variant="body1" component="p">
-            Before AI, you could assume a human wrote what you read. That
-            contract was implicit.
+            Before AI, reading on the internet carried an unspoken contract:
+            your attention for something real. That went without saying.
           </Typography>
           <Typography variant="body1" component="p">
-            I believe it is now worth stating explicitly.
+            It no longer does.
           </Typography>
           <Typography variant="body1" component="p">
             AI may help me sketch an outline, spark an idea, or workshop a bad
-            joke - but it does not write the articles you read here on this
-            website.
+            joke, but it does not write the articles you read here.
           </Typography>
           <Typography variant="body1" component="p">
-            Every post and every diagram on this site is written by a human
-            (me): with ten fingers.
+            Every post and every diagram on this site is written by a human - me
+            - with ten fingers.
           </Typography>
           <Typography variant="body1" component="p" className="mb-6">
-            The offer is simply an exchange of attention for authenticity.
+            That contract still holds here.
           </Typography>
           <TransparentPanel color="default" className="w-full">
             <div className="flex items-center justify-center gap-3">
