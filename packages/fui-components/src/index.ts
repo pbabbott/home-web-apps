@@ -156,6 +156,12 @@ export {
   type TiledHexagonTile,
 } from './components/TiledHexagons/TiledHexagons';
 
+// SegmentedProgressBar
+export {
+  SegmentedProgressBar,
+  type SegmentedProgressBarProps,
+} from './components/SegmentedProgressBar/SegmentedProgressBar';
+
 // Typography
 export {
   Typography,

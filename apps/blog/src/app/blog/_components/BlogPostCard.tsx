@@ -9,7 +9,8 @@ import {
 } from '@abbottland/fui-components';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 import { navigate } from '@/lib/navigate';
-import type { BlogCategory } from '../../../types/blog';
+import type { BlogCategory, BlogPostSeries } from '../../../types/blog';
+import SeriesProgress from '@/components/SeriesProgress/SeriesProgress';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
 
 interface BlogPostCardProps {
@@ -22,6 +23,7 @@ interface BlogPostCardProps {
   bannerImage?: string;
   size?: CardSize;
   onClick?: () => void;
+  series?: BlogPostSeries;
 }
 
 const subTextColor = 'text-neutral-500';
@@ -36,6 +38,7 @@ export default function BlogPostCard({
   bannerImage,
   size = 'default',
   onClick,
+  series,
 }: BlogPostCardProps) {
   const handleCardClick = () => {
     if (onClick) {
@@ -90,6 +93,11 @@ export default function BlogPostCard({
       >
         {excerpt}
       </Typography>
+      {series && (
+        <div className="mb-3">
+          <SeriesProgress series={series} showLabel={false} />
+        </div>
+      )}
       <div className="flex flex-row gap-x-2 items-center">
         <CalendarIcon width={20} height={20} className={subTextColor} />
         <Typography variant="body2" component="span" className={subTextColor}>
