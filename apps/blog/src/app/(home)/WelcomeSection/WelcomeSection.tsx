@@ -67,7 +67,15 @@ export default function WelcomeSection() {
 
           <div className="flex flex-col gap-4">
             <Typography variant="h4" component="h4">
-              &gt; System Architecture :: C1 Preview
+              &gt; How it all fits together
+            </Typography>
+            <Typography
+              variant="caption"
+              component="p"
+              className="text-neutral-500"
+            >
+              A Bird&apos;s-eye view of the homelab: one cluster, one user. The
+              full map goes three levels deep if you want to dig in.
             </Typography>
             <div className="border border-neutral-700 bg-neutral-900">
               <DiagramViewer
@@ -75,36 +83,28 @@ export default function WelcomeSection() {
                 height="360px"
               />
             </div>
-            <Typography
-              variant="caption"
-              component="p"
-              className="text-neutral-500"
-            >
-              Context-level topology - one cluster, one uplink, one user. Full
-              map renders at three abstraction levels inside.
-            </Typography>
+
+            <div className="flex flex-col items-center gap-3">
+              <Typography
+                variant="body1"
+                component="p"
+                className="text-neutral-400"
+              >
+                Curious how this site is built?
+              </Typography>
+              <Button
+                component={Link}
+                href="/system-architecture"
+                variant="outlined"
+                color="primary"
+              >
+                &gt; Inspect System Architecture
+              </Button>
+            </div>
           </div>
         </div>
 
         <HorizontalRule className="w-full" />
-
-        <div className="flex flex-col items-center gap-3">
-          <Typography
-            variant="body1"
-            component="p"
-            className="text-neutral-400"
-          >
-            Curious how this site is built?
-          </Typography>
-          <Button
-            component={Link}
-            href="/system-architecture"
-            variant="contained"
-            color="primary"
-          >
-            &gt; Inspect System Architecture
-          </Button>
-        </div>
       </div>
     </div>
   );
