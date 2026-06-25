@@ -280,6 +280,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
 
   // radix icons (generic symbols for diagrams)
   {
+    id: 'radix-info',
+    label: 'Info',
+    slug: 'InfoCircledIcon',
+    source: 'radix',
+    keywords: ['info', 'information', 'notice', 'tip', 'help'],
+  },
+  {
     id: 'radix-globe',
     label: 'Globe',
     slug: 'GlobeIcon',
