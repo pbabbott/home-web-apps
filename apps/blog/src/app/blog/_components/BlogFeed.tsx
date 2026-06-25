@@ -67,6 +67,7 @@ export default function BlogFeed() {
                     slug={post.slug}
                     categories={post.categories}
                     bannerImage={post.bannerImage}
+                    series={post.series}
                   />
                 ))}
               </div>

@@ -94,12 +94,33 @@ export function getAllBlogPosts(): BlogPost[] {
       return post.status === 'published';
     });
 
+  // Compute series totals from all loaded posts
+  const seriesCounts = new Map<string, number>();
+  posts.forEach((p) => {
+    if (p.series?.id) {
+      seriesCounts.set(p.series.id, (seriesCounts.get(p.series.id) ?? 0) + 1);
+    }
+  });
+
+  const enriched = posts.map((p) =>
+    p.series
+      ? { ...p, series: { ...p.series, total: seriesCounts.get(p.series.id) } }
+      : p,
+  );
+
   // Sort by date (newest first)
-  return posts.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     return dateB.getTime() - dateA.getTime();
   });
+}
+
+/**
+ * Count published posts in a given series by id
+ */
+export function getSeriesTotal(seriesId: string): number {
+  return getAllBlogPosts().filter((p) => p.series?.id === seriesId).length;
 }
 
 /**

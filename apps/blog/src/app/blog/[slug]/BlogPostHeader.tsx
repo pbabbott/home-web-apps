@@ -1,12 +1,15 @@
 'use client';
 
 import { Typography, Badge } from '@abbottland/fui-components';
+import SeriesProgress from '@/components/SeriesProgress/SeriesProgress';
+import type { BlogPostSeries } from '@/types/blog';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 type BlogPostHeaderProps = {
   title: string;
   date: string;
   readTime: string;
   categories: string[];
+  series?: BlogPostSeries;
 };
 
 export default function BlogPostHeader({
@@ -14,6 +17,7 @@ export default function BlogPostHeader({
   date,
   readTime,
   categories,
+  series,
 }: BlogPostHeaderProps) {
   return (
     <header className="mb-8">
@@ -45,6 +49,11 @@ export default function BlogPostHeader({
                 {category}
               </Badge>
             ))}
+          </div>
+        )}
+        {series && (
+          <div className="mt-2">
+            <SeriesProgress series={series} showLabel={false} />
           </div>
         )}
       </div>

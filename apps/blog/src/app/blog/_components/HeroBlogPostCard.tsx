@@ -6,6 +6,7 @@ import {
   Button,
   HorizontalRule,
 } from '@abbottland/fui-components';
+import SeriesProgress from '@/components/SeriesProgress/SeriesProgress';
 import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 import { navigate } from '@/lib/navigate';
 import type { BlogPost } from '../../../types/blog';
@@ -77,6 +78,11 @@ export default function HeroBlogPostCard({
           >
             {post.excerpt}
           </Typography>
+          {post.series && (
+            <div className="mb-4">
+              <SeriesProgress series={post.series} showLabel={false} />
+            </div>
+          )}
           <div className="flex flex-row gap-x-4 items-center">
             <div className="flex items-center gap-x-2">
               <CalendarIcon width={18} height={18} className={subTextColor} />

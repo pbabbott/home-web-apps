@@ -1,5 +1,12 @@
 import type { ReactElement } from 'react';
 
+export type BlogPostSeries = {
+  id: string;
+  name: string;
+  index: number;
+  total?: number;
+};
+
 /**
  * Blog post categories
  */
@@ -50,6 +57,8 @@ export interface BlogPostMetadata {
   seoKeywords?: string[];
   /** Post status - 'published' posts are included in getAllBlogPosts(), 'draft' posts are excluded */
   status?: 'draft' | 'published';
+  /** Optional series membership for grouped content */
+  series?: BlogPostSeries;
 }
 
 /**
