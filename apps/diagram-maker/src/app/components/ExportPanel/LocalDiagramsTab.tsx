@@ -15,7 +15,7 @@ interface LocalDiagramsTabProps {
 export function LocalDiagramsTab({ onClose }: LocalDiagramsTabProps) {
   const { onLoadLocalDiagram } = useDiagramEditor();
   const [localDiagrams, setLocalDiagrams] = useState<LocalDiagram[]>([]);
-  const [loadingLocal, setLoadingLocal] = useState(false);
+  const [loadingLocal, setLoadingLocal] = useState(true);
   const [localSearch, setLocalSearch] = useState('');
 
   const toggleCompleted = (filePath: string, current: boolean) => {
@@ -31,7 +31,6 @@ export function LocalDiagramsTab({ onClose }: LocalDiagramsTabProps) {
   };
 
   useEffect(() => {
-    setLoadingLocal(true);
     fetch(resolveUrl('/api/local-diagrams'))
       .then((r) => r.json())
       .then((d: LocalDiagram[]) => setLocalDiagrams(d))
