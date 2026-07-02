@@ -47,6 +47,9 @@ export interface BaseNodeData extends Record<string, unknown> {
   handles?: HandleConfig[];
   iconId?: string;
   transparentBackground?: boolean;
+  /** Initial editing state, useful for Storybook stories/tests. Not driven by user interaction. */
+  startInLabelEdit?: boolean;
+  startInContentEdit?: boolean;
 }
 
 export type BaseNodeType = Node<BaseNodeData>;
@@ -148,12 +151,16 @@ export function BaseNode({
   const bgClass = data.transparentBackground ? 'bg-transparent' : colors.bg;
 
   // Label editing state (only used if showLabel is true)
-  const [isEditingLabel, setIsEditingLabel] = useState(false);
+  const [isEditingLabel, setIsEditingLabel] = useState(
+    data.startInLabelEdit ?? false,
+  );
   const [labelValue, setLabelValue] = useState(data.label ?? 'Label');
   const labelInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Content editing state
-  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(
+    data.startInContentEdit ?? false,
+  );
   const [contentValue, setContentValue] = useState(data.content ?? '');
   const contentInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -312,9 +319,9 @@ export function BaseNode({
               onBlur={handleLabelBlur}
               onKeyDown={handleLabelKeyDown}
               onClick={(e) => e.stopPropagation()}
-              className="bg-secondary-900 text-white px-1 py-0.5 outline-none border border-primary-500 min-w-[60px] resize-none text-xs font-medium"
+              className="bg-secondary-900 text-white px-1 py-0.5 outline-none border border-primary-500 min-w-[60px] resize-none overflow-hidden font-monobit text-body2 font-medium"
               rows={1}
-              style={{ minHeight: '1.5rem' }}
+              style={{ minHeight: '1.5rem', lineHeight: 0.8 }}
             />
           ) : (
             <Typography
@@ -349,7 +356,8 @@ export function BaseNode({
             onBlur={handleContentBlur}
             onKeyDown={handleContentKeyDown}
             onClick={(e) => e.stopPropagation()}
-            className="w-full h-full bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none text-sm pointer-events-auto"
+            className="w-full h-full bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none font-monobit text-body2 pointer-events-auto"
+            style={{ lineHeight: 0.8 }}
             placeholder="Enter text..."
           />
         ) : contentValue ? (

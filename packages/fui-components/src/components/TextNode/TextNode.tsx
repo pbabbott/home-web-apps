@@ -100,7 +100,8 @@ export function TextNode({ id, data, selected }: NodeProps<TextNodeType>) {
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           onClick={(e) => e.stopPropagation()}
-          className="bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none text-sm min-w-[100px] min-h-[60px]"
+          className="bg-secondary-900 text-white p-2 outline-none border border-primary-500 resize-none font-monobit text-body1 min-w-[100px] min-h-[60px]"
+          style={{ lineHeight: 0.8 }}
           placeholder="Enter text..."
         />
       ) : (
