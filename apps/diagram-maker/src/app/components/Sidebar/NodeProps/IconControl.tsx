@@ -40,7 +40,7 @@ export function IconControl() {
             <button
               key={tab.source}
               onClick={() => setActiveSource(tab.source)}
-              className={`flex-1 px-2 py-1 rounded text-xs border transition-colors ${
+              className={`flex-1 px-2 py-1 rounded text-caption border transition-colors ${
                 activeSource === tab.source
                   ? 'bg-primary-700 border-primary-400 text-primary-100'
                   : 'bg-neutral-800 border-primary-700 text-primary-400 hover:bg-primary-800'
@@ -56,7 +56,7 @@ export function IconControl() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={!hasSelection}
-          className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-sm outline-none focus:border-primary-500 disabled:cursor-not-allowed mb-2"
+          className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-caption !leading-normal outline-none focus:border-primary-500 disabled:cursor-not-allowed mb-2"
         />
         <div className="grid grid-cols-5 gap-1 max-h-40 overflow-y-auto">
           {results.map((def: FuiIconDefinition) => (
@@ -82,7 +82,7 @@ export function IconControl() {
         {selectedIconId && (
           <button
             onClick={() => onIconChange(undefined)}
-            className="mt-1 text-xs text-neutral-400 hover:text-neutral-200 underline"
+            className="mt-1 text-caption text-neutral-400 hover:text-neutral-200 underline"
           >
             Clear icon
           </button>

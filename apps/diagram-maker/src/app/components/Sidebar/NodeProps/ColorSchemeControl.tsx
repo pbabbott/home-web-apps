@@ -22,7 +22,7 @@ export function ColorSchemeControl() {
         value={selectedColorScheme ?? 'default'}
         onChange={(e) => onColorSchemeChange(e.target.value as NodeColorScheme)}
         disabled={!hasSelection}
-        className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-sm outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-caption !leading-normal outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {colorSchemeOptions.map(({ value, label }) => (
           <option key={value} value={value}>

@@ -12,6 +12,7 @@ import { EdgeLabelColorControl } from './EdgeProps/EdgeLabelColorControl';
 import { EdgeActiveControl } from './EdgeProps/EdgeActiveControl';
 import { NodeTypeControl } from './NodeProps/NodeTypeControl';
 import { IconControl } from './NodeProps/IconControl';
+import { TransparentBackgroundControl } from './NodeProps/TransparentBackgroundControl';
 
 export function Sidebar() {
   const { selectedNodeIds, selectedEdgeIds } = useDiagramEditor();
@@ -36,6 +37,7 @@ export function Sidebar() {
         <NodeTypeControl />
         <IconControl />
         <ColorSchemeControl />
+        <TransparentBackgroundControl />
         <HandlesControl />
         <LayerControls />
       </div>

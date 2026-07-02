@@ -1,24 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import { Button, Typography } from '@abbottland/fui-components';
-import * as Checkbox from '@radix-ui/react-checkbox';
-import { CheckIcon, CopyIcon, Cross2Icon } from '@radix-ui/react-icons';
-import { useDiagramEditor } from '../DiagramEditorContext';
-import { resolveUrl } from '@/lib/url';
+import { Cross2Icon } from '@radix-ui/react-icons';
+import { ExportTab } from './ExportTab';
+import { ImportTab } from './ImportTab';
+import { LocalDiagramsTab } from './LocalDiagramsTab';
+import { isLocal, type Tab } from './types';
 
-export type Tab = 'export' | 'import' | 'local-diagrams';
-
-const isLocal = process.env.NODE_ENV === 'development';
-
-interface LocalDiagram {
-  label: string;
-  filePath: string;
-  blogPost: string;
-  isComplete: boolean;
-  data: { nodes: Node[]; edges: Edge[] };
-}
+export type { Tab } from './types';
 
 interface ImportExportModalProps {
   data: { nodes: Node[]; edges: Edge[] };
@@ -33,78 +24,10 @@ export function ImportExportModal({
   onClose,
   defaultTab = 'export',
 }: ImportExportModalProps) {
-  const { onLoadLocalDiagram } = useDiagramEditor();
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
-  const [copied, setCopied] = useState(false);
-  const [importText, setImportText] = useState('');
-  const [importError, setImportError] = useState<string | null>(null);
-  const [localDiagrams, setLocalDiagrams] = useState<LocalDiagram[]>([]);
-  const [loadingLocal, setLoadingLocal] = useState(false);
-
-  const toggleCompleted = (filePath: string, current: boolean) => {
-    const isComplete = !current;
-    setLocalDiagrams((prev) =>
-      prev.map((d) => (d.filePath === filePath ? { ...d, isComplete } : d)),
-    );
-    fetch(resolveUrl('/api/local-diagrams/complete'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filePath, isComplete }),
-    }).catch(console.error);
-  };
-
-  useEffect(() => {
-    if (!isLocal || activeTab !== 'local-diagrams') return;
-    setLoadingLocal(true);
-    fetch(resolveUrl('/api/local-diagrams'))
-      .then((r) => r.json())
-      .then((d: LocalDiagram[]) => setLocalDiagrams(d))
-      .catch(console.error)
-      .finally(() => setLoadingLocal(false));
-  }, [activeTab]);
-
-  const handleCopyToClipboard = async () => {
-    const json = JSON.stringify(data, null, 2);
-    try {
-      await navigator.clipboard.writeText(json);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-    }
-  };
-
-  const handlePasteFromClipboard = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setImportText(text);
-      setImportError(null);
-    } catch (err) {
-      console.error('Failed to read clipboard:', err);
-      setImportError('Failed to read from clipboard');
-    }
-  };
-
-  const handleImport = () => {
-    setImportError(null);
-    try {
-      const parsed = JSON.parse(importText);
-      if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
-        throw new Error('Invalid JSON: missing "nodes" array');
-      }
-      if (!parsed.edges || !Array.isArray(parsed.edges)) {
-        throw new Error('Invalid JSON: missing "edges" array');
-      }
-      onImport(parsed);
-      onClose();
-      setImportText('');
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Invalid JSON');
-    }
-  };
 
   const tabClass = (tab: Tab) =>
-    `px-4 py-2 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
+    `px-4 py-2 font-monobit text-button uppercase tracking-[.1em] border-b-2 transition-colors cursor-pointer ${
       activeTab === tab
         ? 'border-primary-500 text-primary-400'
         : 'border-transparent text-secondary-400 hover:text-secondary-200'
@@ -150,148 +73,14 @@ export function ImportExportModal({
           )}
         </div>
 
-        {activeTab === 'export' && (
-          <>
-            <pre className="flex-1 overflow-auto bg-secondary-900 rounded-lg p-4 text-sm text-secondary-300 font-mono">
-              {JSON.stringify(data, null, 2)}
-            </pre>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                onClick={handleCopyToClipboard}
-                color="primary"
-                variant="contained"
-                className="flex items-center gap-2"
-              >
-                <CopyIcon width={16} height={16} />
-                {copied ? 'Copied!' : 'Copy to Clipboard'}
-              </Button>
-            </div>
-          </>
-        )}
+        {activeTab === 'export' && <ExportTab data={data} />}
 
         {activeTab === 'import' && (
-          <>
-            <Typography
-              variant="body1"
-              component="p"
-              className="mb-2 text-secondary-400"
-            >
-              Paste your diagram JSON below:
-            </Typography>
-            <textarea
-              value={importText}
-              onChange={(e) => {
-                setImportText(e.target.value);
-                setImportError(null);
-              }}
-              className="flex-1 min-h-[200px] bg-secondary-900 text-secondary-200 rounded-lg p-4 text-sm font-mono outline-none border border-secondary-700 focus:border-primary-500 resize-none"
-              placeholder='{"nodes": [...], "edges": [...]}'
-            />
-            {importError && (
-              <Typography
-                variant="body1"
-                component="p"
-                className="mt-2 text-red-400"
-              >
-                Error: {importError}
-              </Typography>
-            )}
-            <div className="mt-4 flex justify-between gap-2">
-              <Button
-                onClick={handlePasteFromClipboard}
-                color="secondary"
-                variant="outlined"
-                className="flex items-center gap-2"
-              >
-                <CopyIcon width={16} height={16} />
-                Paste from Clipboard
-              </Button>
-              <div className="flex gap-2">
-                <Button onClick={onClose} color="secondary" variant="outlined">
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleImport}
-                  color="primary"
-                  variant="contained"
-                  disabled={!importText.trim()}
-                >
-                  Import
-                </Button>
-              </div>
-            </div>
-          </>
+          <ImportTab onImport={onImport} onClose={onClose} />
         )}
 
         {activeTab === 'local-diagrams' && isLocal && (
-          <>
-            {loadingLocal ? (
-              <Typography
-                variant="body1"
-                component="p"
-                className="text-secondary-400"
-              >
-                Loading...
-              </Typography>
-            ) : localDiagrams.length === 0 ? (
-              <Typography
-                variant="body1"
-                component="p"
-                className="text-secondary-400"
-              >
-                No diagram JSON files found in blog content.
-              </Typography>
-            ) : (
-              <ul className="flex-1 overflow-auto flex flex-col gap-1 pr-2">
-                {localDiagrams.map((diagram) => (
-                  <li
-                    key={diagram.filePath}
-                    className="flex items-stretch gap-2"
-                  >
-                    <button
-                      onClick={() => {
-                        onLoadLocalDiagram(
-                          diagram.filePath,
-                          diagram.data,
-                          diagram.isComplete,
-                          diagram.label,
-                        );
-                        onClose();
-                      }}
-                      className={`flex-1 text-left px-4 py-3 rounded-lg border transition-colors ${diagram.isComplete ? 'bg-success-900 hover:bg-success-800 border-success-500 hover:border-success-400' : 'bg-secondary-900 hover:bg-secondary-700 border-secondary-700 hover:border-primary-500'}`}
-                    >
-                      <Typography
-                        variant="body1"
-                        component="span"
-                        className={`block ${diagram.isComplete ? 'text-neutral-300' : 'text-secondary-100'}`}
-                      >
-                        {diagram.label}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        component="span"
-                        className="block text-secondary-400 mt-0.5"
-                      >
-                        {diagram.blogPost}
-                      </Typography>
-                    </button>
-                    <Checkbox.Root
-                      checked={diagram.isComplete}
-                      onCheckedChange={() =>
-                        toggleCompleted(diagram.filePath, diagram.isComplete)
-                      }
-                      title="Mark complete"
-                      className="flex items-center justify-center w-10 shrink-0 rounded-lg bg-secondary-900 border border-secondary-700 hover:border-success-400 transition-colors cursor-pointer"
-                    >
-                      <Checkbox.Indicator>
-                        <CheckIcon className="text-success-400 w-4 h-4" />
-                      </Checkbox.Indicator>
-                    </Checkbox.Root>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+          <LocalDiagramsTab onClose={onClose} />
         )}
       </div>
     </div>

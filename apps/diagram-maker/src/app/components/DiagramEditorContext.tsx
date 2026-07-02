@@ -67,6 +67,8 @@ interface DiagramEditorContextValue {
   selectedNodeIds: string[];
   selectedColorScheme: NodeColorScheme | undefined;
   onColorSchemeChange: (colorScheme: NodeColorScheme) => void;
+  selectedTransparentBackground: boolean | undefined;
+  onTransparentBackgroundChange: (transparentBackground: boolean) => void;
   selectedHandles: HandleConfig[];
   onHandlesChange: (handles: HandleConfig[]) => void;
   onSendToFront: () => void;
@@ -157,6 +159,26 @@ export function DiagramEditorProvider({
         nds.map((node) =>
           selectedNodeIds.includes(node.id)
             ? { ...node, data: { ...node.data, colorScheme } }
+            : node,
+        ),
+      );
+    },
+    [selectedNodeIds, setNodes],
+  );
+
+  const selectedTransparentBackground: boolean | undefined =
+    selectedNodeIds.length > 0
+      ? ((nodes.find((n) => n.id === selectedNodeIds[0])?.data
+          ?.transparentBackground as boolean) ?? false)
+      : undefined;
+
+  const updateSelectedNodesTransparentBackground = useCallback(
+    (transparentBackground: boolean) => {
+      if (selectedNodeIds.length === 0) return;
+      setNodes((nds) =>
+        nds.map((node) =>
+          selectedNodeIds.includes(node.id)
+            ? { ...node, data: { ...node.data, transparentBackground } }
             : node,
         ),
       );
@@ -437,6 +459,8 @@ export function DiagramEditorProvider({
     selectedNodeIds,
     selectedColorScheme: selectedNodeColorScheme,
     onColorSchemeChange: updateSelectedNodesColorScheme,
+    selectedTransparentBackground,
+    onTransparentBackgroundChange: updateSelectedNodesTransparentBackground,
     selectedHandles: selectedNodeHandles ?? [],
     onHandlesChange: updateSelectedNodesHandles,
     onSendToFront: sendToFront,

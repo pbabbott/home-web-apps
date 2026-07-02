@@ -46,6 +46,7 @@ export interface BaseNodeData extends Record<string, unknown> {
   colorScheme?: NodeColorScheme;
   handles?: HandleConfig[];
   iconId?: string;
+  transparentBackground?: boolean;
 }
 
 export type BaseNodeType = Node<BaseNodeData>;
@@ -144,6 +145,7 @@ export function BaseNode({
   const colorScheme = data.colorScheme ?? 'default';
   const colors = colorSchemeStyles[colorScheme];
   const handles = data.handles ?? DEFAULT_HANDLES;
+  const bgClass = data.transparentBackground ? 'bg-transparent' : colors.bg;
 
   // Label editing state (only used if showLabel is true)
   const [isEditingLabel, setIsEditingLabel] = useState(false);
@@ -268,7 +270,7 @@ export function BaseNode({
   return (
     <div
       className={`
-        ${colors.bg}
+        ${bgClass}
         ${selected ? 'border-primary-500 shadow-lg shadow-primary-500/20' : borderClasses}
         transition-colors duration-150
         relative
