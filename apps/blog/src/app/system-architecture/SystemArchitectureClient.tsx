@@ -118,7 +118,7 @@ export default function SystemArchitectureClient() {
 
           <ArchSection
             levelLabel="Container Level :: C2"
-            heading="Infrastructure Containers"
+            heading="Infrastructure Patterns"
             description="Cluster internals exposed. Ingress controllers, application services, and persistent storage rendered as discrete units. Internal networking partially abstracted. Complexity: elevated."
             diagramHeight="480px"
             data={diagram02 as DiagramViewerProps['data']}

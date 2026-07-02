@@ -14,6 +14,7 @@ import monitoringData from './diagram-c3-monitoring.json';
 import mediaStackData from './diagram-c3-media-stack.json';
 import customAppPipelineData from './diagram-c3-custom-app-pipeline.json';
 import gitopsPipelineData from './diagram-c3-gitops-pipeline.json';
+import istioData from './diagram-c3-istio.json';
 
 const tabs: {
   id: string;
@@ -22,6 +23,13 @@ const tabs: {
   borderColor?: string;
   data: DiagramViewerProps['data'];
 }[] = [
+  {
+    id: 'istio',
+    label: 'Istio Service Mesh',
+    iconId: 'istio',
+    borderColor: 'border-accent-falcon-600',
+    data: istioData as DiagramViewerProps['data'],
+  },
   {
     id: 'public-ingress',
     label: 'Public Ingress Pattern',

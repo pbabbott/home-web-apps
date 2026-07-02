@@ -4,75 +4,57 @@
       "id": "node_9",
       "type": "labeled",
       "position": {
-        "x": 188.25498653404392,
-        "y": 129.31438574000052
+        "x": 14.913742415066622,
+        "y": 135.83032549659845
       },
       "data": {
         "label": "My House",
         "content": "",
         "iconId": "radix-home",
-        "width": 974,
-        "height": 585,
+        "width": 1154,
+        "height": 573,
         "colorScheme": "default"
       },
       "measured": {
-        "width": 974,
-        "height": 585
+        "width": 1154,
+        "height": 573
       },
       "selected": false,
       "dragging": false,
       "resizing": false
     },
     {
-      "id": "node_21",
-      "type": "labeled",
+      "id": "node_8",
+      "type": "customDefault",
       "position": {
-        "x": 201.32603743483594,
-        "y": 165.2480730759513
+        "x": 83.11440516102289,
+        "y": 576.5560608196627
       },
       "data": {
-        "label": "Ingress",
-        "content": "",
-        "colorScheme": "accent-falcon",
-        "width": 224,
-        "height": 374
+        "content": "LAN Users\n(Me)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1780536182444",
+            "type": "source",
+            "position": "top"
+          }
+        ],
+        "colorScheme": "default"
       },
       "measured": {
-        "width": 224,
-        "height": 374
+        "width": 150,
+        "height": 80
       },
       "selected": false,
-      "dragging": false,
-      "resizing": false
-    },
-    {
-      "id": "node_20",
-      "type": "labeled",
-      "position": {
-        "x": 921.0815155098392,
-        "y": 165.8893160138044
-      },
-      "data": {
-        "label": "CI/CD",
-        "content": "",
-        "colorScheme": "accent-purple",
-        "width": 231,
-        "height": 374
-      },
-      "measured": {
-        "width": 231,
-        "height": 374
-      },
-      "selected": false,
-      "dragging": false,
-      "resizing": false
+      "dragging": false
     },
     {
       "id": "node_19",
       "type": "labeled",
       "position": {
-        "x": 435.20705768069075,
-        "y": 578.0435526027104
+        "x": 373.9202332771791,
+        "y": 573.6207920787457
       },
       "data": {
         "label": "Virtualization Platform",
@@ -101,21 +83,21 @@
       "id": "node_13",
       "type": "labeled",
       "position": {
-        "x": 434.21481195788783,
-        "y": 165.42222340159762
+        "x": 31.69053317937255,
+        "y": 169.9987435411365
       },
       "data": {
         "label": "Kubernetes Cluster",
         "content": "",
         "iconId": "kubernetes",
         "colorScheme": "secondary",
-        "width": 479,
-        "height": 375,
+        "width": 1130,
+        "height": 368,
         "handles": []
       },
       "measured": {
-        "width": 479,
-        "height": 375
+        "width": 1130,
+        "height": 368
       },
       "selected": false,
       "dragging": false,
@@ -125,14 +107,14 @@
       "id": "node_0",
       "type": "labeled",
       "position": {
-        "x": 507.28628394305406,
-        "y": 210.18451812387784
+        "x": 523.0818572429282,
+        "y": 208.92087225988791
       },
       "data": {
         "content": "",
         "label": "Web Applications",
         "width": 203,
-        "height": 298,
+        "height": 308,
         "handles": [
           {
             "id": "handle-1780535765386",
@@ -155,35 +137,7 @@
       },
       "measured": {
         "width": 203,
-        "height": 298
-      },
-      "selected": false,
-      "dragging": false,
-      "resizing": false
-    },
-    {
-      "id": "node_1",
-      "type": "customDefault",
-      "position": {
-        "x": 931.3550759526249,
-        "y": 277.8641096671558
-      },
-      "data": {
-        "content": "Custom Application Deployment Pipeline",
-        "width": 214,
-        "height": 81,
-        "handles": [
-          {
-            "id": "handle-1780535916662",
-            "type": "source",
-            "position": "left"
-          }
-        ],
-        "iconId": "radix-code"
-      },
-      "measured": {
-        "width": 214,
-        "height": 81
+        "height": 308
       },
       "selected": false,
       "dragging": false,
@@ -193,8 +147,8 @@
       "id": "node_2",
       "type": "customDefault",
       "position": {
-        "x": 764.9644485016904,
-        "y": 610.8353779218202
+        "x": 703.6776240981787,
+        "y": 606.4126173978555
       },
       "data": {
         "content": "Developer Experience",
@@ -212,8 +166,8 @@
       "id": "node_3",
       "type": "customDefault",
       "position": {
-        "x": 746.6178437145446,
-        "y": 206.64269752718508
+        "x": 752.5323281845341,
+        "y": 207.47639288416016
       },
       "data": {
         "content": "Monitoring",
@@ -234,11 +188,161 @@
       "dragging": false
     },
     {
+      "id": "node_10",
+      "type": "customDefault",
+      "position": {
+        "x": 387.7443477746346,
+        "y": 605.7543115381592
+      },
+      "data": {
+        "content": "Virtualization",
+        "handles": [],
+        "iconId": "radix-card-stack"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_11",
+      "type": "customDefault",
+      "position": {
+        "x": 545.7273941504587,
+        "y": 606.686630399962
+      },
+      "data": {
+        "content": "Storage",
+        "handles": [],
+        "iconId": "cylinder"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "customDefault",
+      "position": {
+        "x": 549.6066683565027,
+        "y": 329.5612236955459
+      },
+      "data": {
+        "content": "Media Stack",
+        "width": 160,
+        "height": 80,
+        "iconId": "radix-mixer"
+      },
+      "measured": {
+        "width": 160,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_12",
+      "type": "customDefault",
+      "position": {
+        "x": 548.3498388325597,
+        "y": 241.4276347223264
+      },
+      "data": {
+        "content": "Blog Website",
+        "iconId": "radix-globe",
+        "width": 161,
+        "height": 80,
+        "handles": []
+      },
+      "measured": {
+        "width": 161,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_17",
+      "type": "customDefault",
+      "position": {
+        "x": 549.5567429479632,
+        "y": 414.46162783052023
+      },
+      "data": {
+        "content": "Other Apps & Services",
+        "width": 162,
+        "height": 80,
+        "iconId": "radix-component"
+      },
+      "measured": {
+        "width": 162,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_21",
+      "type": "labeled",
+      "position": {
+        "x": 40.25222778291885,
+        "y": 206.90938565171945
+      },
+      "data": {
+        "label": "Ingress",
+        "content": "",
+        "colorScheme": "accent-falcon",
+        "width": 460,
+        "height": 314
+      },
+      "measured": {
+        "width": 460,
+        "height": 314
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_6",
+      "type": "customDefault",
+      "position": {
+        "x": -164.04799733478092,
+        "y": 241.20473449570233
+      },
+      "data": {
+        "content": "End User\n(You)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1780536004228",
+            "type": "source",
+            "position": "right"
+          }
+        ],
+        "colorScheme": "default"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
       "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 226.09645953589865,
-        "y": 367.47353569746235
+        "x": 66.83451554252125,
+        "y": 368.3933804680027
       },
       "data": {
         "content": "LAN Ingress Pattern",
@@ -268,37 +372,11 @@
       "resizing": false
     },
     {
-      "id": "node_6",
-      "type": "customDefault",
-      "position": {
-        "x": -23.04845611122728,
-        "y": 238.38942092917716
-      },
-      "data": {
-        "content": "End User\n(You)",
-        "iconId": "radix-mobile",
-        "handles": [
-          {
-            "id": "handle-1780536004228",
-            "type": "source",
-            "position": "right"
-          }
-        ],
-        "colorScheme": "default"
-      },
-      "measured": {
-        "width": 150,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
       "id": "node_7",
       "type": "customDefault",
       "position": {
-        "x": 222.0975856874701,
-        "y": 238.45209923200417
+        "x": 62.8356416940926,
+        "y": 241.2674127985294
       },
       "data": {
         "content": "Public Ingress Pattern",
@@ -328,128 +406,83 @@
       "resizing": false
     },
     {
-      "id": "node_8",
+      "id": "node_22",
       "type": "customDefault",
       "position": {
-        "x": 242.37634915440032,
-        "y": 575.0043931171274
+        "x": 311.9894569277641,
+        "y": 322.7476180310623
       },
       "data": {
-        "content": "LAN Users\n(Me)",
-        "iconId": "radix-mobile",
+        "content": "Istio Service\nMesh",
+        "iconId": "istio",
+        "width": 161,
+        "height": 80,
         "handles": [
           {
-            "id": "handle-1780536182444",
+            "id": "handle-1782957107884",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782957108123",
             "type": "source",
-            "position": "top"
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 161,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_20",
+      "type": "labeled",
+      "position": {
+        "x": 922.7489062237894,
+        "y": 205.07299779163324
+      },
+      "data": {
+        "label": "CI/CD",
+        "content": "",
+        "colorScheme": "accent-purple",
+        "width": 230,
+        "height": 315
+      },
+      "measured": {
+        "width": 230,
+        "height": 315
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "customDefault",
+      "position": {
+        "x": 931.3550759526249,
+        "y": 277.8641096671558
+      },
+      "data": {
+        "content": "Custom Application Deployment Pipeline",
+        "width": 214,
+        "height": 81,
+        "handles": [
+          {
+            "id": "handle-1780535916662",
+            "type": "source",
+            "position": "left"
           }
         ],
-        "colorScheme": "default"
+        "iconId": "radix-code"
       },
       "measured": {
-        "width": 150,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node_10",
-      "type": "customDefault",
-      "position": {
-        "x": 449.0311721781463,
-        "y": 610.1770720621239
-      },
-      "data": {
-        "content": "Virtualization",
-        "handles": [],
-        "iconId": "radix-card-stack"
-      },
-      "measured": {
-        "width": 150,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node_11",
-      "type": "customDefault",
-      "position": {
-        "x": 607.0142185539704,
-        "y": 611.1093909239268
-      },
-      "data": {
-        "content": "Storage",
-        "handles": [],
-        "iconId": "cylinder"
-      },
-      "measured": {
-        "width": 150,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "node_4",
-      "type": "customDefault",
-      "position": {
-        "x": 533.8110950566286,
-        "y": 330.82486955953584
-      },
-      "data": {
-        "content": "Media Stack",
-        "width": 160,
-        "height": 80,
-        "iconId": "radix-mixer"
-      },
-      "measured": {
-        "width": 160,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false,
-      "resizing": false
-    },
-    {
-      "id": "node_12",
-      "type": "customDefault",
-      "position": {
-        "x": 532.5542655326856,
-        "y": 242.69128058631634
-      },
-      "data": {
-        "content": "Blog Website",
-        "iconId": "radix-globe",
-        "width": 161,
-        "height": 80,
-        "handles": []
-      },
-      "measured": {
-        "width": 161,
-        "height": 80
-      },
-      "selected": false,
-      "dragging": false,
-      "resizing": false
-    },
-    {
-      "id": "node_17",
-      "type": "customDefault",
-      "position": {
-        "x": 533.7611696480891,
-        "y": 415.7252736945102
-      },
-      "data": {
-        "content": "Other Apps & Services",
-        "width": 162,
-        "height": 80,
-        "iconId": "radix-component"
-      },
-      "measured": {
-        "width": 162,
-        "height": 80
+        "width": 214,
+        "height": 81
       },
       "selected": false,
       "dragging": false,
@@ -594,26 +627,6 @@
       "markerEnd": {
         "type": "arrowclosed"
       },
-      "source": "node_5",
-      "sourceHandle": "handle-1780536008531",
-      "target": "node_0",
-      "targetHandle": "handle-1780535765386",
-      "id": "xy-edge__node_5handle-1780536008531-node_0handle-1780535765386",
-      "selected": false,
-      "zIndex": 20,
-      "data": {
-        "active": true
-      }
-    },
-    {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
       "source": "node_18",
       "sourceHandle": "handle-1780538556251",
       "target": "node_0",
@@ -624,21 +637,6 @@
       "data": {
         "active": true
       }
-    },
-    {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_7",
-      "sourceHandle": "handle-1780536048818",
-      "target": "node_0",
-      "targetHandle": "handle-1780535765386",
-      "id": "xy-edge__node_7handle-1780536048818-node_0handle-1780535765386"
     },
     {
       "type": "basic",
@@ -674,6 +672,66 @@
       "target": "node_0",
       "targetHandle": "handle-1780669285560",
       "id": "xy-edge__node_19handle-1780667875271-node_0handle-1780669285560",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_7",
+      "sourceHandle": "handle-1780536048818",
+      "target": "node_22",
+      "targetHandle": "handle-1782957107884",
+      "id": "xy-edge__node_7handle-1780536048818-node_22handle-1782957107884",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_5",
+      "sourceHandle": "handle-1780536008531",
+      "target": "node_22",
+      "targetHandle": "handle-1782957107884",
+      "id": "xy-edge__node_5handle-1780536008531-node_22handle-1782957107884",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_22",
+      "sourceHandle": "handle-1782957108123",
+      "target": "node_0",
+      "targetHandle": "handle-1780535765386",
+      "id": "xy-edge__node_22handle-1782957108123-node_0handle-1780535765386",
       "selected": false,
       "zIndex": 20,
       "data": {

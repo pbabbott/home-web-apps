@@ -1,0 +1,744 @@
+{
+  "nodes": [
+    {
+      "id": "istio_k8s",
+      "type": "labeled",
+      "position": {
+        "x": 0,
+        "y": -900
+      },
+      "data": {
+        "label": "Kubernetes",
+        "content": "",
+        "iconId": "kubernetes",
+        "colorScheme": "secondary",
+        "width": 2526,
+        "height": 1474
+      },
+      "measured": {
+        "width": 2526,
+        "height": 1474
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_system_ns",
+      "type": "labeled",
+      "position": {
+        "x": 50,
+        "y": -850
+      },
+      "data": {
+        "label": "namespace: istio-system",
+        "content": "",
+        "width": 1405,
+        "height": 894
+      },
+      "measured": {
+        "width": 1405,
+        "height": 894
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_base_hr",
+      "type": "labeled",
+      "position": {
+        "x": 68,
+        "y": -702.9665818164486
+      },
+      "data": {
+        "label": "HelmRelease: istio-base",
+        "content": "CRDs:\nVirtualService, DestinationRule\nGateway, AuthorizationPolicy\nPeerAuthentication, RequestAuthentication",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 400,
+        "height": 140,
+        "handles": [
+          {
+            "id": "base_src_right",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 400,
+        "height": 140
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_istiod_hr",
+      "type": "labeled",
+      "position": {
+        "x": 579.4972462314238,
+        "y": -690.3275659949028
+      },
+      "data": {
+        "label": "HelmRelease: istiod",
+        "content": "Control plane\nConfig distribution (xDS) to all proxies\nCert issuance (SPIFFE/X.509)\nService discovery",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 420,
+        "height": 160,
+        "handles": [
+          {
+            "id": "istiod_tgt_left",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "istiod_src_bottom",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 420,
+        "height": 160
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_cni_hr",
+      "type": "labeled",
+      "position": {
+        "x": 100.40605982871227,
+        "y": -143.75930430999676
+      },
+      "data": {
+        "label": "HelmRelease: istio-cni",
+        "content": "DaemonSet CNI Plugin\nIntercepts pod traffic at node level\nRedirects to ztunnel (HBONE)\nNo iptables rules needed inside app pods",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 400,
+        "height": 150,
+        "handles": [
+          {
+            "id": "cni_hr_src_bottom",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 400,
+        "height": 150
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_ztunnel_hr",
+      "type": "labeled",
+      "position": {
+        "x": 592.1439947079987,
+        "y": -392.0144755378077
+      },
+      "data": {
+        "label": "HelmRelease: ztunnel",
+        "content": "DaemonSet — one pod per node\nHBONE protocol (HTTP/2 CONNECT)\nAmbient mode: no sidecars in app pods\nL4 policy enforcement",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 420,
+        "height": 160,
+        "handles": [
+          {
+            "id": "ztunnel_hr_tgt_top",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "ztunnel_hr_src_bottom",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 420,
+        "height": 160
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_ingress_hr",
+      "type": "labeled",
+      "position": {
+        "x": 1025.1125846899718,
+        "y": -153.2382973748531
+      },
+      "data": {
+        "label": "HelmRelease: istio-ingress",
+        "content": "DaemonSet\nNodePort gateway\nCluster entrypoint for HTTPRoutes\nTLS termination",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 400,
+        "height": 150,
+        "handles": [
+          {
+            "id": "ingress_hr_src_right",
+            "type": "source",
+            "position": "top"
+          },
+          {
+            "id": "ingress_hr_src_bottom",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 400,
+        "height": 150
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_gateway",
+      "type": "labeled",
+      "position": {
+        "x": 1070.1125846899718,
+        "y": -420.28886650902257
+      },
+      "data": {
+        "label": "Gateway",
+        "content": "istio-ingress class\nTLS termination\n*.abbottland.io",
+        "colorScheme": "default",
+        "width": 310,
+        "height": 120,
+        "handles": [
+          {
+            "id": "gateway_tgt_left",
+            "type": "target",
+            "position": "bottom"
+          },
+          {
+            "id": "gateway_src_right",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 310,
+        "height": 120
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_waypoint_note",
+      "type": "customDefault",
+      "position": {
+        "x": 1095.3064388413518,
+        "y": -806.2378625660702
+      },
+      "data": {
+        "content": "Optional: Waypoint Proxy\nL7 policy & traffic management\nDeploys per-namespace or per-service\nEnables retry, circuit breaking, header manipulation",
+        "width": 410,
+        "height": 140
+      },
+      "measured": {
+        "width": 410,
+        "height": 140
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "istio_app_ns",
+      "type": "labeled",
+      "position": {
+        "x": 1650.1460850460608,
+        "y": -787.6629517188968
+      },
+      "data": {
+        "label": "Application Namespace",
+        "content": "",
+        "width": 1340,
+        "height": 660
+      },
+      "measured": {
+        "width": 1340,
+        "height": 660
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_httproute",
+      "type": "labeled",
+      "position": {
+        "x": 1700.1460850460608,
+        "y": -737.6629517188968
+      },
+      "data": {
+        "label": "HTTPRoute",
+        "content": "Routes from Gateway\nHost/path matching rules\nBackendRef → Service",
+        "width": 300,
+        "height": 110,
+        "handles": [
+          {
+            "id": "httproute_tgt_left",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "httproute_src_bottom",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 300,
+        "height": 110
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_authpol",
+      "type": "labeled",
+      "position": {
+        "x": 2090.1460850460608,
+        "y": -737.6629517188968
+      },
+      "data": {
+        "label": "AuthorizationPolicy",
+        "content": "inbound: only from istio-system\nallow inbound to service port\nEnforced by ztunnel (L4)",
+        "width": 320,
+        "height": 110
+      },
+      "measured": {
+        "width": 320,
+        "height": 110
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_app_pod",
+      "type": "labeled",
+      "position": {
+        "x": 1819.3952645650527,
+        "y": -496.59260681442106
+      },
+      "data": {
+        "label": "Application Pod",
+        "content": "Service / Deployment / Pod\nNo sidecar injected (ambient mode)\nAll traffic intercepted transparently by node ztunnel",
+        "width": 360,
+        "height": 110,
+        "handles": [
+          {
+            "id": "app_pod_tgt_top",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "app_pod_tgt_right",
+            "type": "target",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 360,
+        "height": 110
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_peer_auth",
+      "type": "labeled",
+      "position": {
+        "x": 1678.8574662934186,
+        "y": -282.9631809766783
+      },
+      "data": {
+        "label": "PeerAuthentication",
+        "content": "mode: STRICT\nAll inbound traffic must use mTLS\nEnforced by ztunnel layer",
+        "width": 310,
+        "height": 110
+      },
+      "measured": {
+        "width": 310,
+        "height": 110
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_k8s_node",
+      "type": "labeled",
+      "position": {
+        "x": 50,
+        "y": 120
+      },
+      "data": {
+        "label": "Kubernetes Node (DaemonSets \none instance per node)",
+        "content": "",
+        "width": 2440,
+        "height": 360
+      },
+      "measured": {
+        "width": 2440,
+        "height": 360
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_ztunnel_pod",
+      "type": "labeled",
+      "position": {
+        "x": 582.1439947079987,
+        "y": 190.22679551140982
+      },
+      "data": {
+        "label": "ztunnel Pod",
+        "content": "HBONE (HTTP/2 CONNECT tunneling)\nTransparent mTLS for all ambient pods on node\nL4 policy enforcement\nConnects to istiod via xDS for config",
+        "width": 440,
+        "height": 220,
+        "handles": [
+          {
+            "id": "ztunnel_pod_tgt_top",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 440,
+        "height": 220
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_cni_pod",
+      "type": "labeled",
+      "position": {
+        "x": 89.38590743879752,
+        "y": 190.22679551140982
+      },
+      "data": {
+        "label": "istio-cni Pod",
+        "content": "Chained CNI plugin installed on each node\nSets up iptables/nftables redirect rules\nRoutes new pod traffic to ztunnel\nNo NET_ADMIN required in app pods",
+        "width": 440,
+        "height": 220,
+        "handles": [
+          {
+            "id": "cni_pod_tgt_top",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 440,
+        "height": 220
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_ingress_pod",
+      "type": "labeled",
+      "position": {
+        "x": 1036.7757086750935,
+        "y": 190.22679551140982
+      },
+      "data": {
+        "label": "istio-ingress Pod (Envoy)",
+        "content": "Listens on NodePort\nTerminates TLS\nForwards traffic via HBONE to ztunnel\nConfigured by istiod via xDS",
+        "width": 440,
+        "height": 220,
+        "handles": [
+          {
+            "id": "ingress_pod_tgt_top",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "ingress_pod_tgt_left",
+            "type": "target",
+            "position": "bottom"
+          },
+          {
+            "id": "ingress_pod_src_right",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 440,
+        "height": 220
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "istio_haproxy",
+      "type": "labeled",
+      "position": {
+        "x": -375.21217973644355,
+        "y": 457.2715876261435
+      },
+      "data": {
+        "label": "HA Proxy (LXC)",
+        "content": "SNI inspection\nRoutes TLS to cluster NodePort",
+        "iconId": "haproxy",
+        "width": 320,
+        "height": 130,
+        "handles": [
+          {
+            "id": "haproxy_src_right",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 320,
+        "height": 130
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_1",
+      "type": "text",
+      "position": {
+        "x": 2394.350624141856,
+        "y": -511.3833760826229
+      },
+      "data": {
+        "content": "label: istio.io/dataplane-mode=ambient"
+      },
+      "measured": {
+        "width": 342,
+        "height": 26
+      },
+      "selected": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_base_hr",
+      "sourceHandle": "base_src_right",
+      "target": "istio_istiod_hr",
+      "targetHandle": "istiod_tgt_left",
+      "id": "edge_base_istiod",
+      "selected": false,
+      "data": {
+        "label": "CRDs required",
+        "color": "secondary"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_istiod_hr",
+      "sourceHandle": "istiod_src_bottom",
+      "target": "istio_ztunnel_hr",
+      "targetHandle": "ztunnel_hr_tgt_top",
+      "id": "edge_istiod_ztunnel",
+      "selected": false,
+      "data": {
+        "label": "configures (xDS)",
+        "color": "secondary"
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_ingress_hr",
+      "sourceHandle": "ingress_hr_src_right",
+      "target": "istio_gateway",
+      "targetHandle": "gateway_tgt_left",
+      "id": "edge_ingress_hr_gateway",
+      "selected": false
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_gateway",
+      "sourceHandle": "gateway_src_right",
+      "target": "istio_httproute",
+      "targetHandle": "httproute_tgt_left",
+      "id": "edge_gateway_httproute",
+      "selected": false,
+      "data": {
+        "label": "binds",
+        "color": "secondary"
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_httproute",
+      "sourceHandle": "httproute_src_bottom",
+      "target": "istio_app_pod",
+      "targetHandle": "app_pod_tgt_top",
+      "id": "edge_httproute_pod",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_ztunnel_hr",
+      "sourceHandle": "ztunnel_hr_src_bottom",
+      "target": "istio_ztunnel_pod",
+      "targetHandle": "ztunnel_pod_tgt_top",
+      "id": "edge_ztunnel_hr_pod",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_cni_hr",
+      "sourceHandle": "cni_hr_src_bottom",
+      "target": "istio_cni_pod",
+      "targetHandle": "cni_pod_tgt_top",
+      "id": "edge_cni_hr_pod",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_ingress_hr",
+      "sourceHandle": "ingress_hr_src_bottom",
+      "target": "istio_ingress_pod",
+      "targetHandle": "ingress_pod_tgt_top",
+      "id": "edge_ingress_hr_pod",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_haproxy",
+      "sourceHandle": "haproxy_src_right",
+      "target": "istio_ingress_pod",
+      "targetHandle": "ingress_pod_tgt_left",
+      "id": "edge_haproxy_ingress",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "istio_ingress_pod",
+      "sourceHandle": "ingress_pod_src_right",
+      "target": "istio_app_pod",
+      "targetHandle": "app_pod_tgt_right",
+      "id": "edge_ingress_pod_app",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "label": "HBONE (mTLS)",
+        "color": "primary",
+        "active": true
+      }
+    }
+  ],
+  "isComplete": false
+}
