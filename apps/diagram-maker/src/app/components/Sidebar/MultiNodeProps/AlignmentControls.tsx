@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Typography } from '@abbottland/fui-components';
+import { OutlinedButton, Typography } from '@abbottland/fui-components';
 import {
   PinLeftIcon,
   AlignCenterHorizontallyIcon,
@@ -24,62 +24,56 @@ export function AlignmentControls() {
         Align Nodes
       </Typography>
       <div className="flex gap-2 mb-2">
-        <Button
+        <OutlinedButton
           onClick={() => onAlignNodes('left')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align left"
         >
           <PinLeftIcon width={16} height={16} />
-        </Button>
-        <Button
+        </OutlinedButton>
+        <OutlinedButton
           onClick={() => onAlignNodes('center-h')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align center"
         >
           <AlignCenterVerticallyIcon width={16} height={16} />
-        </Button>
-        <Button
+        </OutlinedButton>
+        <OutlinedButton
           onClick={() => onAlignNodes('right')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align right"
         >
           <PinRightIcon width={16} height={16} />
-        </Button>
+        </OutlinedButton>
       </div>
       <div className="flex gap-2">
-        <Button
+        <OutlinedButton
           onClick={() => onAlignNodes('top')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align top"
         >
           <PinTopIcon width={16} height={16} />
-        </Button>
-        <Button
+        </OutlinedButton>
+        <OutlinedButton
           onClick={() => onAlignNodes('center-v')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align middle"
         >
           <AlignCenterHorizontallyIcon width={16} height={16} />
-        </Button>
-        <Button
+        </OutlinedButton>
+        <OutlinedButton
           onClick={() => onAlignNodes('bottom')}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center"
           title="Align bottom"
         >
           <PinBottomIcon width={16} height={16} />
-        </Button>
+        </OutlinedButton>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['contained', 'outlined', 'text'],
+      options: ['contained', 'text'],
       description: 'The variant of the button',
     },
     color: {
@@ -102,10 +102,5 @@ export const VariantContained: Story = ButtonStory(
   'Contained',
   'primary',
   'contained',
-);
-export const VariantOutlined: Story = ButtonStory(
-  'Outlined',
-  'primary',
-  'outlined',
 );
 export const VariantText: Story = ButtonStory('Text', 'primary', 'text');

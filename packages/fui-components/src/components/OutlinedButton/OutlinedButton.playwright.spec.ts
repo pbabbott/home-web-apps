@@ -7,95 +7,87 @@ import {
   SCREENSHOT_OPTIONS,
 } from '../../../tests/playwright-helpers';
 
-test.describe('Button Visual Regression Tests', () => {
+test.describe('OutlinedButton Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-primary');
+    await gotoStory(page, 'components-outlinedbutton--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-primary.png',
+      'components-outlinedbutton--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-secondary', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-secondary');
+    await gotoStory(page, 'components-outlinedbutton--color-secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-secondary.png',
+      'components-outlinedbutton--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-success', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-success');
+    await gotoStory(page, 'components-outlinedbutton--color-success');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-success.png',
+      'components-outlinedbutton--color-success.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-error', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-error');
+    await gotoStory(page, 'components-outlinedbutton--color-error');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-error.png',
+      'components-outlinedbutton--color-error.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-warning', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-warning');
+    await gotoStory(page, 'components-outlinedbutton--color-warning');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-warning.png',
+      'components-outlinedbutton--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-purple', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-accent-purple');
+    await gotoStory(page, 'components-outlinedbutton--color-accent-purple');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-accent-purple.png',
+      'components-outlinedbutton--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-falcon', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-accent-falcon');
+    await gotoStory(page, 'components-outlinedbutton--color-accent-falcon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-accent-falcon.png',
+      'components-outlinedbutton--color-accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-neutral', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-neutral');
+    await gotoStory(page, 'components-outlinedbutton--color-neutral');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-neutral.png',
+      'components-outlinedbutton--color-neutral.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('as-link', async ({ page }) => {
-    await gotoStory(page, 'components-button--as-link');
+    await gotoStory(page, 'components-outlinedbutton--as-link');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--as-link.png',
+      'components-outlinedbutton--as-link.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('variant-contained', async ({ page }) => {
-    await gotoStory(page, 'components-button--variant-contained');
+  test('selected', async ({ page }) => {
+    await gotoStory(page, 'components-outlinedbutton--selected');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--variant-contained.png',
-      SCREENSHOT_OPTIONS,
-    );
-  });
-
-  test('variant-text', async ({ page }) => {
-    await gotoStory(page, 'components-button--variant-text');
-    await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--variant-text.png',
+      'components-outlinedbutton--selected.png',
       SCREENSHOT_OPTIONS,
     );
   });

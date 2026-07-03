@@ -61,6 +61,12 @@ export {
   type ButtonVariant,
 } from './components/Button/Button';
 
+// OutlinedButton
+export {
+  OutlinedButton,
+  type OutlinedButtonProps,
+} from './components/OutlinedButton/OutlinedButton';
+
 // Card
 export {
   Card,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Node, Edge } from '@xyflow/react';
-import { Button, Typography } from '@abbottland/fui-components';
+import { Button, OutlinedButton, Typography } from '@abbottland/fui-components';
 import { CopyIcon } from '@radix-ui/react-icons';
 
 interface ImportTabProps {
@@ -67,19 +67,18 @@ export function ImportTab({ onImport, onClose }: ImportTabProps) {
         </Typography>
       )}
       <div className="mt-4 flex justify-between gap-2">
-        <Button
+        <OutlinedButton
           onClick={handlePasteFromClipboard}
           color="secondary"
-          variant="outlined"
           className="flex items-center gap-2"
         >
           <CopyIcon width={16} height={16} />
           Paste from Clipboard
-        </Button>
+        </OutlinedButton>
         <div className="flex gap-2">
-          <Button onClick={onClose} color="secondary" variant="outlined">
+          <OutlinedButton onClick={onClose} color="secondary">
             Cancel
-          </Button>
+          </OutlinedButton>
           <Button
             onClick={handleImport}
             color="primary"

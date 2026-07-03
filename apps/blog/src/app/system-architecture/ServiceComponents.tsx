@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import {
-  Button,
+  OutlinedButton,
   DiagramViewer,
   type ButtonColor,
   type DiagramViewerProps,
@@ -97,19 +97,6 @@ const components: {
   },
 ];
 
-// Mirrors Button's outlined-variant hover fill per color, applied statically
-// to the selected button instead of only on hover.
-const selectedClass: Record<ButtonColor, string> = {
-  primary: 'bg-primary-500 text-black',
-  secondary: 'bg-secondary-500 text-neutral-50',
-  success: 'bg-success-400 text-neutral-50',
-  error: 'bg-error-400 text-neutral-50',
-  warning: 'bg-warning-400 text-neutral-50',
-  'accent-purple': 'bg-accent-purple-300 text-neutral-50',
-  'accent-falcon': 'bg-accent-falcon-400 text-neutral-50',
-  neutral: 'bg-neutral-700 text-neutral-50',
-};
-
 export function ServiceComponents() {
   const [selectedId, setSelectedId] = useState(components[0].id);
   const selected = components.find((c) => c.id === selectedId) ?? components[0];
@@ -118,22 +105,18 @@ export function ServiceComponents() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
         {components.map((component) => (
-          <Button
+          <OutlinedButton
             key={component.id}
-            variant="outlined"
             color={component.color}
+            selected={component.id === selectedId}
             onClick={() => setSelectedId(component.id)}
-            className={
-              component.id === selectedId
-                ? `${selectedClass[component.color]} shadow-sm`
-                : ''
-            }
+            className={component.id === selectedId ? 'shadow-sm' : ''}
           >
             <span className="flex items-center gap-2">
               <Icon name={component.iconId} size={16} className="shrink-0" />
               {component.label}
             </span>
-          </Button>
+          </OutlinedButton>
         ))}
       </div>
 

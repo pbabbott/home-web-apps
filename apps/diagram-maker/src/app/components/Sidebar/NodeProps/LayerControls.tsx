@@ -1,6 +1,6 @@
 'use client';
 
-import { Typography, Button } from '@abbottland/fui-components';
+import { Typography, OutlinedButton } from '@abbottland/fui-components';
 import { ChevronUpIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { useDiagramEditor } from '../../DiagramEditorContext';
 
@@ -18,28 +18,26 @@ export function LayerControls() {
         Layer Order
       </Typography>
       <div className="flex gap-2">
-        <Button
+        <OutlinedButton
           onClick={onSendToFront}
           disabled={!hasSelection}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center gap-1.5"
           title="Send to Front (renders on top)"
         >
           <ChevronUpIcon width={16} height={16} />
           Front
-        </Button>
-        <Button
+        </OutlinedButton>
+        <OutlinedButton
           onClick={onSendToBack}
           disabled={!hasSelection}
           color="primary"
-          variant="outlined"
           className="flex-1 flex items-center justify-center gap-1.5"
           title="Send to Back (renders behind)"
         >
           <ChevronDownIcon width={16} height={16} />
           Back
-        </Button>
+        </OutlinedButton>
       </div>
     </div>
   );

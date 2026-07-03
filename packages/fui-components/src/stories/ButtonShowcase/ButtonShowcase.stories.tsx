@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Button, type ButtonColor } from '../../components/Button/Button';
+import { OutlinedButton } from '../../components/OutlinedButton/OutlinedButton';
 
 const meta: Meta<typeof Button> = {
   title: 'Showcase/Button',
@@ -14,9 +15,7 @@ const ButtonVariants = ({ color }: { color: ButtonColor }) => (
       <Button color={color}>{color}</Button>
     </div>
     <div className="flex justify-center">
-      <Button color={color} variant="outlined">
-        {color} Outlined
-      </Button>
+      <OutlinedButton color={color}>{color} Outlined</OutlinedButton>
     </div>
     <div className="flex justify-center">
       <Button color={color} variant="text">
