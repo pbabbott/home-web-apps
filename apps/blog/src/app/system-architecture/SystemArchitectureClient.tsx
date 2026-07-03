@@ -12,7 +12,7 @@ import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
 import Footer from '@/components/Footer/Footer';
-import { ServiceComponentsTabs } from './ServiceComponentsTabs';
+import { ServiceComponents } from './ServiceComponents';
 import diagram01 from './diagram-01.json';
 import diagram02 from './diagram-02.json';
 
@@ -162,7 +162,7 @@ export default function SystemArchitectureClient() {
               description="Maximum resolution. Individual service components, inter-process communication, and dependency chains fully mapped. Proceed with intent."
               complexity={{ label: 'High', color: 'error' }}
             />
-            <ServiceComponentsTabs />
+            <ServiceComponents />
           </section>
         </div>
       </main>
