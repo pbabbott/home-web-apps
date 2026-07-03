@@ -127,7 +127,7 @@ export default function SystemArchitectureClient() {
             <Typography
               variant="h1"
               component="h1"
-              className="text-neutral-100 mb-6"
+              className="text-neutral-100 mb-6 text-[2rem] sm:text-h1"
             >
               System Architecture
             </Typography>
