@@ -1,3 +1,4 @@
+import { Typography } from '../Typography/Typography';
 import { CX, CY, COLORS, TRANSITION } from './constants';
 
 // Label layout: SVG <text> doesn't wrap, so the main label is rendered inside a
@@ -5,8 +6,8 @@ import { CX, CY, COLORS, TRANSITION } from './constants';
 
 // Wide box for short labels (e.g. "SYS", "PWR"). Narrow box for long labels so
 // lines wrap sooner, stay clear of the hexagon edges, and look more balanced.
-const LABEL_BOX_WIDTH = 76;
-const LABEL_BOX_WIDTH_NARROW = 52;
+const LABEL_BOX_WIDTH = 66;
+const LABEL_BOX_WIDTH_NARROW = 45;
 const LABEL_BOX_X = CX - LABEL_BOX_WIDTH / 2;
 const LABEL_BOX_X_NARROW = CX - LABEL_BOX_WIDTH_NARROW / 2;
 
@@ -32,15 +33,15 @@ export function HexagonButtonLabels({
   const long = label ? isLongLabel(label) : false;
 
   // Long labels: narrower box (more padding, more even line lengths), taller
-  // box (room for 2–3 lines), and smaller font (text-caption).
+  // box (room for 2–3 lines).
   const boxWidth = long ? LABEL_BOX_WIDTH_NARROW : LABEL_BOX_WIDTH;
   const boxX = long ? LABEL_BOX_X_NARROW : LABEL_BOX_X;
-  const labelBoxHeight = long ? (lowerLabel ? 40 : 44) : lowerLabel ? 32 : 36;
-  // Vertically center the label block; when there's a lowerLabel, nudge it up (CY - 6).
-  // Long labels get pushed up an extra 4px so they sit higher in the hexagon.
+  const labelBoxHeight = long ? (lowerLabel ? 35 : 38) : lowerLabel ? 28 : 31;
+  // Vertically center the label block; when there's a lowerLabel, nudge it up (CY - 5).
+  // Long labels get pushed up an extra 3px so they sit higher in the hexagon.
   const labelBoxY =
-    (lowerLabel ? CY - 6 - labelBoxHeight / 2 : CY - labelBoxHeight / 2) -
-    (long ? 4 : 0);
+    (lowerLabel ? CY - 5 - labelBoxHeight / 2 : CY - labelBoxHeight / 2) -
+    (long ? 3 : 0);
 
   return (
     <>
@@ -52,8 +53,10 @@ export function HexagonButtonLabels({
           height={labelBoxHeight}
           style={{ overflow: 'visible', pointerEvents: 'none' }}
         >
-          <div
-            className={`font-monobit ${long ? 'text-caption' : 'text-body2'}`}
+          <Typography
+            variant="small"
+            component="div"
+            lang="en"
             style={{
               width: '100%',
               height: '100%',
@@ -63,24 +66,25 @@ export function HexagonButtonLabels({
               textAlign: 'center',
               wordWrap: 'break-word',
               overflowWrap: 'break-word',
+              hyphens: 'auto',
               whiteSpace: 'normal',
               color: textColor,
               transition: `color ${TRANSITION}`,
-              lineHeight: long ? 0.5 : 1.2,
+              lineHeight: long ? 0.55 : 1.1,
             }}
           >
             {label}
-          </div>
+          </Typography>
         </foreignObject>
       )}
       {/* Lower label is always short, so plain SVG <text> is enough (no wrapping). */}
       {lowerLabel && (
         <text
           x={CX}
-          y={CY + (label ? 14 : 0)}
+          y={CY + (label ? 12 : 0)}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="font-monobit text-caption uppercase tracking-[.05em]"
+          className="font-monobit text-small uppercase tracking-[.05em]"
           fill={textColor}
           style={{
             transition: `fill ${TRANSITION}`,

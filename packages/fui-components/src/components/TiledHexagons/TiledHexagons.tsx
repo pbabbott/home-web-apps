@@ -1,10 +1,10 @@
 import React from 'react';
 import { HexagonButton } from '../HexagonButton/HexagonButton';
 
-const TILE_SIZE = 120;
-/** HexagonButton hex dimensions (from R=52, angle -30°): flat-top so width < height */
-const HEX_WIDTH = 90;
-const HEX_HEIGHT = 104;
+const TILE_SIZE = 100;
+/** HexagonButton hex dimensions (from R=45, angle -30°): flat-top so width < height */
+const HEX_WIDTH = 78;
+const HEX_HEIGHT = 90;
 
 export type TiledHexagonTile = {
   /** Main label (alias: use `text` for backward compatibility) */

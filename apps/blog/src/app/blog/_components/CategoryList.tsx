@@ -11,11 +11,11 @@ const BREAKPOINT_MAX_HORIZONTAL: {
   minWidthPx: number;
   maxHorizontal: number;
 }[] = [
-  { minWidthPx: 0, maxHorizontal: 3 }, // default
-  { minWidthPx: 640, maxHorizontal: 6 }, // sm
-  { minWidthPx: 768, maxHorizontal: 6 }, // md
-  { minWidthPx: 1024, maxHorizontal: 2 }, // lg
-  { minWidthPx: 1280, maxHorizontal: 2 }, // xl
+  { minWidthPx: 0, maxHorizontal: 4 }, // default
+  { minWidthPx: 640, maxHorizontal: 7 }, // sm
+  { minWidthPx: 768, maxHorizontal: 7 }, // md
+  { minWidthPx: 1024, maxHorizontal: 3 }, // lg
+  { minWidthPx: 1280, maxHorizontal: 3 }, // xl
   { minWidthPx: 1536, maxHorizontal: 3 }, // 2xl
 ];
 
@@ -88,7 +88,15 @@ export default function CategoryList({
 
   return (
     <div className="pr-1">
-      <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={4} />
+      {/* Hexagons sit inset within their square tiles, so nudge the whole grid
+          left to visually align the leftmost hex edges with the container. */}
+      <div className="relative -left-4">
+        <TiledHexagons
+          tiles={tiles}
+          maxHorizontal={maxHorizontal}
+          tileGap={2}
+        />
+      </div>
     </div>
   );
 }

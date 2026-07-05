@@ -11,10 +11,10 @@ function pointsToString(pts: [number, number][]): string {
   return pts.map((p) => p.join(',')).join(' ');
 }
 
-export const CX = 60;
-export const CY = 60;
-export const R = 52;
-export const STROKE_R = 50;
+export const CX = 50;
+export const CY = 50;
+export const R = 45;
+export const STROKE_R = 43;
 export const PERIMETER_APPROX = 6 * STROKE_R;
 
 export const outerPolyStr = pointsToString(hexPoints(CX, CY, R));

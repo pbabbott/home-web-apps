@@ -47,6 +47,14 @@ test.describe('HexagonButton Visual Regression Tests', () => {
     );
   });
 
+  test('wrapping-long-word', async ({ page }) => {
+    await gotoStory(page, 'components-hexagonbutton--wrapping-long-word');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-hexagonbutton--wrapping-long-word.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('active', async ({ page }) => {
     await gotoStory(page, 'components-hexagonbutton--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

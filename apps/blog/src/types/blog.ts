@@ -11,7 +11,7 @@ export type BlogPostSeries = {
  * Blog post categories
  */
 export type BlogCategory =
-  | 'Web Development'
+  | 'Web Dev'
   | 'Design'
   | 'DevOps'
   | 'AI/ML'
@@ -23,7 +23,7 @@ export type BlogCategory =
   | 'homelab';
 
 export const categories: BlogCategory[] = [
-  'Web Development',
+  'Web Dev',
   'Design',
   'DevOps',
   'AI/ML',

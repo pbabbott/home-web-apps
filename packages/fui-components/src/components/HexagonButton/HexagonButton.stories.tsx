@@ -53,6 +53,13 @@ export const LongLabel: Story = {
   },
 };
 
+export const WrappingLongWord: Story = {
+  args: {
+    label: 'Raspberry Pi',
+    lowerLabel: '1',
+  },
+};
+
 export const Active: Story = {
   args: {
     label: 'NET',
