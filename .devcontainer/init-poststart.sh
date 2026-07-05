@@ -33,7 +33,7 @@ cp .devcontainer/files/.zshrc /home/vscode/.zshrc
 
 echo "Setting up Turbo remote cache auth"
 . "$REPO_ROOT/scripts/turbo-auth.sh" 2>/dev/null || true
-if [ -n "$TURBO_TOKEN" ]; then
+if [ -n "${TURBO_TOKEN:-}" ]; then
   printf 'export TURBO_TOKEN="%s"\nexport TURBO_API="%s"\nexport TURBO_TEAM="%s"\n' \
     "$TURBO_TOKEN" "$TURBO_API" "$TURBO_TEAM" > /home/vscode/.turbo-env
   echo "Turbo auth configured"

@@ -17,7 +17,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['contained', 'outlined', 'text'],
+      options: ['contained', 'text'],
       description: 'The variant of the button',
     },
     color: {
@@ -33,6 +33,11 @@ const meta = {
         'neutral',
       ],
       description: 'The color scheme of the button',
+    },
+    size: {
+      control: 'select',
+      options: ['default', 'small'],
+      description: 'The size of the button',
     },
     children: {
       control: 'text',
@@ -103,9 +108,14 @@ export const VariantContained: Story = ButtonStory(
   'primary',
   'contained',
 );
-export const VariantOutlined: Story = ButtonStory(
-  'Outlined',
-  'primary',
-  'outlined',
-);
 export const VariantText: Story = ButtonStory('Text', 'primary', 'text');
+
+export const SizeSmall: Story = {
+  name: 'Size Small',
+  args: {
+    color: 'primary',
+    size: 'small',
+    children: 'Button',
+  },
+  render: (args: ButtonProps) => <Button {...args} />,
+};

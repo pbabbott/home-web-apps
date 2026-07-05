@@ -19,4 +19,12 @@ test.describe('LabeledNode Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('editing', async ({ page }) => {
+    await gotoStory(page, 'diagrams-labelednode--editing');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-labelednode--editing.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

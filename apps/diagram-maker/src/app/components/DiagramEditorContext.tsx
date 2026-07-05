@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useRef,
   useState,
   useCallback,
@@ -23,11 +22,18 @@ import {
 } from '@xyflow/react';
 import {
   warning,
-  DEFAULT_HANDLES,
   type NodeColorScheme,
   type HandleConfig,
   type EditableEdgeColor,
 } from '@abbottland/fui-components';
+import {
+  useNodeSelectionControls,
+  type NodeAlignment,
+} from './hooks/useNodeSelectionControls';
+import { useEdgeSelectionControls } from './hooks/useEdgeSelectionControls';
+import { useLocalDiagrams } from './hooks/useLocalDiagrams';
+
+export type { NodeAlignment } from './hooks/useNodeSelectionControls';
 
 let id = 0;
 const getId = () => `node_${id++}`;
@@ -67,10 +73,13 @@ interface DiagramEditorContextValue {
   selectedNodeIds: string[];
   selectedColorScheme: NodeColorScheme | undefined;
   onColorSchemeChange: (colorScheme: NodeColorScheme) => void;
+  selectedTransparentBackground: boolean | undefined;
+  onTransparentBackgroundChange: (transparentBackground: boolean) => void;
   selectedHandles: HandleConfig[];
   onHandlesChange: (handles: HandleConfig[]) => void;
   onSendToFront: () => void;
   onSendToBack: () => void;
+  onAlignNodes: (alignment: NodeAlignment) => void;
   // Edge selection
   selectedEdgeIds: string[];
   selectedEdgeType: string | undefined;
@@ -110,190 +119,23 @@ export function DiagramEditorProvider({
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const [viewerMode, setViewerMode] = useState(false);
-  const [activeLocalDiagramPath, setActiveLocalDiagramPath] = useState<
-    string | null
-  >(null);
-  const [activeLocalDiagramLabel, setActiveLocalDiagramLabel] = useState<
-    string | null
-  >(null);
-  const [activeLocalDiagramIsComplete, setActiveLocalDiagramIsComplete] =
-    useState(false);
   const selectedNodeIds = nodes.filter((n) => n.selected).map((n) => n.id);
   const selectedEdgeIds = edges.filter((e) => e.selected).map((e) => e.id);
+
+  const nodeSelectionControls = useNodeSelectionControls({
+    nodes,
+    selectedNodeIds,
+    setNodes,
+  });
+  const edgeSelectionControls = useEdgeSelectionControls({
+    edges,
+    selectedEdgeIds,
+    setEdges,
+  });
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges],
-  );
-
-  const sendToFront = useCallback(() => {
-    if (selectedNodeIds.length === 0) return;
-    setNodes((nds) => {
-      const selected = nds.filter((n) => selectedNodeIds.includes(n.id));
-      const rest = nds.filter((n) => !selectedNodeIds.includes(n.id));
-      return [...rest, ...selected].map((n) => ({ ...n, selected: false }));
-    });
-  }, [selectedNodeIds, setNodes]);
-
-  const sendToBack = useCallback(() => {
-    if (selectedNodeIds.length === 0) return;
-    setNodes((nds) => {
-      const selected = nds.filter((n) => selectedNodeIds.includes(n.id));
-      const rest = nds.filter((n) => !selectedNodeIds.includes(n.id));
-      return [...selected, ...rest].map((n) => ({ ...n, selected: false }));
-    });
-  }, [selectedNodeIds, setNodes]);
-
-  const selectedNodeColorScheme: NodeColorScheme | undefined =
-    selectedNodeIds.length > 0
-      ? ((nodes.find((n) => n.id === selectedNodeIds[0])?.data
-          ?.colorScheme as NodeColorScheme) ?? 'default')
-      : undefined;
-
-  const updateSelectedNodesColorScheme = useCallback(
-    (colorScheme: NodeColorScheme) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) =>
-          selectedNodeIds.includes(node.id)
-            ? { ...node, data: { ...node.data, colorScheme } }
-            : node,
-        ),
-      );
-    },
-    [selectedNodeIds, setNodes],
-  );
-
-  const selectedNodeHandles: HandleConfig[] | undefined =
-    selectedNodeIds.length > 0
-      ? ((nodes.find((n) => n.id === selectedNodeIds[0])?.data
-          ?.handles as HandleConfig[]) ?? DEFAULT_HANDLES)
-      : undefined;
-
-  const updateSelectedNodesHandles = useCallback(
-    (handles: HandleConfig[]) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) =>
-          selectedNodeIds.includes(node.id)
-            ? { ...node, data: { ...node.data, handles } }
-            : node,
-        ),
-      );
-    },
-    [selectedNodeIds, setNodes],
-  );
-
-  const selectedEdgeType: string | undefined =
-    selectedEdgeIds.length > 0
-      ? (edges.find((e) => e.id === selectedEdgeIds[0])?.type ?? 'default')
-      : undefined;
-
-  const updateSelectedEdgesType = useCallback(
-    (edgeType: string) => {
-      if (selectedEdgeIds.length === 0) return;
-      setEdges((eds) =>
-        eds.map((edge) =>
-          selectedEdgeIds.includes(edge.id)
-            ? { ...edge, type: edgeType }
-            : edge,
-        ),
-      );
-    },
-    [selectedEdgeIds, setEdges],
-  );
-
-  const selectedEdgeLabelColor: EditableEdgeColor | undefined =
-    selectedEdgeIds.length > 0
-      ? ((edges.find((e) => e.id === selectedEdgeIds[0])?.data
-          ?.color as EditableEdgeColor) ?? 'default')
-      : undefined;
-
-  const updateSelectedEdgesLabelColor = useCallback(
-    (color: EditableEdgeColor) => {
-      if (selectedEdgeIds.length === 0) return;
-      setEdges((eds) =>
-        eds.map((edge) =>
-          selectedEdgeIds.includes(edge.id)
-            ? { ...edge, data: { ...edge.data, color } }
-            : edge,
-        ),
-      );
-    },
-    [selectedEdgeIds, setEdges],
-  );
-
-  const selectedEdgeActive: boolean | undefined =
-    selectedEdgeIds.length > 0
-      ? ((edges.find((e) => e.id === selectedEdgeIds[0])?.data
-          ?.active as boolean) ?? false)
-      : undefined;
-
-  const updateSelectedEdgesActive = useCallback(
-    (active: boolean) => {
-      if (selectedEdgeIds.length === 0) return;
-      setEdges((eds) =>
-        eds.map((edge) =>
-          selectedEdgeIds.includes(edge.id)
-            ? {
-                ...edge,
-                zIndex: active ? 20 : 0,
-                data: { ...edge.data, active },
-              }
-            : edge,
-        ),
-      );
-    },
-    [selectedEdgeIds, setEdges],
-  );
-
-  const selectedNodeType: string | undefined =
-    selectedNodeIds.length > 0
-      ? (nodes.find((n) => n.id === selectedNodeIds[0])?.type ??
-        'customDefault')
-      : undefined;
-
-  const selectedNodeIconId: string | undefined =
-    selectedNodeIds.length > 0
-      ? (nodes.find((n) => n.id === selectedNodeIds[0])?.data?.iconId as
-          | string
-          | undefined)
-      : undefined;
-
-  const updateSelectedNodesIconId = useCallback(
-    (iconId: string | undefined) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (!selectedNodeIds.includes(node.id)) return node;
-          const data = { ...node.data };
-          if (iconId === undefined) {
-            delete data.iconId;
-          } else {
-            data.iconId = iconId;
-          }
-          return { ...node, data };
-        }),
-      );
-    },
-    [selectedNodeIds, setNodes],
-  );
-
-  const updateSelectedNodesType = useCallback(
-    (nodeType: string) => {
-      if (selectedNodeIds.length === 0) return;
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (!selectedNodeIds.includes(node.id)) return node;
-          const data = { ...node.data };
-          if (nodeType === 'labeled' && !data.label) {
-            data.label = (data.content as string) || 'Label';
-          }
-          return { ...node, type: nodeType, data };
-        }),
-      );
-    },
-    [selectedNodeIds, setNodes],
   );
 
   const onDragOver = useCallback((event: DragEvent) => {
@@ -370,40 +212,7 @@ export function DiagramEditorProvider({
     [setNodes, setEdges],
   );
 
-  const onLoadLocalDiagram = useCallback(
-    (
-      filePath: string,
-      data: { nodes: Node[]; edges: Edge[] },
-      isComplete: boolean,
-      label: string,
-    ) => {
-      handleImport(data);
-      setActiveLocalDiagramPath(filePath);
-      setActiveLocalDiagramIsComplete(isComplete);
-      setActiveLocalDiagramLabel(label);
-    },
-    [handleImport],
-  );
-
-  const activeLocalDiagramPathRef = useRef(activeLocalDiagramPath);
-  useEffect(() => {
-    activeLocalDiagramPathRef.current = activeLocalDiagramPath;
-  }, [activeLocalDiagramPath]);
-
-  const onToggleActiveLocalDiagramComplete = useCallback(() => {
-    setActiveLocalDiagramIsComplete((prev) => {
-      const next = !prev;
-      const path = activeLocalDiagramPathRef.current;
-      if (path) {
-        fetch('/api/local-diagrams/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filePath: path, isComplete: next }),
-        }).catch(console.error);
-      }
-      return next;
-    });
-  }, []);
+  const localDiagrams = useLocalDiagrams({ onImport: handleImport });
 
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -428,30 +237,12 @@ export function DiagramEditorProvider({
     onToggleViewerMode: () => setViewerMode((v) => !v),
     getExportData,
     onImport: handleImport,
-    activeLocalDiagramPath,
-    activeLocalDiagramLabel,
-    activeLocalDiagramIsComplete,
-    onLoadLocalDiagram,
-    onToggleActiveLocalDiagramComplete,
+    ...localDiagrams,
     warningColorRgba,
     selectedNodeIds,
-    selectedColorScheme: selectedNodeColorScheme,
-    onColorSchemeChange: updateSelectedNodesColorScheme,
-    selectedHandles: selectedNodeHandles ?? [],
-    onHandlesChange: updateSelectedNodesHandles,
-    onSendToFront: sendToFront,
-    onSendToBack: sendToBack,
+    ...nodeSelectionControls,
     selectedEdgeIds,
-    selectedEdgeType,
-    onEdgeTypeChange: updateSelectedEdgesType,
-    selectedEdgeLabelColor,
-    onEdgeLabelColorChange: updateSelectedEdgesLabelColor,
-    selectedEdgeActive,
-    onEdgeActiveChange: updateSelectedEdgesActive,
-    selectedNodeType,
-    onNodeTypeChange: updateSelectedNodesType,
-    selectedIconId: selectedNodeIconId,
-    onIconChange: updateSelectedNodesIconId,
+    ...edgeSelectionControls,
   };
 
   return (

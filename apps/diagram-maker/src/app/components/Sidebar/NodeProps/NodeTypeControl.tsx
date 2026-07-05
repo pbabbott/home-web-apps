@@ -22,7 +22,7 @@ export function NodeTypeControl() {
         value={selectedNodeType ?? 'customDefault'}
         onChange={(e) => onNodeTypeChange(e.target.value)}
         disabled={!hasSelection}
-        className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-sm outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary-900 border border-primary-600 text-primary-200 rounded px-3 py-2 text-caption !leading-normal outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {nodeTypes.map(({ type, label }) => (
           <option key={type} value={type}>

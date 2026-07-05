@@ -10,6 +10,7 @@ import {
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { extendedTwMerge } from '../../utils/extendTwMerge';
 import { neutral, withOpacity } from '../../tokens/colors';
 import { DiagramControls } from '../DiagramControls/DiagramControls';
 import { DiagramMinimap } from '../DiagramMinimap/DiagramMinimap';
@@ -132,7 +133,7 @@ export function DiagramViewer({
     <IconRendererProvider renderer={renderIcon}>
       <div
         ref={containerRef}
-        className={`${diagramContainerClass} ${className}`}
+        className={extendedTwMerge(diagramContainerClass, className)}
         style={{ height }}
       >
         <style>{`${diagramFlowStyles}

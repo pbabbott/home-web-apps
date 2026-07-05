@@ -199,6 +199,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['cache', 'database', 'nosql'],
   },
   {
+    id: 'tailscale',
+    label: 'Tailscale',
+    slug: 'tailscale',
+    source: 'simple',
+    keywords: ['vpn', 'networking', 'wireguard', 'mesh'],
+  },
+  {
     id: 'terraform',
     label: 'Terraform',
     slug: 'terraform',

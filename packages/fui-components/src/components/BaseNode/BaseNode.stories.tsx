@@ -318,6 +318,31 @@ export const DefaultWithIcon: Story = {
   ),
 };
 
+// Shows the content textarea, as seen after double-clicking a node
+export const Editing: Story = {
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'customDefault',
+            position: { x: 100, y: 100 },
+            data: {
+              content: 'Editing content',
+              colorScheme: 'primary',
+              startInContentEdit: true,
+              width: 195,
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
+};
+
 export const LabeledWithIcon: Story = {
   render: () => (
     <DiagramViewer

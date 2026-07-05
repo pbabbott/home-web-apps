@@ -23,7 +23,7 @@ export const getBuildConfigFromPresetName = (presetName: string): DockerBuildCon
       }
     case 'pnpm-turbo-docker-build':
       return {
-        baseImage: `${config.registryWithNamespace}/node-26-alpine:1.0.0`,
+        baseImage: `${config.registryWithNamespace}/node-22-alpine:1.0.0`,
         repository: '',
         tag: '',
         load: 'false',

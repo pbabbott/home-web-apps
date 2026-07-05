@@ -108,6 +108,14 @@ test.describe('BaseNode Visual Regression Tests', () => {
     );
   });
 
+  test('editing', async ({ page }) => {
+    await gotoStory(page, 'diagrams-basenode--editing');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'diagrams-basenode--editing.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('labeled-with-icon', async ({ page }) => {
     await gotoStory(page, 'diagrams-basenode--labeled-with-icon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

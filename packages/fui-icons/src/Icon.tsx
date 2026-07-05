@@ -95,7 +95,11 @@ export function Icon({
         slug={def.slug}
         size={size}
         colored={colored}
-        className={className}
+        className={
+          colored
+            ? className
+            : ['text-neutral-200', className].filter(Boolean).join(' ')
+        }
         ariaLabel={ariaLabel}
       />
     </Suspense>

@@ -1,7 +1,7 @@
 ---
 title: Non-Prod Journey Milestone 2 - A new ingress pattern
-excerpt: 'TBD'
-status: 'draft'
+excerpt: 'How I replaced ingress-nginx with Istio and the Gateway API, moved haproxy into a Proxmox LXC, and wired up cert-manager, external-dns, Cloudflare, and Pi-hole to get two clusters running behind a single load balancer.'
+status: 'published'
 date: '2026-04-06'
 bannerImage: 'kubernetes-cluster-split-milestone-2.png'
 series:
@@ -12,25 +12,38 @@ categories:
   - 'k8s'
   - 'DevOps'
   - 'Flux'
-  - 'terraform'
+  - 'Terraform'
+  - 'Proxmox'
   - 'haproxy'
+  - 'Istio'
 ---
 
 import Image from 'next/image';
+import dnsDiagram from './dns-diagram.json';
+import {
+  TransparentPanel,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  Th,
+  Td,
+} from '@abbottland/fui-components';
+import { ScrollableTable } from '../../../components/ScrollableTable/ScrollableTable';
 
 This article is number 3 in a series where I establish a non-prod cluster at home.
 
 If you've been following along, last time I set up a new fleet of VMs using proxmox and then installed kubernetes onto them with ansible.
 
-In today's article, we'll walk through the steps I took to setup a new ingress pattern for my kubernetes cluster. We'll take a look at things like `haproxy`, `flux`, `istio` and even touch on some AI with `flux-operator-mcp`.
+In today's article, we'll walk through the steps I took to setup a new ingress pattern for my kubernetes cluster. We'll take a look at things like `haproxy`, `flux`, `istio` and get into details of `cloudflare` dns.
 
 Buckle up, for a fun, narrative journey to see how my homelab is evolving.
 
 ## 1 - Sync code into the cluster
 
-Last time - we built out a kubernetes cluster. Now I need to put some stuff on it. Thankfully, from my gen 1 cluster, I had written some nice step-by-step instructions to install flux. To keep things simple, I just followed one of my existing "dev guides" and quickly set up the boilerplate flux needs to sync code from github into the cluster.
+Last time - we built out a Kubernetes cluster. Now I need to start running some stuff on it! Thankfully, from my gen 1 cluster, I had written some nice step-by-step instructions to install flux. To keep things simple, I just followed one of my existing "dev guides" and quickly set up the boilerplate flux needs to sync code from github into the cluster.
 
-If you're curious, here is roughly what my old bootstrap command looked like:
+If you're curious, here is roughly what my bootstrap command looked like:
 
 ```sh
 flux bootstrap github \
@@ -44,13 +57,15 @@ flux bootstrap github \
   --personal
 ```
 
-Of course I needed to actually deploy something to the cluster. For basic sensibility checks in kubernetes, I've really come to enjoy using a deployment called [stefanprodan/podinfo](https://github.com/stefanprodan/podinfo). It has easy instructions for both `kubectl` and `helm install`. Plus once you've installed podinfo, it has a cute cephalopod when you view the page in a browser.
+Once bootstrapping completed, I needed to actually deploy something to the cluster. For basic sensibility checks with kubernetes deployments, I've really come to enjoy using a service called [stefanprodan/podinfo](https://github.com/stefanprodan/podinfo). It has easy instructions for both `kubectl` and `helm install`. Plus once you've installed `podinfo`, it has a cute cephalopod when you view the page in a web-browser - I'll show him off at the end of this article.
 
 ## 2 - ingress into cluster
 
+In this section, we'll take a look at how HTTP requests flow into the cluster. This is where I figure out `istio` and the `Gateway` pattern - something I've been wanting to do for a long time!
+
 ### 2A - Isitio
 
-Ok, so now I've got a `podinfo` deployment running, but I want to access it. In my old cluster, I had set up `ingress-nginx` and in my earlier planning phases I said I wanted to get off of this tech as its no longer supported. So yeah, now I need to figure out how to replace it. I've always wanted to figure out Istio & how the Gateway api works.
+Ok, so I've got a `podinfo` deployment running, but now I want to access it. In my old cluster, I had set up `ingress-nginx` - and in my earlier planning phases, I said I wanted to get off of this tech as its no longer supported. So yeah, now I need to figure out how to replace it. Moreover, I've always wanted to figure out Istio & how the Gateway API works.
 
 To accelerate this process, I used a clever prompt with an LLM to generate the `HelmReleases` I needed. I took [my old ingress-nginx HelmRelease](https://gist.github.com/pbabbott/37ea6e845d298f875b20ae1797a0e8c7) and gave it to an LLM and said something like this:
 
@@ -60,7 +75,7 @@ Referencing my ingress-nginx deployment, Let's generate the equivalent HelmRelea
 For cases when there is no functional equivalence, output a list of features that need coverage into a markdown file as a report.
 ```
 
-With some more back-and-forth with the AI to figure out what each of these components actually do, I wound up with the following Helm HelmReleases:
+With some more back-and-forth with the AI to figure out what each of these components actually do, I wound up with the following `HelmReleases`:
 
 - `istio/istiod` (profile: ambient)
 - `istio/gateway` (running as a DaemonSet)
@@ -69,19 +84,34 @@ With some more back-and-forth with the AI to figure out what each of these compo
 
 I also set up an `AuthorizationPolicy` for ip allowlisting, and a `Gateway` to handle ingress on port 80 and 443.
 
-The nice part, is that all of this just lives in my `istio-system` and I don't have to configure it for every ingress. In a future blog post, I'll do a deep dive into each of these components of Istio to fully explain how to transition from ingress-nginx, but for today, we're just on a high-level, narrative journey.
+The nice part, is that all of this just lives in my `istio-system` and I don't have to a custom configuration for every ingress. In a future blog post, I'll do a deep dive into each of these components of Istio to fully explain how to transition from ingress-nginx, but for today, we're just on a high-level, narrative journey.
+
+<TransparentPanel color="secondary" className="mb-6">
+  **Note:** The key take-away here if you're used to working with
+  `ingress-nginx` is that `istio/Gateway` runs as a DaemonSet, which means its
+  present on all the nodes. This is basically how most `ingress-nginx` setups
+  tend to work. That is, a load balancer distributes requests to all worker
+  nodes and as long as there's a service to handle those requests, it can make
+  its way to the proper service.
+</TransparentPanel>
 
 ### 2B - Loadbalancer: HAProxy in an LXC container
 
-Next up, is to set up my load balancer. I've had an `haproxy` instance on my banana pi for a long time now; however, I am wanting to move services off of this device, as I'd like my infra to be a bit more portable. That is, I'm realizing the more stuff I put into virtual infrastructure, the less work I have to do with physical infra. I want to get basically all of my core services set up on VMs, kubernetes services, or on anything ephemeral and light weight. That then leaves my physical devices (like my bananapi) available to fold in as work horses. I think there is an industry saying about treating infra like cattle, and honestly it makes sense. Building snowflakes just leads to snapshots, restoring from backups, and headaches.
+Next up, is to set up my new load balancer.
 
-Anyway, I landed on making an LXC via proxmox. An LXC (as I found out) is basically just a super light weight VM, kind of like a container, but for proxmox. Its very fast because it can actually share the kernel with the host so it doesn't eat much memory or CPU either. This solution felt perfect for my needs, as I don't want anything heavy hosting services outside my cluster.
+I've had an `haproxy` instance on my banana pi for a long time now; however, I am wanting to move services off of this device, as I'd like my infra to be a bit more portable. That is, I'm realizing the more stuff I put into virtual infrastructure, the less work I have to do with physical infra. I want to get basically all of my core services set up on VMs, kubernetes services, or on anything ephemeral and light weight.
 
-If you'd like to see the code - check it out! I built a small terraform module for haproxy.
+That then leaves my physical devices (like my bananapi) available to fold in as work horses. I think there is an industry saying about treating infra like cattle, and honestly, it makes sense. Building special snowflake servers just leads to overhead like snapshots, restoring from backups, and headaches during upgrades. My goal for my homelab is that I should be able to destroy and re-create all infrastructure in about 20min (excluding databases).
 
-home-playbooks / terrraform / modules / [haproxy](https://github.com/pbabbott/home-playbooks/tree/main/terraform/modules/haproxy).
+Anyway, the solution I landed on is making an LXC via Proxmox specifically for `haproxy`. An LXC (as I found out) is basically just a super light weight VM - kind of like a container, but for proxmox. Its very fast because it can actually share the kernel with the host so it doesn't eat much memory or CPU either.
 
-This honestly turned out pretty cool, as I used SNI to inspect the traffic coming in, to send it to either my prod or non-prod cluster. I used this opportunity in terraform to provision another cluster. Here's how my data center now looks:
+This solution felt perfect for my needs, as I don't want anything operationally heavy hosting services outside my cluster. I was initially nervous about setting up another container-based virtualization solution, but for this one-off scenario where a container needs to live outside the cluster, I think it's much better than what I had before.
+
+If you'd like to see the code - check it out! I built a small terraform module for haproxy in an LXC here:
+
+> home-playbooks / terrraform / modules / [haproxy](https://github.com/pbabbott/home-playbooks/tree/main/terraform/modules/haproxy).
+
+This all honestly turned out pretty cool. I used SNI to inspect the traffic coming in directing requets to either my prod or non-prod cluster. This worked out nicely, as I don't have to decrypt the traffic in the load balancer, which helps keep latency low. Anyway, I used this opportunity in terraform to provision another cluster. Here's how my data center now looks:
 
 <Image
   src="/api/blog-images/non-prod-milestone-two-new-ingress-pattern/proxmox-datacenter-screenshot.png"
@@ -91,15 +121,297 @@ This honestly turned out pretty cool, as I used SNI to inspect the traffic comin
   className="rounded-lg my-8"
 />
 
+What we have in the image is:
+
 - an haproxy lxc
 - 4 vms for my old homelab cluster (turned off, RIP)
 - 4 vms for prod gen2
 - 4 vms for non-prod gen2
-- a dev workstation
+- a dev workstation (jumphost)
 - and a few templates
 
 The homelab must grow!
 
-#### 2C - Certificates
+#### 2C - cert-manager
 
-cert-manager
+So, I've proven I can access my cluster using `http` and I can see that silly little squid from `podinfo` but of course, we'll want to get `https` up-and-working too - I will need TLS for anything 'real.'
+
+Thankfully, deploying `cert-manager` was just as easy as deploying it via `helm` and `flux` like anything else. With `cert-manager` I have found a nice way to set things up is to first use a `ClusterIssuer` pointed at letsencrypt stagaing. Once you see a staging certificate come throguh, then make an ultra-light configuration swap to prod - otherwise, you can hit rate limits while debugging.
+
+This is where `istio/gateway` really starts to shine! `cert-manager` works alongside the gateway, as `cert-manager` will provision the TLS secret, and the gateway will reference it. (As would happen with an ingress with `ingress-nginx`).
+
+The cool part is that I can do this for an entire subdomain in one single location! Check out this configuration:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: istio-ingress-public
+  namespace: istio-system
+  annotations:
+    # Here is the cert-manager integration! Just an annotation
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Same goes for external-dns - easy!
+    external-dns.alpha.kubernetes.io/target: abbottland.io
+spec:
+  gatewayClassName: istio
+  addresses:
+    - type: Hostname
+      value: istio-system-istio-ingress.istio-system.svc.cluster.local
+  listeners:
+    # This listener is for all subdomains of abbottland.io
+    # I have another one for the root domain, but i've omitted it here for brevity.
+    - name: https-public
+      port: 443
+      protocol: HTTPS
+      # Notice: this is set up for everything in the subdomain.
+      hostname: '*.abbottland.io'
+      # Just like in a kubernetes Ingress, a TLS section exists which is used to make a tls secret
+      tls:
+        certificateRefs:
+          - group: ''
+            kind: Secret
+            name: wildcard-public-tls
+        mode: Terminate
+      # Any namespace in the cluster can make an HTTP Route and attach it to this Gateway. Sweet!
+      allowedRoutes:
+        namespaces:
+          from: All
+```
+
+And here is how to reference the gateway via an `HTTPRoute`. Below is the config for `fui-components.abbottland.io`
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    external-dns-enabled: 'true'
+  name: fui-components-public
+  namespace: fui-components
+spec:
+  hostnames:
+    - fui-components.abbottland.io
+
+  # This is the reference to the Gateway we just created:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: istio-ingress-public
+      namespace: istio-system
+      sectionName: https-public
+
+  # The 'rules' connect it to the kubernetes service
+  # This should feel similar to the kubernetes Ingress resource.
+  rules:
+    - backendRefs:
+        - kind: Service
+          name: fui-components
+          port: 80
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+```
+
+In summary,
+
+1. The `Gateway` has an annotation so that `cert-manager` connects it to prod letsencrypt.
+2. `cert-manager` reads each listener's `tls.certificateRefs[].name` and creates a secret with that exact name in the same namespace.
+3. It requests a cert from letsencrypt for the listener's hostname and stores the key+cert in the secret.
+4. Istio reads the secret to serve TLS
+
+## 3 - DNS getting traffic to the cluster
+
+Up until this point, I've sort-of glossed over how I've setup DNS. Before `https` and routing and everything else, `DNS` has to be able to route to my home IP address.
+
+For public DNS entries like `*.abbottland.io`, I'm using cloudflare.
+
+And for DNS entries only accessible within my homelab like `*.local.abbottland.io`, I'm using Pi-hole.
+
+First, I'll show a diagram here of the whole ingress setup, and then talk through it in a bit more detail in the following sections.
+
+<DiagramViewer data={dnsDiagram} height="400px" className="mb-8" />
+
+<TransparentPanel color="secondary" className="mb-6">
+  **NOTE:** Want to see a more complete and detailed picture of this whole
+  ingress pattern? Check out my [/system-architecture](/system-architecture)
+  page.
+</TransparentPanel>
+
+### 3A - Eero & haproxy; routing by hostname
+
+The center piece of my home network is my Eero router. I've got port-forwarding on port `80` and `443` configured to go to my load balancer - Its just a simple pass-through.
+
+`haproxy` then handles requests from anywhere - both for requests from outside my house or inside my LAN.
+When I'm connected to my home WiFi network, I've set the DNS sever on my phone and tablet in my Wi-fi settings. And for users who connect from outside my house, I expect traffic to come from cloudflare.
+
+In fact, I've locked down my `haproxy` config to only accept requests with cloudflare IPs (or local IPs). Its also configured to use SNI to split to either my prod or non-prod cluster depending on the url:
+
+<ScrollableTable>
+  <Table color="primary">
+    <TableHead>
+      <TableRow>
+        <Th>URL Pattern</Th>
+        <Th>Destination</Th>
+        <Th>DNS Server</Th>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      <TableRow>
+        <Td>`*.abbottland.io`</Td>
+        <Td>prod k8s nodes</Td>
+        <Td>Cloudflare</Td>
+      </TableRow>
+      <TableRow>
+        <Td>`*local.abbottland.io`</Td>
+        <Td>prod k8s nodes</Td>
+        <Td>Pi-hole</Td>
+      </TableRow>
+      <TableRow>
+        <Td>`*.local.non-prod.abbottland.io`</Td>
+        <Td>non-prod k8s nodes</Td>
+        <Td>Pi-hole</Td>
+      </TableRow>
+       <TableRow>
+        <Td>`*.non-prod.abbottland.io`</Td>
+        <Td>non-prod k8s nodes</Td>
+        <Td>*Disabled (see note)*</Td>
+      </TableRow>
+    </TableBody>
+
+  </Table>
+</ScrollableTable>
+
+<TransparentPanel color="secondary" className="mb-6">
+  **Note:** I wound up disabling `*.non-prod.abbottland.io` as it costs money
+  with cloudflare to manage sub-sub-domains like this with wild-card certs. I'm
+  not even sure I want public access to my non-prod cluster. For the moment,
+  I've just got non-prod setup with Pi-hole, and purposefully disabled it for
+  now. One of my goals with this homelab is not to accumulate recurring
+  expenses. Right now, I'm only paying for the domain name, and the electrical
+  bill to run my hardware at home - no need to pick up a monthly bill for such a
+  niche use-case.
+</TransparentPanel>
+
+### 3B - Two instances of external-dns
+
+So, having a working DNS setup is great, but automation is even better. Since my strategy is to configure both Pi-hole and Cloudflare, I actually have two instances of `external-dns` running in my cluster.
+
+To keep things simple, I'm going to just share my production configuration. Take a look at how I'm able to control DNS for both local and non-local URLs:
+
+<ScrollableTable>
+  <Table color="primary">
+    <TableHead>
+      <TableRow>
+        <Th>Instance</Th>
+        <Th>DNS Provider</Th>
+        <Th>Label Filter</Th>
+        <Th>Domain</Th>
+        <Th>DNS Target</Th>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      <TableRow>
+        <Td>external-dns-cloudflare</Td>
+        <Td>Cloudflare</Td>
+        <Td>`external-dns-enabled=true`</Td>
+        <Td>`*.abbottland.io`</Td>
+        <Td>`abbottland.io` (CNAME, proxied)</Td>
+      </TableRow>
+      <TableRow>
+        <Td>external-dns-pihole</Td>
+        <Td>Pi-hole</Td>
+        <Td>`pihole-dns-enabled=true`</Td>
+        <Td>`*.local.abbottland.io`</Td>
+        <Td>
+          192.168.6.28 (A Record)
+          <br />
+          Load Balancer IP
+        </Td>
+      </TableRow>
+    </TableBody>
+  </Table>
+</ScrollableTable>
+
+Here's how it works:
+
+First, `external-dns` watches `HTTPRoutes` created that have the special label (`external-dns-enabled=true` or `pihole-dns-enabled=true`)
+
+Next, The hostname(s) from the `HTTPRoute` are extracted from `spec.hostnames[]`
+
+Finally, the proper `external-dns` instance detects the change and manages entries in the provider systems.
+
+I think the minimal code for `HTTPRoute` explains it best. I'll show the configurations for both local and non-local HTTPRoutes but with only the important bits:
+
+```yaml
+# Internal (pihole, LAN only):
+labels:
+  pihole-dns-enabled: 'true'
+spec:
+  parentRefs:
+    - name: istio-ingress
+      sectionName: https
+  hostnames:
+    - myapp.local.abbottland.io
+```
+
+```yaml
+Public (Cloudflare):
+labels:
+  external-dns-enabled: 'true'
+annotations:
+  # Enables orange-cloud mode (decrypts traffic, and hides my home IP address)
+  external-dns.alpha.kubernetes.io/cloudflare-proxied: 'true'
+spec:
+  parentRefs:
+    - name: istio-ingress-public
+      sectionName: https-public
+  hostnames:
+    - myapp.abbottland.io
+```
+
+The result of all of this? I add an `HTTPRoute` and I get a DNS record in the right location. There are _zero_ manual steps involved - and its all managed declaratively via flux and kubernetes resources!
+
+## 5 - Does it work?
+
+Alright, so we've set up tons of new infra, we have a pattern for dns, and for certificates, and for the load balancer. Let's check on that cute little squid.
+
+<Image
+  src="/api/blog-images/non-prod-milestone-two-new-ingress-pattern/pod-info-cluster-test-with-labels.png"
+  alt="PodInfo running on non-prod cluster"
+  width={800}
+  height={400}
+  className="rounded-lg my-8"
+/>
+
+Since I'm using cloudflare dns with "proxied mode" (aka orange cloud), Cloudflare terminates TLS for the hostname and then re-encrypts before forwarding the request to my home. The free Universal SSL cert unfortunately doesn't cut it for wildcards of a subdomain like: `*.non-prod.abbottland.io`. This means Cloudflare can't terminate the request, and it appears to be broken when visiting in a web browser. To immediately fix it, I could invest into "Cloudflare Advanced Certificate Manager" for ~$10/month, but as previously discussed, I don't want to pick up this cost.
+
+This problem is something I didn't see coming, and ultimately, I'm ok with it. If I really want to test publicly facing things, I could always use a different subpath, and adjust haproxy (something like `podinfo-nonprod.abbottland.io`).
+
+I now have a non-prod cluster and a prod cluster both accessible via `https` and `dns`, both driven by largely the same configuration in code. Even though this isn't exactly what I had planned, I'm going to put a pin it it and address it later if/when a need arises.
+
+## Recap
+
+Ok, so let's recap quickly.
+
+### Public Ingress Pattern
+
+- Cloudflare handles dns for `*.abbottland.io` sending traffic to my home (hiding my IP via orange-cloud mode).
+- Eero router port-forwards to load balancer
+- Load balancer is haproxy running in proxmox as an LXC
+- Load balancer distributes requests to kubernetes worker nodes
+- Worker nodes each have `istio` gateway running via `Daemonset`
+- `Gateway` passes traffic to services as per the spec of an `HTTPRoute` resource.
+
+### LAN Ingress Pattern
+
+- User on my WiFi configures DNS in their phone's settings to use Pi-hole as a DNS server when connected to my network
+- Requests made to `*.local.abbottland.io` all resolve to load balancer IP
+- `haproxy` handles the requests and distributes to worker nodes (same as public ingress pattern).
+
+## Next Steps
+
+I now have a non-prod and prod cluster both ready to start running applications! Having this foundational stuff like DNS and HTTPS out of the way is honestly so exciting. I feel like I've empowered myself with a virtual playground to start installing a myriad of applications.
+
+Yes, I have two functional clusters, but stay tuned for the final article where I get storage, observability, github arc, and more installed on both clusters. Non-prod is about to prove its worth!

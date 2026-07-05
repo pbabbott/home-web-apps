@@ -123,7 +123,7 @@ export function HandlesControl() {
                     })
                   }
                   disabled={!hasSelection}
-                  className="flex-1 bg-primary-900 border border-primary-600 text-primary-200 rounded px-2 py-1 text-xs outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-primary-900 border border-primary-600 text-primary-200 rounded px-2 py-1 text-caption !leading-normal outline-none focus:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {handlePositionOptions.map(({ value, label }) => (
                     <option key={value} value={value}>

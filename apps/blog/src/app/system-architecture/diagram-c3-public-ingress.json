@@ -1,14 +1,1196 @@
 {
   "nodes": [
     {
+      "id": "node_7",
+      "type": "labeled",
+      "position": {
+        "x": 372.3211243486628,
+        "y": -611.7624445572061
+      },
+      "data": {
+        "label": "My House",
+        "content": "",
+        "iconId": "radix-home",
+        "width": 1785,
+        "height": 1504
+      },
+      "measured": {
+        "width": 1785,
+        "height": 1504
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_15",
+      "type": "labeled",
+      "position": {
+        "x": 970.6834898934253,
+        "y": -591.0046821464416
+      },
+      "data": {
+        "label": "Kubernetes",
+        "content": "",
+        "colorScheme": "secondary",
+        "iconId": "kubernetes",
+        "width": 1177,
+        "height": 1473
+      },
+      "measured": {
+        "width": 1177,
+        "height": 1473
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_24",
+      "type": "labeled",
+      "position": {
+        "x": 994.0671208930943,
+        "y": 411.8333576147435
+      },
+      "data": {
+        "label": "namespace: cert-manager",
+        "content": "",
+        "width": 746,
+        "height": 458
+      },
+      "measured": {
+        "width": 746,
+        "height": 458
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
       "id": "node_0",
       "type": "customDefault",
-      "position": { "x": 1006.5, "y": 461.109375 },
-      "data": { "content": "Public Ingress Pattern" },
-      "measured": { "width": 150, "height": 80 },
+      "position": {
+        "x": -228.78199409655147,
+        "y": 255.89075922032595
+      },
+      "data": {
+        "content": "End User\n(you)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1782438410191",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
       "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "labeled",
+      "position": {
+        "x": -7.671822121155344,
+        "y": 71.14999698013727
+      },
+      "data": {
+        "label": "Cloudflare",
+        "content": "",
+        "iconId": "cloudflare",
+        "width": 322,
+        "height": 449,
+        "colorScheme": "warning",
+        "handles": [
+          {
+            "id": "handle-1782438414334",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782438451559",
+            "type": "source",
+            "position": "right"
+          },
+          {
+            "id": "handle-1782873316397",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "handle-1782954141633",
+            "type": "target",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 322,
+        "height": 449
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "customDefault",
+      "position": {
+        "x": 49.98062341351027,
+        "y": 102.971719390745
+      },
+      "data": {
+        "content": "A Record\nAbbottland.io\n(proxied)",
+        "width": 212,
+        "height": 80,
+        "iconId": "cloudflare",
+        "handles": [
+          {
+            "id": "handle-1782873054389",
+            "type": "target",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 212,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 34.34505746703712,
+        "y": 230.00675090880347
+      },
+      "data": {
+        "content": "CNAME Records\none per subdomain of \nabbottland.io.\n(proxied)",
+        "width": 243,
+        "height": 127,
+        "iconId": "cloudflare",
+        "handles": [
+          {
+            "id": "handle-1782873049767",
+            "type": "source",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 243,
+        "height": 127
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_8",
+      "type": "labeled",
+      "position": {
+        "x": 403.1951031799655,
+        "y": 235.7089621337483
+      },
+      "data": {
+        "content": "port forwarding\n80 & 443 \nDest: HAPROXY IP",
+        "iconId": "router",
+        "width": 203,
+        "height": 121,
+        "handles": [
+          {
+            "id": "handle-1782438460483",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782438717857",
+            "type": "source",
+            "position": "right"
+          }
+        ],
+        "label": "Eero Router"
+      },
+      "measured": {
+        "width": 203,
+        "height": 121
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_9",
+      "type": "labeled",
+      "position": {
+        "x": 629.9104564613976,
+        "y": 115.88126201451189
+      },
+      "data": {
+        "label": "Proxmox",
+        "content": "",
+        "colorScheme": "warning",
+        "iconId": "proxmox",
+        "width": 310,
+        "height": 339
+      },
+      "measured": {
+        "width": 310,
+        "height": 339
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_10",
+      "type": "labeled",
+      "position": {
+        "x": 651.725371434681,
+        "y": 159.40205727493625
+      },
+      "data": {
+        "content": "Inspect SNI, then direct request to either prod or non-prod cluster.\n\nNo decryption needed here!\n\nInbound IPs restricted to local & cloudflare ranges",
+        "iconId": "haproxy",
+        "handles": [
+          {
+            "id": "handle-1782438916034",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439228435",
+            "type": "source",
+            "position": "right"
+          }
+        ],
+        "label": "HA Proxy (LXC)",
+        "width": 271,
+        "height": 273
+      },
+      "measured": {
+        "width": 271,
+        "height": 273
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_16",
+      "type": "labeled",
+      "position": {
+        "x": 991.2824379480455,
+        "y": -199.16338445906152
+      },
+      "data": {
+        "label": "namespace: istio-system",
+        "content": "",
+        "width": 509,
+        "height": 557
+      },
+      "measured": {
+        "width": 509,
+        "height": 557
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_17",
+      "type": "labeled",
+      "position": {
+        "x": 1201.8752874482097,
+        "y": 256.5200975819573
+      },
+      "data": {
+        "content": "istio-ingress-public\nTLS termination",
+        "handles": [
+          {
+            "id": "handle-1782439155539",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439470244",
+            "type": "source",
+            "position": "right"
+          },
+          {
+            "id": "handle-1782874951830",
+            "type": "target",
+            "position": "top"
+          },
+          {
+            "id": "handle-1782876329675",
+            "type": "target",
+            "position": "bottom"
+          }
+        ],
+        "label": "Gateway",
+        "width": 213,
+        "height": 80,
+        "colorScheme": "default"
+      },
+      "measured": {
+        "width": 213,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_19",
+      "type": "labeled",
+      "position": {
+        "x": 1587.3481610839744,
+        "y": 34.38516958001094
+      },
+      "data": {
+        "label": "Application Namespace",
+        "content": "",
+        "width": 546,
+        "height": 354
+      },
+      "measured": {
+        "width": 546,
+        "height": 354
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_18",
+      "type": "customDefault",
+      "position": {
+        "x": 1897.9178836790732,
+        "y": 305.185093568655
+      },
+      "data": {
+        "content": "Service / Deployment / Pod",
+        "handles": [
+          {
+            "id": "handle-1782439475339",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_20",
+      "type": "customDefault",
+      "position": {
+        "x": 1617.0160171653586,
+        "y": 136.33759612113707
+      },
+      "data": {
+        "content": "HTTP Route",
+        "handles": [
+          {
+            "id": "handle-1782439461959",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439462200",
+            "type": "source",
+            "position": "right"
+          },
+          {
+            "id": "handle-1782876413440",
+            "type": "target",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_21",
+      "type": "labeled",
+      "position": {
+        "x": 1009.9952311249604,
+        "y": 590.0743771013598
+      },
+      "data": {
+        "label": "favonia/cloudflare-ddns",
+        "content": "watches public ip\nkeeps abbottland.io A record pointed at it",
+        "width": 381,
+        "height": 121,
+        "handles": [
+          {
+            "id": "handle-1782873296209",
+            "type": "source",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782873714587",
+            "type": "target",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 381,
+        "height": 121
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_23",
+      "type": "labeled",
+      "position": {
+        "x": 1444.167652594922,
+        "y": 610.6636579071799
+      },
+      "data": {
+        "content": "cloudflare-api-token-secret",
+        "iconId": "radix-lock-closed",
+        "width": 281,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1782873700627",
+            "type": "source",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782873700818",
+            "type": "source",
+            "position": "bottom"
+          }
+        ],
+        "label": "OnePasswordItem"
+      },
+      "measured": {
+        "width": 281,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_25",
+      "type": "labeled",
+      "position": {
+        "x": 1010.427964535081,
+        "y": 730.7627084416486
+      },
+      "data": {
+        "content": "letsencrypt-prod\nuses secret for DNS-01 ACME challenges",
+        "width": 376,
+        "height": 125,
+        "label": "ClusterIssuer",
+        "handles": [
+          {
+            "id": "handle-1782873646232",
+            "type": "source",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782873719827",
+            "type": "target",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 376,
+        "height": 125
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_28",
+      "type": "labeled",
+      "position": {
+        "x": 1006.0499554028245,
+        "y": 459.42752522307103
+      },
+      "data": {
+        "label": "HelmRelease: cert-manager",
+        "content": "watches Gateway resources\nprovisions wildcard certificates for *.abbottland.io",
+        "iconId": "helm",
+        "width": 589,
+        "height": 104,
+        "colorScheme": "secondary",
+        "handles": [
+          {
+            "id": "handle-1782876335120",
+            "type": "source",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 589,
+        "height": 104
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_30",
+      "type": "labeled",
+      "position": {
+        "x": 1020.8081154119077,
+        "y": -160.8335101409882
+      },
+      "data": {
+        "label": "HelmRelease: istio-cni",
+        "content": "",
+        "width": 369,
+        "height": 124,
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "handles": []
+      },
+      "measured": {
+        "width": 369,
+        "height": 124
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_32",
+      "type": "labeled",
+      "position": {
+        "x": 1072.1392575768068,
+        "y": 83.46062807824072
+      },
+      "data": {
+        "label": "HelmRelease: istio-ingress",
+        "content": "DaemonSet\nNodePort gateway \nCluster entrypoint for HTTPRoutes",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 370,
+        "height": 119,
+        "handles": [
+          {
+            "id": "handle-1782874894820",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
+      },
+      "measured": {
+        "width": 370,
+        "height": 119
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_33",
+      "type": "labeled",
+      "position": {
+        "x": 1035.6258750894267,
+        "y": -122.99688687268099
+      },
+      "data": {
+        "label": "HelmRelease: istio-base",
+        "content": "",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 370,
+        "height": 123
+      },
+      "measured": {
+        "width": 370,
+        "height": 123
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_34",
+      "type": "labeled",
+      "position": {
+        "x": 998.3634025982003,
+        "y": -550.6370701281867
+      },
+      "data": {
+        "label": "namespace: external-dns",
+        "content": "",
+        "width": 501,
+        "height": 325
+      },
+      "measured": {
+        "width": 501,
+        "height": 325
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_35",
+      "type": "labeled",
+      "position": {
+        "x": 1032.891664267368,
+        "y": -492.6727490915285
+      },
+      "data": {
+        "label": "HelmRelease: external-dns",
+        "content": "manages CNAME DNS entries\nfilters on label: 'external-dns-enabled=true'\nwatches HTTPRoutes cluster-wide",
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "width": 429,
+        "height": 126,
+        "handles": [
+          {
+            "id": "handle-1782876020879",
+            "type": "source",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782876050150",
+            "type": "target",
+            "position": "bottom"
+          },
+          {
+            "id": "handle-1782876154578",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 429,
+        "height": 126
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_36",
+      "type": "labeled",
+      "position": {
+        "x": 1032.038659281985,
+        "y": -318.7111772721137
+      },
+      "data": {
+        "label": "OnePasswordItem",
+        "content": "cloudflare-api-token-secret",
+        "iconId": "radix-lock-closed",
+        "width": 430,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1782876058412",
+            "type": "source",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 430,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_37",
+      "type": "labeled",
+      "position": {
+        "x": 1818.1475889154785,
+        "y": 114.07454584026598
+      },
+      "data": {
+        "content": "inbound: only from istio-system\npod: allow inbound to service port\noutbound: none\n",
+        "handles": [
+          {
+            "id": "handle-1782876763040",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782876763180",
+            "type": "source",
+            "position": "bottom"
+          }
+        ],
+        "label": "NetPol",
+        "width": 308,
+        "height": 126
+      },
+      "measured": {
+        "width": 308,
+        "height": 126
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_38",
+      "type": "customDefault",
+      "position": {
+        "x": 51.653743489340684,
+        "y": 375.5172135735637
+      },
+      "data": {
+        "content": "TXT Records\nused to verify domain ownership",
+        "width": 221,
+        "height": 99
+      },
+      "measured": {
+        "width": 221,
+        "height": 99
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_31",
+      "type": "labeled",
+      "position": {
+        "x": 1055.1228673382507,
+        "y": -84.40653045225031
+      },
+      "data": {
+        "label": "HelmRelease: ztunnel",
+        "content": "",
+        "width": 367,
+        "height": 122,
+        "iconId": "helm",
+        "colorScheme": "secondary",
+        "handles": []
+      },
+      "measured": {
+        "width": 367,
+        "height": 122
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_29",
+      "type": "labeled",
+      "position": {
+        "x": 1073.8593268294599,
+        "y": -49.09582300092964
+      },
+      "data": {
+        "label": "HelmRelease: istiod",
+        "content": "Istio control plane and service mesh exists in this namespace",
+        "iconId": "helm",
+        "width": 365,
+        "height": 111,
+        "colorScheme": "secondary",
+        "handles": []
+      },
+      "measured": {
+        "width": 365,
+        "height": 111
+      },
+      "selected": false,
+      "resizing": false,
       "dragging": false
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_0",
+      "sourceHandle": "handle-1782438410191",
+      "target": "node_2",
+      "targetHandle": "handle-1782438414334",
+      "id": "xy-edge__node_0handle-1782438410191-node_2handle-1782438414334",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1782438451559",
+      "target": "node_8",
+      "targetHandle": "handle-1782438460483",
+      "id": "xy-edge__node_2handle-1782438451559-node_8handle-1782438460483",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_8",
+      "sourceHandle": "handle-1782438717857",
+      "target": "node_10",
+      "targetHandle": "handle-1782438916034",
+      "id": "xy-edge__node_8handle-1782438717857-node_10handle-1782438916034",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_10",
+      "sourceHandle": "handle-1782439228435",
+      "target": "node_17",
+      "targetHandle": "handle-1782439155539",
+      "id": "xy-edge__node_10handle-1782439228435-node_17handle-1782439155539",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_17",
+      "sourceHandle": "handle-1782439470244",
+      "target": "node_20",
+      "targetHandle": "handle-1782439461959",
+      "id": "xy-edge__node_17handle-1782439470244-node_20handle-1782439461959",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_5",
+      "sourceHandle": "handle-1782873049767",
+      "target": "node_4",
+      "targetHandle": "handle-1782873054389",
+      "id": "xy-edge__node_5handle-1782873049767-node_4handle-1782873054389",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_23",
+      "sourceHandle": "handle-1782873700627",
+      "target": "node_21",
+      "targetHandle": "handle-1782873714587",
+      "id": "xy-edge__node_23handle-1782873700627-node_21handle-1782873714587",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_23",
+      "sourceHandle": "handle-1782873700818",
+      "target": "node_25",
+      "targetHandle": "handle-1782873719827",
+      "id": "xy-edge__node_23handle-1782873700818-node_25handle-1782873719827",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_29",
+      "sourceHandle": "handle-1782874933162",
+      "target": "node_32",
+      "targetHandle": "handle-1782874894966",
+      "id": "xy-edge__node_29handle-1782874933162-node_32handle-1782874894966",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_32",
+      "sourceHandle": "handle-1782874894820",
+      "target": "node_17",
+      "targetHandle": "handle-1782874951830",
+      "id": "xy-edge__node_32handle-1782874894820-node_17handle-1782874951830"
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_29",
+      "sourceHandle": "handle-1782874933162",
+      "target": "node_31",
+      "targetHandle": "handle-1782875038977",
+      "id": "xy-edge__node_29handle-1782874933162-node_31handle-1782875038977",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_30",
+      "sourceHandle": "handle-1782875271966",
+      "target": "node_31",
+      "targetHandle": "handle-1782875358970",
+      "id": "xy-edge__node_30handle-1782875271966-node_31handle-1782875358970",
+      "selected": false
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_36",
+      "sourceHandle": "handle-1782876058412",
+      "target": "node_35",
+      "targetHandle": "handle-1782876050150",
+      "id": "xy-edge__node_36handle-1782876058412-node_35handle-1782876050150",
+      "selected": false
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_28",
+      "sourceHandle": "handle-1782876335120",
+      "target": "node_17",
+      "targetHandle": "handle-1782876329675",
+      "id": "xy-edge__node_28handle-1782876335120-node_17handle-1782876329675",
+      "selected": false,
+      "data": {
+        "color": "secondary",
+        "label": "watches"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_35",
+      "sourceHandle": "handle-1782876154578",
+      "target": "node_20",
+      "targetHandle": "handle-1782876413440",
+      "id": "xy-edge__node_35handle-1782876154578-node_20handle-1782876413440",
+      "selected": false,
+      "data": {
+        "label": "watches",
+        "color": "secondary"
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_20",
+      "sourceHandle": "handle-1782439462200",
+      "target": "node_37",
+      "targetHandle": "handle-1782876763040",
+      "id": "xy-edge__node_20handle-1782439462200-node_37handle-1782876763040",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_37",
+      "sourceHandle": "handle-1782876763180",
+      "target": "node_18",
+      "targetHandle": "handle-1782439475339",
+      "id": "xy-edge__node_37handle-1782876763180-node_18handle-1782439475339",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_35",
+      "sourceHandle": "handle-1782876020879",
+      "target": "node_2",
+      "targetHandle": "handle-1782873316397",
+      "id": "xy-edge__node_35handle-1782876020879-node_2handle-1782873316397",
+      "selected": false,
+      "data": {
+        "label": "cloudflare_api_token\nCNAME Records"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_25",
+      "sourceHandle": "handle-1782873646232",
+      "target": "node_2",
+      "targetHandle": "handle-1782954141633",
+      "id": "xy-edge__node_25handle-1782873646232-node_2handle-1782954141633",
+      "selected": false,
+      "data": {
+        "label": "cloudflare_api_token\nTXT Records"
+      }
+    },
+    {
+      "type": "editable",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_21",
+      "sourceHandle": "handle-1782873296209",
+      "target": "node_2",
+      "targetHandle": "handle-1782954141633",
+      "id": "xy-edge__node_21handle-1782873296209-node_2handle-1782954141633",
+      "selected": false,
+      "data": {
+        "label": "cloudflare_api_token\nA Record"
+      }
+    }
+  ],
+  "isComplete": true
 }

@@ -54,3 +54,27 @@ export const Default: Story = {
     content: 'Labeled Node',
   },
 };
+
+// Shows the label textarea, as seen after double-clicking the label badge
+export const Editing: Story = {
+  render: () => (
+    <DiagramViewer
+      height="300px"
+      data={{
+        nodes: [
+          {
+            id: 'node-1',
+            type: 'labeled',
+            position: { x: 100, y: 100 },
+            data: {
+              label: 'Editing label',
+              content: 'Labeled Node',
+              startInLabelEdit: true,
+            },
+          },
+        ],
+        edges: [],
+      }}
+    />
+  ),
+};

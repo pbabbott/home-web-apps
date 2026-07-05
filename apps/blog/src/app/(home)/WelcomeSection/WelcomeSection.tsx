@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import {
-  Button,
+  OutlinedButton,
   HorizontalRule,
   TransparentPanel,
   Typography,
@@ -92,14 +92,13 @@ export default function WelcomeSection() {
               >
                 Curious how this site is built?
               </Typography>
-              <Button
+              <OutlinedButton
                 component={Link}
                 href="/system-architecture"
-                variant="outlined"
                 color="primary"
               >
                 &gt; Inspect System Architecture
-              </Button>
+              </OutlinedButton>
             </div>
           </div>
         </div>

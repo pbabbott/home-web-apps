@@ -1,5 +1,9 @@
 import Link from 'next/link';
-import { Button, Typography, HorizontalRule } from '@abbottland/fui-components';
+import {
+  OutlinedButton,
+  Typography,
+  HorizontalRule,
+} from '@abbottland/fui-components';
 import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons';
 
 export default function Footer() {
@@ -19,14 +23,9 @@ export default function Footer() {
           </div>
 
           {/* Blog CTA */}
-          <Button
-            component={Link}
-            href="/blog"
-            color="primary"
-            variant="outlined"
-          >
+          <OutlinedButton component={Link} href="/blog" color="primary">
             Read the Blog
-          </Button>
+          </OutlinedButton>
 
           {/* Social links */}
           <div className="flex items-center gap-6">

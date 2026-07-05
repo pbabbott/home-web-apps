@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Typography } from '@abbottland/fui-components';
+import { OutlinedButton, Typography } from '@abbottland/fui-components';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
 
 const isLocal = process.env.NODE_ENV === 'development';
@@ -20,24 +20,19 @@ export function ExportPanel({
 }: ExportPanelProps) {
   return (
     <div className="flex items-center gap-2 p-3">
-      <Button
+      <OutlinedButton
         onClick={onClick}
         color="secondary"
-        variant="outlined"
         className="flex items-center gap-2"
       >
         <MixerHorizontalIcon width={16} height={16} />
         Import / Export
-      </Button>
+      </OutlinedButton>
 
       {isLocal && (
-        <Button
-          onClick={onLoadLocalDiagrams}
-          color="accent-falcon"
-          variant="outlined"
-        >
+        <OutlinedButton onClick={onLoadLocalDiagrams} color="accent-falcon">
           Local Diagrams
-        </Button>
+        </OutlinedButton>
       )}
 
       <Typography variant="body1" component="div" className="pr-3">

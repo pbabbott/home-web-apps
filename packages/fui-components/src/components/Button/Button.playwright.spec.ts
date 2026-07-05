@@ -92,18 +92,18 @@ test.describe('Button Visual Regression Tests', () => {
     );
   });
 
-  test('variant-outlined', async ({ page }) => {
-    await gotoStory(page, 'components-button--variant-outlined');
-    await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--variant-outlined.png',
-      SCREENSHOT_OPTIONS,
-    );
-  });
-
   test('variant-text', async ({ page }) => {
     await gotoStory(page, 'components-button--variant-text');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
       'components-button--variant-text.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('size-small', async ({ page }) => {
+    await gotoStory(page, 'components-button--size-small');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-button--size-small.png',
       SCREENSHOT_OPTIONS,
     );
   });

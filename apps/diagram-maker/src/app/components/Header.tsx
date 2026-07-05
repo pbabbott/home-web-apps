@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Typography } from '@abbottland/fui-components';
+import { Button, OutlinedButton, Typography } from '@abbottland/fui-components';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import { CheckIcon, EyeOpenIcon, Pencil1Icon } from '@radix-ui/react-icons';
 import { useDiagramEditor } from './DiagramEditorContext';
@@ -92,10 +92,9 @@ export function Header() {
           )}
         </div>
         <div className="pr-3">
-          <Button
+          <OutlinedButton
             onClick={onToggleViewerMode}
             color="secondary"
-            variant="outlined"
             className="flex items-center gap-2"
           >
             {viewerMode ? (
@@ -109,7 +108,7 @@ export function Header() {
                 Show in Viewer
               </>
             )}
-          </Button>
+          </OutlinedButton>
         </div>
       </div>
       {activeLocalDiagramLabel && (

@@ -1,0 +1,612 @@
+{
+  "nodes": [
+    {
+      "id": "node_0",
+      "type": "customDefault",
+      "position": {
+        "x": 75.77865261184513,
+        "y": 105.98111291841045
+      },
+      "data": {
+        "content": "End User\n(you)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1782438410191",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "labeled",
+      "position": {
+        "x": 277.4958435899907,
+        "y": 7.991410990868388
+      },
+      "data": {
+        "label": "Cloudflare",
+        "content": "",
+        "iconId": "cloudflare",
+        "width": 233,
+        "height": 276,
+        "colorScheme": "warning",
+        "handles": [
+          {
+            "id": "handle-1782438414334",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782438451559",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 233,
+        "height": 276
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_4",
+      "type": "customDefault",
+      "position": {
+        "x": 287.4058922020963,
+        "y": 45.214059688003545
+      },
+      "data": {
+        "content": "A Record\nAbbottland.io",
+        "width": 212,
+        "height": 80
+      },
+      "measured": {
+        "width": 212,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_5",
+      "type": "customDefault",
+      "position": {
+        "x": 288.12248393794073,
+        "y": 130.5511690605156
+      },
+      "data": {
+        "content": "CNAME Records\n(one per subdomain of \nabbottland.io)",
+        "width": 209,
+        "height": 127
+      },
+      "measured": {
+        "width": 209,
+        "height": 127
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_7",
+      "type": "labeled",
+      "position": {
+        "x": 523.5073861283797,
+        "y": 79.02513735674682
+      },
+      "data": {
+        "label": "My House",
+        "content": "",
+        "iconId": "radix-home",
+        "width": 1466,
+        "height": 376
+      },
+      "measured": {
+        "width": 1466,
+        "height": 376
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_8",
+      "type": "customDefault",
+      "position": {
+        "x": 705.286003867741,
+        "y": 106.46628178683076
+      },
+      "data": {
+        "content": "Eero Router",
+        "iconId": "router",
+        "width": 201,
+        "height": 80,
+        "handles": [
+          {
+            "id": "handle-1782438460483",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782438717857",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 201,
+        "height": 80
+      },
+      "selected": false,
+      "resizing": false,
+      "dragging": false
+    },
+    {
+      "id": "node_3",
+      "type": "customDefault",
+      "position": {
+        "x": 541.9399136327141,
+        "y": 364.779104497996
+      },
+      "data": {
+        "content": "LAN Users\n(me)",
+        "iconId": "radix-mobile",
+        "handles": [
+          {
+            "id": "handle-1782438969824",
+            "type": "source",
+            "position": "top"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_9",
+      "type": "labeled",
+      "position": {
+        "x": 959.2705853787567,
+        "y": 138.20349340853807
+      },
+      "data": {
+        "label": "Proxmox",
+        "content": "",
+        "colorScheme": "warning",
+        "iconId": "proxmox",
+        "width": 338,
+        "height": 208
+      },
+      "measured": {
+        "width": 338,
+        "height": 208
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_10",
+      "type": "labeled",
+      "position": {
+        "x": 987.07553790625,
+        "y": 181.72428866896243
+      },
+      "data": {
+        "content": "Inspect SNI, then direct request to either prod or non-prod cluster.\n\nNo decryption needed here!",
+        "iconId": "haproxy",
+        "handles": [
+          {
+            "id": "handle-1782438916034",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439228435",
+            "type": "source",
+            "position": "right"
+          }
+        ],
+        "label": "HA Proxy (LXC)",
+        "width": 258,
+        "height": 144
+      },
+      "measured": {
+        "width": 258,
+        "height": 144
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_11",
+      "type": "labeled",
+      "position": {
+        "x": 703.2102967540557,
+        "y": 225.60850421476889
+      },
+      "data": {
+        "label": "Banana Pi",
+        "content": "",
+        "iconId": "banana",
+        "width": 208,
+        "height": 198,
+        "colorScheme": "dark",
+        "handles": [
+          {
+            "id": "handle-1782438907513",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782438907786",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 208,
+        "height": 198
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_13",
+      "type": "labeled",
+      "position": {
+        "x": 715.4865170622294,
+        "y": 260.8554434214524
+      },
+      "data": {
+        "label": "Pi-hole",
+        "content": "One record per subdomain of .local.abbottland.io\nresolving to HA Proxy IP",
+        "iconId": "raspberry-pi",
+        "width": 179,
+        "height": 151
+      },
+      "measured": {
+        "width": 179,
+        "height": 151
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_15",
+      "type": "labeled",
+      "position": {
+        "x": 1315.9840512986539,
+        "y": 125.61126843250139
+      },
+      "data": {
+        "label": "Kubernetes",
+        "content": "",
+        "colorScheme": "secondary",
+        "iconId": "kubernetes",
+        "width": 654,
+        "height": 218
+      },
+      "measured": {
+        "width": 654,
+        "height": 218
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_16",
+      "type": "labeled",
+      "position": {
+        "x": 1344.5578882110606,
+        "y": 174.75826792184108
+      },
+      "data": {
+        "label": "Istio",
+        "content": "",
+        "width": 190,
+        "height": 140
+      },
+      "measured": {
+        "width": 190,
+        "height": 140
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_17",
+      "type": "labeled",
+      "position": {
+        "x": 1360.4991614572248,
+        "y": 213.80059933355994
+      },
+      "data": {
+        "content": "NodePort\nDaemonSet",
+        "handles": [
+          {
+            "id": "handle-1782439155539",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439470244",
+            "type": "source",
+            "position": "right"
+          }
+        ],
+        "label": "Gateway",
+        "width": 150,
+        "height": 80
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_19",
+      "type": "labeled",
+      "position": {
+        "x": 1566.34589592345,
+        "y": 170.13144591338065
+      },
+      "data": {
+        "label": "App",
+        "content": "",
+        "width": 386,
+        "height": 149
+      },
+      "measured": {
+        "width": 386,
+        "height": 149
+      },
+      "selected": false,
+      "dragging": false,
+      "resizing": false
+    },
+    {
+      "id": "node_18",
+      "type": "customDefault",
+      "position": {
+        "x": 1794.5634960676243,
+        "y": 214.02983461425202
+      },
+      "data": {
+        "content": "Service / Deployment / Pod",
+        "handles": [
+          {
+            "id": "handle-1782439475339",
+            "type": "target",
+            "position": "left"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_20",
+      "type": "customDefault",
+      "position": {
+        "x": 1589.243910783607,
+        "y": 213.7860674811587
+      },
+      "data": {
+        "content": "HTTP Route",
+        "handles": [
+          {
+            "id": "handle-1782439461959",
+            "type": "target",
+            "position": "left"
+          },
+          {
+            "id": "handle-1782439462200",
+            "type": "source",
+            "position": "right"
+          }
+        ]
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_0",
+      "sourceHandle": "handle-1782438410191",
+      "target": "node_2",
+      "targetHandle": "handle-1782438414334",
+      "id": "xy-edge__node_0handle-1782438410191-node_2handle-1782438414334",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_2",
+      "sourceHandle": "handle-1782438451559",
+      "target": "node_8",
+      "targetHandle": "handle-1782438460483",
+      "id": "xy-edge__node_2handle-1782438451559-node_8handle-1782438460483",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_8",
+      "sourceHandle": "handle-1782438717857",
+      "target": "node_10",
+      "targetHandle": "handle-1782438916034",
+      "id": "xy-edge__node_8handle-1782438717857-node_10handle-1782438916034",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_11",
+      "sourceHandle": "handle-1782438907786",
+      "target": "node_10",
+      "targetHandle": "handle-1782438916034",
+      "id": "xy-edge__node_11handle-1782438907786-node_10handle-1782438916034",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_3",
+      "sourceHandle": "handle-1782438969824",
+      "target": "node_11",
+      "targetHandle": "handle-1782438907513",
+      "id": "xy-edge__node_3handle-1782438969824-node_11handle-1782438907513",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_10",
+      "sourceHandle": "handle-1782439228435",
+      "target": "node_17",
+      "targetHandle": "handle-1782439155539",
+      "id": "xy-edge__node_10handle-1782439228435-node_17handle-1782439155539",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_17",
+      "sourceHandle": "handle-1782439470244",
+      "target": "node_20",
+      "targetHandle": "handle-1782439461959",
+      "id": "xy-edge__node_17handle-1782439470244-node_20handle-1782439461959",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    },
+    {
+      "type": "basic",
+      "style": {
+        "stroke": "#C8D9DE",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "source": "node_20",
+      "sourceHandle": "handle-1782439462200",
+      "target": "node_18",
+      "targetHandle": "handle-1782439475339",
+      "id": "xy-edge__node_20handle-1782439462200-node_18handle-1782439475339",
+      "selected": false,
+      "zIndex": 20,
+      "data": {
+        "active": true
+      }
+    }
+  ],
+  "isComplete": true
+}

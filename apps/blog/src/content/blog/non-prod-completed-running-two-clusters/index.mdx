@@ -1,0 +1,105 @@
+---
+title: Non-Prod Journey Completed - Running Two Clusters at Once
+excerpt: 'TBD'
+status: 'published'
+date: '2026-06-01'
+bannerImage: 'kubernetes-cluster-split-completed.png'
+series:
+  id: 'non-prod-cluster'
+  name: 'Non-Prod Cluster Journey'
+  index: 4
+categories:
+  - 'k8s'
+  - 'DevOps'
+  - 'Flux'
+---
+
+This article is the final entry in a series where I establish a non-prod cluster at home.
+
+Let's recap quickly. In the first article, I wrote up a plan to build a new non-prod cluster. In the first milestone, I then got my virtualization layer set up and provisioned two clusters. In the second milestone, I established a means to connect to either cluster both from home or from the public internet.
+
+The stage is now set to start building and adding capabilities to both clusters. Thankfully, I have non-prod to ensure things are working before sending new features to production.
+
+Let's jump in.
+
+## Spinning up prod-gen-2: re-running the scripts
+
+In previous articles, I've mentioned that I've created a prod cluster, but I wanted to highlight here how I did it.
+
+First, I ran `terraform apply` with my proxmox vm module. This was thankfully as simple as copy-paste, adjusting IP addresses and memory accordingly.
+
+<div className="flex flex-col gap-4 sm:flex-row">
+  <div className="flex-1">
+    ##### non-prod
+    ```terraform
+    variable "nonprod_vms" {
+  type = map(object({
+    vmid   = number
+    ip     = string
+    memory = number
+  }))
+  default = {
+    "tf-nonprod-k8s-controller-1" = {
+      vmid   = 301
+      ip     = "192.168.6.31"
+      memory = 3072
+    }
+    "tf-nonprod-k8s-worker-1" = {
+      vmid   = 302
+      ip     = "192.168.6.32"
+      memory = 4096
+    }
+    "tf-nonprod-k8s-worker-2" = {
+      vmid   = 303
+      ip     = "192.168.6.33"
+      memory = 4096
+    }
+    "tf-nonprod-k8s-worker-3" = {
+      vmid   = 304
+      ip     = "192.168.6.34"
+      memory = 4096
+    }
+  }
+}
+    ```
+  </div>
+  <div className="flex-1">
+    ##### prod
+    ```terraform
+    variable "prod_vms" {
+  type = map(object({
+    vmid   = number
+    ip     = string
+    memory = number
+  }))
+  default = {
+    "tf-prod-k8s-controller-1" = {
+      vmid   = 204
+      ip     = "192.168.6.24"
+      memory = 6144
+    }
+    "tf-prod-k8s-worker-1" = {
+      vmid   = 205
+      ip     = "192.168.6.25"
+      memory = 12288
+    }
+    "tf-prod-k8s-worker-2" = {
+      vmid   = 206
+      ip     = "192.168.6.26"
+      memory = 12288
+    }
+    "tf-prod-k8s-worker-3" = {
+      vmid   = 207
+      ip     = "192.168.6.27"
+      memory = 12288
+    }
+  }
+}
+    ```
+
+  </div>
+</div>
+
+Next, once the VMs came up, I then ran my ansible playbook to bootstrap kubernetes onto the VMs. Yes, they came from templates, but the templated aspects are mostly just storage and vm-level concerns. Maybe one day, I'll turn the whole kubernetes node into a template.
+
+Once kubernetes is up-and-running, then its time to bootstrap the cluster with flux. This is my favorite part, where all the hard work I've done starts to flow into the cluster and after many rounds of self-healing and dependencies resolving the cluster eventually tends toward a healthy state.
