@@ -14,6 +14,13 @@ export {
   type BadgeColor,
 } from './components/Badge/Badge';
 
+// EdgeSparkEffect
+export {
+  EdgeSparkEffect,
+  type EdgeSparkEffectProps,
+  SPARK_DURATION_MS,
+} from './components/EdgeSparkEffect/EdgeSparkEffect';
+
 // React Flow (peer: @xyflow/react)
 export {
   BaseNode,
@@ -59,6 +66,7 @@ export {
   type ButtonProps,
   type ButtonColor,
   type ButtonVariant,
+  type ButtonSize,
 } from './components/Button/Button';
 
 // OutlinedButton

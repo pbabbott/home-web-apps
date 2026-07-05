@@ -19,4 +19,12 @@ test.describe('ButtonShowcase Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('sizes-and-variants', async ({ page }) => {
+    await gotoStory(page, 'showcase-button--sizes-and-variants');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'showcase-button--sizes-and-variants.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

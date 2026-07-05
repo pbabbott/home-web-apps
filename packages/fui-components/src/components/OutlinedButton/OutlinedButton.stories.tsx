@@ -33,6 +33,11 @@ const meta = {
       description:
         'Statically applies the hover fill, for toggle-style button groups',
     },
+    size: {
+      control: 'select',
+      options: ['default', 'small'],
+      description: 'The size of the button',
+    },
     children: {
       control: 'text',
       description: 'The content of the button',
@@ -96,6 +101,16 @@ export const Selected: Story = {
   args: {
     color: 'primary',
     selected: true,
+    children: 'Button',
+  },
+  render: (args: OutlinedButtonProps) => <OutlinedButton {...args} />,
+};
+
+export const SizeSmall: Story = {
+  name: 'Size Small',
+  args: {
+    color: 'primary',
+    size: 'small',
     children: 'Button',
   },
   render: (args: OutlinedButtonProps) => <OutlinedButton {...args} />,

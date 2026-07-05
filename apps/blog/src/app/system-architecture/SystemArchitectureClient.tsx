@@ -3,16 +3,18 @@ import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import {
   Typography,
   DiagramViewer,
-  Badge,
   type DiagramViewerProps,
-  type BadgeColor,
 } from '@abbottland/fui-components';
 import { renderSimpleIcon } from '@abbottland/fui-icons';
 import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
 import Footer from '@/components/Footer/Footer';
-import { ServiceComponents } from './ServiceComponents';
+import {
+  ArchSectionHeader,
+  type ArchSectionHeaderProps,
+} from './ArchSectionHeader';
+import { ServiceComponentsSection } from './ServiceComponentsSection';
 import diagram01 from './diagram-01.json';
 import diagram02 from './diagram-02.json';
 
@@ -46,54 +48,6 @@ const introLines: TerminalLine[] = [
     endOfLineComponent: <span className="text-success-500">DONE</span>,
   },
 ];
-
-interface ComplexityBadgeProps {
-  label: string;
-  color: BadgeColor;
-}
-
-function ComplexityBadge({ label, color }: ComplexityBadgeProps) {
-  return <Badge color={color}>Complexity: {label}</Badge>;
-}
-
-interface ArchSectionHeaderProps {
-  levelLabel: string;
-  heading: string;
-  description: string;
-  complexity: ComplexityBadgeProps;
-}
-
-function ArchSectionHeader({
-  levelLabel,
-  heading,
-  description,
-  complexity,
-}: ArchSectionHeaderProps) {
-  return (
-    <>
-      <Typography variant="h2" component="h2" className="text-neutral-100 mb-2">
-        {heading}
-      </Typography>
-      <div className="flex items-center justify-between gap-4 mb-3">
-        <Typography
-          variant="caption"
-          component="p"
-          className="text-neutral-500"
-        >
-          {levelLabel}
-        </Typography>
-        <ComplexityBadge {...complexity} />
-      </div>
-      <Typography
-        variant="body1"
-        component="p"
-        className="text-neutral-400 mb-6 max-w-2xl"
-      >
-        {description}
-      </Typography>
-    </>
-  );
-}
 
 interface ArchSectionProps extends ArchSectionHeaderProps {
   diagramHeight?: string;
@@ -155,15 +109,7 @@ export default function SystemArchitectureClient() {
             data={diagram02 as DiagramViewerProps['data']}
           />
 
-          <section className="mb-20">
-            <ArchSectionHeader
-              levelLabel="Component Level :: C3"
-              heading="Service Components"
-              description="Maximum resolution. Individual service components, inter-process communication, and dependency chains fully mapped. Proceed with intent."
-              complexity={{ label: 'High', color: 'error' }}
-            />
-            <ServiceComponents />
-          </section>
+          <ServiceComponentsSection />
         </div>
       </main>
       <Footer />

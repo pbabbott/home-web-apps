@@ -1,6 +1,10 @@
 import React from 'react';
 import { extendedTwMerge } from '../utils/extendTwMerge';
-import { buttonBaseClasses } from './buttonColorTokens';
+import {
+  buttonBaseClasses,
+  buttonSizeClasses,
+  type ButtonSize,
+} from './buttonColorTokens';
 
 export interface BaseButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,6 +12,7 @@ export interface BaseButtonProps
   onClick?: () => void;
   component?: React.ElementType;
   href?: string;
+  size?: ButtonSize;
 }
 
 interface BaseButtonInternalProps extends BaseButtonProps {
@@ -18,15 +23,22 @@ interface BaseButtonInternalProps extends BaseButtonProps {
 /** Internal only — not exported from the package. Holds the render/polymorphism
  * plumbing (`component`/`href`, base classes, prop spreading) shared by Button
  * and OutlinedButton, so the two stay structurally identical. */
-export function BaseButton({
-  children,
-  className = '',
-  component,
-  colorClasses,
-  ...props
-}: BaseButtonInternalProps) {
+export const BaseButton = React.forwardRef<
+  HTMLButtonElement,
+  BaseButtonInternalProps
+>(function BaseButton(
+  {
+    children,
+    className = '',
+    component,
+    colorClasses,
+    size = 'default',
+    ...props
+  },
+  ref,
+) {
   const classes = extendedTwMerge(
-    `${buttonBaseClasses} ${colorClasses}`,
+    `${buttonBaseClasses} ${buttonSizeClasses[size]} ${colorClasses}`,
     className,
   );
 
@@ -34,6 +46,7 @@ export function BaseButton({
 
   return (
     <Component
+      ref={ref}
       {...(!component && { type: 'button' })}
       className={classes}
       {...props}
@@ -41,4 +54,4 @@ export function BaseButton({
       {children}
     </Component>
   );
-}
+});

@@ -95,5 +95,12 @@ export const buttonColorTokens: Record<ButtonColor, ButtonColorTokens> = {
   },
 };
 
+export type ButtonSize = 'default' | 'small';
+
 export const buttonBaseClasses =
-  'px-4 py-2 transition-colors font-monobit text-button uppercase tracking-[.1em] cursor-pointer no-underline';
+  'transition-colors font-monobit uppercase tracking-[.1em] cursor-pointer no-underline';
+
+export const buttonSizeClasses: Record<ButtonSize, string> = {
+  default: 'px-4 py-2 text-button',
+  small: 'px-2.5 py-1 text-caption',
+};

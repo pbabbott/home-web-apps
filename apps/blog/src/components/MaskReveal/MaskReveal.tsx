@@ -19,6 +19,29 @@ const directionToInset = {
   'bottom-to-top': (value: number) => `inset(0 0 ${value}% 0)`,
 };
 
+// Position of the 1px edge line at the current wipe boundary, keyed the
+// same way as directionToInset so the two always stay in sync.
+const directionToEdgeStyle: Record<
+  MaskRevealDirection,
+  (value: number) => React.CSSProperties
+> = {
+  'left-to-right': (value) => ({ left: `${100 - value}%`, top: 0, bottom: 0 }),
+  'right-to-left': (value) => ({
+    right: `${100 - value}%`,
+    top: 0,
+    bottom: 0,
+  }),
+  'top-to-bottom': (value) => ({ top: `${100 - value}%`, left: 0, right: 0 }),
+  'bottom-to-top': (value) => ({
+    bottom: `${100 - value}%`,
+    left: 0,
+    right: 0,
+  }),
+};
+
+const isVerticalEdge = (direction: MaskRevealDirection) =>
+  direction === 'left-to-right' || direction === 'right-to-left';
+
 export interface MaskRevealProps {
   /** When true, runs the mask reveal animation. Runs once when toggled to true. */
   reveal?: boolean;
@@ -35,6 +58,13 @@ export interface MaskRevealProps {
   /** Wipe direction. */
   direction?: MaskRevealDirection;
   className?: string;
+  /** Background class painted behind the clip, always fully visible (never
+   * itself clipped) so the not-yet-revealed side shows a guaranteed color
+   * instead of whatever happens to be behind this component in the page. */
+  maskClassName?: string;
+  /** When set, draws a 1px line in this color along the current wipe
+   * boundary as it animates. */
+  edgeColor?: string;
 }
 
 export default function MaskReveal({
@@ -46,8 +76,11 @@ export default function MaskReveal({
   delay = 200,
   direction = 'left-to-right',
   className,
+  maskClassName,
+  edgeColor,
 }: MaskRevealProps) {
   const maskRef = useRef<HTMLDivElement>(null);
+  const edgeRef = useRef<HTMLDivElement>(null);
   const hasStartedRef = useRef(false);
   const [phase, setPhase] = useState<RevealPhase>('idle');
 
@@ -67,7 +100,16 @@ export default function MaskReveal({
 
     const el = maskRef.current;
     const inset = directionToInset[direction];
+    const edgeStyle = directionToEdgeStyle[direction];
+
+    const applyEdge = (value: number) => {
+      if (!edgeRef.current) return;
+      Object.assign(edgeRef.current.style, edgeStyle(value));
+    };
+
     el.style.clipPath = inset(100);
+    applyEdge(100);
+
     const clipValue = { value: 100 };
     anime({
       targets: clipValue,
@@ -78,6 +120,7 @@ export default function MaskReveal({
       begin: () => setPhase('animating'),
       update: () => {
         el.style.clipPath = inset(clipValue.value);
+        applyEdge(clipValue.value);
       },
       complete: () => {
         el.style.clipPath = inset(0);
@@ -89,12 +132,38 @@ export default function MaskReveal({
 
   const isClipped = animated && phase === 'idle';
 
-  return (
+  const clippedContent = (
     <div
       ref={maskRef}
       className={extendedTwMerge(isClipped && initialClippedClass, className)}
     >
       {children}
+    </div>
+  );
+
+  // Preserve the original single-div output when neither extra feature is
+  // used, so existing consumers (title reveals, etc.) see no change at all.
+  if (!maskClassName && !edgeColor) {
+    return clippedContent;
+  }
+
+  return (
+    <div className="relative">
+      {maskClassName && (
+        <div className={extendedTwMerge('absolute inset-0', maskClassName)} />
+      )}
+      {clippedContent}
+      {edgeColor && phase === 'animating' && (
+        <div
+          ref={edgeRef}
+          className="absolute pointer-events-none"
+          style={{
+            backgroundColor: edgeColor,
+            ...(isVerticalEdge(direction) ? { width: 1 } : { height: 1 }),
+            ...directionToEdgeStyle[direction](100),
+          }}
+        />
+      )}
     </div>
   );
 }

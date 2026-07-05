@@ -1,8 +1,12 @@
 import React from 'react';
 import { BaseButton, type BaseButtonProps } from '../BaseButton';
-import { buttonColorTokens, type ButtonColor } from '../buttonColorTokens';
+import {
+  buttonColorTokens,
+  type ButtonColor,
+  type ButtonSize,
+} from '../buttonColorTokens';
 
-export type { ButtonColor };
+export type { ButtonColor, ButtonSize };
 export type ButtonVariant = 'text' | 'contained';
 
 export interface ButtonProps extends BaseButtonProps {
@@ -21,12 +25,14 @@ const getColorClasses = (variant: ButtonVariant, color: ButtonColor) => {
   }
 };
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'contained',
-  color = 'primary',
-  ...props
-}) => {
-  return (
-    <BaseButton colorClasses={getColorClasses(variant, color)} {...props} />
-  );
-};
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button({ variant = 'contained', color = 'primary', ...props }, ref) {
+    return (
+      <BaseButton
+        ref={ref}
+        colorClasses={getColorClasses(variant, color)}
+        {...props}
+      />
+    );
+  },
+);

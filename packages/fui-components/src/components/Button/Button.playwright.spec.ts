@@ -99,4 +99,12 @@ test.describe('Button Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('size-small', async ({ page }) => {
+    await gotoStory(page, 'components-button--size-small');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-button--size-small.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

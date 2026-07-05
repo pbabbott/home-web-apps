@@ -4,6 +4,10 @@
 
 Always use the `Typography` component for all rendered text — no raw `<p>`, `<span>`, `<h*>`, or other HTML text elements. This applies to components and stories alike.
 
+## Storybook Coverage
+
+When adding or changing a prop on a component, add (or update) a story that demonstrates that prop's states. A prop with no story is undocumented and untested — the story suite should visually cover every prop a component accepts.
+
 ## Storybook Story Rules
 
 **Component-level stories** (`src/components/*/ComponentName.stories.tsx`):

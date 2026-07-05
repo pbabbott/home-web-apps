@@ -34,6 +34,11 @@ const meta = {
       ],
       description: 'The color scheme of the button',
     },
+    size: {
+      control: 'select',
+      options: ['default', 'small'],
+      description: 'The size of the button',
+    },
     children: {
       control: 'text',
       description: 'The content of the button',
@@ -104,3 +109,13 @@ export const VariantContained: Story = ButtonStory(
   'contained',
 );
 export const VariantText: Story = ButtonStory('Text', 'primary', 'text');
+
+export const SizeSmall: Story = {
+  name: 'Size Small',
+  args: {
+    color: 'primary',
+    size: 'small',
+    children: 'Button',
+  },
+  render: (args: ButtonProps) => <Button {...args} />,
+};

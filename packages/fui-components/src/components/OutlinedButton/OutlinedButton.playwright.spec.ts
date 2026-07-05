@@ -91,4 +91,12 @@ test.describe('OutlinedButton Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('size-small', async ({ page }) => {
+    await gotoStory(page, 'components-outlinedbutton--size-small');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-outlinedbutton--size-small.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

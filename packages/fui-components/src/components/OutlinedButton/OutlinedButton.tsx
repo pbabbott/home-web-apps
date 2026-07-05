@@ -11,13 +11,15 @@ export interface OutlinedButtonProps extends BaseButtonProps {
   selected?: boolean;
 }
 
-export const OutlinedButton: React.FC<OutlinedButtonProps> = ({
-  color = 'primary',
-  selected = false,
-  ...props
-}) => {
+export const OutlinedButton = React.forwardRef<
+  HTMLButtonElement,
+  OutlinedButtonProps
+>(function OutlinedButton(
+  { color = 'primary', selected = false, ...props },
+  ref,
+) {
   const tokens = buttonColorTokens[color];
   const colorClasses = `border ${tokens.outlinedIdle} ${tokens.filledOnHover} ${selected ? tokens.filled : ''}`;
 
-  return <BaseButton colorClasses={colorClasses} {...props} />;
-};
+  return <BaseButton ref={ref} colorClasses={colorClasses} {...props} />;
+});
