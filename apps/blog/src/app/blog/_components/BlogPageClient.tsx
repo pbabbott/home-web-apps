@@ -21,7 +21,7 @@ export default function BlogPageClient({
         <BlogBackground />
         <div className="z-10 relative">
           <StickyHeader />
-          <div className="flex flex-col lg:flex-row max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 pt-[calc(var(--header-height)+1rem)] pb-24 gap-8 lg:gap-12">
+          <div className="flex flex-col lg:flex-row max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-4 pt-[calc(var(--header-height)+1rem)] pb-24 gap-8 lg:gap-8">
             <BlogFilters />
             <BlogFeed />
           </div>

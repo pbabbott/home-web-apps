@@ -87,16 +87,9 @@ export default function CategoryList({
   }));
 
   return (
-    <div className="pr-1">
-      {/* Hexagons sit inset within their square tiles, so nudge the whole grid
-          left to visually align the leftmost hex edges with the container. */}
-      <div className="relative -left-4">
-        <TiledHexagons
-          tiles={tiles}
-          maxHorizontal={maxHorizontal}
-          tileGap={2}
-        />
-      </div>
-    </div>
+    // The aside is sized wider than the grid itself so there's slack space
+    // here to let active/hover glow effects bleed without being clipped by
+    // the scroll container's edge.
+    <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={2} />
   );
 }
