@@ -45,7 +45,8 @@ export default function PageScrollbar({
 }: {
   className?: string;
 }) {
-  const { thumbPosition, thumbSize, height } = useWindowScrollProgress();
+  const { thumbPosition, thumbSize, height, scrollToThumbPosition, pageStep } =
+    useWindowScrollProgress();
   const headerHeight = useHeaderHeight();
   const isMdUp = useIsMdUp();
 
@@ -69,6 +70,8 @@ export default function PageScrollbar({
           thumbPosition={thumbPosition}
           thumbSize={thumbSize}
           showDots={isMdUp}
+          onThumbPositionChange={scrollToThumbPosition}
+          onPageStep={pageStep}
         />
       )}
     </div>

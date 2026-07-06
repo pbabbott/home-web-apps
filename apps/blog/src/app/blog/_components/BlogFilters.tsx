@@ -18,8 +18,14 @@ export default function BlogFilters() {
   } = useBlogPageContext();
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { thumbPosition, thumbSize, height, isScrollable } =
-    useElementScrollProgress(scrollRef);
+  const {
+    thumbPosition,
+    thumbSize,
+    height,
+    isScrollable,
+    scrollToThumbPosition,
+    pageStep,
+  } = useElementScrollProgress(scrollRef);
 
   return (
     <aside className="w-full lg:w-[325px] lg:shrink-0">
@@ -72,6 +78,8 @@ export default function BlogFilters() {
               height={height}
               thumbPosition={thumbPosition}
               thumbSize={thumbSize}
+              onThumbPositionChange={scrollToThumbPosition}
+              onPageStep={pageStep}
             />
           </div>
         )}

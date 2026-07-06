@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback, useRef } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { primary, neutral } from '../../tokens/colors';
 
 export type ScrollbarProps = {
@@ -10,6 +12,8 @@ export type ScrollbarProps = {
   thumbSize: number;
   showDots?: boolean;
   className?: string;
+  onThumbPositionChange?: (thumbPosition: number) => void;
+  onPageStep?: (direction: 'up' | 'down') => void;
 };
 
 const CONTENT_GAP = 3;
@@ -31,7 +35,14 @@ export function Scrollbar({
   thumbSize,
   showDots = true,
   className,
+  onThumbPositionChange,
+  onPageStep,
 }: ScrollbarProps) {
+  const dragState = useRef<{
+    startClientY: number;
+    startThumbY: number;
+  } | null>(null);
+
   const resolvedWidth =
     width ?? (showDots ? WIDTH_WITH_DOTS : WIDTH_WITHOUT_DOTS);
   const tickStartX = CONTENT_GAP;
@@ -42,6 +53,49 @@ export function Scrollbar({
   const clampedPosition = Math.min(Math.max(thumbPosition, 0), 1 - clampedSize);
   const thumbY = clampedPosition * height;
   const thumbHeight = Math.max(clampedSize * height, THUMB_MIN_HEIGHT);
+  const maxThumbY = height - thumbHeight;
+
+  const handleThumbPointerDown = useCallback(
+    (event: ReactPointerEvent<SVGRectElement>) => {
+      if (!onThumbPositionChange) return;
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dragState.current = { startClientY: event.clientY, startThumbY: thumbY };
+    },
+    [onThumbPositionChange, thumbY],
+  );
+
+  const handleThumbPointerMove = useCallback(
+    (event: ReactPointerEvent<SVGRectElement>) => {
+      if (!dragState.current || !onThumbPositionChange) return;
+      const delta = event.clientY - dragState.current.startClientY;
+      const nextThumbY = Math.min(
+        Math.max(dragState.current.startThumbY + delta, 0),
+        maxThumbY,
+      );
+      onThumbPositionChange(maxThumbY > 0 ? nextThumbY / height : 0);
+    },
+    [onThumbPositionChange, maxThumbY, height],
+  );
+
+  const handleThumbPointerUp = useCallback(
+    (event: ReactPointerEvent<SVGRectElement>) => {
+      dragState.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    },
+    [],
+  );
+
+  const handleTrackClick = useCallback(
+    (event: ReactPointerEvent<SVGRectElement>) => {
+      if (!onPageStep) return;
+      const svgRect =
+        event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+      const clickY = svgRect ? event.clientY - svgRect.top : 0;
+      onPageStep(clickY < thumbY ? 'up' : 'down');
+    },
+    [onPageStep, thumbY],
+  );
 
   return (
     <svg
@@ -60,6 +114,7 @@ export function Scrollbar({
         stroke={neutral[700]}
         strokeWidth={1}
         shapeRendering="crispEdges"
+        pointerEvents="none"
       />
       {Array.from({ length: tickCount }, (_, i) => {
         const y = tickCount > 1 ? (i * height) / (tickCount - 1) : height / 2;
@@ -73,6 +128,7 @@ export function Scrollbar({
             stroke={neutral[600]}
             strokeWidth={TICK_WIDTH}
             shapeRendering="crispEdges"
+            pointerEvents="none"
           />
         );
       })}
@@ -87,16 +143,36 @@ export function Scrollbar({
               r={DOT_RADIUS}
               fill={neutral[600]}
               shapeRendering="crispEdges"
+              pointerEvents="none"
             />
           );
         })}
+      {onPageStep && (
+        <rect
+          x={0}
+          y={0}
+          width={resolvedWidth}
+          height={height}
+          fill="transparent"
+          style={{ cursor: 'pointer' }}
+          onPointerDown={handleTrackClick}
+        />
+      )}
       <rect
         x={tickStartX}
         y={thumbY}
         width={TICK_LENGTH}
         height={thumbHeight}
         fill={primary[500]}
-        style={{ filter: `drop-shadow(0 0 3px ${primary[500]}90)` }}
+        style={{
+          filter: `drop-shadow(0 0 3px ${primary[500]}90)`,
+          cursor: onThumbPositionChange ? 'grab' : undefined,
+          touchAction: onThumbPositionChange ? 'none' : undefined,
+        }}
+        onPointerDown={handleThumbPointerDown}
+        onPointerMove={handleThumbPointerMove}
+        onPointerUp={handleThumbPointerUp}
+        onPointerCancel={handleThumbPointerUp}
       />
     </svg>
   );

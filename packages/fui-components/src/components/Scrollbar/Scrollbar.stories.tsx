@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Scrollbar } from './Scrollbar';
 import { Typography } from '../Typography/Typography';
+
+const PAGE_STEP_SIZE = 0.2;
 
 const LOREM =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. Ut a est eget ligula molestie gravida. Curabitur massa. Donec eleifend, libero at sagittis mollis, tellus est malesuada tellus, at luctus turpis elit sit amet quam. Vivamus pretium ornare est.';
@@ -46,6 +49,31 @@ export const SmallThumb: Story = {
 
 export const NoDots: Story = {
   args: { showDots: false },
+};
+
+export const Interactive: Story = {
+  render: (args) => {
+    const [thumbPosition, setThumbPosition] = useState(args.thumbPosition);
+
+    const maxPosition = 1 - args.thumbSize;
+    const clamp = (value: number) => Math.min(Math.max(value, 0), maxPosition);
+
+    return (
+      <Scrollbar
+        {...args}
+        thumbPosition={thumbPosition}
+        onThumbPositionChange={(position) => setThumbPosition(clamp(position))}
+        onPageStep={(direction) =>
+          setThumbPosition((current) =>
+            clamp(
+              current +
+                (direction === 'down' ? PAGE_STEP_SIZE : -PAGE_STEP_SIZE),
+            ),
+          )
+        }
+      />
+    );
+  },
 };
 
 export const WithContent: Story = {

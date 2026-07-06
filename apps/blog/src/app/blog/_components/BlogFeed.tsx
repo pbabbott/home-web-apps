@@ -10,8 +10,14 @@ export default function BlogFeed() {
   const { filteredPosts, heroPost, remainingPosts } = useBlogPageContext();
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { thumbPosition, thumbSize, height, isScrollable } =
-    useElementScrollProgress(scrollRef);
+  const {
+    thumbPosition,
+    thumbSize,
+    height,
+    isScrollable,
+    scrollToThumbPosition,
+    pageStep,
+  } = useElementScrollProgress(scrollRef);
 
   return (
     <main className="flex-1 min-w-0 sticky top-16 flex flex-row gap-2 lg:h-full">
@@ -94,6 +100,8 @@ export default function BlogFeed() {
             height={height}
             thumbPosition={thumbPosition}
             thumbSize={thumbSize}
+            onThumbPositionChange={scrollToThumbPosition}
+            onPageStep={pageStep}
           />
         </div>
       )}

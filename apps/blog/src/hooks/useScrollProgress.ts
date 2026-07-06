@@ -1,11 +1,16 @@
 'use client';
-import { useEffect, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState, type RefObject } from 'react';
 
 export interface ScrollProgress {
   thumbPosition: number;
   thumbSize: number;
   height: number;
   isScrollable: boolean;
+}
+
+export interface ScrollController extends ScrollProgress {
+  scrollToThumbPosition: (thumbPosition: number) => void;
+  pageStep: (direction: 'up' | 'down') => void;
 }
 
 const INITIAL_PROGRESS: ScrollProgress = {
@@ -31,9 +36,20 @@ function computeProgress(
   };
 }
 
+function scrollTopFromThumbPosition(
+  thumbPosition: number,
+  scrollHeight: number,
+  clientHeight: number,
+): number {
+  const size = scrollHeight > 0 ? Math.min(clientHeight / scrollHeight, 1) : 1;
+  const scrollable = scrollHeight - clientHeight;
+  if (scrollable <= 0 || size >= 1) return 0;
+  return (thumbPosition / (1 - size)) * scrollable;
+}
+
 export function useElementScrollProgress(
   ref: RefObject<HTMLElement | null>,
-): ScrollProgress {
+): ScrollController {
   const [progress, setProgress] = useState<ScrollProgress>(INITIAL_PROGRESS);
 
   useEffect(() => {
@@ -57,10 +73,35 @@ export function useElementScrollProgress(
     };
   }, [ref]);
 
-  return progress;
+  const scrollToThumbPosition = useCallback(
+    (thumbPosition: number) => {
+      const el = ref.current;
+      if (!el) return;
+      el.scrollTop = scrollTopFromThumbPosition(
+        thumbPosition,
+        el.scrollHeight,
+        el.clientHeight,
+      );
+    },
+    [ref],
+  );
+
+  const pageStep = useCallback(
+    (direction: 'up' | 'down') => {
+      const el = ref.current;
+      if (!el) return;
+      el.scrollBy({
+        top: direction === 'down' ? el.clientHeight : -el.clientHeight,
+        behavior: 'smooth',
+      });
+    },
+    [ref],
+  );
+
+  return { ...progress, scrollToThumbPosition, pageStep };
 }
 
-export function useWindowScrollProgress(): ScrollProgress {
+export function useWindowScrollProgress(): ScrollController {
   const [progress, setProgress] = useState<ScrollProgress>(INITIAL_PROGRESS);
 
   useEffect(() => {
@@ -80,5 +121,24 @@ export function useWindowScrollProgress(): ScrollProgress {
     };
   }, []);
 
-  return progress;
+  const scrollToThumbPosition = useCallback((thumbPosition: number) => {
+    const { scrollHeight, clientHeight } = document.documentElement;
+    window.scrollTo({
+      top: scrollTopFromThumbPosition(
+        thumbPosition,
+        scrollHeight,
+        clientHeight,
+      ),
+    });
+  }, []);
+
+  const pageStep = useCallback((direction: 'up' | 'down') => {
+    const { clientHeight } = document.documentElement;
+    window.scrollBy({
+      top: direction === 'down' ? clientHeight : -clientHeight,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  return { ...progress, scrollToThumbPosition, pageStep };
 }
