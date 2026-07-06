@@ -4,7 +4,7 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 232.54935957603425,
+        "x": 237.54935957603425,
         "y": 167.1462647531845
       },
       "data": {
@@ -106,7 +106,7 @@
       "type": "customDefault",
       "position": {
         "x": -55.620550563296206,
-        "y": 375.6721298288248
+        "y": 373.353016634467
       },
       "data": {
         "content": "1 - Make VM Template",
@@ -130,7 +130,7 @@
       "type": "customDefault",
       "position": {
         "x": 101.8794494367038,
-        "y": 375.6721298288248
+        "y": 373.353016634467
       },
       "data": {
         "content": "2 - Ansible Starts VM Template",
@@ -154,7 +154,7 @@
       "type": "customDefault",
       "position": {
         "x": 261.404053898059,
-        "y": 375.3419012270648
+        "y": 373.353016634467
       },
       "data": {
         "content": "3 - Configure VM Template",
@@ -177,8 +177,8 @@
       "id": "node_9",
       "type": "customDefault",
       "position": {
-        "x": 427.59393748934417,
-        "y": 372.251297442207
+        "x": 431.9832979562765,
+        "y": 371.78812322331163
       },
       "data": {
         "content": "4 - Finalize VM\nTemplate",
@@ -201,20 +201,20 @@
       "id": "node_10",
       "type": "labeled",
       "position": {
-        "x": 406.90782539371884,
-        "y": 3.4269929007137705
+        "x": 408.4727188048742,
+        "y": 9.686566545335289
       },
       "data": {
         "label": "Terraform",
         "content": "",
-        "width": 189,
-        "height": 124,
+        "width": 205,
+        "height": 121,
         "colorScheme": "secondary",
         "iconId": "terraform"
       },
       "measured": {
-        "width": 189,
-        "height": 124
+        "width": 205,
+        "height": 121
       },
       "selected": false,
       "dragging": false,
@@ -224,8 +224,8 @@
       "id": "node_11",
       "type": "customDefault",
       "position": {
-        "x": 427.13112877349556,
-        "y": 31.24901543255875
+        "x": 431.54935957603425,
+        "y": 36.24901543255875
       },
       "data": {
         "content": "5 - Create fleet from template",
@@ -291,7 +291,7 @@
       "id": "node_14",
       "type": "customDefault",
       "position": {
-        "x": 602.2929715840012,
+        "x": 602.695083976516,
         "y": 223.18755486328752
       },
       "data": {
@@ -317,8 +317,8 @@
       "id": "node_15",
       "type": "customDefault",
       "position": {
-        "x": 603.0971963690308,
-        "y": 371.0339034401092
+        "x": 602.695083976516,
+        "y": 373.353016634467
       },
       "data": {
         "content": "6 - Configure Fleet",
@@ -414,9 +414,9 @@
       },
       "source": "node_11",
       "sourceHandle": "handle-1773667665814",
-      "target": "node_12",
-      "targetHandle": "handle-1773667864624",
-      "id": "xy-edge__node_11handle-1773667665814-node_12handle-1773667864624",
+      "target": "node_1",
+      "targetHandle": "handle-1773668062450",
+      "id": "xy-edge__node_11handle-1773667665814-node_1handle-1773668062450",
       "selected": false
     },
     {
@@ -428,30 +428,15 @@
       "markerEnd": {
         "type": "arrowclosed"
       },
-      "source": "node_11",
-      "sourceHandle": "handle-1773667665814",
-      "target": "node_1",
-      "targetHandle": "handle-1773668062450",
-      "id": "xy-edge__node_11handle-1773667665814-node_1handle-1773668062450",
-      "selected": false
-    },
-    {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
       "source": "node_6",
       "sourceHandle": "handle-1773667300767",
       "target": "node_2",
       "targetHandle": "handle-1780363484413",
-      "id": "xy-edge__node_6handle-1773667300767-node_2handle-1780363484413"
+      "id": "xy-edge__node_6handle-1773667300767-node_2handle-1780363484413",
+      "selected": false
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -465,5 +450,6 @@
       "targetHandle": "handle-1780363574277",
       "id": "xy-edge__node_2handle-1780363569673-node_12handle-1780363574277"
     }
-  ]
+  ],
+  "isComplete": true
 }

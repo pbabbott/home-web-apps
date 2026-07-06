@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Node } from '@xyflow/react';
+import type { Edge, Node } from '@xyflow/react';
 import {
   DEFAULT_HANDLES,
   MIN_WIDTH,
@@ -20,12 +20,14 @@ interface UseNodeSelectionControlsArgs {
   nodes: Node[];
   selectedNodeIds: string[];
   setNodes: (updater: (nodes: Node[]) => Node[]) => void;
+  setEdges: (updater: (edges: Edge[]) => Edge[]) => void;
 }
 
 export function useNodeSelectionControls({
   nodes,
   selectedNodeIds,
   setNodes,
+  setEdges,
 }: UseNodeSelectionControlsArgs) {
   const sendToFront = useCallback(() => {
     if (selectedNodeIds.length === 0) return;
@@ -147,6 +149,7 @@ export function useNodeSelectionControls({
   const updateSelectedNodesHandles = useCallback(
     (handles: HandleConfig[]) => {
       if (selectedNodeIds.length === 0) return;
+      const remainingHandleIds = new Set(handles.map((h) => h.id));
       setNodes((nds) =>
         nds.map((node) =>
           selectedNodeIds.includes(node.id)
@@ -154,8 +157,21 @@ export function useNodeSelectionControls({
             : node,
         ),
       );
+      setEdges((eds) =>
+        eds.filter((edge) => {
+          const sourceOrphaned =
+            selectedNodeIds.includes(edge.source) &&
+            !!edge.sourceHandle &&
+            !remainingHandleIds.has(edge.sourceHandle);
+          const targetOrphaned =
+            selectedNodeIds.includes(edge.target) &&
+            !!edge.targetHandle &&
+            !remainingHandleIds.has(edge.targetHandle);
+          return !sourceOrphaned && !targetOrphaned;
+        }),
+      );
     },
-    [selectedNodeIds, setNodes],
+    [selectedNodeIds, setNodes, setEdges],
   );
 
   const selectedNodeType: string | undefined =

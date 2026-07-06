@@ -448,7 +448,7 @@
   ],
   "edges": [
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -468,7 +468,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -488,7 +488,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -508,7 +508,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -528,7 +528,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -548,7 +548,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -568,7 +568,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -588,7 +588,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2

@@ -4,17 +4,18 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 277.75,
-        "y": 19.1640625
+        "x": 271.75,
+        "y": 30.1640625
       },
       "data": {
         "label": "Your home",
         "content": "",
-        "width": 476,
-        "height": 248
+        "width": 495,
+        "height": 248,
+        "iconId": "radix-home"
       },
       "measured": {
-        "width": 476,
+        "width": 495,
         "height": 248
       },
       "selected": false,
@@ -25,8 +26,8 @@
       "id": "node_0",
       "type": "customDefault",
       "position": {
-        "x": 290.5,
-        "y": 120.109375
+        "x": 283.5,
+        "y": 138.609375
       },
       "data": {
         "content": "Your other computer\n(192.168.1.200)",
@@ -36,7 +37,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "radix-desktop"
       },
       "measured": {
         "width": 150,
@@ -49,18 +51,19 @@
       "id": "node_3",
       "type": "labeled",
       "position": {
-        "x": 534.25,
-        "y": 36.1640625
+        "x": 536.75,
+        "y": 48.1640625
       },
       "data": {
         "label": "Raspberry PI\n192.168.1.182",
         "content": "",
-        "width": 206,
-        "height": 217
+        "width": 217,
+        "height": 222,
+        "iconId": "raspberry-pi"
       },
       "measured": {
-        "width": 206,
-        "height": 217
+        "width": 217,
+        "height": 222
       },
       "selected": false,
       "dragging": false,
@@ -70,15 +73,16 @@
       "id": "node_4",
       "type": "labeled",
       "position": {
-        "x": 543.75,
-        "y": 94.6640625
+        "x": 553.25,
+        "y": 113.6640625
       },
       "data": {
         "label": "Docker",
         "content": "",
         "colorScheme": "secondary",
         "width": 184,
-        "height": 146
+        "height": 146,
+        "iconId": "docker"
       },
       "measured": {
         "width": 184,
@@ -92,8 +96,8 @@
       "id": "node_5",
       "type": "customDefault",
       "position": {
-        "x": 556.75,
-        "y": 123.1640625
+        "x": 575.25,
+        "y": 141.1640625
       },
       "data": {
         "content": "n8n",
@@ -103,7 +107,8 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "n8n"
       },
       "measured": {
         "width": 150,
@@ -129,9 +134,11 @@
       "targetHandle": "handle-1769565771123",
       "id": "xy-edge__node_0handle-1769565766402-node_5handle-1769565771123",
       "data": {
-        "label": "port\n5678"
+        "label": "port\n5678",
+        "color": "secondary"
       },
       "selected": false
     }
-  ]
+  ],
+  "isComplete": true
 }

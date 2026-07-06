@@ -126,6 +126,7 @@ export function DiagramEditorProvider({
     nodes,
     selectedNodeIds,
     setNodes,
+    setEdges,
   });
   const edgeSelectionControls = useEdgeSelectionControls({
     edges,

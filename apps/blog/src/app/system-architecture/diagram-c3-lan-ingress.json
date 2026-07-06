@@ -202,18 +202,18 @@
       "id": "node_16",
       "type": "labeled",
       "position": {
-        "x": 991.8412374431389,
-        "y": -218.5217509609979
+        "x": 999.0683497675147,
+        "y": -274.2737603204673
       },
       "data": {
         "label": "namespace: istio-system",
         "content": "",
-        "width": 461,
-        "height": 437
+        "width": 446,
+        "height": 457
       },
       "measured": {
-        "width": 461,
-        "height": 437
+        "width": 446,
+        "height": 457
       },
       "selected": false,
       "dragging": false,
@@ -438,8 +438,8 @@
       "id": "node_30",
       "type": "labeled",
       "position": {
-        "x": 1030.2903295048216,
-        "y": -167.21706268921736
+        "x": 1014.9658833271419,
+        "y": -232.26107360859834
       },
       "data": {
         "label": "HelmRelease: istio-cni",
@@ -462,8 +462,8 @@
       "id": "node_32",
       "type": "labeled",
       "position": {
-        "x": 1047.9646012047394,
-        "y": 74.25496904533452
+        "x": 1048.9970458225073,
+        "y": 47.41140898336778
       },
       "data": {
         "label": "HelmRelease: istio-ingress",
@@ -477,6 +477,11 @@
             "id": "handle-1782874894820",
             "type": "source",
             "position": "bottom"
+          },
+          {
+            "id": "handle-1782874894966",
+            "type": "target",
+            "position": "top"
           }
         ]
       },
@@ -492,8 +497,8 @@
       "id": "node_33",
       "type": "labeled",
       "position": {
-        "x": 1051.1441618927468,
-        "y": -131.2385808071018
+        "x": 1035.819715715067,
+        "y": -196.2825917264828
       },
       "data": {
         "label": "HelmRelease: istio-base",
@@ -681,7 +686,13 @@
         "content": "A Records\napp.local.abbottland.io\npointed at HAProxy LB",
         "width": 251,
         "height": 100,
-        "handles": []
+        "handles": [
+          {
+            "id": "handle-1782953749666",
+            "type": "target",
+            "position": "top"
+          }
+        ]
       },
       "measured": {
         "width": 251,
@@ -725,8 +736,8 @@
       "id": "node_31",
       "type": "labeled",
       "position": {
-        "x": 1068.44268559599,
-        "y": -96.16799761205971
+        "x": 1053.1182394183104,
+        "y": -161.2120085314407
       },
       "data": {
         "label": "HelmRelease: ztunnel",
@@ -749,8 +760,8 @@
       "id": "node_29",
       "type": "labeled",
       "position": {
-        "x": 1090.7088225501566,
-        "y": -56.77957237496807
+        "x": 1075.384376372477,
+        "y": -121.82358329434904
       },
       "data": {
         "label": "HelmRelease: istiod",
@@ -759,7 +770,13 @@
         "width": 317,
         "height": 108,
         "colorScheme": "secondary",
-        "handles": []
+        "handles": [
+          {
+            "id": "handle-1782874933162",
+            "type": "source",
+            "position": "bottom"
+          }
+        ]
       },
       "measured": {
         "width": 317,
@@ -879,7 +896,7 @@
   ],
   "edges": [
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -899,7 +916,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -939,7 +956,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -955,7 +972,7 @@
       "selected": false
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -970,39 +987,7 @@
       "id": "xy-edge__node_32handle-1782874894820-node_17handle-1782874951830"
     },
     {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_29",
-      "sourceHandle": "handle-1782874933162",
-      "target": "node_31",
-      "targetHandle": "handle-1782875038977",
-      "id": "xy-edge__node_29handle-1782874933162-node_31handle-1782875038977",
-      "selected": false
-    },
-    {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_30",
-      "sourceHandle": "handle-1782875271966",
-      "target": "node_31",
-      "targetHandle": "handle-1782875358970",
-      "id": "xy-edge__node_30handle-1782875271966-node_31handle-1782875358970",
-      "selected": false
-    },
-    {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1058,7 +1043,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1092,7 +1077,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1112,7 +1097,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1132,7 +1117,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1152,7 +1137,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1172,7 +1157,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -1192,7 +1177,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
