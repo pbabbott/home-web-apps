@@ -40,6 +40,7 @@ export default defineConfig({
     {
       // Galaxy S24 device profile close enough for responsive testing
       name: 's26ultra',
+      testIgnore: '**/*.breakpoints.playwright.spec.ts',
       use: {
         ...devices['Galaxy S24'],
         viewport: { width: 384, height: 690 },
@@ -47,6 +48,7 @@ export default defineConfig({
     },
     {
       name: 'desktop',
+      testIgnore: '**/*.breakpoints.playwright.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 832 },
@@ -54,9 +56,20 @@ export default defineConfig({
     },
     {
       name: 'galaxy-tab-s7plus',
+      testIgnore: '**/*.breakpoints.playwright.spec.ts',
       use: {
         ...devices['Galaxy Tab S7'],
         viewport: { width: 824, height: 1149 },
+      },
+    },
+    {
+      // Tailwind breakpoint sweep — viewport per test overrides this default.
+      // Kept separate from the device projects above so breakpoint specs
+      // don't get tripled across every device profile.
+      name: 'breakpoints',
+      testMatch: '**/*.breakpoints.playwright.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
       },
     },
   ],

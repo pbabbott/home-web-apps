@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
-import { CubeIcon } from '@radix-ui/react-icons';
+import { CubeIcon, OpenInNewWindowIcon } from '@radix-ui/react-icons';
 
 import { NavItem } from './NavItem';
 
@@ -23,6 +23,11 @@ const meta = {
     icon: {
       control: false,
       description: 'An icon component from @radix-ui/react-icons',
+    },
+    rightIcon: {
+      control: false,
+      description:
+        'An icon component from @radix-ui/react-icons, rendered after the label',
     },
     showLeftLine: {
       control: 'boolean',
@@ -64,5 +69,13 @@ export const WithoutLines: Story = {
     children: 'Abbottland',
     showLeftLine: false,
     showRightLine: false,
+  },
+};
+
+export const WithRightIcon: Story = {
+  args: {
+    icon: CubeIcon,
+    rightIcon: OpenInNewWindowIcon,
+    children: 'Abbottland',
   },
 };

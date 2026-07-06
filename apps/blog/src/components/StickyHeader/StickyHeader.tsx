@@ -18,13 +18,97 @@ import {
   OpenInNewWindowIcon,
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+
+type OverflowBreakpoint = 'sm' | 'md' | 'lg' | 'xl';
+
+interface NavOverflowItem {
+  key: string;
+  label: string;
+  icon: React.ElementType;
+  href: string;
+  external?: boolean;
+}
+
+// Single source of truth for both the navbar and Directory dropdown: order
+// here is the left-to-right display order in both places, and also the
+// collapse priority — the last item is the first to fold into the dropdown
+// as the screen shrinks (right-to-left collapse), matched to
+// OVERFLOW_BREAKPOINTS below by index.
+const NAV_OVERFLOW_ITEMS: NavOverflowItem[] = [
+  {
+    key: 'system-architecture',
+    label: 'System Architecture',
+    icon: LayersIcon,
+    href: '/system-architecture',
+  },
+  {
+    key: 'series',
+    label: 'Series',
+    icon: SectionIcon,
+    href: '/series',
+  },
+  {
+    key: 'fui-components',
+    label: 'FUI Components',
+    icon: CubeIcon,
+    href: 'https://fui-components.abbottland.io/',
+    external: true,
+  },
+];
+
+// Ascending breakpoints, one per NAV_OVERFLOW_ITEMS entry by index: the
+// item at index 0 promotes into the navbar first (smallest screen) and is
+// the last to fold back into the dropdown; the last item promotes last
+// (largest screen only) and is the first to fold back in. There's plenty of
+// unused width at `lg` for all three items, so nothing waits for `xl`.
+const OVERFLOW_BREAKPOINTS: OverflowBreakpoint[] = ['sm', 'md', 'lg'];
+
+const BREAKPOINT_MIN_WIDTH_PX: Record<OverflowBreakpoint, number> = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+};
+
+// Visible in the navbar from `breakpoint` upward.
+const NAV_VISIBLE_CLASS: Record<OverflowBreakpoint, string> = {
+  sm: 'hidden sm:block',
+  md: 'hidden md:block',
+  lg: 'hidden lg:block',
+  xl: 'hidden xl:block',
+};
+
+// Hidden from the dropdown from `breakpoint` upward (inverse of the above).
+const DROPDOWN_HIDDEN_CLASS: Record<OverflowBreakpoint, string> = {
+  sm: 'sm:hidden',
+  md: 'md:hidden',
+  lg: 'lg:hidden',
+  xl: 'xl:hidden',
+};
+
+const lastBreakpoint = OVERFLOW_BREAKPOINTS[OVERFLOW_BREAKPOINTS.length - 1];
+// Once the last overflow item promotes into the navbar, the dropdown is
+// empty, so the trigger disappears on the same breakpoint.
+const DROPDOWN_TRIGGER_HIDDEN_CLASS = DROPDOWN_HIDDEN_CLASS[lastBreakpoint];
+const DROPDOWN_EMPTY_QUERY = `(min-width: ${BREAKPOINT_MIN_WIDTH_PX[lastBreakpoint]}px)`;
 
 export default function StickyHeader() {
   const pathname = usePathname();
 
   const [open, setOpen] = useState(false);
+
+  // Force-close the dropdown if a resize crosses the breakpoint where it
+  // empties out, so it can't stay open with nothing left inside it.
+  useEffect(() => {
+    const mql = window.matchMedia(DROPDOWN_EMPTY_QUERY);
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setOpen(false);
+    };
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
   return (
     <div
@@ -51,9 +135,36 @@ export default function StickyHeader() {
           >
             Blog
           </NavItem>
+          {NAV_OVERFLOW_ITEMS.map((item, index) =>
+            item.external ? (
+              <NavItem
+                key={item.key}
+                as="a"
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                icon={item.icon}
+                rightIcon={OpenInNewWindowIcon}
+                className={NAV_VISIBLE_CLASS[OVERFLOW_BREAKPOINTS[index]]}
+              >
+                {item.label}
+              </NavItem>
+            ) : (
+              <NavItem
+                key={item.key}
+                as={Link}
+                href={item.href}
+                icon={item.icon}
+                active={pathname === item.href}
+                className={NAV_VISIBLE_CLASS[OVERFLOW_BREAKPOINTS[index]]}
+              >
+                {item.label}
+              </NavItem>
+            ),
+          )}
           <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger
-              className="bg-transparent border-0 p-0 cursor-pointer outline-none"
+              className={`bg-transparent border-0 p-0 cursor-pointer outline-none ${DROPDOWN_TRIGGER_HIDDEN_CLASS}`}
               suppressHydrationWarning
             >
               <NavItem
@@ -68,27 +179,32 @@ export default function StickyHeader() {
               showClose
               align="end"
             >
-              <DropdownMenuItem
-                icon={SectionIcon}
-                onSelect={() => navigate('/series')}
-              >
-                Series
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                icon={LayersIcon}
-                onSelect={() => navigate('/system-architecture')}
-              >
-                System Architecture
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                icon={CubeIcon}
-                rightIcon={OpenInNewWindowIcon}
-                onSelect={() =>
-                  window.open('https://fui-components.abbottland.io/', '_blank')
-                }
-              >
-                FUI Components
-              </DropdownMenuItem>
+              {NAV_OVERFLOW_ITEMS.map((item, index) =>
+                item.external ? (
+                  <DropdownMenuItem
+                    key={item.key}
+                    icon={item.icon}
+                    rightIcon={OpenInNewWindowIcon}
+                    onSelect={() => window.open(item.href, '_blank')}
+                    className={
+                      DROPDOWN_HIDDEN_CLASS[OVERFLOW_BREAKPOINTS[index]]
+                    }
+                  >
+                    {item.label}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    key={item.key}
+                    icon={item.icon}
+                    onSelect={() => navigate(item.href)}
+                    className={
+                      DROPDOWN_HIDDEN_CLASS[OVERFLOW_BREAKPOINTS[index]]
+                    }
+                  >
+                    {item.label}
+                  </DropdownMenuItem>
+                ),
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </NavBar>

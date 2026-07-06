@@ -43,3 +43,16 @@ export const SCREENSHOT_OPTIONS = {
   animations: 'disabled' as const,
   maxDiffPixelRatio: 0.03,
 };
+
+// Tailwind's default breakpoints (min-width, px), plus the sub-`sm` base
+// range. One viewport per range — enough to catch a component whose layout
+// changes at a breakpoint boundary (e.g. StickyHeader's nav collapse).
+export const RESPONSIVE_BREAKPOINTS = [
+  { name: 'base', width: 375 },
+  { name: 'sm', width: 640 },
+  { name: 'md', width: 768 },
+  { name: 'lg', width: 1024 },
+  { name: 'xl', width: 1280 },
+] as const;
+
+export const RESPONSIVE_VIEWPORT_HEIGHT = 900;
