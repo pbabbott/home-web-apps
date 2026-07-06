@@ -27,7 +27,10 @@ export default function StickyHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-30 bg-neutral-900/30 backdrop-blur-sm border-b border-neutral-300/10">
+    <div
+      id="site-header"
+      className="fixed top-0 left-0 right-0 z-30 bg-neutral-900/30 backdrop-blur-sm border-b border-neutral-300/10"
+    >
       <div className="px-4 pt-2 flex justify-between items-center">
         <NavBar>
           <NavItem
