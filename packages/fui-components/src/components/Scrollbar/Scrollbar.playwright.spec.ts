@@ -52,6 +52,14 @@ test.describe('Scrollbar Visual Regression Tests', () => {
     );
   });
 
+  test('interactive', async ({ page }) => {
+    await gotoStory(page, 'components-scrollbar--interactive');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-scrollbar--interactive.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('with-content', async ({ page }) => {
     await gotoStory(page, 'components-scrollbar--with-content');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

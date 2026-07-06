@@ -1,11 +1,20 @@
 {
+  "isComplete": false,
   "nodes": [
     {
       "id": "node_0",
       "type": "customDefault",
-      "position": { "x": 1006.5, "y": 461.109375 },
-      "data": { "content": "GitOps Deployment Pipeline" },
-      "measured": { "width": 150, "height": 80 },
+      "position": {
+        "x": 1006.5,
+        "y": 461.109375
+      },
+      "data": {
+        "content": "GitOps Deployment Pipeline"
+      },
+      "measured": {
+        "width": 150,
+        "height": 80
+      },
       "selected": false,
       "dragging": false
     }

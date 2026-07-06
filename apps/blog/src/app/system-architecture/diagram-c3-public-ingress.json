@@ -1,4 +1,5 @@
 {
+  "isComplete": true,
   "nodes": [
     {
       "id": "node_7",
@@ -1170,6 +1171,5 @@
         "label": "cloudflare_api_token\nA Record"
       }
     }
-  ],
-  "isComplete": true
+  ]
 }

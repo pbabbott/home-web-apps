@@ -7,39 +7,39 @@ import {
   SCREENSHOT_OPTIONS,
 } from '../../../tests/playwright-helpers';
 
-test.describe('NavItem Visual Regression Tests', () => {
+test.describe('CautionTape Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--default');
+    await gotoStory(page, 'components-cautiontape--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--default.png',
+      'components-cautiontape--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('active', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--active');
+  test('custom-label', async ({ page }) => {
+    await gotoStory(page, 'components-cautiontape--custom-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--active.png',
+      'components-cautiontape--custom-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('without-lines', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--without-lines');
+  test('straight', async ({ page }) => {
+    await gotoStory(page, 'components-cautiontape--straight');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--without-lines.png',
+      'components-cautiontape--straight.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('with-right-icon', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--with-right-icon');
+  test('over-content', async ({ page }) => {
+    await gotoStory(page, 'components-cautiontape--over-content');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--with-right-icon.png',
+      'components-cautiontape--over-content.png',
       SCREENSHOT_OPTIONS,
     );
   });

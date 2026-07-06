@@ -14,6 +14,12 @@ export {
   type BadgeColor,
 } from './components/Badge/Badge';
 
+// CautionTape
+export {
+  CautionTape,
+  type CautionTapeProps,
+} from './components/CautionTape/CautionTape';
+
 // EdgeSparkEffect
 export {
   EdgeSparkEffect,

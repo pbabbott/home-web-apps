@@ -1,4 +1,5 @@
 {
+  "isComplete": true,
   "nodes": [
     {
       "id": "node_0",
@@ -1349,6 +1350,5 @@
       "id": "xy-edge__node_4handle-1781059131386-node_7handle-1781059080744",
       "selected": false
     }
-  ],
-  "isComplete": true
+  ]
 }

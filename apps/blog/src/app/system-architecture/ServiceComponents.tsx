@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import {
   OutlinedButton,
   DiagramViewer,
+  CautionTape,
   Typography,
   type ButtonColor,
   type DiagramViewerProps,
@@ -31,6 +32,7 @@ const components: {
   iconId: string;
   color: ButtonColor;
   data: DiagramViewerProps['data'];
+  isComplete: boolean;
 }[] = [
   {
     id: 'public-ingress',
@@ -38,6 +40,7 @@ const components: {
     iconId: 'radix-paper-plane',
     color: 'accent-falcon',
     data: publicIngressData as DiagramViewerProps['data'],
+    isComplete: publicIngressData.isComplete === true,
   },
   {
     id: 'lan-ingress',
@@ -45,6 +48,7 @@ const components: {
     iconId: 'radix-paper-plane',
     color: 'accent-falcon',
     data: lanIngressData as DiagramViewerProps['data'],
+    isComplete: lanIngressData.isComplete === true,
   },
   {
     id: 'istio',
@@ -52,6 +56,7 @@ const components: {
     iconId: 'istio',
     color: 'accent-falcon',
     data: istioData as DiagramViewerProps['data'],
+    isComplete: istioData.isComplete === true,
   },
   {
     id: 'virtualization',
@@ -59,6 +64,7 @@ const components: {
     iconId: 'radix-card-stack',
     color: 'warning',
     data: virtualizationData as DiagramViewerProps['data'],
+    isComplete: virtualizationData.isComplete === true,
   },
   {
     id: 'storage',
@@ -66,6 +72,7 @@ const components: {
     iconId: 'cylinder',
     color: 'warning',
     data: storageData as DiagramViewerProps['data'],
+    isComplete: storageData.isComplete === true,
   },
   {
     id: 'developer-experience',
@@ -73,6 +80,7 @@ const components: {
     iconId: 'radix-code',
     color: 'warning',
     data: developerExperienceData as DiagramViewerProps['data'],
+    isComplete: developerExperienceData.isComplete === true,
   },
   {
     id: 'monitoring',
@@ -80,6 +88,7 @@ const components: {
     iconId: 'radix-eye-open',
     color: 'secondary',
     data: monitoringData as DiagramViewerProps['data'],
+    isComplete: monitoringData.isComplete === true,
   },
   {
     id: 'media-stack',
@@ -87,6 +96,7 @@ const components: {
     iconId: 'radix-mixer',
     color: 'primary',
     data: mediaStackData as DiagramViewerProps['data'],
+    isComplete: mediaStackData.isComplete === true,
   },
   {
     id: 'custom-app-pipeline',
@@ -94,6 +104,7 @@ const components: {
     iconId: 'radix-code',
     color: 'accent-purple',
     data: customAppPipelineData as DiagramViewerProps['data'],
+    isComplete: customAppPipelineData.isComplete === true,
   },
   {
     id: 'gitops-pipeline',
@@ -101,20 +112,20 @@ const components: {
     iconId: 'radix-upload',
     color: 'accent-purple',
     data: gitopsPipelineData as DiagramViewerProps['data'],
+    isComplete: gitopsPipelineData.isComplete === true,
   },
 ];
 
 export function ServiceComponents() {
-  const [selectedId, setSelectedId] = useState(components[0].id);
-  const selected = components.find((c) => c.id === selectedId) ?? components[0];
-  const selectedPalette = getConnectorPalette(selected.color);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = components.find((c) => c.id === selectedId);
+  const selectedPalette = selected && getConnectorPalette(selected.color);
 
   // Decoupled from selectedId: the diagram only swaps to match the
   // selection once the connector's spark has actually arrived (see the
   // sequencing comment below), not the instant a button is clicked.
-  const [displayedId, setDisplayedId] = useState(components[0].id);
-  const displayed =
-    components.find((c) => c.id === displayedId) ?? components[0];
+  const [displayedId, setDisplayedId] = useState<string | null>(null);
+  const displayed = components.find((c) => c.id === displayedId);
 
   // maskGeneration: bumped on click to remount MaskReveal in its closed
   // state immediately, covering the *current* diagram right away.
@@ -175,39 +186,66 @@ export function ServiceComponents() {
       </div>
 
       <div ref={entryRef} style={{ paddingLeft: DIAGRAM_LEFT_PADDING }}>
-        <MaskReveal
-          key={maskGeneration}
-          reveal={revealTrigger}
-          animated={maskGeneration > 0}
-          direction="left-to-right"
-          duration={500}
-          maskClassName="bg-neutral-950"
-          edgeColor={selectedPalette.hex}
-        >
-          <DiagramViewer
-            key={displayed.id}
-            data={displayed.data}
-            height="500px"
-            className={selectedPalette.borderClass}
-            renderIcon={renderSimpleIcon}
-          />
-        </MaskReveal>
+        {displayed ? (
+          <MaskReveal
+            key={maskGeneration}
+            reveal={revealTrigger}
+            animated={maskGeneration > 0}
+            direction="left-to-right"
+            duration={500}
+            maskClassName="bg-neutral-950"
+            edgeColor={selectedPalette?.hex}
+          >
+            {displayed.isComplete ? (
+              <DiagramViewer
+                key={displayed.id}
+                data={displayed.data}
+                height="500px"
+                className={selectedPalette?.borderClass}
+                renderIcon={renderSimpleIcon}
+              />
+            ) : (
+              <div
+                key={displayed.id}
+                className={`relative w-full overflow-hidden border bg-neutral-900 ${selectedPalette?.borderClass ?? ''}`}
+                style={{ height: '500px' }}
+              >
+                <CautionTape label="UNDER CONSTRUCTION" />
+              </div>
+            )}
+          </MaskReveal>
+        ) : (
+          <div
+            className="relative w-full overflow-hidden border border-neutral-700 bg-neutral-900 flex items-center justify-center"
+            style={{ height: '500px' }}
+          >
+            <Typography
+              variant="body1"
+              component="p"
+              className="text-neutral-500 text-center px-8"
+            >
+              Select a pattern above to resolve its component-level detail.
+            </Typography>
+          </div>
+        )}
       </div>
 
-      <SelectionConnector
-        containerRef={containerRef}
-        buttonRefs={buttonRefs}
-        entryRef={entryRef}
-        selectedId={selectedId}
-        color={selected.color}
-        // Sequencing: 1. click covers the mask immediately (maskGeneration
-        // bump, revealTrigger false)  2. spark plays  3. spark arrives  4.
-        // diagram content swaps and the same mask instance opens over it.
-        onArrive={() => {
-          setDisplayedId(selectedId);
-          setRevealTrigger(true);
-        }}
-      />
+      {selectedId && selected && (
+        <SelectionConnector
+          containerRef={containerRef}
+          buttonRefs={buttonRefs}
+          entryRef={entryRef}
+          selectedId={selectedId}
+          color={selected.color}
+          // Sequencing: 1. click covers the mask immediately (maskGeneration
+          // bump, revealTrigger false)  2. spark plays  3. spark arrives  4.
+          // diagram content swaps and the same mask instance opens over it.
+          onArrive={() => {
+            setDisplayedId(selectedId);
+            setRevealTrigger(true);
+          }}
+        />
+      )}
     </div>
   );
 }
