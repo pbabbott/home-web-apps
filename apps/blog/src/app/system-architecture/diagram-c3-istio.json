@@ -1,4 +1,5 @@
 {
+  "isComplete": true,
   "nodes": [
     {
       "id": "istio_k8s",
@@ -148,7 +149,7 @@
       },
       "data": {
         "label": "HelmRelease: ztunnel",
-        "content": "DaemonSet — one pod per node\nHBONE protocol (HTTP/2 CONNECT)\nAmbient mode: no sidecars in app pods\nL4 policy enforcement",
+        "content": "DaemonSet \u2014 one pod per node\nHBONE protocol (HTTP/2 CONNECT)\nAmbient mode: no sidecars in app pods\nL4 policy enforcement",
         "iconId": "helm",
         "colorScheme": "secondary",
         "width": 420,
@@ -292,7 +293,7 @@
       },
       "data": {
         "label": "HTTPRoute",
-        "content": "Routes from Gateway\nHost/path matching rules\nBackendRef → Service",
+        "content": "Routes from Gateway\nHost/path matching rules\nBackendRef \u2192 Service",
         "width": 300,
         "height": 110,
         "handles": [
@@ -739,6 +740,5 @@
         "active": true
       }
     }
-  ],
-  "isComplete": false
+  ]
 }

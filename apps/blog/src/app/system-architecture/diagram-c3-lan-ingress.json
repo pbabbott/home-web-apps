@@ -1,4 +1,5 @@
 {
+  "isComplete": true,
   "nodes": [
     {
       "id": "node_43",
@@ -1196,6 +1197,5 @@
         "active": true
       }
     }
-  ],
-  "isComplete": true
+  ]
 }

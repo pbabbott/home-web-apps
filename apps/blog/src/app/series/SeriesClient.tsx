@@ -1,10 +1,10 @@
 'use client';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
-import { Typography } from '@abbottland/fui-components';
+import { CautionTape, Typography } from '@abbottland/fui-components';
 
 export default function SeriesClient() {
   return (
-    <div>
+    <div className="relative min-h-screen">
       <StickyHeader />
       <main className="pt-20 px-4">
         <Typography
@@ -19,6 +19,7 @@ export default function SeriesClient() {
           for future deployment.
         </Typography>
       </main>
+      <CautionTape label="UNDER CONSTRUCTION" />
     </div>
   );
 }

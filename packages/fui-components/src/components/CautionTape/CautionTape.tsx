@@ -56,7 +56,7 @@ export const CautionTape: React.FC<CautionTapeProps> = ({
       `}</style>
 
       <div
-        className="relative flex h-10 w-full items-center justify-center overflow-hidden"
+        className="relative flex min-h-10 w-full items-center justify-center overflow-hidden"
         style={{
           animation: `${glowAnim} ${GLOW_DURATION}s ease-in-out infinite`,
         }}
@@ -94,7 +94,7 @@ export const CautionTape: React.FC<CautionTapeProps> = ({
           <Typography
             variant="body2"
             component="span"
-            className="relative px-10 py-1 uppercase tracking-[.2em] text-white [text-shadow:0_0_6px_rgba(0,0,0,0.65)]"
+            className="relative px-10 py-1 uppercase tracking-[.2em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.85)]"
           >
             {label}
           </Typography>

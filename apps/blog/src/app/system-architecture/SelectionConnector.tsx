@@ -245,6 +245,11 @@ export function SelectionConnector({
           pathEl.style.strokeDasharray = '';
           pathEl.style.strokeDashoffset = '';
           triggerSpark(buildPath(target));
+
+          if (arriveTimeoutRef.current) clearTimeout(arriveTimeoutRef.current);
+          arriveTimeoutRef.current = setTimeout(() => {
+            onArrive?.();
+          }, SPARK_DURATION_MS - ARRIVE_EARLY_MS);
         },
       });
       return;
