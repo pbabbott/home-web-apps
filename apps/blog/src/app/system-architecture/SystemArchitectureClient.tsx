@@ -1,5 +1,6 @@
 'use client';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
+import PageScrollLayout from '@/components/PageScrollLayout/PageScrollLayout';
 import {
   Typography,
   DiagramViewer,
@@ -75,44 +76,46 @@ export default function SystemArchitectureClient() {
   return (
     <div className="min-h-screen bg-neutral-900">
       <StickyHeader />
-      <main className="pt-20 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="mb-16">
-            <Typography
-              variant="h1"
-              component="h1"
-              className="text-neutral-100 mb-6 text-[2rem] sm:text-h1"
-            >
-              System Architecture
-            </Typography>
-            <ProgressiveTerminal
-              lines={introLines}
-              className="max-w-2xl bg-neutral-950"
+      <PageScrollLayout>
+        <main className="pt-20 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-16">
+              <Typography
+                variant="h1"
+                component="h1"
+                className="text-neutral-100 mb-6 text-[2rem] sm:text-h1"
+              >
+                System Architecture
+              </Typography>
+              <ProgressiveTerminal
+                lines={introLines}
+                className="max-w-2xl bg-neutral-950"
+              />
+            </div>
+
+            <ArchSection
+              levelLabel="Context Level :: C1"
+              heading="System Context"
+              description="Highest-order topology. One user device. One residential uplink. One Kubernetes cluster. Scope: everything that matters, nothing that doesn't."
+              complexity={{ label: 'Low', color: 'success' }}
+              diagramHeight="360px"
+              data={diagram01 as DiagramViewerProps['data']}
             />
+
+            <ArchSection
+              levelLabel="Container Level :: C2"
+              heading="Infrastructure Patterns"
+              description="Cluster internals exposed. Ingress controllers, application services, and persistent storage rendered as discrete units. Internal networking partially abstracted."
+              complexity={{ label: 'Moderate', color: 'warning' }}
+              diagramHeight="480px"
+              data={diagram02 as DiagramViewerProps['data']}
+            />
+
+            <ServiceComponentsSection />
           </div>
-
-          <ArchSection
-            levelLabel="Context Level :: C1"
-            heading="System Context"
-            description="Highest-order topology. One user device. One residential uplink. One Kubernetes cluster. Scope: everything that matters, nothing that doesn't."
-            complexity={{ label: 'Low', color: 'success' }}
-            diagramHeight="360px"
-            data={diagram01 as DiagramViewerProps['data']}
-          />
-
-          <ArchSection
-            levelLabel="Container Level :: C2"
-            heading="Infrastructure Patterns"
-            description="Cluster internals exposed. Ingress controllers, application services, and persistent storage rendered as discrete units. Internal networking partially abstracted."
-            complexity={{ label: 'Moderate', color: 'warning' }}
-            diagramHeight="480px"
-            data={diagram02 as DiagramViewerProps['data']}
-          />
-
-          <ServiceComponentsSection />
-        </div>
-      </main>
-      <Footer />
+        </main>
+        <Footer />
+      </PageScrollLayout>
     </div>
   );
 }

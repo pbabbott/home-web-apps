@@ -35,6 +35,30 @@ export interface DiagramViewerProps {
   showMinimap?: boolean;
 }
 
+// iOS Safari never implements the standard Fullscreen API for arbitrary
+// elements (iPhone Safari doesn't expose it at all; older iPad Safari needs
+// the webkit-prefixed variants). These types + helpers cover both prefixed
+// APIs so we can detect support and fall back when there is none.
+interface FullscreenDocument extends Document {
+  webkitFullscreenEnabled?: boolean;
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void>;
+}
+
+interface FullscreenElement extends HTMLDivElement {
+  webkitRequestFullscreen?: () => Promise<void>;
+}
+
+function nativeFullscreenSupported(): boolean {
+  const doc = document as FullscreenDocument;
+  return Boolean(doc.fullscreenEnabled ?? doc.webkitFullscreenEnabled);
+}
+
+function getFullscreenElement(): Element | null {
+  const doc = document as FullscreenDocument;
+  return doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+}
+
 interface DiagramViewerInnerProps {
   nodes: Node[];
   edges: Edge[];
@@ -93,6 +117,12 @@ export function DiagramViewer({
 }: DiagramViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // WORKAROUND: on browsers with no usable Fullscreen API (iPhone Safari,
+  // always; older iPad Safari, sometimes) we fake it with a fixed-position
+  // overlay instead. This is a stopgap, not real fullscreen — no browser
+  // chrome is hidden and there's no native fullscreenchange event backing
+  // it. Revisit if Safari improves support or a better approach shows up.
+  const [isPseudoFullscreen, setIsPseudoFullscreen] = useState(false);
 
   const nodes = useMemo(
     () =>
@@ -113,19 +143,46 @@ export function DiagramViewer({
 
   useEffect(() => {
     const onFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
+      setIsFullscreen(getFullscreenElement() === containerRef.current);
     };
     document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () =>
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    return () => {
       document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener(
+        'webkitfullscreenchange',
+        onFullscreenChange,
+      );
+    };
   }, []);
 
+  // WORKAROUND: body scroll lock for the pseudo-fullscreen fallback above,
+  // since there's no real fullscreen mode holding the layout for us.
+  useEffect(() => {
+    if (!isPseudoFullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isPseudoFullscreen]);
+
   const toggleFullscreen = useCallback(() => {
-    if (!containerRef.current) return;
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
+    const container = containerRef.current as FullscreenElement | null;
+    if (!container) return;
+
+    if (!nativeFullscreenSupported()) {
+      setIsPseudoFullscreen((prev) => !prev);
+      return;
+    }
+
+    if (getFullscreenElement()) {
+      const doc = document as FullscreenDocument;
+      void (document.exitFullscreen?.() ?? doc.webkitExitFullscreen?.());
     } else {
-      void containerRef.current.requestFullscreen();
+      void (
+        container.requestFullscreen?.() ?? container.webkitRequestFullscreen?.()
+      );
     }
   }, []);
 
@@ -133,11 +190,19 @@ export function DiagramViewer({
     <IconRendererProvider renderer={renderIcon}>
       <div
         ref={containerRef}
-        className={extendedTwMerge(diagramContainerClass, className)}
-        style={{ height }}
+        className={extendedTwMerge(
+          diagramContainerClass,
+          // WORKAROUND: fake fullscreen via fixed positioning, see
+          // isPseudoFullscreen above.
+          isPseudoFullscreen &&
+            'diagram-viewer-pseudo-fullscreen fixed inset-0 z-50',
+          className,
+        )}
+        style={isPseudoFullscreen ? undefined : { height }}
       >
         <style>{`${diagramFlowStyles}
-        :fullscreen .diagram-viewer-inner {
+        :fullscreen .diagram-viewer-inner,
+        .diagram-viewer-pseudo-fullscreen .diagram-viewer-inner {
           height: 100%;
         }
       `}</style>
@@ -145,7 +210,7 @@ export function DiagramViewer({
           <DiagramViewerInner
             nodes={nodes}
             edges={edges}
-            isFullscreen={isFullscreen}
+            isFullscreen={isFullscreen || isPseudoFullscreen}
             toggleFullscreen={toggleFullscreen}
             showMinimap={showMinimap}
           />

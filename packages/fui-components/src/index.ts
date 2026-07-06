@@ -176,6 +176,12 @@ export {
   type SegmentedProgressBarProps,
 } from './components/SegmentedProgressBar/SegmentedProgressBar';
 
+// Scrollbar
+export {
+  Scrollbar,
+  type ScrollbarProps,
+} from './components/Scrollbar/Scrollbar';
+
 // Typography
 export {
   Typography,

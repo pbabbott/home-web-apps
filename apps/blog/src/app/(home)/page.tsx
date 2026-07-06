@@ -1,6 +1,7 @@
 'use client';
 import WelcomeSection from './WelcomeSection/WelcomeSection';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
+import PageScrollLayout from '@/components/PageScrollLayout/PageScrollLayout';
 import LandingSection from './LandingSection/LandingSection';
 import LandingSectionContextProvider from './LandingSection/LandingSection.Context';
 import AboutMeSection from './AboutMeSection/AboutMeSection';
@@ -13,14 +14,15 @@ export default function Home() {
     <HomeContextProvider>
       <div>
         <StickyHeader />
-
-        <LandingSectionContextProvider>
-          <LandingSection />
-        </LandingSectionContextProvider>
-        <WelcomeSection />
-        <PromiseSection />
-        <AboutMeSection />
-        <Footer />
+        <PageScrollLayout>
+          <LandingSectionContextProvider>
+            <LandingSection />
+          </LandingSectionContextProvider>
+          <WelcomeSection />
+          <PromiseSection />
+          <AboutMeSection />
+          <Footer />
+        </PageScrollLayout>
       </div>
     </HomeContextProvider>
   );

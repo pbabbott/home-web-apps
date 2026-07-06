@@ -11,11 +11,11 @@ const BREAKPOINT_MAX_HORIZONTAL: {
   minWidthPx: number;
   maxHorizontal: number;
 }[] = [
-  { minWidthPx: 0, maxHorizontal: 3 }, // default
-  { minWidthPx: 640, maxHorizontal: 6 }, // sm
-  { minWidthPx: 768, maxHorizontal: 6 }, // md
-  { minWidthPx: 1024, maxHorizontal: 2 }, // lg
-  { minWidthPx: 1280, maxHorizontal: 2 }, // xl
+  { minWidthPx: 0, maxHorizontal: 4 }, // default
+  { minWidthPx: 640, maxHorizontal: 7 }, // sm
+  { minWidthPx: 768, maxHorizontal: 7 }, // md
+  { minWidthPx: 1024, maxHorizontal: 3 }, // lg
+  { minWidthPx: 1280, maxHorizontal: 3 }, // xl
   { minWidthPx: 1536, maxHorizontal: 3 }, // 2xl
 ];
 
@@ -87,8 +87,9 @@ export default function CategoryList({
   }));
 
   return (
-    <div className="pr-1">
-      <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={4} />
-    </div>
+    // The aside is sized wider than the grid itself so there's slack space
+    // here to let active/hover glow effects bleed without being clipped by
+    // the scroll container's edge.
+    <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={2} />
   );
 }

@@ -83,6 +83,14 @@
   animation: subtle-bounce 2s ease-in-out infinite;
 }
 
+.fui-hide-native-scrollbar {
+  scrollbar-width: none;
+}
+
+.fui-hide-native-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes promise-flow-lr {
   0% {
     left: 0%;

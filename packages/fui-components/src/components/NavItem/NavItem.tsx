@@ -9,12 +9,19 @@ export type NavItemProps<T extends React.ElementType = 'div'> = {
   className?: string;
   children?: React.ReactNode;
   icon?: React.ElementType;
+  rightIcon?: React.ElementType;
   showLeftLine?: boolean;
   showRightLine?: boolean;
   active?: boolean;
 } & Omit<
   React.ComponentPropsWithoutRef<T>,
-  'as' | 'className' | 'children' | 'icon' | 'showLeftLine' | 'showRightLine'
+  | 'as'
+  | 'className'
+  | 'children'
+  | 'icon'
+  | 'rightIcon'
+  | 'showLeftLine'
+  | 'showRightLine'
 >;
 
 export const NavItem = <T extends React.ElementType = 'div'>({
@@ -22,6 +29,7 @@ export const NavItem = <T extends React.ElementType = 'div'>({
   className = '',
   children,
   icon,
+  rightIcon: RightIcon,
   showLeftLine = true,
   showRightLine = true,
   active = false,
@@ -55,6 +63,13 @@ export const NavItem = <T extends React.ElementType = 'div'>({
           <span className={extendedTwMerge(textColor, hoverClasses)}>
             {children}
           </span>
+          {RightIcon && (
+            <RightIcon
+              width={16}
+              height={16}
+              className={extendedTwMerge(textColor, hoverClasses, 'opacity-60')}
+            />
+          )}
 
           {showRightLine ? (
             <LineWithCircle height={lineHeight} circleRadius={circleRadius} />

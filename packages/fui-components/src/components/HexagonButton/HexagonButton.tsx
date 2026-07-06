@@ -27,8 +27,8 @@ export function HexagonButton({
       <button
         style={{
           position: 'relative',
-          width: 120,
-          height: 120,
+          width: 100,
+          height: 100,
           cursor: 'pointer',
           outline: 'none',
           background: 'transparent',
@@ -42,9 +42,9 @@ export function HexagonButton({
         aria-pressed={active}
       >
         <svg
-          width="120"
-          height="120"
-          viewBox="0 0 120 120"
+          width="100"
+          height="100"
+          viewBox="0 0 100 100"
           style={{
             overflow: 'visible',
             transition: 'filter 0.4s ease',
