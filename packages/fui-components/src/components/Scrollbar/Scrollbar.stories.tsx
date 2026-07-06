@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Scrollbar } from './Scrollbar';
 import { Typography } from '../Typography/Typography';
@@ -51,29 +51,30 @@ export const NoDots: Story = {
   args: { showDots: false },
 };
 
+const InteractiveDemo = (args: ComponentProps<typeof Scrollbar>) => {
+  const [thumbPosition, setThumbPosition] = useState(args.thumbPosition);
+
+  const maxPosition = 1 - (args.thumbSize ?? 0);
+  const clamp = (value: number) => Math.min(Math.max(value, 0), maxPosition);
+
+  return (
+    <Scrollbar
+      {...args}
+      thumbPosition={thumbPosition}
+      onThumbPositionChange={(position) => setThumbPosition(clamp(position))}
+      onPageStep={(direction) =>
+        setThumbPosition((current) =>
+          clamp(
+            current + (direction === 'down' ? PAGE_STEP_SIZE : -PAGE_STEP_SIZE),
+          ),
+        )
+      }
+    />
+  );
+};
+
 export const Interactive: Story = {
-  render: (args) => {
-    const [thumbPosition, setThumbPosition] = useState(args.thumbPosition);
-
-    const maxPosition = 1 - args.thumbSize;
-    const clamp = (value: number) => Math.min(Math.max(value, 0), maxPosition);
-
-    return (
-      <Scrollbar
-        {...args}
-        thumbPosition={thumbPosition}
-        onThumbPositionChange={(position) => setThumbPosition(clamp(position))}
-        onPageStep={(direction) =>
-          setThumbPosition((current) =>
-            clamp(
-              current +
-                (direction === 'down' ? PAGE_STEP_SIZE : -PAGE_STEP_SIZE),
-            ),
-          )
-        }
-      />
-    );
-  },
+  render: (args) => <InteractiveDemo {...args} />,
 };
 
 export const WithContent: Story = {
