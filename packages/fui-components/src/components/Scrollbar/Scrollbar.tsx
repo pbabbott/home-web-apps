@@ -59,8 +59,14 @@ export function Scrollbar({
     (event: ReactPointerEvent<SVGRectElement>) => {
       if (!onThumbPositionChange) return;
       event.stopPropagation();
-      event.currentTarget.setPointerCapture(event.pointerId);
       dragState.current = { startClientY: event.clientY, startThumbY: thumbY };
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Some mobile browsers don't support pointer capture on SVG
+        // elements; dragState is already set so drag still tracks via
+        // regular event bubbling instead of capture.
+      }
     },
     [onThumbPositionChange, thumbY],
   );
@@ -81,7 +87,11 @@ export function Scrollbar({
   const handleThumbPointerUp = useCallback(
     (event: ReactPointerEvent<SVGRectElement>) => {
       dragState.current = null;
-      event.currentTarget.releasePointerCapture(event.pointerId);
+      try {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      } catch {
+        // No-op if capture was never established.
+      }
     },
     [],
   );
@@ -103,7 +113,10 @@ export function Scrollbar({
       width={resolvedWidth}
       height={height}
       viewBox={`0 0 ${resolvedWidth} ${height}`}
-      style={{ overflow: 'visible' }}
+      style={{
+        overflow: 'visible',
+        touchAction: onThumbPositionChange ? 'none' : undefined,
+      }}
       role="presentation"
     >
       <line
@@ -164,16 +177,25 @@ export function Scrollbar({
         width={TICK_LENGTH}
         height={thumbHeight}
         fill={primary[500]}
+        pointerEvents="none"
         style={{
           filter: `drop-shadow(0 0 3px ${primary[500]}90)`,
-          cursor: onThumbPositionChange ? 'grab' : undefined,
-          touchAction: onThumbPositionChange ? 'none' : undefined,
         }}
-        onPointerDown={handleThumbPointerDown}
-        onPointerMove={handleThumbPointerMove}
-        onPointerUp={handleThumbPointerUp}
-        onPointerCancel={handleThumbPointerUp}
       />
+      {onThumbPositionChange && (
+        <rect
+          x={0}
+          y={thumbY}
+          width={resolvedWidth}
+          height={thumbHeight}
+          fill="transparent"
+          style={{ cursor: 'grab', touchAction: 'none' }}
+          onPointerDown={handleThumbPointerDown}
+          onPointerMove={handleThumbPointerMove}
+          onPointerUp={handleThumbPointerUp}
+          onPointerCancel={handleThumbPointerUp}
+        />
+      )}
     </svg>
   );
 }
