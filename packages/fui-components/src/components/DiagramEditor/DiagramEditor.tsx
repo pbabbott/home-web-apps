@@ -39,7 +39,7 @@ export interface DiagramEditorProps {
 }
 
 const defaultEdgeOptions = {
-  type: 'basic',
+  type: 'default',
   style: { stroke: neutral[300], strokeWidth: 2 },
   markerEnd: { type: 'arrowclosed' as const },
 };

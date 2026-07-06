@@ -15,6 +15,7 @@ import {
   CardStackMinusIcon,
   SectionIcon,
   LayersIcon,
+  Share1Icon,
   OpenInNewWindowIcon,
 } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -56,14 +57,20 @@ const NAV_OVERFLOW_ITEMS: NavOverflowItem[] = [
     href: 'https://fui-components.abbottland.io/',
     external: true,
   },
+  {
+    key: 'diagram-maker',
+    label: 'Diagram Maker',
+    icon: Share1Icon,
+    href: 'https://diagram-maker.abbottland.io',
+    external: true,
+  },
 ];
 
 // Ascending breakpoints, one per NAV_OVERFLOW_ITEMS entry by index: the
 // item at index 0 promotes into the navbar first (smallest screen) and is
 // the last to fold back into the dropdown; the last item promotes last
-// (largest screen only) and is the first to fold back in. There's plenty of
-// unused width at `lg` for all three items, so nothing waits for `xl`.
-const OVERFLOW_BREAKPOINTS: OverflowBreakpoint[] = ['sm', 'md', 'lg'];
+// (largest screen only) and is the first to fold back in.
+const OVERFLOW_BREAKPOINTS: OverflowBreakpoint[] = ['sm', 'md', 'lg', 'xl'];
 
 const BREAKPOINT_MIN_WIDTH_PX: Record<OverflowBreakpoint, number> = {
   sm: 640,

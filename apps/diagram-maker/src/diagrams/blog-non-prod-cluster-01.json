@@ -4,18 +4,19 @@
       "id": "node_0",
       "type": "labeled",
       "position": {
-        "x": 664,
-        "y": 273.609375
+        "x": 672.7055056329613,
+        "y": 291.02038626592247
       },
       "data": {
         "label": "Mini PC / Proxmox",
         "content": "",
-        "width": 202,
-        "height": 342
+        "width": 223,
+        "height": 326,
+        "iconId": "proxmox"
       },
       "measured": {
-        "width": 202,
-        "height": 342
+        "width": 223,
+        "height": 326
       },
       "selected": false,
       "dragging": false,
@@ -25,18 +26,19 @@
       "id": "node_1",
       "type": "labeled",
       "position": {
-        "x": 411.5,
-        "y": 307.4140625
+        "x": 333.14164686935004,
+        "y": 312.68185094575796
       },
       "data": {
         "label": "Banana PI",
         "content": "",
-        "width": 187,
-        "height": 144
+        "width": 245,
+        "height": 134,
+        "iconId": "banana"
       },
       "measured": {
-        "width": 187,
-        "height": 144
+        "width": 245,
+        "height": 134
       },
       "selected": false,
       "dragging": false,
@@ -46,8 +48,8 @@
       "id": "node_2",
       "type": "customDefault",
       "position": {
-        "x": 435.5,
-        "y": 346.9140625
+        "x": 372.94501220662397,
+        "y": 345.5971153885605
       },
       "data": {
         "content": "haproxy\n(load balancer)",
@@ -62,7 +64,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "haproxy"
       },
       "measured": {
         "width": 150,
@@ -86,21 +89,25 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "kubernetes",
+        "width": 180,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 180,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
       "id": "node_4",
       "type": "customDefault",
       "position": {
-        "x": 208.5,
-        "y": 334.9140625
+        "x": 135.49467434598034,
+        "y": 345.6350404103565
       },
       "data": {
         "content": "Wi-Fi Router",
@@ -110,7 +117,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "iconId": "router"
       },
       "measured": {
         "width": 150,
@@ -134,14 +142,18 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "kubernetes",
+        "width": 179,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 179,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     },
     {
       "id": "node_6",
@@ -158,14 +170,18 @@
             "type": "target",
             "position": "left"
           }
-        ]
+        ],
+        "iconId": "kubernetes",
+        "width": 180,
+        "height": 80
       },
       "measured": {
-        "width": 150,
+        "width": 180,
         "height": 80
       },
       "selected": false,
-      "dragging": false
+      "dragging": false,
+      "resizing": false
     }
   ],
   "edges": [
@@ -239,5 +255,6 @@
       "id": "xy-edge__node_2handle-1771385702907-node_6handle-1771385698148",
       "selected": false
     }
-  ]
+  ],
+  "isComplete": false
 }

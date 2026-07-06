@@ -428,7 +428,8 @@
             "type": "source",
             "position": "right"
           }
-        ]
+        ],
+        "colorScheme": "default"
       },
       "measured": {
         "width": 161,
@@ -519,7 +520,7 @@
   ],
   "edges": [
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -539,47 +540,7 @@
       }
     },
     {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_7",
-      "sourceHandle": "handle-1780536048818",
-      "target": "node_0",
-      "targetHandle": "handle-1780535765034",
-      "id": "xy-edge__node_7handle-1780536048818-node_0handle-1780535765034",
-      "selected": false,
-      "zIndex": 20,
-      "data": {
-        "active": true
-      }
-    },
-    {
-      "type": "basic",
-      "style": {
-        "stroke": "#C8D9DE",
-        "strokeWidth": 2
-      },
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "source": "node_5",
-      "sourceHandle": "handle-1780536008531",
-      "target": "node_0",
-      "targetHandle": "handle-1780535765034",
-      "id": "xy-edge__node_5handle-1780536008531-node_0handle-1780535765034",
-      "selected": false,
-      "zIndex": 20,
-      "data": {
-        "active": true
-      }
-    },
-    {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -599,7 +560,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -619,7 +580,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -639,7 +600,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -659,7 +620,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -679,7 +640,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -699,7 +660,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
@@ -719,7 +680,7 @@
       }
     },
     {
-      "type": "basic",
+      "type": "default",
       "style": {
         "stroke": "#C8D9DE",
         "strokeWidth": 2
