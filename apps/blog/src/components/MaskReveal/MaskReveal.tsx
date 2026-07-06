@@ -123,7 +123,11 @@ export default function MaskReveal({
         applyEdge(clipValue.value);
       },
       complete: () => {
-        el.style.clipPath = inset(0);
+        // Clear rather than leave inset(0): a lingering clip-path (even a
+        // no-op one) makes this div a containing block for fixed-position
+        // descendants, breaking iOS Safari's pseudo-fullscreen fallback in
+        // DiagramViewer for any content mounted underneath.
+        el.style.clipPath = '';
         setPhase('complete');
         onComplete?.();
       },
