@@ -12,7 +12,11 @@ const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below
-  transpilePackages: ['@abbottland/fui-components', '@xyflow/react'],
+  transpilePackages: [
+    '@abbottland/fui-components',
+    '@abbottland/next-middleware',
+    '@xyflow/react',
+  ],
   images: {
     loader: 'custom',
     loaderFile: './src/lib/imageLoader.ts',

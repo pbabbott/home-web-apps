@@ -117,6 +117,13 @@
     "smoke:deps:build": {
       "cache": false
     },
+    "@abbottland/blog#smoke:deps:build": {
+      "cache": false,
+      "dependsOn": [
+        "@abbottland/fui-components#build:npm",
+        "@abbottland/fui-icons#build:npm"
+      ]
+    },
     "smoke:deps:down": {
       "cache": false
     },
