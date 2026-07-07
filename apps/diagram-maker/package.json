@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 4021 --webpack",
-    "build": "next build",
+    "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "eslint",
     "docker:build:base": "abctl docker build -c abctl.base.yml",
