@@ -1,0 +1,5 @@
+{
+  "description": "Typescript configuration for running tests",
+  "extends": "@abbottland/typescript-config/ts-server-test.json",
+  "include": ["tests/**/*.test.ts"]
+}
