@@ -17,6 +17,11 @@ export default function RootLayout({
     <html lang="en">
       <title>Abbottland.io</title>
       <body className="antialiased bg-neutral-800">
+        <script
+          defer
+          src="/api/analytics-loader"
+          data-website-id="38ed476c-28c6-468f-9007-262379b29557"
+        />
         <ProxyNavigationFixer />
         {children}
       </body>

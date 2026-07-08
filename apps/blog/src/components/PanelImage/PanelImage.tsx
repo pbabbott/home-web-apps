@@ -15,7 +15,7 @@ export default function PanelImage({
   return (
     <Panel
       color="primary"
-      className="flex-shrink-0 py-4 min-h-64 bg-neutral-950"
+      className="flex-shrink-0 py-4 min-h-64 bg-neutral-1000"
     >
       <Image
         src={src}

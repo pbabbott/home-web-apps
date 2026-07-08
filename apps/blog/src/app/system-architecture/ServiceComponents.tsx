@@ -193,7 +193,7 @@ export function ServiceComponents() {
             animated={maskGeneration > 0}
             direction="left-to-right"
             duration={500}
-            maskClassName="bg-neutral-950"
+            maskClassName="bg-neutral-1000"
             edgeColor={selectedPalette?.hex}
           >
             {displayed.isComplete ? (
@@ -216,7 +216,7 @@ export function ServiceComponents() {
           </MaskReveal>
         ) : (
           <div
-            className="relative w-full overflow-hidden border border-neutral-700 bg-neutral-900 flex items-center justify-center"
+            className="relative w-full overflow-hidden border border-neutral-700 bg-neutral-1000 flex items-center justify-center"
             style={{ height: '500px' }}
           >
             <Typography

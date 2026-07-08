@@ -61,7 +61,7 @@ export default function PageScrollbar({
 
   return (
     <div
-      className={`fixed top-0 right-0 bottom-0 z-20 flex w-4 md:w-6 justify-center bg-neutral-950 ${className}`}
+      className={`fixed top-0 right-0 bottom-0 z-20 flex w-4 md:w-6 justify-center bg-neutral-1000 ${className}`}
       style={{ paddingTop: headerHeight }}
     >
       {barHeight > 0 && (

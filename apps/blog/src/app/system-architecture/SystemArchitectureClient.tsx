@@ -89,7 +89,7 @@ export default function SystemArchitectureClient() {
               </Typography>
               <ProgressiveTerminal
                 lines={introLines}
-                className="max-w-2xl bg-neutral-950"
+                className="max-w-2xl bg-neutral-1000"
               />
             </div>
 
