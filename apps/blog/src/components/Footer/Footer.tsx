@@ -9,7 +9,7 @@ import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons';
 export default function Footer() {
   const imageTag = process.env.IMAGE_TAG ?? 'dev';
   return (
-    <footer className="bg-neutral-950 w-full">
+    <footer className="bg-neutral-1000 w-full">
       <div className="max-w-screen-lg mx-auto px-6 py-12">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-8 mb-8">
           {/* Identity + image tag */}

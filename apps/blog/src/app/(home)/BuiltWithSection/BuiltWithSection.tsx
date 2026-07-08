@@ -56,7 +56,7 @@ export default function BuiltWithSection() {
   return (
     <div
       id="built-with"
-      className="bg-neutral-950 w-full flex flex-col items-center justify-center px-4 py-16"
+      className="bg-neutral-800 w-full flex flex-col items-center justify-center px-4 py-16"
     >
       <div className="flex flex-col items-center w-full max-w-screen-lg gap-6">
         <Typography variant="h2" component="h2" className="text-center">
