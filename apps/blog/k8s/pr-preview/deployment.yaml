@@ -25,6 +25,8 @@ spec:
           env:
             - name: IMAGE_TAG
               value: '${IMAGE_TAG}'
+            - name: ENABLE_ANALYTICS
+              value: 'false'
           ports:
             - containerPort: 3000
           readinessProbe:

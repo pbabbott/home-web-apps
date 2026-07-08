@@ -31,6 +31,22 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            // Next.js emits un-nonced inline hydration scripts, so 'unsafe-inline'
+            // stays required; this only pins which *origins* may load script.
+            value:
+              "script-src 'self' 'unsafe-inline' https://analytics.abbottland.io;",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 const withMDX = createMDX({
