@@ -20,6 +20,8 @@ export type TiledHexagonsProps = {
   tiles?: TiledHexagonTile[];
   tileGap?: number;
   maxHorizontal?: number;
+  /** false = suppress shimmer/travel-ring spark effects on active tiles (e.g. reduced-motion mode) */
+  animated?: boolean;
 };
 
 function getRanges(
@@ -66,6 +68,7 @@ export function TiledHexagons({
   tiles = [],
   tileGap = 2,
   maxHorizontal = 5,
+  animated = true,
 }: TiledHexagonsProps) {
   const tileCount = tiles.length;
   const columnCount = getColumnCount(tileCount, maxHorizontal);
@@ -108,6 +111,7 @@ export function TiledHexagons({
               label={label}
               lowerLabel={tile.lowerLabel}
               active={tile.active}
+              animated={animated}
               onClick={tile.onClick}
             />
           </div>

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Node, Edge } from '@xyflow/react';
-import { Button, Typography } from '@abbottland/fui-components';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { Modal, ModalContent, ModalTitle } from '@abbottland/fui-components';
 import { ExportTab } from './ExportTab';
 import { ImportTab } from './ImportTab';
 import { LocalDiagramsTab } from './LocalDiagramsTab';
@@ -34,23 +33,14 @@ export function ImportExportModal({
     }`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-secondary-800 rounded-xl border border-secondary-700 p-4 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <Typography variant="h3" component="h3">
-            Import / Export
-          </Typography>
-          <Button
-            onClick={onClose}
-            color="secondary"
-            variant="text"
-            className="text-secondary-400 hover:text-white"
-          >
-            <Cross2Icon width={20} height={20} />
-          </Button>
-        </div>
+    <Modal open onOpenChange={(open: boolean) => !open && onClose()}>
+      <ModalContent
+        color="secondary"
+        className="max-w-2xl max-h-[80vh] flex flex-col"
+      >
+        <ModalTitle>Import / Export</ModalTitle>
 
-        <div className="flex border-b border-secondary-700 mb-4">
+        <div className="flex border-b border-secondary-700 mb-4 mt-4">
           <button
             className={tabClass('export')}
             onClick={() => setActiveTab('export')}
@@ -82,7 +72,7 @@ export function ImportExportModal({
         {activeTab === 'local-diagrams' && isLocal && (
           <LocalDiagramsTab onClose={onClose} />
         )}
-      </div>
-    </div>
+      </ModalContent>
+    </Modal>
   );
 }

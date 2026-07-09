@@ -3,11 +3,11 @@
 import {
   Typography,
   Button,
+  Switch,
   type HandleConfig,
   type HandlePosition,
 } from '@abbottland/fui-components';
 import { PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
-import * as Switch from '@radix-ui/react-switch';
 import { useDiagramEditor } from '../../DiagramEditorContext';
 import { handlePositionOptions } from '../constants';
 
@@ -101,19 +101,16 @@ export function HandlesControl() {
                   >
                     {handle.type === 'source' ? 'Out' : 'In'}
                   </Typography>
-                  <Switch.Root
+                  <Switch
                     id={`handle-type-${handle.id}`}
                     checked={handle.type === 'source'}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       updateHandle(handle.id, {
                         type: checked ? 'source' : 'target',
                       })
                     }
                     disabled={!hasSelection}
-                    className="w-9 h-5 bg-primary-900 rounded-full relative data-[state=checked]:bg-primary-500 outline-none cursor-default disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Switch.Thumb className="block w-4 h-4 bg-white rounded-full transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[18px]" />
-                  </Switch.Root>
+                  />
                 </div>
                 <select
                   value={handle.position}

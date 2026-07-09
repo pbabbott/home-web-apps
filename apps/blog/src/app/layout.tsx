@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import '@abbottland/fui-components/globals.css';
 import './globals.css';
 import ProxyNavigationFixer from '@/components/ProxyNavigationFixer/ProxyNavigationFixer';
+import DebugModal from '@/components/DebugModal/DebugModal';
+import AnimationsContextProvider from '@/context/Animations.Context';
 
 export const metadata: Metadata = {
   title: 'Abbottland.io',
@@ -21,9 +23,13 @@ export default function RootLayout({
           defer
           src="/api/analytics-loader"
           data-website-id="38ed476c-28c6-468f-9007-262379b29557"
+          data-host-url="https://analytics.abbottland.io"
         />
         <ProxyNavigationFixer />
-        {children}
+        <AnimationsContextProvider>
+          {children}
+          <DebugModal />
+        </AnimationsContextProvider>
       </body>
     </html>
   );
