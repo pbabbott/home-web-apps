@@ -96,7 +96,10 @@ export default function ProgressiveTerminal({
   return (
     <TransparentPanel
       color="dark"
-      className={extendedTwMerge('w-full h-56 overflow-hidden', className)}
+      className={extendedTwMerge(
+        'w-full h-56 overflow-hidden bg-neutral-1000 border border-primary-300',
+        className,
+      )}
     >
       <div className="flex flex-col justify-end h-full">
         {state.renderedLines.map((line, i) => (

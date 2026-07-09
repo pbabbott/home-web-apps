@@ -10,6 +10,7 @@ import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
 import Footer from '@/components/Footer/Footer';
+import { useAnimationsContext } from '@/context/Animations.Context';
 import {
   ArchSectionHeader,
   type ArchSectionHeaderProps,
@@ -68,6 +69,8 @@ function ArchSection({
 }
 
 export default function SystemArchitectureClient() {
+  const { animationsEnabled } = useAnimationsContext();
+
   return (
     <div className="min-h-screen bg-neutral-900">
       <StickyHeader />
@@ -84,7 +87,8 @@ export default function SystemArchitectureClient() {
               </Typography>
               <ProgressiveTerminal
                 lines={introLines}
-                className="max-w-2xl bg-neutral-1000"
+                className="max-w-2xl"
+                animated={animationsEnabled}
               />
             </div>
 
