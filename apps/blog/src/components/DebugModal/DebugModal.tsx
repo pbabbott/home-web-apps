@@ -9,8 +9,10 @@ import {
   Switch,
   Button,
   Typography,
+  Badge,
+  HorizontalRule,
 } from '@abbottland/fui-components';
-import { Cross1Icon } from '@radix-ui/react-icons';
+import { Cross1Icon, ReloadIcon } from '@radix-ui/react-icons';
 import {
   getAnimationsEnabled,
   getAnimationsOverride,
@@ -18,9 +20,14 @@ import {
   clearAnimationsDisabledOverride,
   subscribeToAnimationsChange,
 } from '@/context/Animations.Context';
+import {
+  getAnalyticsDiagnostics,
+  type AnalyticsDiagnostics,
+} from '@/lib/analyticsDiagnostics';
 
 export default function DebugModal() {
   const [open, setOpen] = useState(false);
+  const [analytics, setAnalytics] = useState<AnalyticsDiagnostics | null>(null);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -32,6 +39,14 @@ export default function DebugModal() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const refreshAnalytics = () => {
+    void getAnalyticsDiagnostics().then(setAnalytics);
+  };
+
+  useEffect(() => {
+    if (open) refreshAnalytics();
+  }, [open]);
 
   const animationsEnabled = useSyncExternalStore(
     subscribeToAnimationsChange,
@@ -78,6 +93,61 @@ export default function DebugModal() {
               <Cross1Icon width={14} height={14} />
             </Button>
           </div>
+        </div>
+
+        <HorizontalRule className="mt-4" />
+
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <Typography variant="body2" component="span">
+              Umami Analytics
+            </Typography>
+            <div className="flex items-center gap-2">
+              <Badge
+                color={
+                  analytics?.loaderStatus === 'enabled'
+                    ? 'success'
+                    : analytics?.loaderStatus === 'disabled'
+                      ? 'error'
+                      : 'dark'
+                }
+              >
+                {analytics?.loaderStatus ?? 'checking...'}
+              </Badge>
+              <Button
+                onClick={refreshAnalytics}
+                color="secondary"
+                variant="text"
+                className="!p-1 !min-w-0"
+                title="Refresh"
+                aria-label="Refresh analytics diagnostics"
+              >
+                <ReloadIcon width={14} height={14} />
+              </Button>
+            </div>
+          </div>
+          <Typography
+            variant="caption"
+            component="p"
+            className="text-neutral-400"
+          >
+            Website ID: {analytics?.websiteId ?? '—'}
+          </Typography>
+          <Typography
+            variant="caption"
+            component="p"
+            className="text-neutral-400"
+          >
+            Host: {analytics?.hostUrl ?? '—'}
+          </Typography>
+          <Typography
+            variant="caption"
+            component="p"
+            className="text-neutral-400"
+          >
+            Script loaded:{' '}
+            {analytics ? (analytics.scriptLoaded ? 'yes' : 'no') : '—'}
+          </Typography>
         </div>
       </ModalContent>
     </Modal>
