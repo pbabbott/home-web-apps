@@ -5,7 +5,7 @@ import LandingTerminal from './LandingTerminal';
 import { LandingSectionContext } from './LandingSection.Context';
 import LandingSectionTitle from './LandingSectionTitle';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
-import { useHomeContext } from '../Home.Context';
+import { useAnimationsContext } from '@/context/Animations.Context';
 
 export default function LandingSection() {
   const {
@@ -14,7 +14,7 @@ export default function LandingSection() {
     showBackgroundExperience,
     resumeTerminal,
   } = useContext(LandingSectionContext);
-  const { animationsEnabled } = useHomeContext();
+  const { animationsEnabled } = useAnimationsContext();
 
   return (
     <>
