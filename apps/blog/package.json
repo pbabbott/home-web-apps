@@ -36,7 +36,7 @@
     "animejs": "^3.2.2",
     "gray-matter": "^4.0.3",
     "isbot": "^5.1.40",
-    "next": "16.0.1",
+    "next": "16.2.6",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-typed": "^2.0.12",
