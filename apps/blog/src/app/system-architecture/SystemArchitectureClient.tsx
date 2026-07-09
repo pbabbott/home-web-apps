@@ -3,10 +3,9 @@ import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import PageScrollLayout from '@/components/PageScrollLayout/PageScrollLayout';
 import {
   Typography,
-  DiagramViewer,
   type DiagramViewerProps,
 } from '@abbottland/fui-components';
-import { renderSimpleIcon } from '@abbottland/fui-icons';
+import { DiagramViewer } from '@/components/diagram';
 import ProgressiveTerminal, {
   type TerminalLine,
 } from '@/components/ProgressiveTerminal/ProgressiveTerminal';
@@ -63,11 +62,7 @@ function ArchSection({
   return (
     <section className="mb-20">
       <ArchSectionHeader {...headerProps} />
-      <DiagramViewer
-        data={data}
-        height={diagramHeight}
-        renderIcon={renderSimpleIcon}
-      />
+      <DiagramViewer data={data} height={diagramHeight} />
     </section>
   );
 }

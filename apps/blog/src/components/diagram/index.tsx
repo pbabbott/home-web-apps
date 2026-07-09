@@ -5,9 +5,17 @@ import {
   type DiagramViewerProps,
 } from '@abbottland/fui-components';
 import { renderSimpleIcon } from '@abbottland/fui-icons';
+import { useAnimationsContext } from '@/context/Animations.Context';
 
 export function DiagramViewer(props: DiagramViewerProps) {
-  return <BaseDiagramViewer {...props} renderIcon={renderSimpleIcon} />;
+  const { animationsEnabled } = useAnimationsContext();
+  return (
+    <BaseDiagramViewer
+      animated={animationsEnabled}
+      {...props}
+      renderIcon={renderSimpleIcon}
+    />
+  );
 }
 
 export type { DiagramViewerProps };

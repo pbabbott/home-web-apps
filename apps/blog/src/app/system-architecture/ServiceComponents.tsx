@@ -2,13 +2,13 @@
 import { useRef, useState } from 'react';
 import {
   OutlinedButton,
-  DiagramViewer,
   CautionTape,
   Typography,
   type ButtonColor,
   type DiagramViewerProps,
 } from '@abbottland/fui-components';
-import { Icon, renderSimpleIcon } from '@abbottland/fui-icons';
+import { DiagramViewer } from '@/components/diagram';
+import { Icon } from '@abbottland/fui-icons';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
 import {
   SelectionConnector,
@@ -202,7 +202,6 @@ export function ServiceComponents() {
                 data={displayed.data}
                 height="500px"
                 className={selectedPalette?.borderClass}
-                renderIcon={renderSimpleIcon}
               />
             ) : (
               <div

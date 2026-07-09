@@ -33,6 +33,8 @@ export interface DiagramViewerProps {
   className?: string;
   renderIcon?: IconRenderer;
   showMinimap?: boolean;
+  /** false = suppress the active-edge spark effect (e.g. reduced-motion mode) */
+  animated?: boolean;
 }
 
 // iOS Safari never implements the standard Fullscreen API for arbitrary
@@ -114,6 +116,7 @@ export function DiagramViewer({
   className = '',
   renderIcon,
   showMinimap = false,
+  animated = true,
 }: DiagramViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -136,9 +139,13 @@ export function DiagramViewer({
     () =>
       data.edges.map((edge) => ({
         ...edge,
-        data: { ...edge.data, readonly: true },
+        data: {
+          ...edge.data,
+          readonly: true,
+          active: animated ? edge.data?.active : false,
+        },
       })),
-    [data.edges],
+    [data.edges, animated],
   );
 
   useEffect(() => {
