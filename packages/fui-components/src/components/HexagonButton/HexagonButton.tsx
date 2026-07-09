@@ -9,6 +9,8 @@ export interface HexagonButtonProps {
   label?: string;
   lowerLabel?: string;
   active?: boolean;
+  /** false = suppress shimmer sweep and travel-ring spark effects (e.g. reduced-motion mode). Selected styling (color/border/glow) is unaffected. */
+  animated?: boolean;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
@@ -16,10 +18,11 @@ export function HexagonButton({
   label = '',
   lowerLabel = '',
   active = false,
+  animated = true,
   onClick,
 }: HexagonButtonProps) {
   const [hovered, setHovered] = useState(false);
-  const styles = useHexagonButtonStyles(active, hovered);
+  const styles = useHexagonButtonStyles(active, hovered, animated);
 
   return (
     <>

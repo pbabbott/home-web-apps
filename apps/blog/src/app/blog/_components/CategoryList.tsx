@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TiledHexagons } from '@abbottland/fui-components';
+import { useAnimationsContext } from '@/context/Animations.Context';
 
 /**
  * Tailwind default breakpoints (min-width px) → maxHorizontal.
@@ -69,6 +70,7 @@ export default function CategoryList({
   const allCategories: CategoryFilter[] = ['All', ...sortedCategories];
 
   const maxHorizontal = useMaxHorizontal();
+  const { animationsEnabled } = useAnimationsContext();
 
   const tiles = allCategories.map((category) => ({
     label: category === 'All' ? 'All Posts' : category,
@@ -90,6 +92,11 @@ export default function CategoryList({
     // The aside is sized wider than the grid itself so there's slack space
     // here to let active/hover glow effects bleed without being clipped by
     // the scroll container's edge.
-    <TiledHexagons tiles={tiles} maxHorizontal={maxHorizontal} tileGap={2} />
+    <TiledHexagons
+      tiles={tiles}
+      maxHorizontal={maxHorizontal}
+      tileGap={2}
+      animated={animationsEnabled}
+    />
   );
 }
