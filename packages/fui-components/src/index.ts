@@ -131,6 +131,20 @@ export {
   type DropdownMenuItemProps,
 } from './components/DropdownMenu/DropdownMenuItem';
 
+// Modal
+export {
+  Modal,
+  ModalTrigger,
+  ModalClose,
+  ModalContent,
+  type ModalContentProps,
+  type ModalColor,
+  ModalTitle,
+  type ModalTitleProps,
+  ModalDescription,
+  type ModalDescriptionProps,
+} from './components/Modal/Modal';
+
 // NavBar
 export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
 
@@ -187,6 +201,9 @@ export {
   Scrollbar,
   type ScrollbarProps,
 } from './components/Scrollbar/Scrollbar';
+
+// Switch
+export { Switch, type SwitchProps } from './components/Switch/Switch';
 
 // Typography
 export {
