@@ -1,4 +1,6 @@
 import { getAllBlogPosts, getAllBlogCategories } from './_lib/blogPosts';
+import { structuredDataService } from '../../lib/StructuredDataService';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import BlogPageClient from './_components/BlogPageClient';
 
 export default function Blog() {
@@ -6,5 +8,10 @@ export default function Blog() {
   const posts = getAllBlogPosts();
   const categories = getAllBlogCategories();
 
-  return <BlogPageClient posts={posts} categories={categories} />;
+  return (
+    <>
+      <JsonLd data={structuredDataService.getBlogListingJsonLd(posts)} />
+      <BlogPageClient posts={posts} categories={categories} />
+    </>
+  );
 }

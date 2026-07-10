@@ -1,7 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '../lib/blog';
-
-const SITE_URL = 'https://abbottland.io';
+import { SITE_URL } from '../lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [

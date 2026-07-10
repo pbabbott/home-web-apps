@@ -5,8 +5,10 @@ import {
   getBlogPostSlugs,
   getSeriesTotal,
 } from '../../../lib/blog';
+import { structuredDataService } from '../../../lib/StructuredDataService';
 import StickyHeader from '@/components/StickyHeader/StickyHeader';
 import BlogPostBannerImage from '@/components/BlogPostBannerImage/BlogPostBannerImage';
+import JsonLd from '@/components/JsonLd/JsonLd';
 import MDXContent from './MDXContent';
 import BlogPostHeader from './BlogPostHeader';
 import BlogMinimap from './BlogMinimap';
@@ -67,6 +69,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
+      <JsonLd data={structuredDataService.getArticleJsonLd(post)} />
       <StickyHeader />
       <BlogMinimap />
       <article
