@@ -62,3 +62,12 @@ export const StaticActiveEdge: Story = {
     animated: false,
   },
 };
+
+export const FullscreenClickHandler: Story = {
+  name: 'onFullscreenClick (logs to console)',
+  args: {
+    data: examplePostData as DiagramViewerProps['data'],
+    height: '500px',
+    onFullscreenClick: (next) => console.log('fullscreen clicked, next:', next),
+  },
+};

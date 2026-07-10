@@ -202,6 +202,7 @@ export function ServiceComponents() {
                 data={displayed.data}
                 height="500px"
                 className={selectedPalette?.borderClass}
+                name={displayed.label}
               />
             ) : (
               <div

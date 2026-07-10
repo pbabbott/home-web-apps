@@ -63,7 +63,11 @@ function ArchSection({
   return (
     <section className="mb-20">
       <ArchSectionHeader {...headerProps} />
-      <DiagramViewer data={data} height={diagramHeight} />
+      <DiagramViewer
+        data={data}
+        height={diagramHeight}
+        name={headerProps.heading}
+      />
     </section>
   );
 }

@@ -9,9 +9,12 @@ import {
 export interface BaseButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   component?: React.ElementType;
   href?: string;
+  /** Anchor-only attributes, relevant when `component="a"`. */
+  target?: string;
+  rel?: string;
   size?: ButtonSize;
 }
 

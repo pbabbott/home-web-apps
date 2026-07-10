@@ -35,6 +35,8 @@ export interface DiagramViewerProps {
   showMinimap?: boolean;
   /** false = suppress the active-edge spark effect (e.g. reduced-motion mode) */
   animated?: boolean;
+  /** Fired when the fullscreen button is clicked, with the state it's toggling to. */
+  onFullscreenClick?: (nextIsFullscreen: boolean) => void;
 }
 
 // iOS Safari never implements the standard Fullscreen API for arbitrary
@@ -117,6 +119,7 @@ export function DiagramViewer({
   renderIcon,
   showMinimap = false,
   animated = true,
+  onFullscreenClick,
 }: DiagramViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -178,6 +181,8 @@ export function DiagramViewer({
     const container = containerRef.current as FullscreenElement | null;
     if (!container) return;
 
+    onFullscreenClick?.(!(isFullscreen || isPseudoFullscreen));
+
     if (!nativeFullscreenSupported()) {
       setIsPseudoFullscreen((prev) => !prev);
       return;
@@ -191,7 +196,7 @@ export function DiagramViewer({
         container.requestFullscreen?.() ?? container.webkitRequestFullscreen?.()
       );
     }
-  }, []);
+  }, [isFullscreen, isPseudoFullscreen, onFullscreenClick]);
 
   return (
     <IconRendererProvider renderer={renderIcon}>

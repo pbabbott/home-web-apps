@@ -22,11 +22,14 @@ export type TypographyComponent =
   | 'h5'
   | 'h6'
   | 'span'
-  | 'div';
+  | 'div'
+  | 'label';
 
 export interface TypographyProps extends React.HTMLAttributes<HTMLElement> {
   variant: TypographyVariant;
   component?: TypographyComponent;
+  /** Relevant when `component="label"`. */
+  htmlFor?: string;
 }
 
 export const Typography: React.FC<TypographyProps> = ({

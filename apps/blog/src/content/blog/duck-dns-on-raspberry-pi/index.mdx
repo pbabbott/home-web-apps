@@ -38,7 +38,12 @@ For this article, we'll start with a simple example setup and then build more pi
 
 Check out the diagram for a visual:
 
-<DiagramViewer data={diagram1} height="400px" className="mb-8" />
+<DiagramViewer
+  data={diagram1}
+  height="400px"
+  className="mb-8"
+  name="Local Network Access"
+/>
 
 <TransparentPanel color="secondary" className="mb-6">
   **Note:** I'm just using n8n as an example, this tutorial would work for any
@@ -73,7 +78,12 @@ With your phone off of wifi, you should be able to see n8n by going to `http://7
 
 Check out our updated diagram:
 
-<DiagramViewer data={diagram2} height="400px" className="mb-8" />
+<DiagramViewer
+  data={diagram2}
+  height="400px"
+  className="mb-8"
+  name="Port Forwarded Access"
+/>
 
 ## Time for DNS
 
@@ -131,7 +141,12 @@ services:
 
 And now here is the diagram for our final stack.
 
-<DiagramViewer data={diagram3} height="400px" className="mb-8" />
+<DiagramViewer
+  data={diagram3}
+  height="400px"
+  className="mb-8"
+  name="Final DuckDNS Stack"
+/>
 
 ### Security
 

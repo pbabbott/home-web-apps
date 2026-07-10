@@ -36,7 +36,7 @@ export default function BlogFilters() {
           style={{ scrollbarWidth: 'none' }}
         >
           <Typography
-            variant="subtitle1"
+            variant="caption"
             className="text-neutral-400 font-medium uppercase tracking-wider"
           >
             FILTER CONTROLS
