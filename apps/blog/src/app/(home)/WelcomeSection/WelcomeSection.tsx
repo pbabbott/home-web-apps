@@ -81,6 +81,7 @@ export default function WelcomeSection() {
               <DiagramViewer
                 data={diagram01 as DiagramViewerProps['data']}
                 height="360px"
+                name="System Context"
               />
             </div>
 

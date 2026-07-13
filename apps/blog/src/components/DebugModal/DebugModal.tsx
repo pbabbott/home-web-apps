@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import {
   Modal,
   ModalContent,
@@ -12,7 +13,11 @@ import {
   Badge,
   HorizontalRule,
 } from '@abbottland/fui-components';
-import { Cross1Icon, ReloadIcon } from '@radix-ui/react-icons';
+import {
+  Cross1Icon,
+  ReloadIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import {
   getAnimationsEnabled,
   getAnimationsOverride,
@@ -148,6 +153,23 @@ export default function DebugModal() {
             Script loaded:{' '}
             {analytics ? (analytics.scriptLoaded ? 'yes' : 'no') : '—'}
           </Typography>
+        </div>
+
+        <HorizontalRule className="mt-4" />
+
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <Typography variant="body2" component="span">
+            Error Boundary
+          </Typography>
+          <Button
+            component={Link}
+            href="/debug/trigger-error"
+            color="error"
+            variant="contained"
+            className="inline-flex items-center gap-2"
+          >
+            <ExclamationTriangleIcon /> Trigger Error
+          </Button>
         </div>
       </ModalContent>
     </Modal>

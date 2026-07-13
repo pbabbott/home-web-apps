@@ -10,6 +10,7 @@ import {
 import { DiagramViewer } from '@/components/diagram';
 import { Icon } from '@abbottland/fui-icons';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
+import { useTrackEvent } from '@/lib/umami';
 import {
   SelectionConnector,
   DIAGRAM_LEFT_PADDING,
@@ -137,9 +138,14 @@ export function ServiceComponents() {
   const containerRef = useRef<HTMLDivElement>(null);
   const entryRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const trackEvent = useTrackEvent();
 
   const handleSelect = (id: string) => {
     if (id === selectedId) return;
+    const component = components.find((c) => c.id === id);
+    trackEvent('c3_pattern_select', {
+      pattern: component?.label ?? id,
+    });
     setSelectedId(id);
     setMaskGeneration((g) => g + 1);
     setRevealTrigger(false);
@@ -202,6 +208,7 @@ export function ServiceComponents() {
                 data={displayed.data}
                 height="500px"
                 className={selectedPalette?.borderClass}
+                name={displayed.label}
               />
             ) : (
               <div

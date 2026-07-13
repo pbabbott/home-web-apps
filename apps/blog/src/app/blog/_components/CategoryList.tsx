@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TiledHexagons } from '@abbottland/fui-components';
 import { useAnimationsContext } from '@/context/Animations.Context';
+import { useTrackEvent } from '@/lib/umami';
 
 /**
  * Tailwind default breakpoints (min-width px) → maxHorizontal.
@@ -71,6 +72,7 @@ export default function CategoryList({
 
   const maxHorizontal = useMaxHorizontal();
   const { animationsEnabled } = useAnimationsContext();
+  const trackEvent = useTrackEvent();
 
   const tiles = allCategories.map((category) => ({
     label: category === 'All' ? 'All Posts' : category,
@@ -80,11 +82,10 @@ export default function CategoryList({
         : String(categoryCounts[category] ?? 0),
     active: selectedCategory === category,
     onClick: () => {
-      if (selectedCategory === category && category !== 'All') {
-        onSelectCategory('All');
-      } else {
-        onSelectCategory(category);
-      }
+      const next =
+        selectedCategory === category && category !== 'All' ? 'All' : category;
+      trackEvent('category_filter', { category: next });
+      onSelectCategory(next);
     },
   }));
 

@@ -23,7 +23,18 @@ const meta: Meta<typeof Typography> = {
     },
     component: {
       control: 'select',
-      options: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'],
+      options: [
+        'p',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'span',
+        'div',
+        'label',
+      ],
     },
   },
 };
@@ -117,5 +128,14 @@ export const H6: Story = {
     variant: 'h6',
     component: 'h6',
     children: 'H6 Heading',
+  },
+};
+
+export const Label: Story = {
+  args: {
+    variant: 'body2',
+    component: 'label',
+    htmlFor: 'example-input',
+    children: 'Form Label',
   },
 };

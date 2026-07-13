@@ -8,6 +8,8 @@ describe('blog smoke tests', () => {
     '/series',
     '/api/healthz',
     '/sitemap.xml',
+    '/robots.txt',
+    '/feed.xml',
   ])('GET %s returns 200', async (path) => {
     const response = await fetch(`${BASE_URL}${path}`);
     expect(response.status).toBe(200);

@@ -8,6 +8,11 @@ import AnimationsContextProvider from '@/context/Animations.Context';
 export const metadata: Metadata = {
   title: 'Abbottland.io',
   description: 'A Blog Sharing Technical Insights on Software Engineering',
+  alternates: {
+    types: {
+      'application/rss+xml': '/feed.xml',
+    },
+  },
 };
 
 export default function RootLayout({

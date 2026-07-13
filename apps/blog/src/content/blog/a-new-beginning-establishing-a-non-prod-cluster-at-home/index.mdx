@@ -55,7 +55,12 @@ In my Homelab, I'm running vanilla kubernetes (via `kubeadm`) on some Ubuntu VMs
 
 Check it - here's a simplified diagram:
 
-<DiagramViewer data={diagram1} height="400px" className="mb-8" />
+<DiagramViewer
+  data={diagram1}
+  height="400px"
+  className="mb-8"
+  name="Current Home Cluster Setup"
+/>
 
 ## Strategy
 
@@ -151,7 +156,12 @@ This observability stack has dependencies too - it needs fast, custom storage. S
 
 To access the longhorn UI, I'll need to have a solid ingress pattern working. My current, working ingress pattern uses `ingress-nginx`, `cert-manager`, `external-dns`, and `haproxy`. As I set things up in my new non-prod cluster, this is where I'll want to setup `istio` as an `ingress-nginx` replacement.
 
-<DiagramViewer data={diagram2} height="400px" className="mb-8" />
+<DiagramViewer
+  data={diagram2}
+  height="400px"
+  className="mb-8"
+  name="Flux Dependency Chain"
+/>
 
 Assuming my infra code (terraform + ansible) is cleaned up in a previous step, I think it makes sense to start at the very end of this chain with the load balancer (`haproxy`).
 

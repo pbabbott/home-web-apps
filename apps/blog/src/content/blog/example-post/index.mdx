@@ -167,12 +167,12 @@ You can render interactive React Flow diagrams in your blog posts. The `DiagramV
 ```jsx
 import diagramData from './diagram.json';
 
-<DiagramViewer data={diagramData} />;
+<DiagramViewer data={diagramData} name="My Diagram" />;
 ```
 
 Here's an example diagram:
 
-<DiagramViewer data={diagramData} height="500px" />
+<DiagramViewer data={diagramData} height="500px" name="Example Diagram" />
 
 The diagram is interactive - you can pan and zoom to explore the nodes and connections. Diagrams are created using the diagram-maker app and exported as JSON files.
 

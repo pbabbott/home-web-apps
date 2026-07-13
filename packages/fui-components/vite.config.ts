@@ -3,6 +3,12 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import dts from 'vite-plugin-dts';
+// @microsoft/api-extractor is pinned (root package.json `pnpm.overrides`,
+// and here as a devDependency) to a version whose bundled TypeScript
+// matches this repo's `typescript` version (~5.9.3). Mismatched versions
+// don't error — the dts rollup below silently degrades to an empty
+// re-export stub instead of real type declarations. Bump both together.
+import { ExtractorLogLevel } from '@microsoft/api-extractor';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +31,30 @@ export default defineConfig({
         insertTypesEntry: true,
         rollupTypes: true,
         tsconfigPath: './tsconfig.build.json',
+        rollupConfig: {
+          messages: {
+            // This package doesn't use API Extractor's release-tag (@public
+            // /@beta/@internal) curation workflow, so every export trips
+            // ae-missing-release-tag / ae-forgotten-export. Everything else
+            // stays at 'warning' so a genuine rollup failure is loud instead
+            // of silently emitting an empty .d.ts (see afterRollup below).
+            extractorMessageReporting: {
+              default: { logLevel: ExtractorLogLevel.Warning },
+              'ae-missing-release-tag': { logLevel: ExtractorLogLevel.None },
+              'ae-forgotten-export': { logLevel: ExtractorLogLevel.None },
+            },
+            compilerMessageReporting: {
+              default: { logLevel: ExtractorLogLevel.Warning },
+            },
+          },
+        },
+        afterRollup: (result) => {
+          if (!result.succeeded) {
+            throw new Error(
+              `API Extractor failed to roll up type declarations (${result.errorCount} error(s), ${result.warningCount} warning(s)). Run the build with verbose logging to see the underlying messages.`,
+            );
+          }
+        },
       }),
     !isStorybook &&
       viteStaticCopy({
