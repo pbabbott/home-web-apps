@@ -11,13 +11,22 @@ import {
   type Hex,
   type Vertex,
 } from './hexGrid';
-import { C } from './hexagonalConstants';
+import {
+  themes,
+  type HexagonalBackgroundColors,
+  type HexagonalBackgroundTheme,
+} from './hexagonalConstants';
 
 const SPARK_SPEED = 0.24; // px/ms (faster sparks)
 const TRAIL_LEN = 80; // number of trail points (longer = longer drawn line)
 
 const NUM_CHUNKS = 4;
 const CHUNK_OPACITIES = [0.15, 0.4, 0.7, 1]; // tail → head
+
+// Spawn cadence tuned against mobile viewport area; scale faster on bigger canvases
+// so spark density (concurrent count) stays consistent per unit area.
+const REFERENCE_AREA = 375 * 700;
+const MAX_DENSITY_SCALE = 6;
 
 let sparkIdCounter = 0;
 
@@ -131,6 +140,7 @@ function drawSpark(
     trail: { x: number; y: number; seg: number }[];
     remainingHops: number;
   },
+  colors: HexagonalBackgroundColors,
 ): void {
   const { trail, remainingHops } = spark;
   if (trail.length < 2) return;
@@ -162,7 +172,7 @@ function drawSpark(
     for (let i = 1; i < slice.length; i++) {
       ctx.lineTo(slice[i].x, slice[i].y);
     }
-    ctx.strokeStyle = `${C.sparkGlow}${toHex(a * 0.3)}`;
+    ctx.strokeStyle = `${colors.sparkGlow}${toHex(a * 0.3)}`;
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -173,14 +183,14 @@ function drawSpark(
     for (let i = 1; i < slice.length; i++) {
       ctx.lineTo(slice[i].x, slice[i].y);
     }
-    ctx.strokeStyle = `${C.sparkCore}${toHex(a * 0.85)}`;
+    ctx.strokeStyle = `${colors.sparkCore}${toHex(a * 0.85)}`;
     ctx.lineWidth = 1.2;
     ctx.stroke();
   }
 
   ctx.beginPath();
   ctx.arc(head.x, head.y, 1.8, 0, Math.PI * 2);
-  ctx.fillStyle = `${C.sparkHead}${toHex(baseAlpha)}`;
+  ctx.fillStyle = `${colors.sparkHead}${toHex(baseAlpha)}`;
   ctx.fill();
 }
 
@@ -190,8 +200,16 @@ export function useSparkCanvas(
   hexes: Hex[],
   size: { width: number; height: number },
   enabled = true,
+  frozen = false,
+  theme: HexagonalBackgroundTheme = 'default',
 ): void {
   const sparksRef = useRef<ReturnType<typeof createSpark>[]>([]);
+  // Read via ref (not an effect dependency) so toggling freeze doesn't tear down
+  // and restart the loop — sparks stay exactly where they were when frozen.
+  const frozenRef = useRef(frozen);
+  useEffect(() => {
+    frozenRef.current = frozen;
+  }, [frozen]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -216,28 +234,37 @@ export function useSparkCanvas(
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const colors = themes[theme];
+
+    const densityScale = Math.min(
+      MAX_DENSITY_SCALE,
+      Math.max(1, (size.width * size.height) / REFERENCE_AREA),
+    );
+
     let lastTime = performance.now();
-    let nextSpawnIn = 600 + Math.random() * 1000;
+    let nextSpawnIn = (600 + Math.random() * 1000) / densityScale;
     let rafId: number;
 
     const loop = (now: number) => {
       const dt = Math.min(now - lastTime, 50);
       lastTime = now;
 
-      nextSpawnIn -= dt;
-      if (nextSpawnIn <= 0) {
-        sparksRef.current.push(createSpark(edges));
-        nextSpawnIn = 700 + Math.random() * 1200;
-      }
+      if (!frozenRef.current) {
+        nextSpawnIn -= dt;
+        if (nextSpawnIn <= 0) {
+          sparksRef.current.push(createSpark(edges));
+          nextSpawnIn = (700 + Math.random() * 1200) / densityScale;
+        }
 
-      for (const spark of sparksRef.current) {
-        advanceSpark(spark, edges, vertices, dt);
+        for (const spark of sparksRef.current) {
+          advanceSpark(spark, edges, vertices, dt);
+        }
+        sparksRef.current = sparksRef.current.filter((s) => !s.dead);
       }
-      sparksRef.current = sparksRef.current.filter((s) => !s.dead);
 
       ctx.clearRect(0, 0, size.width, size.height);
       for (const spark of sparksRef.current) {
-        drawSpark(ctx, spark);
+        drawSpark(ctx, spark, colors);
       }
 
       rafId = requestAnimationFrame(loop);
@@ -245,5 +272,5 @@ export function useSparkCanvas(
 
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
-  }, [hexes, graphRef, canvasRef, size.width, size.height, enabled]);
+  }, [hexes, graphRef, canvasRef, size.width, size.height, enabled, theme]);
 }

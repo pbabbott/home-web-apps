@@ -1,19 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { buildGrid, buildEdgeGraph, buildGridPath } from './hexGrid';
-import { C } from './hexagonalConstants';
+import { themes, type HexagonalBackgroundTheme } from './hexagonalConstants';
 import { useSparkCanvas } from './useSparkEffect';
 
 export type HexagonalBackgroundProps = {
   className?: string;
   style?: React.CSSProperties;
   sparksEnabled?: boolean;
+  /** Freezes sparks in place — unlike `sparksEnabled={false}`, existing sparks stay visible, just motionless. */
+  sparksFrozen?: boolean;
+  theme?: HexagonalBackgroundTheme;
 };
 
 export function HexagonalBackground({
   className,
   style,
   sparksEnabled = true,
+  sparksFrozen = false,
+  theme = 'default',
 }: HexagonalBackgroundProps) {
+  const colors = themes[theme];
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState({ width: 800, height: 600 });
@@ -33,6 +39,8 @@ export function HexagonalBackground({
     hexes,
     size,
     sparksEnabled && !prefersReducedMotion,
+    sparksFrozen,
+    theme,
   );
 
   useEffect(() => {
@@ -71,7 +79,7 @@ export function HexagonalBackground({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        background: C.bg,
+        background: colors.bg,
         ...style,
       }}
     >
@@ -86,8 +94,8 @@ export function HexagonalBackground({
       >
         <path
           d={buildGridPath(hexes)}
-          fill={C.hexFill}
-          stroke={C.hexStroke}
+          fill={colors.hexFill}
+          stroke={colors.hexStroke}
           strokeWidth={0.5}
         />
       </svg>
