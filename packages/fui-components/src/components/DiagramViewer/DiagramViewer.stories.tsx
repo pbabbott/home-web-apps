@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import { DiagramViewer, type DiagramViewerProps } from './DiagramViewer';
 import examplePostData from './blog-example-post.json';
 
@@ -64,10 +65,10 @@ export const StaticActiveEdge: Story = {
 };
 
 export const FullscreenClickHandler: Story = {
-  name: 'onFullscreenClick (logs to console)',
+  name: 'onFullscreenClick',
   args: {
     data: examplePostData as DiagramViewerProps['data'],
     height: '500px',
-    onFullscreenClick: (next) => console.log('fullscreen clicked, next:', next),
+    onFullscreenClick: fn(),
   },
 };

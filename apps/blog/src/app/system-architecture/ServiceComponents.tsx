@@ -1,6 +1,5 @@
 'use client';
 import { useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import {
   OutlinedButton,
   CautionTape,
@@ -11,7 +10,7 @@ import {
 import { DiagramViewer } from '@/components/diagram';
 import { Icon } from '@abbottland/fui-icons';
 import MaskReveal from '@/components/MaskReveal/MaskReveal';
-import { trackEvent } from '@/lib/umami';
+import { useTrackEvent } from '@/lib/umami';
 import {
   SelectionConnector,
   DIAGRAM_LEFT_PADDING,
@@ -139,14 +138,13 @@ export function ServiceComponents() {
   const containerRef = useRef<HTMLDivElement>(null);
   const entryRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const pathname = usePathname();
+  const trackEvent = useTrackEvent();
 
   const handleSelect = (id: string) => {
     if (id === selectedId) return;
     const component = components.find((c) => c.id === id);
     trackEvent('c3_pattern_select', {
       pattern: component?.label ?? id,
-      page: pathname,
     });
     setSelectedId(id);
     setMaskGeneration((g) => g + 1);

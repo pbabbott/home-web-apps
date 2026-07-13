@@ -5,9 +5,8 @@ import {
   type DiagramViewerProps,
 } from '@abbottland/fui-components';
 import { renderSimpleIcon } from '@abbottland/fui-icons';
-import { usePathname } from 'next/navigation';
 import { useAnimationsContext } from '@/context/Animations.Context';
-import { trackEvent } from '@/lib/umami';
+import { useTrackEvent } from '@/lib/umami';
 
 interface BlogDiagramViewerProps extends DiagramViewerProps {
   /** Diagram identifier logged with the fullscreen-click analytics event. */
@@ -20,7 +19,7 @@ export function DiagramViewer({
   ...props
 }: BlogDiagramViewerProps) {
   const { animationsEnabled } = useAnimationsContext();
-  const pathname = usePathname();
+  const trackEvent = useTrackEvent();
 
   return (
     <BaseDiagramViewer
@@ -30,7 +29,6 @@ export function DiagramViewer({
       onFullscreenClick={(next) => {
         trackEvent('diagram_fullscreen', {
           diagram: name,
-          page: pathname,
           fullscreen: next,
         });
         onFullscreenClick?.(next);

@@ -3,6 +3,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import dts from 'vite-plugin-dts';
+// @microsoft/api-extractor is pinned (root package.json `pnpm.overrides`,
+// and here as a devDependency) to a version whose bundled TypeScript
+// matches this repo's `typescript` version (~5.9.3). Mismatched versions
+// don't error — the dts rollup below silently degrades to an empty
+// re-export stub instead of real type declarations. Bump both together.
 import { ExtractorLogLevel } from '@microsoft/api-extractor';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import path from 'node:path';

@@ -52,17 +52,15 @@ export interface BlogListingJsonLd {
  * being derived independently.
  */
 export class StructuredDataService {
-  constructor(private readonly siteUrl: string = SITE_URL) {}
-
   private postUrl(slug: string): string {
-    return `${this.siteUrl}/blog/${slug}`;
+    return `${SITE_URL}/blog/${slug}`;
   }
 
   private postImage(post: BlogPost): ImageObjectJsonLd | undefined {
     if (!post.bannerImage) return undefined;
     return {
       '@type': 'ImageObject',
-      url: `${this.siteUrl}/api/blog-images/${post.slug}/${post.bannerImage}`,
+      url: `${SITE_URL}/api/blog-images/${post.slug}/${post.bannerImage}`,
     };
   }
 
@@ -89,7 +87,7 @@ export class StructuredDataService {
       publisher: {
         '@type': 'Organization',
         name: SITE_NAME,
-        url: this.siteUrl,
+        url: SITE_URL,
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': core.url },
     };
@@ -100,7 +98,7 @@ export class StructuredDataService {
       '@context': 'https://schema.org',
       '@type': 'Blog',
       name: `${SITE_NAME} Blog`,
-      url: `${this.siteUrl}/blog`,
+      url: `${SITE_URL}/blog`,
       blogPost: posts.map((post) => this.buildPostingCore(post)),
     };
   }

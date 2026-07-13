@@ -1,5 +1,9 @@
 # CLAUDE.md — packages/fui-components
 
+## Build tooling
+
+`@microsoft/api-extractor` is pinned to an exact version in both root `package.json` (`pnpm.overrides`, alongside `@microsoft/api-extractor-model`) and this package's `devDependencies`. That version must keep its bundled TypeScript in sync with this repo's `typescript` version (see comment in `vite.config.ts`) — a mismatch doesn't error, it silently produces an empty `dist/index.d.ts`. Bump all three together, never just one.
+
 ## Typography
 
 Always use the `Typography` component for all rendered text — no raw `<p>`, `<span>`, `<h*>`, or other HTML text elements. This applies to components and stories alike.
