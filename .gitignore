@@ -74,3 +74,6 @@ next-env.d.ts
 *.tsbuildinfo
 
 .smoke.pid
+
+security-scan-report.md
+security-scan-results/

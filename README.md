@@ -34,11 +34,11 @@ All apps and packages are built with Typescript!
 
 ## Developer guides
 
+- [Commands](./docs/dev-guide-commands.md) - Quick `pnpm` reference for dev/build/lint/test/docker/storybook.
 - [Build with Docker](./docs/dev-guide-build-with-docker.md) - How to build any package in this project with `docker`
 - [Build with Typescript](./docs/dev-guide-build-with-typescript.md) - How to build any package in this project with `typescript`
 - [Linting](./docs/dev-guide-linting.md) - How linting is set up with `eslint` in this repository.
-- [Publication - Semantic Versioning](./docs/dev-guide-publication-semver.md) - How to create new versions of apps and packages with `changesets`
-- [Publication to Docker](./docs/dev-guide-publication-to-docker.md) - How to push new images to the remote `docker` registry.
+- [Publication](./docs/dev-guide-publication.md) - How PR preview images are built and published, and how merges to `main` promote them to production.
 - Test guides:
   - [Unit Tests](./docs/test-guide-unit.md) - Jest unit tests, no external dependencies.
   - [Integration Tests](./docs/test-guide-integration.md) - Node process hitting Dockerized real dependencies.
@@ -50,9 +50,9 @@ All apps and packages are built with Typescript!
 
 Each application or package in this monorepo may have unique requirements for development and testing. Below are the specific guides for setting up and working with different development environments:
 
-- [packages/abctl](./docs/int-env-abctl.md)
+- [packages/abctl](./docs/dev-env-abctl.md)
 - [apps/gluetun-sync](./apps/gluetun-sync/README.md)
-- [apps/pi-led-api](./docs/int-env-pi-led-api.md)
+- [apps/pi-led-api](./docs/dev-env-pi-led-api.md)
 
 ## GH Actions
 

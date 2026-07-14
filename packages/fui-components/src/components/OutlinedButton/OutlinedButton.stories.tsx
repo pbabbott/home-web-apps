@@ -6,6 +6,7 @@ import {
   type ButtonColor,
 } from './OutlinedButton';
 import { fn } from 'storybook/test';
+import { MixerVerticalIcon } from '@radix-ui/react-icons';
 
 const meta = {
   title: 'Components/OutlinedButton',
@@ -114,4 +115,29 @@ export const SizeSmall: Story = {
     children: 'Button',
   },
   render: (args: OutlinedButtonProps) => <OutlinedButton {...args} />,
+};
+
+// Regression coverage: on the blog's system-architecture page, this button's
+// text goes black on hover but its icon didn't follow, because fui-icons'
+// `Icon` hardcodes a fixed text color class on the icon instead of letting it
+// inherit `currentColor`. Fixed the same way the real usage is: `!text-current`
+// forces the icon to track the button's inherited color (idle or hover)
+// regardless of Tailwind's compiled class order. `selected` statically
+// applies the same fill OutlinedButton uses on hover (see doc comment above),
+// which is how this repo's screenshot pipeline captures the hover look since
+// it can't simulate a real :hover pointer state.
+export const HoveredWithIcon: Story = {
+  name: 'Primary, Hovered, With Icon',
+  args: {
+    color: 'primary',
+    selected: true,
+  },
+  render: (args: OutlinedButtonProps) => (
+    <OutlinedButton {...args}>
+      <span className="flex items-center gap-2">
+        <MixerVerticalIcon className="!text-current" />
+        Media Stack
+      </span>
+    </OutlinedButton>
+  ),
 };

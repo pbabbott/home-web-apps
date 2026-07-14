@@ -22,7 +22,7 @@ The SHA used is always `github.event.pull_request.head.sha` — the exact commit
 
 ### 2 — Deploy preview environment
 
-After all CI jobs pass, the `deploy-preview` job deploys the PR to a preview namespace in the cluster. The image used is `harbor.local.abbottland.io/library/blog:sha-<sha7>`, computed from the PR head SHA. The preview URL is `https://pr-<N>-blog.local.abbottland.io`.
+After all CI jobs pass, the `deploy-blog-preview` job deploys the PR to a preview namespace in the cluster. The image used is `harbor.local.abbottland.io/library/blog:sha-<sha7>`, computed from the PR head SHA. If that tag wasn't published (blog unchanged in this PR), the job checks first and skips the deploy instead of failing. The preview URL is `https://pr-<N>-blog.local.abbottland.io`.
 
 See [`scripts/deploy-preview.sh`](../scripts/deploy-preview.sh) for the full deployment logic.
 

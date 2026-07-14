@@ -99,4 +99,12 @@ test.describe('OutlinedButton Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('hovered-with-icon', async ({ page }) => {
+    await gotoStory(page, 'components-outlinedbutton--hovered-with-icon');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-outlinedbutton--hovered-with-icon.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

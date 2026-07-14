@@ -184,7 +184,11 @@ export function ServiceComponents() {
             className={`sm:px-4 sm:py-2 sm:text-button ${component.id === selectedId ? 'shadow-sm' : ''}`}
           >
             <span className="flex items-center gap-2">
-              <Icon name={component.iconId} size={16} className="shrink-0" />
+              <Icon
+                name={component.iconId}
+                size={16}
+                className="shrink-0 !text-current"
+              />
               {component.label}
             </span>
           </OutlinedButton>

@@ -15,7 +15,6 @@ permissions:
   pull-requests: write
 
 env:
-  REGISTRY: harbor.local.abbottland.io
   IMAGE_REPO: harbor.local.abbottland.io/library/blog
   PR_NUMBER: ${{ github.event.number }}
 
@@ -108,10 +107,45 @@ jobs:
             apps/blog/.next
             apps/diagram-maker/.next
 
+  # Computes which packages need a fresh image (turbo's own change filter)
+  # before docker-build fans out, so the matrix below only spins up runner
+  # pods for packages that actually changed.
+  docker-build-plan:
+    runs-on: [prod-gen2-amd64-runner]
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Compute changed docker:publish packages
+        id: plan
+        run: echo "packages=$(bash ./scripts/docker-publish-plan.sh)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+
+  # One runner pod per changed package instead of one pod building all of
+  # them — each pod gets its own disk/CPU/memory budget, which a single
+  # shared pod couldn't fit (packages piled onto one pod's ephemeral-storage
+  # limit and got evicted mid-build).
   docker-build:
     needs:
       - build
+      - docker-build-plan
+    if: needs.docker-build-plan.outputs.packages != '[]'
     runs-on: [prod-gen2-dind-runner]
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.docker-build-plan.outputs.packages) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -154,12 +188,12 @@ jobs:
         run: docker system prune -af
         shell: bash
 
-      - name: Publish SHA-tagged images
+      - name: Publish SHA-tagged image (${{ matrix.package }})
         run: bash ./scripts/docker-publish-sha.sh
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
-          BASE_REF: ${{ github.base_ref }}
+          PACKAGE: ${{ matrix.package }}
 
   fui-components-ui-tests:
     needs: [build]
@@ -298,6 +332,68 @@ jobs:
           echo "Blog Playwright report: ${URL}"
         shell: bash
 
+  security-scan:
+    needs: [docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Pull images published by docker-build
+        run: bash ./scripts/security-scan-pull-images.sh
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Run Trivy scan
+        id: scan
+        run: bash ./scripts/security-scan-report.sh
+        shell: bash
+        continue-on-error: true
+
+      - name: Publish scan results as a check
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@v2
+        with:
+          name: Security Scan (Trivy)
+          path: security-scan-results/*.xml
+          reporter: java-junit
+          fail-on-error: 'false'
+          fail-on-empty: 'false'
+
+      - name: Publish report to job summary
+        if: always()
+        run: '[ -f security-scan-report.md ] && cat security-scan-report.md >> "$GITHUB_STEP_SUMMARY" || true'
+        shell: bash
+
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report-${{ github.run_id }}
+          path: security-scan-report.md
+          if-no-files-found: warn
+
+      - name: Fail on CRITICAL/HIGH vulnerabilities
+        if: steps.scan.outcome == 'failure'
+        run: exit 1
+        shell: bash
+
   unit-tests:
     needs: build
     runs-on: [prod-gen2-dind-runner]
@@ -332,6 +428,9 @@ jobs:
 
   integration-tests:
     needs: [build, docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && needs.build.result == 'success' && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -379,6 +478,9 @@ jobs:
 
   smoke-tests:
     needs: [build, docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && needs.build.result == 'success' && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -435,10 +537,11 @@ jobs:
         run: pnpm smoke:deps:down
         shell: bash
 
-  # ── Deploy preview ───────────────────────────────────────────────────────────
-  # Runs after all CI jobs pass on a PR. The floating pr-{N} tag was pushed by
-  # docker-build, so this job only deploys it.
-  deploy-preview:
+  # ── Deploy blog preview ──────────────────────────────────────────────────────
+  # Runs after all CI jobs pass on a PR. Only deploys blog — if this PR didn't
+  # rebuild blog (unchanged, no fresh sha-{sha} tag), the deploy is skipped
+  # rather than failing.
+  deploy-blog-preview:
     needs:
       - build
       - docker-build
@@ -449,8 +552,26 @@ jobs:
       - unit-tests
       - integration-tests
       - smoke-tests
-    if: github.event_name == 'pull_request'
-    name: Deploy Preview
+      - security-scan
+    # docker-build's aggregate matrix result doesn't tell us whether blog
+    # specifically built — some other package in the matrix could fail (or
+    # the whole job could be skipped when nothing changed) while blog is
+    # fine. The "Check blog preview image exists" step below is the real
+    # gate: it skips the deploy rather than failing if blog's sha tag isn't
+    # in Harbor. docker-build stays in `needs` only so this job waits for it
+    # to finish before checking.
+    if: |
+      github.event_name == 'pull_request' &&
+      always() &&
+      needs.build.result == 'success' &&
+      needs.lint.result == 'success' &&
+      needs.format.result == 'success' &&
+      needs.fui-components-ui-tests.result == 'success' &&
+      needs.blog-ui-tests.result == 'success' &&
+      needs.unit-tests.result == 'success' &&
+      needs.integration-tests.result == 'success' &&
+      needs.smoke-tests.result == 'success' &&
+      needs.security-scan.result == 'success'
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
@@ -473,14 +594,23 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gettext-base
           fi
 
-      - name: Resolve preview image reference
+      - name: Resolve blog preview image reference
         id: image
         run: |
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
           echo "image=${{ env.IMAGE_REPO }}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
-      - name: Deploy preview environment
+      - name: Check blog preview image exists
+        id: check-image
+        run: bash ./scripts/check-remote-image.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+          IMAGE: ${{ steps.image.outputs.image }}
+
+      - name: Deploy blog preview environment
+        if: steps.check-image.outputs.exists == 'true'
         run: bash ./scripts/deploy-preview.sh
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
@@ -489,6 +619,7 @@ jobs:
           IMAGE: ${{ steps.image.outputs.image }}
 
       - name: Find existing PR comment
+        if: steps.check-image.outputs.exists == 'true'
         id: find-comment
         uses: peter-evans/find-comment@v3
         with:
@@ -497,13 +628,14 @@ jobs:
           body-includes: '<!-- pr-preview-comment -->'
 
       - name: Post or update PR comment
+        if: steps.check-image.outputs.exists == 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ env.PR_NUMBER }}
           body: |
             <!-- pr-preview-comment -->
-            ## Preview Environment
+            ## Blog Preview Environment
 
             | | |
             |---|---|
