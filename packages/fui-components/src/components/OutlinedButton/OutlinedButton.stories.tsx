@@ -98,7 +98,6 @@ export const AsLink: Story = {
 };
 
 export const Selected: Story = {
-  name: 'Selected',
   args: {
     color: 'primary',
     selected: true,
@@ -108,7 +107,6 @@ export const Selected: Story = {
 };
 
 export const SizeSmall: Story = {
-  name: 'Size Small',
   args: {
     color: 'primary',
     size: 'small',

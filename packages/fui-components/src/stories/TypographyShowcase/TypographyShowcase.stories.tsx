@@ -213,7 +213,11 @@ export const BlogMobile: Story = {
   },
   render: () => (
     <>
-      <style>{`html { scrollbar-width: none; } html::-webkit-scrollbar { display: none; }`}</style>
+      <style>
+        {
+          'html { scrollbar-width: none; } html::-webkit-scrollbar { display: none; }'
+        }
+      </style>
       <div className="px-4">{blogContent}</div>
     </>
   ),

@@ -111,7 +111,6 @@ export const VariantContained: Story = ButtonStory(
 export const VariantText: Story = ButtonStory('Text', 'primary', 'text');
 
 export const SizeSmall: Story = {
-  name: 'Size Small',
   args: {
     color: 'primary',
     size: 'small',
