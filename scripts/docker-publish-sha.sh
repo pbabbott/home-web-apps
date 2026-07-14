@@ -5,6 +5,9 @@
 #
 # BASE_REF: branch name to compare against (e.g. "main"). Defaults to HEAD^1.
 # Only packages with changes (or apps that depend on changed packages) are published.
+# DOCKER_PUBLISH_CONCURRENCY: max packages built in parallel (default 3). Each
+# spawns its own `docker buildx build` + full monorepo `pnpm install`, so an
+# unbounded turbo run can starve the runner (CPU/mem) and kill CI mid-build.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,6 +15,7 @@ cd "$(dirname "$0")/.."
 COMMIT_SHA="${COMMIT_SHA:?COMMIT_SHA is required}"
 RUN_NUMBER="${RUN_NUMBER:?RUN_NUMBER is required}"
 BASE_REF="${BASE_REF:-}"
+CONCURRENCY="${DOCKER_PUBLISH_CONCURRENCY:-3}"
 
 SHORT_SHA="${COMMIT_SHA::7}"
 PADDED_RUN=$(printf '%03d' "$RUN_NUMBER")
@@ -33,5 +37,6 @@ echo "Comparing against: ${TURBO_FILTER}"
 # ...{./packages/*}[BASE] — changed packages + their dependent apps (fui-components/fui-icons → blog/diagram-maker, express/yaml-config → gluetun-sync/harbor-cleanup)
 # turbo skips packages that have no docker:publish task
 pnpm turbo run docker:publish \
+  --concurrency="${CONCURRENCY}" \
   --filter="{./apps/*}[${TURBO_FILTER}]" \
   --filter="...{./packages/*}[${TURBO_FILTER}]"
