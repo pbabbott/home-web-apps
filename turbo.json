@@ -1,6 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["CI", "ABCTL_IMAGE_TAG", "IMAGE_TAG"],
+  "globalPassThroughEnv": [
+    "CI",
+    "ABCTL_IMAGE_TAG",
+    "IMAGE_TAG",
+    "PORT",
+    "NODE_ENV",
+    "ENABLE_ANALYTICS",
+    "STORYBOOK"
+  ],
   "tasks": {
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -98,14 +106,6 @@
       "outputs": ["docs/**"]
     },
     "lint": {
-      "outputs": [],
-      "dependsOn": ["^build"]
-    },
-    "@abbottland/blog#lint": {
-      "outputs": [],
-      "dependsOn": []
-    },
-    "@abbottland/diagram-maker#lint": {
       "outputs": [],
       "dependsOn": []
     },

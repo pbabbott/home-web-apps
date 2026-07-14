@@ -43,7 +43,6 @@ export const Primary: Story = {
 };
 
 export const WithPlaceholder: Story = {
-  name: 'With Placeholder',
   args: {
     placeholder: 'Enter your text here...',
   },
@@ -69,7 +68,6 @@ export const PrimaryWithValue: Story = {
 };
 
 export const FullWidth: Story = {
-  name: 'Full Width',
   args: {
     className: 'w-full',
     placeholder: 'Full width input...',

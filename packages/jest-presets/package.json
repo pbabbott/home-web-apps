@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "main": "./dist/jest-presets.js",
-  "types": "./dist/jest-presets.d.ts",
+  "types": "./src/jest-presets.ts",
   "files": [
     "dist/**"
   ],
