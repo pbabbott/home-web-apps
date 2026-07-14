@@ -553,8 +553,13 @@ jobs:
       - integration-tests
       - smoke-tests
       - security-scan
-    # docker-build is skipped (not failed) when no package changed — an
-    # empty matrix can't run, so treat skipped the same as success here.
+    # docker-build's aggregate matrix result doesn't tell us whether blog
+    # specifically built — some other package in the matrix could fail (or
+    # the whole job could be skipped when nothing changed) while blog is
+    # fine. The "Check blog preview image exists" step below is the real
+    # gate: it skips the deploy rather than failing if blog's sha tag isn't
+    # in Harbor. docker-build stays in `needs` only so this job waits for it
+    # to finish before checking.
     if: |
       github.event_name == 'pull_request' &&
       always() &&
@@ -566,8 +571,7 @@ jobs:
       needs.unit-tests.result == 'success' &&
       needs.integration-tests.result == 'success' &&
       needs.smoke-tests.result == 'success' &&
-      needs.security-scan.result == 'success' &&
-      (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
+      needs.security-scan.result == 'success'
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
