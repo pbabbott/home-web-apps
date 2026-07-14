@@ -328,6 +328,16 @@ jobs:
         shell: bash
         continue-on-error: true
 
+      - name: Publish scan results as a check
+        if: ${{ !cancelled() }}
+        uses: dorny/test-reporter@v2
+        with:
+          name: Security Scan (Trivy)
+          path: security-scan-results/*.xml
+          reporter: java-junit
+          fail-on-error: 'false'
+          fail-on-empty: 'false'
+
       - name: Publish report to job summary
         if: always()
         run: '[ -f security-scan-report.md ] && cat security-scan-report.md >> "$GITHUB_STEP_SUMMARY" || true'

@@ -76,3 +76,4 @@ next-env.d.ts
 .smoke.pid
 
 security-scan-report.md
+security-scan-results/
