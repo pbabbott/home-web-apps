@@ -17,9 +17,9 @@
     "@abbottland/fui-icons": "workspace:*",
     "@abbottland/next-middleware": "workspace:*",
     "@radix-ui/react-checkbox": "^1.3.3",
-    "@radix-ui/react-icons": "^1.3.2",
+    "@radix-ui/react-icons": "catalog:",
     "@xyflow/react": "^12.10.0",
-    "next": "16.0.1",
+    "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
@@ -29,8 +29,8 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1",
+    "eslint": "catalog:",
+    "eslint-config-next": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }
