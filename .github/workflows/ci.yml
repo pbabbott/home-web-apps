@@ -484,10 +484,11 @@ jobs:
         run: pnpm smoke:deps:down
         shell: bash
 
-  # ── Deploy preview ───────────────────────────────────────────────────────────
-  # Runs after all CI jobs pass on a PR. The floating pr-{N} tag was pushed by
-  # docker-build, so this job only deploys it.
-  deploy-preview:
+  # ── Deploy blog preview ──────────────────────────────────────────────────────
+  # Runs after all CI jobs pass on a PR. Only deploys blog — if this PR didn't
+  # rebuild blog (unchanged, no fresh sha-{sha} tag), the deploy is skipped
+  # rather than failing.
+  deploy-blog-preview:
     needs:
       - build
       - docker-build
@@ -500,7 +501,7 @@ jobs:
       - smoke-tests
       - security-scan
     if: github.event_name == 'pull_request'
-    name: Deploy Preview
+    name: Deploy Blog Preview
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
@@ -523,14 +524,23 @@ jobs:
             sudo apt-get update && sudo apt-get install -y gettext-base
           fi
 
-      - name: Resolve preview image reference
+      - name: Resolve blog preview image reference
         id: image
         run: |
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           SHORT_SHA="${HEAD_SHA::7}"
           echo "image=${{ env.IMAGE_REPO }}:sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
-      - name: Deploy preview environment
+      - name: Check blog preview image exists
+        id: check-image
+        run: bash ./scripts/check-remote-image.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+          IMAGE: ${{ steps.image.outputs.image }}
+
+      - name: Deploy blog preview environment
+        if: steps.check-image.outputs.exists == 'true'
         run: bash ./scripts/deploy-preview.sh
         env:
           OP_CONNECT_HOST: https://op-connect.local.abbottland.io
@@ -539,6 +549,7 @@ jobs:
           IMAGE: ${{ steps.image.outputs.image }}
 
       - name: Find existing PR comment
+        if: steps.check-image.outputs.exists == 'true'
         id: find-comment
         uses: peter-evans/find-comment@v3
         with:
@@ -547,13 +558,14 @@ jobs:
           body-includes: '<!-- pr-preview-comment -->'
 
       - name: Post or update PR comment
+        if: steps.check-image.outputs.exists == 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ env.PR_NUMBER }}
           body: |
             <!-- pr-preview-comment -->
-            ## Preview Environment
+            ## Blog Preview Environment
 
             | | |
             |---|---|

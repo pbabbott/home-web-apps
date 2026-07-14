@@ -10,8 +10,10 @@
 # human-readable Markdown report. Exits non-zero if any image has a
 # CRITICAL or HIGH severity vulnerability with a fix available —
 # vulnerabilities without a fix yet are listed but don't fail the build.
-# Targets not present in $SCANNED_TARGETS_FILE (unchanged in this PR, so
-# nothing new was published to scan) are noted as skipped in the report.
+# Every target is scanned; the report notes whether it was the image built
+# for this commit or the most recently published one (see
+# security-scan-pull-images.sh). A target is only skipped if Harbor has no
+# published image for it at all.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -37,20 +39,27 @@ failed=0
 } >"$OUTPUT_FILE"
 
 for target in "${ALL_TARGETS[@]}"; do
-  if [ ! -f "$SCANNED_TARGETS_FILE" ] || ! grep -qx "$target" "$SCANNED_TARGETS_FILE"; then
+  line=""
+  if [ -f "$SCANNED_TARGETS_FILE" ]; then
+    line=$(grep "^${target} " "$SCANNED_TARGETS_FILE" || true)
+  fi
+
+  if [ -z "$line" ]; then
     {
       echo "## ${target}"
       echo
-      echo "_Skipped — unchanged in this PR, so nothing new was published to scan. Last scanned in the PR that last touched this app._"
+      echo "_Skipped — no published image found in Harbor to scan._"
       echo
     } >>"$OUTPUT_FILE"
     continue
   fi
 
+  tag=$(echo "$line" | awk '{print $2}')
+  source=$(echo "$line" | awk '{print $3}')
   image="${TAG_PREFIX}/${target}:local"
   out="${WORKDIR}/${target}.txt"
 
-  echo "Scanning ${image}..."
+  echo "Scanning ${image} (tag: ${tag})..."
   set +e
   docker run --rm \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -72,6 +81,12 @@ for target in "${ALL_TARGETS[@]}"; do
 
   {
     echo "## ${target}"
+    echo
+    if [ "$source" = "latest" ]; then
+      echo "_Unchanged in this PR — scanned the most recently published image (\`${tag}\`)._"
+    else
+      echo "_Scanned the image published for this commit (\`${tag}\`)._"
+    fi
     echo
     echo '```'
     cat "$out"

@@ -67,18 +67,9 @@ HARBOR_USER=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="username") |
 HARBOR_PASS=$(echo "$HARBOR_JSON" | jq -r '.fields[] | select(.id=="password") | .value')
 
 # ── Verify image exists in registry ──────────────────────────────────────────
-REGISTRY_HOST="${IMAGE%%/*}"
-REPO_AND_TAG="${IMAGE#*/}"
-REPO_NAME="${REPO_AND_TAG%:*}"
-IMAGE_TAG="${REPO_AND_TAG##*:}"
-echo "Checking image exists: ${IMAGE}..."
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-    -H "Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json" \
-    -u "${HARBOR_USER}:${HARBOR_PASS}" \
-    "https://${REGISTRY_HOST}/v2/${REPO_NAME}/manifests/${IMAGE_TAG}")
-if [ "$HTTP_STATUS" != "200" ]; then
+if [ "$(IMAGE="$IMAGE" bash "$(dirname "$0")/check-remote-image.sh")" != "true" ]; then
     echo ""
-    echo "Error: image not found in registry (HTTP ${HTTP_STATUS})."
+    echo "Error: image not found in registry."
     echo "  ${IMAGE}"
     echo ""
     echo "CI 'Publish SHA-tagged images' step may not have run yet."
@@ -86,8 +77,6 @@ if [ "$HTTP_STATUS" != "200" ]; then
     echo "  COMMIT_SHA=${HEAD_SHA} bash ./scripts/docker-publish-sha.sh"
     exit 1
 fi
-echo "  OK — image found."
-
 
 # ── Namespace + imagePullSecret ───────────────────────────────────────────────
 kubectl create namespace "pr-${PR_NUMBER}" \

@@ -28,3 +28,5 @@ Non-trivial multi-step logic belongs in `./scripts/`, not inlined in workflow YA
 Pass all variables explicitly via an `env:` block — never rely on ambient environment state.
 
 Scripts must be locally runnable. See `scripts/CLAUDE.md` for authoring conventions.
+
+Any workflow step added, removed, or changed to call a script in `./scripts/` must have a matching update to the manifest table in `scripts/CLAUDE.md`.
