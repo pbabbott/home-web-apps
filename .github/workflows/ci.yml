@@ -107,10 +107,45 @@ jobs:
             apps/blog/.next
             apps/diagram-maker/.next
 
+  # Computes which packages need a fresh image (turbo's own change filter)
+  # before docker-build fans out, so the matrix below only spins up runner
+  # pods for packages that actually changed.
+  docker-build-plan:
+    runs-on: [prod-gen2-amd64-runner]
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Compute changed docker:publish packages
+        id: plan
+        run: echo "packages=$(bash ./scripts/docker-publish-plan.sh)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
+
+  # One runner pod per changed package instead of one pod building all of
+  # them — each pod gets its own disk/CPU/memory budget, which a single
+  # shared pod couldn't fit (packages piled onto one pod's ephemeral-storage
+  # limit and got evicted mid-build).
   docker-build:
     needs:
       - build
+      - docker-build-plan
+    if: needs.docker-build-plan.outputs.packages != '[]'
     runs-on: [prod-gen2-dind-runner]
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.docker-build-plan.outputs.packages) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -153,12 +188,12 @@ jobs:
         run: docker system prune -af
         shell: bash
 
-      - name: Publish SHA-tagged images
+      - name: Publish SHA-tagged image (${{ matrix.package }})
         run: bash ./scripts/docker-publish-sha.sh
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
-          BASE_REF: ${{ github.base_ref }}
+          PACKAGE: ${{ matrix.package }}
 
   fui-components-ui-tests:
     needs: [build]
@@ -299,6 +334,9 @@ jobs:
 
   security-scan:
     needs: [docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -390,6 +428,9 @@ jobs:
 
   integration-tests:
     needs: [build, docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && needs.build.result == 'success' && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -437,6 +478,9 @@ jobs:
 
   smoke-tests:
     needs: [build, docker-build]
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: always() && needs.build.result == 'success' && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
     steps:
       - name: Checkout
@@ -509,7 +553,21 @@ jobs:
       - integration-tests
       - smoke-tests
       - security-scan
-    if: github.event_name == 'pull_request'
+    # docker-build is skipped (not failed) when no package changed — an
+    # empty matrix can't run, so treat skipped the same as success here.
+    if: |
+      github.event_name == 'pull_request' &&
+      always() &&
+      needs.build.result == 'success' &&
+      needs.lint.result == 'success' &&
+      needs.format.result == 'success' &&
+      needs.fui-components-ui-tests.result == 'success' &&
+      needs.blog-ui-tests.result == 'success' &&
+      needs.unit-tests.result == 'success' &&
+      needs.integration-tests.result == 'success' &&
+      needs.smoke-tests.result == 'success' &&
+      needs.security-scan.result == 'success' &&
+      (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
