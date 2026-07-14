@@ -34,6 +34,9 @@ export default [
         { allowConstantExport: true },
       ],
       'react/react-in-jsx-scope': 'off',
+      // TypeScript already enforces prop types at compile time.
+      'react/prop-types': 'off',
+      'react/no-unescaped-entities': 'off',
     },
   },
 ];

@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@abbottland/abctl": "workspace:*",
+    "@abbottland/eslint-config": "workspace:*",
     "@abbottland/jest-presets": "workspace:*",
     "@abbottland/typescript-config": "workspace:*",
     "@playwright/test": "^1.57.0",
@@ -59,7 +60,6 @@
     "@types/react-dom": "catalog:",
     "@types/serialize-javascript": "^5.0.4",
     "eslint": "catalog:",
-    "eslint-config-next": "catalog:",
     "jest": "catalog:",
     "tailwindcss": "catalog:",
     "ts-jest": "catalog:",

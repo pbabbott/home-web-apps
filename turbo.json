@@ -101,6 +101,14 @@
       "outputs": [],
       "dependsOn": ["^build"]
     },
+    "@abbottland/blog#lint": {
+      "outputs": [],
+      "dependsOn": []
+    },
+    "@abbottland/diagram-maker#lint": {
+      "outputs": [],
+      "dependsOn": []
+    },
     "dev": {
       "cache": false,
       "persistent": true

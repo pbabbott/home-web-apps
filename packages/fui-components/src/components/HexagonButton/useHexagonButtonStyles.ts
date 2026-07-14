@@ -64,7 +64,7 @@ export function useHexagonButtonStyles(
     : 'none';
   // Outer drop-shadow only when active (not hovered). On hover we keep glow inside via innerGlow only.
   const svgFilter = active
-    ? `drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 22px rgba(0, 212, 255, 0.2))`
+    ? 'drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 22px rgba(0, 212, 255, 0.2))'
     : 'none';
 
   return {
