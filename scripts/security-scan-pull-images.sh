@@ -17,7 +17,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 REGISTRY_HOST="${REGISTRY_HOST:-harbor.local.abbottland.io}"
-REGISTRY="${REGISTRY:-${REGISTRY_HOST}/library}"
+# Not "REGISTRY" — ci.yml sets a workflow-level env var of that name, which
+# would silently win over this default and drop the "/library" suffix.
+HARBOR_REPO="${HARBOR_REPO:-${REGISTRY_HOST}/library}"
 TAG_PREFIX="${TAG_PREFIX:-security-scan}"
 COMMIT_SHA="${COMMIT_SHA:?COMMIT_SHA is required}"
 SHORT_SHA="${COMMIT_SHA::7}"
@@ -43,7 +45,7 @@ latest_published_tag() {
 }
 
 for target in "${TARGETS[@]}"; do
-  remote="${REGISTRY}/${target}:sha-${SHORT_SHA}"
+  remote="${HARBOR_REPO}/${target}:sha-${SHORT_SHA}"
   local="${TAG_PREFIX}/${target}:local"
 
   echo "Checking for ${remote}..."
@@ -61,7 +63,7 @@ for target in "${TARGETS[@]}"; do
     continue
   fi
 
-  fallback_remote="${REGISTRY}/${target}:${fallback_tag}"
+  fallback_remote="${HARBOR_REPO}/${target}:${fallback_tag}"
   docker pull "$fallback_remote"
   docker tag "$fallback_remote" "$local"
   echo "${target} ${fallback_tag} latest" >>"$SCANNED_TARGETS_FILE"

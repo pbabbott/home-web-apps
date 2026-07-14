@@ -15,7 +15,6 @@ permissions:
   pull-requests: write
 
 env:
-  REGISTRY: harbor.local.abbottland.io
   IMAGE_REPO: harbor.local.abbottland.io/library/blog
   PR_NUMBER: ${{ github.event.number }}
 
@@ -331,7 +330,7 @@ jobs:
 
       - name: Publish report to job summary
         if: always()
-        run: cat security-scan-report.md >> "$GITHUB_STEP_SUMMARY"
+        run: '[ -f security-scan-report.md ] && cat security-scan-report.md >> "$GITHUB_STEP_SUMMARY" || true'
         shell: bash
 
       - name: Upload scan report
@@ -501,7 +500,6 @@ jobs:
       - smoke-tests
       - security-scan
     if: github.event_name == 'pull_request'
-    name: Deploy Blog Preview
     runs-on: [prod-gen2-amd64-runner]
     steps:
       - name: Checkout
