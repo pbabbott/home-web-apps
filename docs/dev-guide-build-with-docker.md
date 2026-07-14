@@ -41,3 +41,9 @@ buildPreset: pnpm-turbo-docker-build
 ```
 
 For more information, please see the [`abctl` README](../packages/abctl/README.md).
+
+## Registry & deployment
+
+- Multi-stage builds go through `docker/pnpm-turbo.Dockerfile` (prune → install → build) as the base stage that app-specific Dockerfiles build on top of.
+- Images are pushed to the local Harbor registry at `harbor.local.abbottland.io`.
+- `pi-led-api` is deployed to Kubernetes via Skaffold; `blog` gets ephemeral PR-preview deployments (see `deploy-blog-preview` in `.github/CLAUDE.md`).

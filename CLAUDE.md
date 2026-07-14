@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+This file (and other `CLAUDE.md` files in this repo) is an index only — descriptions and links, not full content. See [Dev Guide - Documentation Conventions](./docs/dev-guide-documentation-conventions.md) for where detail belongs and how to add a new project preference.
+
 ## Repository Overview
 
 This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo**, containing personal home web applications and shared infrastructure packages.
@@ -15,7 +17,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 
 **Packages** (`/packages`):
 
-- `fui-components` — React component library (Storybook, Vite, Playwright/Vitest)
+- `fui-components` — React component library (Storybook, Vite, Playwright/Vitest). See [`packages/fui-components/CLAUDE.md`](./packages/fui-components/CLAUDE.md).
 - `abctl` — oclif-based CLI for Docker builds, secrets generation, and repo tasks
 - `express` — Express.js wrapper with shared middleware setup
 - `yaml-config` — YAML/env config parser with TypeScript decorators
@@ -23,133 +25,25 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
 
-## Commands
-
-All commands are run from the repo root unless otherwise noted.
-
-### Development
-
-```bash
-pnpm dev          # Start all dev servers
-pnpm dev:ui       # Start only blog, fui-components, diagram-maker
-pnpm dev:deps     # Start Docker dependencies (dev services)
-pnpm dev:deps:down
-```
-
-### Build
-
-```bash
-pnpm build        # Build all packages
-pnpm clean        # Remove all dist directories
-```
-
-### Lint & Format
-
-```bash
-pnpm lint         # ESLint + tsc type-check across all projects
-pnpm lint:fix
-pnpm format:check # Prettier check
-pnpm format:fix
-```
-
-### Tests
-
-```bash
-pnpm test:unit    # Jest unit tests (all packages)
-pnpm test:int     # Jest integration tests (requires Docker)
-pnpm test:smoke   # Jest smoke tests (requires Docker smoke stack)
-```
-
-Run UI tests per package (no root-level command):
-
-```bash
-# From packages/fui-components
-pnpm test:ui      # Playwright + Vitest tests
-
-# From apps/blog
-pnpm test:ui      # Playwright screenshot tests
-```
-
-See test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
-
-To run a single test file from a package directory:
-
-```bash
-# From the specific package directory
-pnpm test:unit -- --testPathPattern="path/to/test"
-```
-
-### Secrets & Environment
-
-```bash
-pnpm env:generate  # Generate .env files from 1Password (requires OP CLI configured)
-```
-
-### Storybook
-
-```bash
-pnpm storybook     # Start Storybook dev server (port 6006)
-```
-
 ## Architecture
 
-### Dependency Flow
+- **Dependencies** — which apps depend on which packages, and how shared dependency versions are managed via the pnpm catalog.
+- **App patterns** — server apps (`gluetun-sync`, `pi-led-api`) share an Express/config/test pattern; frontend apps (`blog`, `diagram-maker`) share a Next.js/Tailwind pattern; `typescript-config`/`jest-presets` provide the shared build/test presets both use.
+- **Docker** — `abctl` CLI wraps Docker build/push; images publish to a local Harbor registry.
+- **CI/CD** — GitHub Actions on self-hosted runners. See [`.github/CLAUDE.md`](./.github/CLAUDE.md) for the workflow list and script-integration conventions.
 
-Apps consume shared packages:
+## Developer Guides
 
-- `blog` and `diagram-maker` depend on `fui-components`
-- `gluetun-sync` and `pi-led-api` depend on `express`, `yaml-config`, and `abctl`
-- `fui-components` uses `abctl` for Docker/publishing tasks
-
-### Server Apps (`gluetun-sync`, `pi-led-api`)
-
-Follow a consistent pattern:
-
-- `@abbottland/express` wraps Express with shared middleware
-- `@abbottland/yaml-config` provides config via decorators + YAML/env files
-- `sample.env` documents required environment variables
-- Docker Compose for local dev dependencies; `abctl` for Docker builds and publishing
-- Jest projects config with separate `unit`, `int`, and `smoke` suites
-
-### Frontend Apps (`blog`, `diagram-maker`)
-
-- Next.js 16 with `@mdx-js/loader` for content
-- TailwindCSS 4 with PostCSS
-- Import `fui-components` as a workspace package
-
-### Component Library (`fui-components`)
-
-- Built as a library with **Vite** (`build:npm`) and exported as ESM/CJS
-- **Storybook 10** for development and documentation
-- **Playwright** for screenshot regression tests; **Vitest** for DOM unit tests
-- Test stories are auto-generated via `test:playwright:generate`
-
-### TypeScript Configs
-
-Presets in `packages/typescript-config/`:
-
-- `ts-base.json` — ESNext, CommonJS, decorators enabled
-- `ts-server-build.json` — for Express apps (extends base, emits to `dist/`)
-- `ts-lib-base.json` — for packages
-- `react-library.json` — for React component packages
-
-### Test Presets
-
-`packages/jest-presets` exports `unitTestPreset`, `integrationTestPreset`, `smokeTestPreset`, and `jestReporters`. Apps import these in `jest.config.ts` and use Jest `projects` to run multiple suites.
-
-### Docker
-
-- Multi-stage builds via `docker/pnpm-turbo.Dockerfile` (prune → install → build)
-- Images pushed to local Harbor registry at `local.abbottland.io`
-- `pi-led-api` is deployed to Kubernetes via Skaffold
-- `abctl` CLI (`pnpm docker:build` / `pnpm docker:publish`) wraps Docker build/push
-
-### CI/CD
-
-GitHub Actions workflows (`.github/workflows/`) run on PRs with self-hosted runners:
-
-- `build.yml` — installs and builds
-- `lint.yml` — ESLint and Prettier checks
-- `tests.yml` — four parallel jobs: `unit-tests`, `integration-tests`, `smoke-tests`, `ui-tests`
-
-Composite actions in `.github/actions/` handle pnpm setup, install+build, and test environment setup (1Password + Docker Buildx).
+- [Commands](./docs/dev-guide-commands.md) - Quick `pnpm` reference for dev/build/lint/test/docker/storybook.
+- [Documentation Conventions](./docs/dev-guide-documentation-conventions.md) - How `CLAUDE.md`/`docs/` fit together, and how to capture a new project preference.
+- [Dependency Management](./docs/dev-guide-dependency-management.md) - When and how to use the pnpm workspace catalog.
+- [Monorepo Architecture](./docs/dev-guide-monorepo-architecture.md) - Shared patterns behind the server apps, frontend apps, and config packages.
+- [Build with Docker](./docs/dev-guide-build-with-docker.md) - How to build any package with `docker`, and how images reach Harbor/Kubernetes.
+- [Build with Typescript](./docs/dev-guide-build-with-typescript.md) - How to build any package with `typescript`/`turborepo`.
+- [Linting](./docs/dev-guide-linting.md) - How `eslint` is set up in this repository.
+- [Publication](./docs/dev-guide-publication.md) - SHA-based, CI-driven image publication: PR preview builds and production promotion.
+- [Cluster Access](./docs/dev-guide-cluster-access.md) - How to pull a kubeconfig from the cluster controllers and store it in 1Password.
+- [GH Actions - Secret Management](./docs/gh-action-secret-management.md) - How secrets are managed across GitHub Actions.
+- [Image Tag Footer Tracing](./docs/image-tag-footer-tracing.md) - How `IMAGE_TAG` flows from source to the live footer value.
+- [Blog Identity](./docs/blog-identity.md) - Analysis of published/draft posts in `apps/blog`.
+- Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
