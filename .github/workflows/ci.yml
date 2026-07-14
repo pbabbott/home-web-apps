@@ -298,6 +298,55 @@ jobs:
           echo "Blog Playwright report: ${URL}"
         shell: bash
 
+  security-scan:
+    needs: [docker-build]
+    runs-on: [prod-gen2-dind-runner]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install jq
+        uses: dcarbone/install-jq-action@v3.2.0
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Docker Login
+        run: bash ./scripts/docker-login.sh
+        env:
+          OP_CONNECT_HOST: https://op-connect.local.abbottland.io
+          OP_CONNECT_TOKEN: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
+
+      - name: Pull images published by docker-build
+        run: bash ./scripts/security-scan-pull-images.sh
+        shell: bash
+        env:
+          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Run Trivy scan
+        id: scan
+        run: bash ./scripts/security-scan-report.sh
+        shell: bash
+        continue-on-error: true
+
+      - name: Publish report to job summary
+        if: always()
+        run: cat security-scan-report.md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report-${{ github.run_id }}
+          path: security-scan-report.md
+          if-no-files-found: warn
+
+      - name: Fail on CRITICAL/HIGH vulnerabilities
+        if: steps.scan.outcome == 'failure'
+        run: exit 1
+        shell: bash
+
   unit-tests:
     needs: build
     runs-on: [prod-gen2-dind-runner]
@@ -449,6 +498,7 @@ jobs:
       - unit-tests
       - integration-tests
       - smoke-tests
+      - security-scan
     if: github.event_name == 'pull_request'
     name: Deploy Preview
     runs-on: [prod-gen2-amd64-runner]
