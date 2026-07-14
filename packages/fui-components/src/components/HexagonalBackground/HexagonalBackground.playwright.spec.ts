@@ -19,4 +19,36 @@ test.describe('HexagonalBackground Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('sparks-disabled', async ({ page }) => {
+    await gotoStory(page, 'components-hexagonalbackground--sparks-disabled');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-hexagonalbackground--sparks-disabled.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('sparks-frozen', async ({ page }) => {
+    await gotoStory(page, 'components-hexagonalbackground--sparks-frozen');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-hexagonalbackground--sparks-frozen.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('ice-theme', async ({ page }) => {
+    await gotoStory(page, 'components-hexagonalbackground--ice-theme');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-hexagonalbackground--ice-theme.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('error-theme', async ({ page }) => {
+    await gotoStory(page, 'components-hexagonalbackground--error-theme');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-hexagonalbackground--error-theme.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

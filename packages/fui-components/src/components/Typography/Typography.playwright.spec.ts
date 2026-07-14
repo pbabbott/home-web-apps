@@ -99,4 +99,12 @@ test.describe('Typography Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('label', async ({ page }) => {
+    await gotoStory(page, 'components-typography--label');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-typography--label.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

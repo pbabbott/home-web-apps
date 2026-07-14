@@ -7,39 +7,39 @@ import {
   SCREENSHOT_OPTIONS,
 } from '../../../tests/playwright-helpers';
 
-test.describe('DiagramViewer Visual Regression Tests', () => {
+test.describe('Switch Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
-  test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--default');
+  test('off', async ({ page }) => {
+    await gotoStory(page, 'components-switch--off');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--default.png',
+      'components-switch--off.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('animated-active-edge', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--animated-active-edge');
+  test('on', async ({ page }) => {
+    await gotoStory(page, 'components-switch--on');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--animated-active-edge.png',
+      'components-switch--on.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('static-active-edge', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--static-active-edge');
+  test('disabled', async ({ page }) => {
+    await gotoStory(page, 'components-switch--disabled');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--static-active-edge.png',
+      'components-switch--disabled.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
-  test('fullscreen-click-handler', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--fullscreen-click-handler');
+  test('disabled-on', async ({ page }) => {
+    await gotoStory(page, 'components-switch--disabled-on');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--fullscreen-click-handler.png',
+      'components-switch--disabled-on.png',
       SCREENSHOT_OPTIONS,
     );
   });
