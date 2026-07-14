@@ -27,7 +27,7 @@ export default function RootLayout({
         <script
           defer
           src="/api/analytics-loader"
-          data-website-id="38ed476c-28c6-468f-9007-262379b29557"
+          data-website-id="55d4789d-aa6d-4191-80aa-d78639c379c4"
           data-host-url="https://analytics.abbottland.io"
         />
         <ProxyNavigationFixer />
