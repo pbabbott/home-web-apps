@@ -2,15 +2,13 @@ import React, { useEffect, useId, useRef } from 'react';
 import { Typography } from '../Typography/Typography';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 
-export interface ReaderToolsDrawerProps {
+export interface EdgeDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Defaults to "Reader Tools". Used as both the panel heading and the
-   * handle's accessible name. */
-  title?: string;
-  /** Tool rows, e.g. a label + Switch pair per tool. The drawer itself has
-   * no opinion on what a "reader tool" looks like, so future tools slot in
-   * here without changing this component. */
+  /** Panel heading and handle accessible name. */
+  title: string;
+  /** Arbitrary panel content — the drawer has no opinion on what goes
+   * inside, so callers compose whatever rows/controls they need. */
   children: React.ReactNode;
   /** Disable the slide transition, e.g. to respect a reduced-motion
    * preference. Defaults to `true`. */
@@ -24,10 +22,10 @@ const HANDLE_WIDTH = 32; // px
 // open/close, rather than an incidental brush of the edge.
 const SWIPE_THRESHOLD = 48;
 
-export const ReaderToolsDrawer: React.FC<ReaderToolsDrawerProps> = ({
+export const EdgeDrawer: React.FC<EdgeDrawerProps> = ({
   open,
   onOpenChange,
-  title = 'Reader Tools',
+  title,
   children,
   animated = true,
   className,
@@ -137,4 +135,4 @@ export const ReaderToolsDrawer: React.FC<ReaderToolsDrawerProps> = ({
   );
 };
 
-export default ReaderToolsDrawer;
+export default EdgeDrawer;

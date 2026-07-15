@@ -26,6 +26,12 @@ export {
   type CautionTapeProps,
 } from './components/CautionTape/CautionTape';
 
+// EdgeDrawer
+export {
+  EdgeDrawer,
+  type EdgeDrawerProps,
+} from './components/EdgeDrawer/EdgeDrawer';
+
 // EdgeSparkEffect
 export {
   EdgeSparkEffect,
@@ -201,12 +207,6 @@ export {
   SegmentedProgressBar,
   type SegmentedProgressBarProps,
 } from './components/SegmentedProgressBar/SegmentedProgressBar';
-
-// ReaderToolsDrawer
-export {
-  ReaderToolsDrawer,
-  type ReaderToolsDrawerProps,
-} from './components/ReaderToolsDrawer/ReaderToolsDrawer';
 
 // Scrollbar
 export {

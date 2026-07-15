@@ -7,23 +7,23 @@ import {
   SCREENSHOT_OPTIONS,
 } from '../../../tests/playwright-helpers';
 
-test.describe('ReaderToolsDrawer Visual Regression Tests', () => {
+test.describe('EdgeDrawer Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(STANDARD_VIEWPORT);
   });
 
   test('closed', async ({ page }) => {
-    await gotoStory(page, 'components-readertoolsdrawer--closed');
+    await gotoStory(page, 'components-edgedrawer--closed');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-readertoolsdrawer--closed.png',
+      'components-edgedrawer--closed.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('open', async ({ page }) => {
-    await gotoStory(page, 'components-readertoolsdrawer--open');
+    await gotoStory(page, 'components-edgedrawer--open');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-readertoolsdrawer--open.png',
+      'components-edgedrawer--open.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import {
-  ReaderToolsDrawer as FuiReaderToolsDrawer,
-  Switch,
-  Typography,
-} from '@abbottland/fui-components';
+import { EdgeDrawer, Switch, Typography } from '@abbottland/fui-components';
 import { useAnimationsContext } from '@/context/Animations.Context';
 import {
   useReaderPreferences,
@@ -17,11 +13,11 @@ import {
 const HOME_REVEAL_TARGET_ID = 'abbottland-promise';
 
 /**
- * Mounted once, site-wide, in the root layout. Wires the presentational
- * `ReaderToolsDrawer`/`Switch` from fui-components to the app's persisted
- * reader preferences. Additional reader tools (issue #136 lists font
- * scaling, reduced motion, etc. as future candidates) get their own row
- * here without touching the drawer itself.
+ * Mounted once, site-wide, in the root layout. Wires the generic
+ * `EdgeDrawer`/`Switch` from fui-components to the app's persisted reader
+ * preferences. Additional reader tools (issue #136 lists font scaling,
+ * reduced motion, etc. as future candidates) get their own row here
+ * without touching the drawer itself.
  *
  * On the homepage the drawer stays hidden (the landing/terminal sections
  * own the viewport) until the reader scrolls down to the Promise section;
@@ -56,7 +52,8 @@ export default function ReaderToolsDrawer() {
   if (isHome && !homeRevealTarget) return null;
 
   return (
-    <FuiReaderToolsDrawer
+    <EdgeDrawer
+      title="Reader Tools"
       open={open}
       onOpenChange={setOpen}
       animated={animationsEnabled}
@@ -75,6 +72,6 @@ export default function ReaderToolsDrawer() {
           onCheckedChange={(checked: boolean) => setHighlightAiEnabled(checked)}
         />
       </div>
-    </FuiReaderToolsDrawer>
+    </EdgeDrawer>
   );
 }
