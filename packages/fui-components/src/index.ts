@@ -7,6 +7,12 @@ export {
   useIconRenderer,
 } from './components/DiagramViewer/IconRendererContext';
 
+// AIContent
+export {
+  AIContent,
+  type AIContentProps,
+} from './components/AIContent/AIContent';
+
 // Badge
 export {
   Badge,
@@ -195,6 +201,12 @@ export {
   SegmentedProgressBar,
   type SegmentedProgressBarProps,
 } from './components/SegmentedProgressBar/SegmentedProgressBar';
+
+// ReaderToolsDrawer
+export {
+  ReaderToolsDrawer,
+  type ReaderToolsDrawerProps,
+} from './components/ReaderToolsDrawer/ReaderToolsDrawer';
 
 // Scrollbar
 export {

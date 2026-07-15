@@ -3,6 +3,7 @@
 import type { MDXComponents } from 'mdx/types';
 import { Typography } from '@abbottland/fui-components';
 import { DiagramViewer } from './src/components/diagram';
+import AIContent from './src/components/AIContent/AIContent';
 // See: https://nextjs.org/docs/app/api-reference/file-conventions/mdx-components
 
 const baseClasses = 'mb-8';
@@ -106,6 +107,7 @@ const components: MDXComponents = {
     </blockquote>
   ),
   DiagramViewer,
+  AIContent,
 };
 
 export function useMDXComponents(): MDXComponents {

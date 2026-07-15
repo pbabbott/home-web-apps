@@ -4,6 +4,8 @@ import './globals.css';
 import ProxyNavigationFixer from '@/components/ProxyNavigationFixer/ProxyNavigationFixer';
 import DebugModal from '@/components/DebugModal/DebugModal';
 import AnimationsContextProvider from '@/context/Animations.Context';
+import ReaderPreferencesProvider from '@/context/ReaderPreferences.Context';
+import ReaderToolsDrawer from '@/components/ReaderToolsDrawer/ReaderToolsDrawer';
 
 export const metadata: Metadata = {
   title: 'Abbottland.io',
@@ -32,8 +34,11 @@ export default function RootLayout({
         />
         <ProxyNavigationFixer />
         <AnimationsContextProvider>
-          {children}
-          <DebugModal />
+          <ReaderPreferencesProvider>
+            {children}
+            <ReaderToolsDrawer />
+            <DebugModal />
+          </ReaderPreferencesProvider>
         </AnimationsContextProvider>
       </body>
     </html>
