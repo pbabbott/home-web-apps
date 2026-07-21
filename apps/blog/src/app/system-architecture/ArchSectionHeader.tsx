@@ -1,4 +1,5 @@
 import { Typography, Badge, type BadgeColor } from '@abbottland/fui-components';
+import AIContent from '@/components/AIContent/AIContent';
 
 interface ComplexityBadgeProps {
   label: string;
@@ -37,13 +38,11 @@ export function ArchSectionHeader({
         </Typography>
         <ComplexityBadge {...complexity} />
       </div>
-      <Typography
-        variant="body1"
-        component="p"
-        className="text-neutral-400 mb-6 max-w-2xl"
-      >
-        {description}
-      </Typography>
+      <AIContent className="mb-6 max-w-2xl">
+        <Typography variant="body1" component="p" className="text-neutral-400">
+          {description}
+        </Typography>
+      </AIContent>
     </>
   );
 }
