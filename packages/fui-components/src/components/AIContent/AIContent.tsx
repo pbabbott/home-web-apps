@@ -33,7 +33,7 @@ export const AIContent = React.forwardRef<HTMLDivElement, AIContentProps>(
         role={highlighted ? 'note' : undefined}
         aria-label={highlighted ? 'AI-generated content' : undefined}
         className={extendedTwMerge(
-          'relative transition-colors duration-300',
+          'relative mb-2 transition-colors duration-300',
           highlighted &&
             'rounded-r border-l-4 border-warning-400 bg-warning-950/20 py-1 pl-4 pr-2',
           className,
