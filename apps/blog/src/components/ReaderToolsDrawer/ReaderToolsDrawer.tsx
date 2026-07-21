@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { EdgeDrawer, Switch, Typography } from '@abbottland/fui-components';
+import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
 import { useAnimationsContext } from '@/context/Animations.Context';
 import {
   useReaderPreferences,
   setHighlightAiEnabled,
 } from '@/context/ReaderPreferences.Context';
+import { useBlogPostStats } from '@/context/BlogPostStats.Context';
 
 // Matches the id on PromiseSection (apps/blog/src/app/(home)/PromiseSection/PromiseSection.tsx).
 const HOME_REVEAL_TARGET_ID = 'abbottland-promise';
@@ -27,6 +29,7 @@ export default function ReaderToolsDrawer() {
   const [open, setOpen] = useState(false);
   const { highlightAiEnabled } = useReaderPreferences();
   const { animationsEnabled } = useAnimationsContext();
+  const { stats } = useBlogPostStats();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const [homeRevealTarget, setHomeRevealTarget] = useState(false);
@@ -72,6 +75,24 @@ export default function ReaderToolsDrawer() {
           onCheckedChange={(checked: boolean) => setHighlightAiEnabled(checked)}
         />
       </div>
+      {stats && (
+        <div className="flex flex-col gap-2 text-neutral-400 text-sm">
+          <div className="flex items-center gap-2">
+            <CalendarIcon width={16} height={16} className="text-neutral-400" />
+            <time dateTime={stats.date}>{stats.date}</time>
+          </div>
+          <div className="flex items-center gap-2">
+            <ClockIcon width={16} height={16} className="text-neutral-400" />
+            <Typography
+              variant="body2"
+              component="span"
+              className="text-neutral-400"
+            >
+              {stats.readTime}
+            </Typography>
+          </div>
+        </div>
+      )}
     </EdgeDrawer>
   );
 }

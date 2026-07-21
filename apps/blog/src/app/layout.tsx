@@ -5,6 +5,7 @@ import ProxyNavigationFixer from '@/components/ProxyNavigationFixer/ProxyNavigat
 import DebugModal from '@/components/DebugModal/DebugModal';
 import AnimationsContextProvider from '@/context/Animations.Context';
 import ReaderPreferencesProvider from '@/context/ReaderPreferences.Context';
+import BlogPostStatsProvider from '@/context/BlogPostStats.Context';
 import ReaderToolsDrawer from '@/components/ReaderToolsDrawer/ReaderToolsDrawer';
 
 export const metadata: Metadata = {
@@ -35,9 +36,11 @@ export default function RootLayout({
         <ProxyNavigationFixer />
         <AnimationsContextProvider>
           <ReaderPreferencesProvider>
-            {children}
-            <ReaderToolsDrawer />
-            <DebugModal />
+            <BlogPostStatsProvider>
+              {children}
+              <ReaderToolsDrawer />
+              <DebugModal />
+            </BlogPostStatsProvider>
           </ReaderPreferencesProvider>
         </AnimationsContextProvider>
       </body>
