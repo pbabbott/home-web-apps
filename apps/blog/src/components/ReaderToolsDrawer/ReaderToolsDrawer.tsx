@@ -3,13 +3,21 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { EdgeDrawer, Switch, Typography } from '@abbottland/fui-components';
-import { CalendarIcon, ClockIcon } from '@radix-ui/react-icons';
+import {
+  CalendarIcon,
+  ClockIcon,
+  TextIcon,
+  MagicWandIcon,
+  PieChartIcon,
+} from '@radix-ui/react-icons';
 import { useAnimationsContext } from '@/context/Animations.Context';
 import {
   useReaderPreferences,
   setHighlightAiEnabled,
 } from '@/context/ReaderPreferences.Context';
 import { useBlogPostStats } from '@/context/BlogPostStats.Context';
+import { usePageWordStats } from '@/hooks/usePageWordStats';
+import { useTrackEvent } from '@/lib/umami';
 
 // Matches the id on PromiseSection (apps/blog/src/app/(home)/PromiseSection/PromiseSection.tsx).
 const HOME_REVEAL_TARGET_ID = 'abbottland-promise';
@@ -30,6 +38,8 @@ export default function ReaderToolsDrawer() {
   const { highlightAiEnabled } = useReaderPreferences();
   const { animationsEnabled } = useAnimationsContext();
   const { stats } = useBlogPostStats();
+  const { totalWords, aiWords, aiPercent } = usePageWordStats();
+  const trackEvent = useTrackEvent();
   const pathname = usePathname();
   const isHome = pathname === '/';
   const [homeRevealTarget, setHomeRevealTarget] = useState(false);
@@ -58,7 +68,10 @@ export default function ReaderToolsDrawer() {
     <EdgeDrawer
       title="Reader Tools"
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(nextOpen: boolean) => {
+        trackEvent('reader_tools_toggle', { open: nextOpen });
+        setOpen(nextOpen);
+      }}
       animated={animationsEnabled}
     >
       <div className="flex items-center justify-between gap-4">
@@ -72,25 +85,84 @@ export default function ReaderToolsDrawer() {
         <Switch
           id="highlight-ai-switch"
           checked={highlightAiEnabled}
-          onCheckedChange={(checked: boolean) => setHighlightAiEnabled(checked)}
+          onCheckedChange={(checked: boolean) => {
+            trackEvent('highlight_ai_toggle', { enabled: checked });
+            setHighlightAiEnabled(checked);
+          }}
         />
       </div>
-      {stats && (
+      {(stats || totalWords > 0) && (
         <div className="flex flex-col gap-2 text-neutral-400 text-sm">
-          <div className="flex items-center gap-2">
-            <CalendarIcon width={16} height={16} className="text-neutral-400" />
-            <time dateTime={stats.date}>{stats.date}</time>
-          </div>
-          <div className="flex items-center gap-2">
-            <ClockIcon width={16} height={16} className="text-neutral-400" />
-            <Typography
-              variant="body2"
-              component="span"
-              className="text-neutral-400"
-            >
-              {stats.readTime}
-            </Typography>
-          </div>
+          {totalWords > 0 && (
+            <div className="flex items-center gap-2">
+              <TextIcon width={16} height={16} className="text-neutral-400" />
+              <Typography
+                variant="body2"
+                component="span"
+                className="text-neutral-400"
+              >
+                {totalWords.toLocaleString()} words
+              </Typography>
+            </div>
+          )}
+          {totalWords > 0 && (
+            <>
+              <div className="flex items-center gap-2">
+                <MagicWandIcon
+                  width={16}
+                  height={16}
+                  className="text-neutral-400"
+                />
+                <Typography
+                  variant="body2"
+                  component="span"
+                  className="text-neutral-400"
+                >
+                  {aiWords.toLocaleString()} AI-generated words
+                </Typography>
+              </div>
+              <div className="flex items-center gap-2">
+                <PieChartIcon
+                  width={16}
+                  height={16}
+                  className="text-neutral-400"
+                />
+                <Typography
+                  variant="body2"
+                  component="span"
+                  className="text-neutral-400"
+                >
+                  {aiPercent}% AI-generated
+                </Typography>
+              </div>
+            </>
+          )}
+          {stats && (
+            <>
+              <div className="flex items-center gap-2">
+                <CalendarIcon
+                  width={16}
+                  height={16}
+                  className="text-neutral-400"
+                />
+                <time dateTime={stats.date}>{stats.date}</time>
+              </div>
+              <div className="flex items-center gap-2">
+                <ClockIcon
+                  width={16}
+                  height={16}
+                  className="text-neutral-400"
+                />
+                <Typography
+                  variant="body2"
+                  component="span"
+                  className="text-neutral-400"
+                >
+                  {stats.readTime}
+                </Typography>
+              </div>
+            </>
+          )}
         </div>
       )}
     </EdgeDrawer>

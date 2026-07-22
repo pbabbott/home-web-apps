@@ -242,7 +242,7 @@ export const EdgeDrawer: React.FC<EdgeDrawerProps> = ({
         aria-controls={panelId}
         aria-label={open ? `Close ${title}` : `Open ${title}`}
         onClick={() => onOpenChange(!open)}
-        className="flex flex-col items-center justify-between border border-l-0 border-primary-500 bg-neutral-1000/95 px-1 py-3 text-primary-400 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
+        className="flex cursor-pointer flex-col items-center justify-between border border-l-0 border-primary-500 bg-neutral-1000/95 px-1 py-3 text-primary-400 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
         style={{ width: HANDLE_WIDTH, minHeight: 180 }}
       >
         {BAR_LEVEL_STYLE.map((_, level) => level)

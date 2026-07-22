@@ -37,7 +37,9 @@ export default function RootLayout({
         <AnimationsContextProvider>
           <ReaderPreferencesProvider>
             <BlogPostStatsProvider>
-              {children}
+              <div data-page-content="" className="contents">
+                {children}
+              </div>
               <ReaderToolsDrawer />
               <DebugModal />
             </BlogPostStatsProvider>

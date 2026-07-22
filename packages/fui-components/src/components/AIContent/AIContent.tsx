@@ -111,7 +111,9 @@ export const AIContent = React.forwardRef<HTMLDivElement, AIContentProps>(
             </div>
           </>
         )}
-        {children}
+        <div data-ai-content-body="" className="contents">
+          {children}
+        </div>
       </div>
     );
   },
