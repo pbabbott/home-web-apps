@@ -18,7 +18,7 @@ export interface EdgeDrawerProps {
 }
 
 const PANEL_WIDTH = 288; // px
-const PANEL_SLIDE_MS = 300;
+const PANEL_SLIDE_MS = 220;
 const HANDLE_WIDTH = 32; // px
 // Handle bar rows, innermost (closest to the chevron) first. Closed is
 // uniformly thin/dim; open ramps each level to its own height/opacity. The
@@ -181,7 +181,10 @@ export const EdgeDrawer: React.FC<EdgeDrawerProps> = ({
 
   return (
     <div
-      className={extendedTwMerge('fixed left-0 top-1/2 z-40 flex', className)}
+      className={extendedTwMerge(
+        'fixed left-0 top-1/2 z-40 flex items-center',
+        className,
+      )}
       style={{
         transform: `translate(${open ? '0' : `-${PANEL_WIDTH}px`}, -50%)`,
         transition: animated
