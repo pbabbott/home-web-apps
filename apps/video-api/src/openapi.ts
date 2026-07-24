@@ -79,10 +79,11 @@ export const openApiSpec = createDocument({
     '/readyz': {
       get: {
         summary: 'Readiness check',
-        description: 'Confirms PostgreSQL is reachable.',
+        description:
+          'Confirms PostgreSQL is reachable and the schema is at least as new as this build expects — a reachable database on a stale/rolled-back schema is not actually ready to serve traffic.',
         responses: {
           '200': {
-            description: 'Postgres is reachable',
+            description: 'Postgres is reachable and the schema is current',
             content: {
               'application/json': {
                 schema: z.object({ status: z.literal('ok') }),
@@ -90,7 +91,8 @@ export const openApiSpec = createDocument({
             },
           },
           '503': {
-            description: 'Postgres is unreachable',
+            description:
+              'Postgres is unreachable, or the schema is behind/unverifiable',
             content: {
               'application/json': {
                 schema: z.object({

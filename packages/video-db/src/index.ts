@@ -64,5 +64,6 @@ export type {
 export {
   runMigrations,
   runMigrationsWithLock,
+  hasAppliedLatestMigration,
   MIGRATIONS_FOLDER,
 } from './migrations';

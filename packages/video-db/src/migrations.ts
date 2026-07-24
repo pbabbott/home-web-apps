@@ -1,8 +1,10 @@
 import path from 'path';
 import { Client } from 'pg';
+import { sql } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import type { PostgresConnectionOptions } from './client';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
+import type { Database, PostgresConnectionOptions } from './client';
 import * as schema from './schema';
 
 export const MIGRATIONS_FOLDER = path.join(
@@ -53,4 +55,32 @@ export const runMigrationsWithLock = async (
     await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
     await client.end();
   }
+};
+
+/**
+ * True if the database has recorded the newest migration this build knows
+ * about, in drizzle's own `drizzle.__drizzle_migrations` bookkeeping table.
+ * Meant for /readyz: an app connected to a database that's behind (wrong
+ * environment, someone rolled the schema back, migrations never ran) is
+ * not actually ready to serve traffic even though the connection itself is
+ * fine — pingDb alone can't tell the two apart.
+ */
+export const hasAppliedLatestMigration = async (
+  db: Database,
+): Promise<boolean> => {
+  const migrations = readMigrationFiles({
+    migrationsFolder: MIGRATIONS_FOLDER,
+  });
+
+  if (migrations.length === 0) return true;
+
+  const latest = migrations.reduce((a, b) =>
+    a.folderMillis > b.folderMillis ? a : b,
+  );
+
+  const result = await db.execute<{ hash: string }>(
+    sql`select hash from drizzle.__drizzle_migrations where hash = ${latest.hash} limit 1`,
+  );
+
+  return result.rows.length > 0;
 };
