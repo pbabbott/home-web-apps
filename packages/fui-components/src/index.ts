@@ -7,6 +7,12 @@ export {
   useIconRenderer,
 } from './components/DiagramViewer/IconRendererContext';
 
+// AIContent
+export {
+  AIContent,
+  type AIContentProps,
+} from './components/AIContent/AIContent';
+
 // Badge
 export {
   Badge,
@@ -19,6 +25,12 @@ export {
   CautionTape,
   type CautionTapeProps,
 } from './components/CautionTape/CautionTape';
+
+// EdgeDrawer
+export {
+  EdgeDrawer,
+  type EdgeDrawerProps,
+} from './components/EdgeDrawer/EdgeDrawer';
 
 // EdgeSparkEffect
 export {

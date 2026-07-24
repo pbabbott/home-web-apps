@@ -59,6 +59,7 @@ export function HexagonButton({
           <HexagonButtonLabels
             label={label}
             lowerLabel={lowerLabel}
+            active={active}
             hovered={hovered}
           />
         </svg>

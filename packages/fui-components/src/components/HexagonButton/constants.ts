@@ -1,4 +1,4 @@
-import { primary, success, warning } from '../../tokens/colors';
+import { primary, success, warning, neutral } from '../../tokens/colors';
 
 function hexPoints(cx: number, cy: number, r: number): [number, number][] {
   return Array.from({ length: 6 }, (_, i) => {
@@ -22,6 +22,7 @@ export const borderPolyStr = pointsToString(hexPoints(CX, CY, STROKE_R));
 export const innerGlowPtsStr = pointsToString(hexPoints(CX, CY, STROKE_R - 5));
 
 export const COLORS = {
+  textColorIdle: neutral[400],
   textColorPrimary: primary[300],
   textColorHover: warning[300],
   travelRingStroke: primary[300],
@@ -30,7 +31,7 @@ export const COLORS = {
   hexBgHover: 'rgba(0, 27, 36, 0.82)', // primary[950] + alpha
   hexBgActive: 'rgba(0, 47, 64, 0.85)', // primary[900] + alpha
   hexBgHoverWarning: 'rgba(71, 25, 2, 0.85)', // warning[900] + alpha
-  borderIdle: primary[700],
+  borderIdle: neutral[600],
   borderHover: primary[300],
   borderActive: success[500],
   borderHoverWarning: warning[500],

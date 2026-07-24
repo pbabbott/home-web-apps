@@ -1,6 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import { Scrollbar, Typography } from '@abbottland/fui-components';
+import AIContent from '@/components/AIContent/AIContent';
 import BlogPostCard from './BlogPostCard';
 import HeroBlogPostCard from './HeroBlogPostCard';
 import { useBlogPageContext } from './Blog.Context';
@@ -34,10 +35,12 @@ export default function BlogFeed() {
           >
             Blog
           </Typography>
-          <Typography variant="body1" className="text-neutral-400 max-w-2xl">
-            Topics include web development, interface design, DevOps procedures,
-            and computational career trajectory analysis.
-          </Typography>
+          <AIContent className="max-w-2xl">
+            <Typography variant="body1" className="text-neutral-400">
+              Topics include web development, interface design, DevOps
+              procedures, and computational career trajectory analysis.
+            </Typography>
+          </AIContent>
         </div>
 
         {filteredPosts.length === 0 ? (

@@ -12,6 +12,7 @@ import JsonLd from '@/components/JsonLd/JsonLd';
 import MDXContent from './MDXContent';
 import BlogPostHeader from './BlogPostHeader';
 import BlogMinimap from './BlogMinimap';
+import BlogPostStatsSync from './BlogPostStatsSync';
 
 type PageProps = {
   params: Promise<{
@@ -70,6 +71,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <div className="bg-neutral-800 w-full min-h-screen">
       <JsonLd data={structuredDataService.getArticleJsonLd(post)} />
+      <BlogPostStatsSync date={post.date} readTime={post.readTime} />
       <StickyHeader />
       <BlogMinimap />
       <article
