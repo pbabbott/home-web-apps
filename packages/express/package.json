@@ -12,13 +12,15 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts*\" --max-warnings 0",
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
     "test:int": "jest --config jest.config.ts --selectProjects integration"
   },
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "catalog:",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@abbottland/eslint-config": "workspace:*",

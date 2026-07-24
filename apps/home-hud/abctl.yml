@@ -1,0 +1,6 @@
+baseConfig: ./abctl.base.yml
+build:
+  dockerfile: Dockerfile
+  context: .
+  platform: linux/amd64
+  buildCache: harbor.local.abbottland.io/build-cache

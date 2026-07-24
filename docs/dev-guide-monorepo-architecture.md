@@ -2,15 +2,17 @@
 
 How the app and shared-config package categories in this monorepo are structured.
 
-## Server apps (`gluetun-sync`, `pi-led-api`)
+## Server apps (`gluetun-sync`, `pi-led-api`, `video-api`)
 
-Both follow the same pattern:
+All follow the same pattern:
 
 - `@abbottland/express` wraps Express with shared middleware
 - `@abbottland/yaml-config` provides config via decorators + YAML/env files
 - `sample.env` documents required environment variables
 - Docker Compose for local dev dependencies; `abctl` for Docker builds and publishing
 - Jest projects config with separate `unit`, `int`, and `smoke` suites
+
+`video-api` additionally depends on PostgreSQL via a shared `packages/*-db` library package (Drizzle ORM). See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md).
 
 ## Frontend apps (`blog`, `diagram-maker`)
 

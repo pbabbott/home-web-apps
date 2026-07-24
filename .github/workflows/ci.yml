@@ -132,6 +132,46 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
 
+  unit-test-plan:
+    runs-on: [prod-gen2-amd64-runner]
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Compute test:unit packages
+        id: plan
+        run: echo "packages=$(bash ./scripts/unit-test-plan.sh)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+  integration-test-plan:
+    runs-on: [prod-gen2-amd64-runner]
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm and Node.js
+        uses: ./.github/actions/pnpm-setup
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        shell: bash
+
+      - name: Compute test:int packages
+        id: plan
+        run: echo "packages=$(bash ./scripts/integration-test-plan.sh)" >> "$GITHUB_OUTPUT"
+        shell: bash
+
   # One runner pod per changed package instead of one pod building all of
   # them — each pod gets its own disk/CPU/memory budget, which a single
   # shared pod couldn't fit (packages piled onto one pod's ephemeral-storage
@@ -394,9 +434,19 @@ jobs:
         run: exit 1
         shell: bash
 
+  # One runner pod per package instead of one pod running every package's
+  # tests — video-api and video-worker each spin up their own Postgres via
+  # dev:deps, and sharing a pod meant they raced for host port 5432. Splitting
+  # by package also keeps a single flaky/heavy suite from taking the whole
+  # job (and every other package's results) down with it.
   unit-tests:
-    needs: build
+    needs: [build, unit-test-plan]
+    if: needs.unit-test-plan.outputs.packages != '[]'
     runs-on: [prod-gen2-dind-runner]
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.unit-test-plan.outputs.packages) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -413,8 +463,8 @@ jobs:
         run: pnpm install --frozen-lockfile
         shell: bash
 
-      - name: Run unit tests
-        run: pnpm test:unit
+      - name: Run unit tests (${{ matrix.package }})
+        run: pnpm turbo run test:unit --filter="@abbottland/${{ matrix.package }}"
         shell: bash
         env:
           CI: true
@@ -423,15 +473,22 @@ jobs:
         uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          artifact-name: unit-test-results
-          report-name: Unit Tests
+          artifact-name: unit-test-results-${{ matrix.package }}
+          report-name: Unit Tests (${{ matrix.package }})
 
   integration-tests:
-    needs: [build, docker-build]
+    needs: [build, docker-build, integration-test-plan]
     # docker-build is skipped (not failed) when no package changed — an
     # empty matrix can't run, so treat skipped the same as success here.
-    if: always() && needs.build.result == 'success' && (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
+    if: |
+      always() && needs.integration-test-plan.outputs.packages != '[]' &&
+      needs.build.result == 'success' &&
+      (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped')
     runs-on: [prod-gen2-dind-runner]
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.integration-test-plan.outputs.packages) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -454,12 +511,12 @@ jobs:
           op-connect-host: https://op-connect.local.abbottland.io
           op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
-      - name: Run dev dependencies
-        run: pnpm dev:deps
+      - name: Run dev dependencies (${{ matrix.package }})
+        run: pnpm turbo run dev:deps --filter="@abbottland/${{ matrix.package }}"
         shell: bash
 
-      - name: Run integration tests
-        run: pnpm test:int
+      - name: Run integration tests (${{ matrix.package }})
+        run: pnpm turbo run test:int --filter="@abbottland/${{ matrix.package }}"
         shell: bash
         env:
           CI: true
@@ -468,12 +525,12 @@ jobs:
         uses: ./.github/actions/publish-test-results
         if: ${{ !cancelled() }}
         with:
-          artifact-name: integration-test-results
-          report-name: Integration Tests
+          artifact-name: integration-test-results-${{ matrix.package }}
+          report-name: Integration Tests (${{ matrix.package }})
 
-      - name: Stop dev dependencies
+      - name: Stop dev dependencies (${{ matrix.package }})
         if: always()
-        run: pnpm dev:deps:down
+        run: pnpm turbo run dev:deps:down --filter="@abbottland/${{ matrix.package }}"
         shell: bash
 
   smoke-tests:
@@ -560,6 +617,8 @@ jobs:
     # gate: it skips the deploy rather than failing if blog's sha tag isn't
     # in Harbor. docker-build stays in `needs` only so this job waits for it
     # to finish before checking.
+    # unit-tests/integration-tests are likewise skipped (not failed) if their
+    # plan job ever produced an empty package matrix.
     if: |
       github.event_name == 'pull_request' &&
       always() &&
@@ -568,8 +627,8 @@ jobs:
       needs.format.result == 'success' &&
       needs.fui-components-ui-tests.result == 'success' &&
       needs.blog-ui-tests.result == 'success' &&
-      needs.unit-tests.result == 'success' &&
-      needs.integration-tests.result == 'success' &&
+      (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') &&
+      (needs.integration-tests.result == 'success' || needs.integration-tests.result == 'skipped') &&
       needs.smoke-tests.result == 'success' &&
       needs.security-scan.result == 'success'
     runs-on: [prod-gen2-amd64-runner]
