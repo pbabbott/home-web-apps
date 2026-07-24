@@ -61,7 +61,7 @@ export const Card = ({
 
   return (
     <div
-      className={`bg-neutral-800/80 text-neutral-50 border-y border-r rounded-lg relative transition-all duration-300 group isolate ${colorClasses} border-l-8 ${sizeClasses} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`bg-neutral-800/80 text-neutral-50 border-y border-r relative transition-all duration-300 group isolate ${colorClasses} border-l-8 ${sizeClasses} ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}

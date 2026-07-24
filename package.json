@@ -47,7 +47,8 @@
   "pnpm": {
     "overrides": {
       "@microsoft/api-extractor": "7.58.9",
-      "@microsoft/api-extractor-model": "7.33.8"
+      "@microsoft/api-extractor-model": "7.33.8",
+      "sharp": "^0.35.0"
     }
   }
 }

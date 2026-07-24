@@ -19,17 +19,23 @@ function isLongLabel(label: string): boolean {
 export interface HexagonButtonLabelsProps {
   label?: string;
   lowerLabel?: string;
+  active: boolean;
   hovered: boolean;
 }
 
 export function HexagonButtonLabels({
   label,
   lowerLabel,
+  active,
   hovered,
 }: HexagonButtonLabelsProps) {
   if (!label && !lowerLabel) return null;
 
-  const textColor = hovered ? COLORS.textColorHover : COLORS.textColorPrimary;
+  const textColor = hovered
+    ? COLORS.textColorHover
+    : active
+      ? COLORS.textColorPrimary
+      : COLORS.textColorIdle;
   const long = label ? isLongLabel(label) : false;
 
   // Long labels: narrower box (more padding, more even line lengths), taller
