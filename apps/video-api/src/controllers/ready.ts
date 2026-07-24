@@ -7,7 +7,8 @@ export const getReady = async (_req: Request, res: Response) => {
     await pingDb(db);
 
     res.status(200).json({ status: 'ok' });
-  } catch {
+  } catch (err) {
+    console.error('GET /readyz failed - database unreachable:', err);
     res.status(503).json({ status: 'error', message: 'database unreachable' });
   }
 };

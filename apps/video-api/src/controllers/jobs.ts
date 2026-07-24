@@ -1,48 +1,23 @@
 import { Request, Response } from 'express';
-import { createVideoJob, getVideoJobById } from '@abbottland/video-db';
+import {
+  createVideoJob,
+  getVideoJobById,
+  listVideoJobs,
+} from '@abbottland/video-db';
 import { db } from '../db';
-
-const SUPPORTED_OPERATIONS = ['screenshots'];
+import type { CreateJobBody, ListJobsQuery } from '../schemas/jobs';
 
 export const postJob = async (req: Request, res: Response) => {
-  const { operation, inputPath, parameters } = req.body ?? {};
-
-  if (
-    typeof operation !== 'string' ||
-    !SUPPORTED_OPERATIONS.includes(operation)
-  ) {
-    return res.status(400).json({
-      message: `operation must be one of: ${SUPPORTED_OPERATIONS.join(', ')}`,
-    });
-  }
-
-  if (typeof inputPath !== 'string' || inputPath === '') {
-    return res.status(400).json({ message: 'inputPath is required' });
-  }
-
-  if (operation === 'screenshots') {
-    const timestamps = parameters?.timestamps;
-    if (
-      !Array.isArray(timestamps) ||
-      timestamps.length === 0 ||
-      !timestamps.every((t) => typeof t === 'number')
-    ) {
-      return res.status(400).json({
-        message: 'parameters.timestamps must be a non-empty array of numbers',
-      });
-    }
-  }
+  // req.body is already validated/typed by the validateBody(createJobSchema) middleware.
+  const { operation, inputPath, parameters } = req.body as CreateJobBody;
 
   try {
-    const job = await createVideoJob(db, {
-      operation,
-      inputPath,
-      parameters: parameters ?? {},
-    });
+    const job = await createVideoJob(db, { operation, inputPath, parameters });
 
     res.status(201).json({ jobId: job.id, status: job.status });
   } catch (err) {
-    res.status(500).json({ message: err });
+    console.error('POST /jobs failed:', err);
+    res.status(500).json({ message: 'internal server error' });
   }
 };
 
@@ -54,6 +29,21 @@ export const getJob = async (req: Request, res: Response) => {
 
     res.status(200).json(job);
   } catch (err) {
-    res.status(500).json({ message: err });
+    console.error(`GET /jobs/${req.params.id} failed:`, err);
+    res.status(500).json({ message: 'internal server error' });
+  }
+};
+
+export const listJobs = async (req: Request, res: Response) => {
+  // req.query is already validated/typed by the validateQuery(listJobsQuerySchema) middleware.
+  const { status } = req.query as ListJobsQuery;
+
+  try {
+    const jobs = await listVideoJobs(db, { status });
+
+    res.status(200).json({ jobs });
+  } catch (err) {
+    console.error('GET /jobs failed:', err);
+    res.status(500).json({ message: 'internal server error' });
   }
 };

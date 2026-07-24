@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import { Request, Response } from 'express';
 import { config } from '../config';
 import { resolveWithinRoot } from '../lib/safe-path';
+import type { BrowseQuery } from '../schemas/browse';
 
 type BrowseEntry = {
   name: string;
@@ -9,12 +10,8 @@ type BrowseEntry = {
 };
 
 export const browseDirectory = async (req: Request, res: Response) => {
-  const rawPath = req.query.path;
-  const requestedPath = typeof rawPath === 'string' ? rawPath : undefined;
-
-  if (rawPath !== undefined && requestedPath === undefined) {
-    return res.status(400).json({ message: 'path must be a single string' });
-  }
+  // req.query is already validated/typed by the validateQuery(browseQuerySchema) middleware.
+  const { path: requestedPath } = req.query as BrowseQuery;
 
   const targetPath = resolveWithinRoot(config.mediaRoot, requestedPath ?? '');
 
@@ -46,6 +43,7 @@ export const browseDirectory = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'path not found' });
     }
 
-    res.status(500).json({ message: err });
+    console.error(`GET /browse?path=${requestedPath ?? ''} failed:`, err);
+    res.status(500).json({ message: 'internal server error' });
   }
 };
