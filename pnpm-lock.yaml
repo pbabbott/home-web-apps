@@ -430,6 +430,55 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  apps/home-hud:
+    dependencies:
+      '@abbottland/fui-components':
+        specifier: workspace:*
+        version: link:../../packages/fui-components
+      '@abbottland/fui-icons':
+        specifier: workspace:*
+        version: link:../../packages/fui-icons
+      '@abbottland/next-middleware':
+        specifier: workspace:*
+        version: link:../../packages/next-middleware
+      next:
+        specifier: 'catalog:'
+        version: 16.2.11(@babel/core@7.28.4)(@playwright/test@1.57.0)(@types/node@22.18.8)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.0
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.0(react@19.2.0)
+    devDependencies:
+      '@abbottland/abctl':
+        specifier: workspace:*
+        version: link:../../packages/abctl
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@tailwindcss/postcss':
+        specifier: 'catalog:'
+        version: 4.1.16
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.18.8
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.2(@types/react@19.2.2)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.37.0(jiti@2.6.1)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.1.16
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   apps/pi-led-api:
     dependencies:
       '@abbottland/express':
