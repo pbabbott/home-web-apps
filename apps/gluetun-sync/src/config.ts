@@ -3,6 +3,8 @@ import {
   ConfigSection,
   EnvironmentVariable,
   EnvironmentVariableType,
+  formatEnvConfigStatus,
+  getEnvConfigStatus,
   loadConfig,
 } from '@abbottland/yaml-config';
 import { errorExit } from './process';
@@ -11,9 +13,6 @@ import cron from 'node-cron';
 export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4000;
-
-  @EnvironmentVariable({ variableType: EnvironmentVariableType.BOOLEAN })
-  showConfig: boolean = false;
 
   @EnvironmentVariable()
   cronExpression = '*/2 * * * *';
@@ -49,33 +48,31 @@ export class QbitTorrentConfig {
 
 export let config: ApplicationConfig;
 
+let defaultConfig: ApplicationConfig;
+
 export const initConfig = async () => {
   dotenv.config();
 
-  const defaultConfig = new ApplicationConfig();
+  defaultConfig = new ApplicationConfig();
   config = await loadConfig(defaultConfig);
-
-  if (config.showConfig) {
-    console.log('config', config);
-  }
 };
 
 export const validateConfig = () => {
-  const errors: string[] = [];
+  const statuses = getEnvConfigStatus(defaultConfig);
 
-  if (config.gluetun.apiHost === '') errors.push('gluetun.apiHost');
-  if (config.qbitTorrent.apiHost === '') errors.push('qbitTorrent.apiHost');
-  if (config.qbitTorrent.username === '') errors.push('qbitTorrent.username');
-  if (config.qbitTorrent.password === '') errors.push('qbitTorrent.password');
-  if (config.cronExpression === '') errors.push('cronExpression is required');
+  console.log('⚙️  gluetun-sync environment variables');
+  formatEnvConfigStatus(statuses).forEach((line) => console.log(`  ${line}`));
+
+  const errors: string[] = statuses
+    .filter((status) => status.isMissing)
+    .map((status) => status.envVarName);
+
   if (!cron.validate(config.cronExpression))
     errors.push('cronExpression is not valid');
 
-  if (config.TZ === '') errors.push('TZ is required');
-
   if (errors.length) {
     errors.map((x) => {
-      console.error('Missing config variable: ' + x);
+      console.error('❌ Missing/invalid config variable: ' + x);
     });
     errorExit();
   }
