@@ -26,7 +26,7 @@
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "jest": "catalog:",
-    "next": "16.0.1",
+    "next": "catalog:",
     "ts-node": "catalog:",
     "typescript": "catalog:"
   }
