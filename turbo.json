@@ -121,6 +121,14 @@
       "env": ["OP_CONNECT_TOKEN", "OP_CONNECT_HOST"],
       "dependsOn": ["^build"]
     },
+    "db:generate": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
+    "db:migrate": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
     "smoke:deps": {
       "cache": false
     },

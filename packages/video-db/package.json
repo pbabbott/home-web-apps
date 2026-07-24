@@ -1,0 +1,38 @@
+{
+  "name": "@abbottland/video-db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./src/index.ts",
+  "files": [
+    "dist/**",
+    "drizzle/**"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "dev": "tsc -w -p tsconfig.build.json",
+    "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "ts-node -P tsconfig.build.json src/migrate.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@abbottland/eslint-config": "workspace:*",
+    "@abbottland/jest-presets": "workspace:*",
+    "@abbottland/typescript-config": "workspace:*",
+    "@types/jest": "catalog:",
+    "@types/node": "catalog:",
+    "@types/pg": "^8.20.0",
+    "dotenv": "^16.6.1",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "catalog:",
+    "jest": "catalog:",
+    "ts-node": "catalog:",
+    "typescript": "catalog:"
+  }
+}
