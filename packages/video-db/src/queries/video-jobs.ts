@@ -1,9 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   videoJobs,
   type NewVideoJob,
   type VideoJob,
+  type VideoJobStatus,
 } from '../schema/video-jobs';
 
 export type CreateVideoJobInput = Pick<
@@ -27,4 +28,22 @@ export const getVideoJobById = async (
   const [job] = await db.select().from(videoJobs).where(eq(videoJobs.id, id));
 
   return job;
+};
+
+export type ListVideoJobsOptions = {
+  status?: VideoJobStatus;
+};
+
+const LIST_VIDEO_JOBS_LIMIT = 100;
+
+export const listVideoJobs = async (
+  db: Database,
+  options: ListVideoJobsOptions = {},
+): Promise<VideoJob[]> => {
+  return db
+    .select()
+    .from(videoJobs)
+    .where(options.status ? eq(videoJobs.status, options.status) : undefined)
+    .orderBy(desc(videoJobs.createdAt))
+    .limit(LIST_VIDEO_JOBS_LIMIT);
 };

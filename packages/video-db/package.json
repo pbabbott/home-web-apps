@@ -14,12 +14,15 @@
     "clean": "rm -rf dist",
     "dev": "tsc -w -p tsconfig.build.json",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "ts-node -P tsconfig.build.json src/migrate.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.22.0"
+    "drizzle-zod": "^0.8.3",
+    "pg": "^8.22.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@abbottland/eslint-config": "workspace:*",

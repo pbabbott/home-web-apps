@@ -4,7 +4,7 @@ CREATE TABLE "video_jobs" (
 	"operation" text NOT NULL,
 	"status" "video_job_status" DEFAULT 'pending' NOT NULL,
 	"input_path" text NOT NULL,
-	"output_path" text,
+	"output_paths" text[],
 	"parameters" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"attempts" integer DEFAULT 0 NOT NULL,
 	"worker_id" text,

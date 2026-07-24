@@ -1,5 +1,5 @@
 {
-  "id": "99f96197-27f7-4052-9f5f-161f906af8f5",
+  "id": "2812b2a9-c422-4736-ae3f-5be6b8ed9c4d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -35,9 +35,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "output_path": {
-          "name": "output_path",
-          "type": "text",
+        "output_paths": {
+          "name": "output_paths",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
