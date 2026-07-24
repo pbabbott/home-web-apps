@@ -1,0 +1,46 @@
+{
+  "name": "@abbottland/video-worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "docker:build:base": "abctl docker build -c abctl.base.yml",
+    "docker:build": "abctl docker build",
+    "docker:publish:base": "abctl docker publish -c abctl.base.yml",
+    "docker:publish": "abctl docker publish",
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
+    "env:generate": "abctl secrets generate-env",
+    "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d --quiet-pull --wait && DATABASE_URL=\"postgres://video_api:${POSTGRES_PASSWORD:-Password123}@localhost:5432/video_api\" pnpm --filter @abbottland/video-db db:migrate",
+    "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
+    "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
+    "start": "node ./dist/index.js",
+    "test": "pnpm run test:unit && pnpm run test:int",
+    "test:unit": "jest --config jest.config.ts --selectProjects unit",
+    "test:int": "jest --config jest.config.ts --selectProjects integration --runInBand"
+  },
+  "dependencies": {
+    "@abbottland/express": "workspace:*",
+    "@abbottland/video-db": "workspace:*",
+    "@abbottland/yaml-config": "workspace:*",
+    "express": "catalog:",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
+    "@abbottland/eslint-config": "workspace:*",
+    "@abbottland/jest-presets": "workspace:*",
+    "@abbottland/typescript-config": "workspace:*",
+    "@types/express": "catalog:",
+    "@types/jest": "catalog:",
+    "@types/node": "catalog:",
+    "@types/supertest": "^6.0.3",
+    "dotenv": "^16.6.1",
+    "jest": "catalog:",
+    "jest-junit": "^16.0.0",
+    "supertest": "^7.1.4",
+    "ts-node": "catalog:",
+    "tsc-watch": "^6.3.1",
+    "typescript": "catalog:"
+  }
+}

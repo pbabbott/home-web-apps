@@ -1,0 +1,48 @@
+services:
+  video-worker:
+    image: harbor.local.abbottland.io/library/video-worker:smoke
+    profiles:
+      - smoke
+    build:
+      context: ../../
+      dockerfile: apps/video-worker/Dockerfile
+      args:
+        BASE_IMAGE: harbor.local.abbottland.io/library/video-worker-base:smoke
+    ports:
+      - '4003:4003'
+    environment:
+      - PORT=4003
+      - MEDIA_ROOT=/media
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=video_api
+      - POSTGRES_USER=video_api
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
+    volumes:
+      - ./docker/media:/media
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:4003/healthz']
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 4s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: video-worker-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=video_api
+      - POSTGRES_USER=video_api
+      # Default password for local development, see docker-compose environment overrides above.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U video_api -d video_api']
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 4s
