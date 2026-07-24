@@ -23,7 +23,7 @@ The process runs two things side by side:
 
 Worker crash recovery (detecting jobs stuck in `processing` via a stale `heartbeatAt` and returning them to `pending`) is not implemented yet; jobs currently track `workerId`/`heartbeatAt` so that recovery process can be added later without a schema change.
 
-Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with `video-api`.
+Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with `video-api`. `video-worker` applies pending migrations itself at startup, the same way `video-api` does — both call `runMigrationsWithLock(config.postgres)` before doing anything else, and that function holds a Postgres advisory lock for the duration so the two apps (or multiple replicas of either) starting at the same time against a fresh database don't race to create the same tables.
 
 ## Development Procedure
 
@@ -43,10 +43,10 @@ pnpm env:generate
 pnpm dev:deps
 ```
 
-This waits for Postgres to report healthy, then runs migrations against it — you get a running, up-to-date database in one command.
+This waits for Postgres to report healthy. Migrations aren't run here — `video-worker` applies them itself the moment it starts (Step 3).
 
 > [!NOTE]
-> To stop dependencies, run `pnpm dev:deps:down`. It tears down the Postgres volume too, so the **next** `pnpm dev:deps` starts from an empty (but freshly migrated) database.
+> To stop dependencies, run `pnpm dev:deps:down`. It tears down the Postgres volume too, so the **next** `pnpm dev:deps` starts from an empty database — `pnpm dev` will migrate it from scratch.
 
 ### Step 3 - Develop video-worker
 

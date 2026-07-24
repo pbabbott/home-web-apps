@@ -61,4 +61,8 @@ export type {
   ListFileRenamesOptions,
 } from './queries/file-renames';
 
-export { runMigrations, MIGRATIONS_FOLDER } from './migrations';
+export {
+  runMigrations,
+  runMigrationsWithLock,
+  MIGRATIONS_FOLDER,
+} from './migrations';

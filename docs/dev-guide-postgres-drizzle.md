@@ -9,11 +9,11 @@ Database access lives in its own library package, not inline in the app, so a la
 - `src/schema/*.ts` — Drizzle `pg-core` table/enum definitions.
 - `src/client.ts` — `createDb(options: PostgresConnectionOptions)` / `closeDb(db)`, built on `drizzle-orm/node-postgres` + `pg`. Takes a plain connection-options object; has no knowledge of `@abbottland/yaml-config`.
 - `src/queries/*.ts` — typed query functions consuming the `Database` type.
-- `src/migrations.ts` — `runMigrations(db)`, used programmatically (e.g. from Jest integration setup).
-- `src/migrate.ts` — standalone CLI script driven by `DATABASE_URL`, for `drizzle-kit`-generated migrations and future CI/k8s migration jobs.
+- `src/migrations.ts` — `runMigrations(db)` runs pending migrations on an existing `Database`/connection, used by Jest integration setup where a single test process is the only thing touching the database. `runMigrationsWithLock(options)` is what apps call: it opens its own dedicated connection, holds a Postgres session-level advisory lock for the duration, then calls `runMigrations` internally. `drizzle`'s `migrate()` has no locking of its own — a plain read-then-transaction-write — so without the lock, two processes racing to migrate a fresh database (two replicas, or `video-api` and `video-worker` starting at once) would both try to create the same tables and one would crash. The lock releases automatically if the holding connection drops, so a crash mid-migration can't leave it stuck.
+- `src/migrate.ts` — standalone CLI script driven by `DATABASE_URL`, for `drizzle-kit`-generated migrations. Mainly useful for a one-off manual migrate without booting the full app; not lock-wrapped, since it isn't meant to be run concurrently with itself.
 - `drizzle.config.ts` + `drizzle/migrations/` — migrations are generated with `pnpm db:generate` (requires `DATABASE_URL`) and committed to Git.
 
-Apps never auto-run migrations at normal startup. Only the `db:migrate` script and test setup (see below) run them — migrations are a separate deploy step, not an implicit in-process side effect.
+Apps apply pending migrations to themselves at startup — `index.ts` calls `runMigrationsWithLock(config.postgres)` before doing anything else, and exits non-zero if it fails — so pointing a fresh deploy at any Postgres (local, test, prod) brings the schema up to date with no separate migrate-before-deploy step to remember. See `apps/video-api/src/index.ts` / `apps/video-worker/src/index.ts` for the reference wiring.
 
 ## App-side config
 
@@ -34,9 +34,9 @@ mounted with `@ConfigSection({ sectionPrefix: 'POSTGRES' })`, then passed straig
 
 ## Local Postgres dependency
 
-`docker-compose.yaml` in the app follows the same shape as `gluetun-sync`'s: a smoke-profiled app service plus a `postgres:17-alpine` dependency service with a `pg_isready` healthcheck, wired to the standard `dev:deps` / `dev:deps:down` scripts.
+`docker-compose.yaml` in the app follows the same shape as `gluetun-sync`'s: a smoke-profiled app service plus a `postgres:17-alpine` dependency service with a `pg_isready` healthcheck, wired to the standard `dev:deps` / `dev:deps:down` scripts. `dev:deps` only starts Postgres — it does not run migrations; the app migrates itself the moment it starts (`pnpm dev`).
 
-Integration tests run migrations against this real Postgres in Jest's `setupFilesAfterEnv` before creating the Express app (`initDb()` → `runMigrations(db)` → `createServer()`), and close the pool in `afterAll` via `closeDb(db)` to avoid Jest's "worker failed to exit gracefully" warning.
+Integration tests run migrations against this real Postgres in Jest's `setupFilesAfterEnv` before creating the Express app (`initDb()` → `runMigrations(db)` → `createServer()`), and close the pool in `afterAll` via `closeDb(db)` to avoid Jest's "worker failed to exit gracefully" warning. Test setup uses the unlocked `runMigrations(db)` directly rather than `runMigrationsWithLock` — a single test process is never racing itself.
 
 ## `skipLibCheck` requirement
 

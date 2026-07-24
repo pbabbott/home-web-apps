@@ -24,7 +24,7 @@ Routes:
 - `PATCH /file-renames/:id` — set `{ "status": "applied" | "rejected" | "pending" }`. `applied` stamps `appliedAt`; the other two clear it. This only updates the record — it doesn't touch the filesystem.
 - `GET /docs` — interactive Swagger UI for the routes above. The URL is also logged at startup.
 
-Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with `video-worker`.
+Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with `video-worker`. `video-api` applies pending migrations itself at startup (see [Migrations](#migrations) below) — there's no separate migrate-before-deploy step to remember in any environment.
 
 ### Request validation
 
@@ -48,6 +48,12 @@ Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shar
 
 Anything that isn't a request-shape problem (e.g. the database being unreachable) still returns a generic `500` and gets logged in full server-side — see `configureErrorHandler` in `@abbottland/express`.
 
+### Migrations
+
+`index.ts` calls `runMigrationsWithLock(config.postgres)` (`@abbottland/video-db`) before starting the server, so pointing a fresh deploy at any Postgres (local, test, prod) brings the schema up to date with no separate migration step. If migrating fails, the process logs the error and exits non-zero rather than starting with a stale/broken schema.
+
+`runMigrationsWithLock` opens its own dedicated connection and holds a Postgres session-level advisory lock for the duration — `drizzle`'s `migrate()` has no locking of its own, so without this, two replicas (or `video-api` and `video-worker`) starting at the same time against a fresh database would race to create the same tables and one would crash. The lock is released automatically if the holding connection drops, so a crash mid-migration can't leave it stuck.
+
 ## Development Procedure
 
 ### Step 1 - Set environment variables
@@ -64,10 +70,10 @@ pnpm env:generate
 pnpm dev:deps
 ```
 
-This waits for Postgres to report healthy, then runs migrations against it — you get a running, up-to-date database in one command.
+This waits for Postgres to report healthy. Migrations aren't run here — `video-api` applies them itself the moment it starts (Step 3).
 
 > [!NOTE]
-> To stop dependencies, run `pnpm dev:deps:down`. It tears down the Postgres volume too, so the **next** `pnpm dev:deps` starts from an empty (but freshly migrated) database.
+> To stop dependencies, run `pnpm dev:deps:down`. It tears down the Postgres volume too, so the **next** `pnpm dev:deps` starts from an empty database — `pnpm dev` will migrate it from scratch.
 
 ### Step 3 - Develop video-api
 
