@@ -1,0 +1,34 @@
+{
+  "name": "@abbottland/home-hud",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 4022 --webpack",
+    "build": "NODE_ENV=production next build",
+    "start": "next start",
+    "lint": "eslint",
+    "docker:build:base": "abctl docker build -c abctl.base.yml",
+    "docker:build": "abctl docker build",
+    "docker:publish:base": "abctl docker publish -c abctl.base.yml",
+    "docker:publish": "abctl docker publish"
+  },
+  "dependencies": {
+    "@abbottland/fui-components": "workspace:*",
+    "@abbottland/fui-icons": "workspace:*",
+    "@abbottland/next-middleware": "workspace:*",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@abbottland/abctl": "workspace:*",
+    "@abbottland/eslint-config": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "eslint": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
+  }
+}

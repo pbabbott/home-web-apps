@@ -71,6 +71,16 @@
         "@abbottland/next-middleware#build"
       ]
     },
+    "@abbottland/home-hud#build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["IMAGE_TAG"],
+      "outputs": [".next/**"],
+      "dependsOn": [
+        "@abbottland/fui-components#build:npm",
+        "@abbottland/fui-icons#build:npm",
+        "@abbottland/next-middleware#build"
+      ]
+    },
     "test:int": {
       "outputs": ["test-results/**", "coverage/**"],
       "dependsOn": ["^build"],

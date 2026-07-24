@@ -12,6 +12,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 
 - `blog` — Next.js 16 personal blog with MDX content
 - `diagram-maker` — Next.js 16 diagram creation tool
+- `home-hud` — Next.js 16 home dashboard/HUD app
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
@@ -30,7 +31,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 ## Architecture
 
 - **Dependencies** — which apps depend on which packages, and how shared dependency versions are managed via the pnpm catalog.
-- **App patterns** — server apps (`gluetun-sync`, `pi-led-api`, `video-api`) share an Express/config/test pattern; frontend apps (`blog`, `diagram-maker`) share a Next.js/Tailwind pattern; `typescript-config`/`jest-presets` provide the shared build/test presets both use.
+- **App patterns** — server apps (`gluetun-sync`, `pi-led-api`, `video-api`) share an Express/config/test pattern; frontend apps (`blog`, `diagram-maker`, `home-hud`) share a Next.js/Tailwind pattern; `typescript-config`/`jest-presets` provide the shared build/test presets both use.
 - **Docker** — `abctl` CLI wraps Docker build/push; images publish to a local Harbor registry.
 - **CI/CD** — GitHub Actions on self-hosted runners. See [`.github/CLAUDE.md`](./.github/CLAUDE.md) for the workflow list and script-integration conventions.
 
