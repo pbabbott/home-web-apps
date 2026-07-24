@@ -7,7 +7,8 @@
     "PORT",
     "NODE_ENV",
     "ENABLE_ANALYTICS",
-    "STORYBOOK"
+    "STORYBOOK",
+    "VIDEO_API_URL"
   ],
   "tasks": {
     "build": {
