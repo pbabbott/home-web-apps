@@ -4,7 +4,7 @@ The purpose of this document is to explain what `video-api` is and how the appli
 
 ## Overview
 
-`video-api` is an Express.js API that accepts video-processing job requests and stores them durably in PostgreSQL for a separate `video-worker` (built in a later session) to claim and process with `ffmpeg`. The API itself never touches video files or runs `ffmpeg` — it only creates and reports on job records.
+`video-api` is an Express.js API that accepts video-processing job requests and stores them durably in PostgreSQL for `video-worker` (`apps/video-worker`) to claim and process with `ffmpeg`. The API itself never touches video files (aside from `/browse` and hashing files for `/title-cards`) or runs `ffmpeg` — job processing itself is the worker's job.
 
 Routes:
 
@@ -14,9 +14,17 @@ Routes:
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, most recently created first (capped at 100), optionally filtered by status. Omit `status` to list all.
 - `GET /jobs/:id` — fetch a job's current status/result.
 - `GET /browse?path=<relative path>` — list the files/folders at `<path>` (default: the root itself). `path` is always resolved relative to, and constrained within, `MEDIA_ROOT`; requests that attempt to traverse outside of it (e.g. `../../etc`) get a `400`.
+- `GET /hash?filePath=<relative path>` — compute and return the SHA-256 hash of the file at `filePath`, without recording anything. Same resolve-then-hash logic `POST /title-cards` and `POST /file-renames` use internally; useful for getting a `fileHash` up front to query those routes with.
+- `POST /title-cards` — record the timestamp a title card (episode-title screen) was found at, for a video file at `filePath`. The file is hashed (SHA-256) server-side; the hash — not `filePath` — is the record's identity, so a later filename change doesn't orphan it. Re-submitting the same `filePath`/`timestampSeconds` pair updates the existing record instead of erroring (`201` either way).
+- `GET /title-cards?fileHash=<hash>` or `?filePath=<relative path>` — list recorded title cards, most useful filtered to one file's; `filePath` is resolved and hashed the same way `POST` does. Omit both to list everything (capped at 100, ordered by `timestampSeconds`).
+- `GET /title-cards/:id` — fetch a single recorded title card.
+- `POST /file-renames` — record an AI-suggested destination filename (`suggestedFilePath`) for the video file at `originalFilePath`. `originalFilePath` is hashed the same way as `/title-cards`, for the same rename-survival reason; `suggestedFilePath` is only checked for path traversal, not existence — nothing renames the file automatically. One suggestion per file: re-submitting for the same file updates it and resets `status` back to `pending`.
+- `GET /file-renames?fileHash=<hash>` or `?filePath=<relative path>`, optionally `&status=<pending|applied|rejected>` — list suggestions, newest first (capped at 100). Omit all filters to list everything.
+- `GET /file-renames/:id` — fetch a single suggestion.
+- `PATCH /file-renames/:id` — set `{ "status": "applied" | "rejected" | "pending" }`. `applied` stamps `appliedAt`; the other two clear it. This only updates the record — it doesn't touch the filesystem.
 - `GET /docs` — interactive Swagger UI for the routes above. The URL is also logged at startup.
 
-Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with the future worker.
+Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shared with `video-worker`.
 
 ### Request validation
 
