@@ -30,7 +30,8 @@
   "mounts": [
     "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly",
     "type=bind,source=/home/${localEnv:USER}/.gitconfig,target=/home/vscode/.gitconfig,readonly",
-    "type=bind,source=/home/${localEnv:USER}/.claude,target=/home/vscode/.claude"
+    "type=bind,source=/home/${localEnv:USER}/.claude,target=/home/vscode/.claude",
+    "type=bind,source=/home/${localEnv:USER}/media,target=/home/vscode/media"
   ],
   "runArgs": ["--env-file", ".devcontainer/.env"],
   "customizations": {
