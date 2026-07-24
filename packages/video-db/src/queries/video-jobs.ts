@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   videoJobs,
@@ -46,4 +46,79 @@ export const listVideoJobs = async (
     .where(options.status ? eq(videoJobs.status, options.status) : undefined)
     .orderBy(desc(videoJobs.createdAt))
     .limit(LIST_VIDEO_JOBS_LIMIT);
+};
+
+/**
+ * Atomically claims the oldest pending job for `workerId`. Uses
+ * `FOR UPDATE SKIP LOCKED` inside a transaction so concurrent workers never
+ * claim the same row: each competing transaction just skips rows already
+ * locked by another claim in flight, instead of blocking on them.
+ */
+export const claimNextVideoJob = async (
+  db: Database,
+  workerId: string,
+): Promise<VideoJob | undefined> => {
+  return db.transaction(async (tx) => {
+    const [next] = await tx
+      .select({ id: videoJobs.id })
+      .from(videoJobs)
+      .where(eq(videoJobs.status, 'pending'))
+      .orderBy(videoJobs.createdAt)
+      .limit(1)
+      .for('update', { skipLocked: true });
+
+    if (!next) return undefined;
+
+    const [job] = await tx
+      .update(videoJobs)
+      .set({
+        status: 'processing',
+        workerId,
+        startedAt: new Date(),
+        heartbeatAt: new Date(),
+        attempts: sql`${videoJobs.attempts} + 1`,
+      })
+      .where(eq(videoJobs.id, next.id))
+      .returning();
+
+    return job;
+  });
+};
+
+export const heartbeatVideoJob = async (
+  db: Database,
+  id: string,
+): Promise<void> => {
+  await db
+    .update(videoJobs)
+    .set({ heartbeatAt: new Date() })
+    .where(eq(videoJobs.id, id));
+};
+
+export const completeVideoJob = async (
+  db: Database,
+  id: string,
+  outputPaths: string[],
+): Promise<VideoJob> => {
+  const [job] = await db
+    .update(videoJobs)
+    .set({ status: 'completed', completedAt: new Date(), outputPaths })
+    .where(eq(videoJobs.id, id))
+    .returning();
+
+  return job;
+};
+
+export const failVideoJob = async (
+  db: Database,
+  id: string,
+  error: string,
+): Promise<VideoJob> => {
+  const [job] = await db
+    .update(videoJobs)
+    .set({ status: 'failed', completedAt: new Date(), error })
+    .where(eq(videoJobs.id, id))
+    .returning();
+
+  return job;
 };
