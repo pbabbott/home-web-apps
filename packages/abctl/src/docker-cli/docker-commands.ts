@@ -6,7 +6,7 @@ export const dockerTag = async (imageWithTag: string, newImageWithTag: string): 
   try {
     const command = 'docker'
     const args = ['tag', imageWithTag, newImageWithTag]
-    await executeCommand(command, args)
+    await executeCommand(command, args, {inherit: true})
   } catch (error) {
     console.error('❌  Docker tag failed:', error)
     process.exit(1)
@@ -17,7 +17,7 @@ export const dockerPush = async (imageWithTag: string): Promise<void> => {
   try {
     const command = 'docker'
     const args = ['push', imageWithTag]
-    await executeCommand(command, args)
+    await executeCommand(command, args, {inherit: true})
   } catch (error) {
     console.error('❌  Docker push failed:', error)
     process.exit(1)
@@ -86,7 +86,7 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     args.push(context ?? '.')
 
-    await executeCommand(command, args)
+    await executeCommand(command, args, {inherit: true})
 
     console.log('✅  Docker build completed successfully.')
   } catch (error) {
