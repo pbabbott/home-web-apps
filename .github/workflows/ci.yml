@@ -230,7 +230,7 @@ jobs:
 
       - name: Publish SHA-tagged image (${{ matrix.package }})
         run: bash ./scripts/docker-publish-sha.sh
-        timeout-minutes: 15
+        timeout-minutes: 20
         env:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
