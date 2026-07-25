@@ -465,7 +465,7 @@ jobs:
         shell: bash
 
       - name: Run unit tests (${{ matrix.package }})
-        run: pnpm turbo run test:unit --filter="@abbottland/${{ matrix.package }}"
+        run: pnpm turbo run test:unit --log-order=stream --filter="@abbottland/${{ matrix.package }}"
         shell: bash
         env:
           CI: true
@@ -513,11 +513,11 @@ jobs:
           op-connect-token: ${{ secrets.OP_CONNECT_TOKEN_PROD }}
 
       - name: Run dev dependencies (${{ matrix.package }})
-        run: pnpm turbo run dev:deps --filter="@abbottland/${{ matrix.package }}"
+        run: pnpm turbo run dev:deps --log-order=stream --filter="@abbottland/${{ matrix.package }}"
         shell: bash
 
       - name: Run integration tests (${{ matrix.package }})
-        run: pnpm turbo run test:int --filter="@abbottland/${{ matrix.package }}"
+        run: pnpm turbo run test:int --log-order=stream --filter="@abbottland/${{ matrix.package }}"
         shell: bash
         env:
           CI: true
@@ -531,7 +531,7 @@ jobs:
 
       - name: Stop dev dependencies (${{ matrix.package }})
         if: always()
-        run: pnpm turbo run dev:deps:down --filter="@abbottland/${{ matrix.package }}"
+        run: pnpm turbo run dev:deps:down --log-order=stream --filter="@abbottland/${{ matrix.package }}"
         shell: bash
 
   smoke-tests:
