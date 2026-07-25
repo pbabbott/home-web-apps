@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 ###############################################################
 # Setup pnpm and turbo on the alpine base
 ###############################################################
@@ -41,9 +42,17 @@ FROM npm AS development
 ARG IMAGE_TAG=""
 ENV IMAGE_TAG=${IMAGE_TAG}
 
+# Turbo remote cache auth. TURBO_TOKEN is mounted as a build secret (never
+# baked into a layer); API/TEAM aren't sensitive so they travel as build args.
+ARG TURBO_API=""
+ARG TURBO_TEAM=""
+ENV TURBO_API=${TURBO_API}
+ENV TURBO_TEAM=${TURBO_TEAM}
+
 # Copy source code of isolated subworkspace
 COPY --from=pruner /app/out/full .
-RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
+RUN --mount=type=secret,id=turbo_token,env=TURBO_TOKEN \
+  turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
 ###############################################################

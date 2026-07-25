@@ -49,7 +49,7 @@ export const checkRemoteImageExists = async (imageWithTag: string): Promise<bool
 
 export async function dockerBuild(settings: DockerBuildSettings) {
   try {
-    const {image, context, buildArgs = {}, dockerfile, push, load, platform, target, cacheRef} = settings
+    const {image, context, buildArgs = {}, secrets = [], dockerfile, push, load, platform, target, cacheRef} = settings
     const command = 'docker'
     const args = ['buildx', 'build']
 
@@ -59,6 +59,10 @@ export async function dockerBuild(settings: DockerBuildSettings) {
 
     Object.entries(buildArgs).forEach(([key, value]) => {
       args.push('--build-arg', `${key}=${value}`)
+    })
+
+    secrets.forEach(({id, env}) => {
+      args.push('--secret', `id=${id},env=${env}`)
     })
 
     if (platform) {
