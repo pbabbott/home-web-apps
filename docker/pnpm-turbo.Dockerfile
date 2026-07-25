@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 ###############################################################
 # Setup pnpm and turbo on the alpine base
 ###############################################################
@@ -51,7 +50,8 @@ ENV TURBO_TEAM=${TURBO_TEAM}
 
 # Copy source code of isolated subworkspace
 COPY --from=pruner /app/out/full .
-RUN --mount=type=secret,id=turbo_token,env=TURBO_TOKEN \
+RUN --mount=type=secret,id=turbo_token \
+  TURBO_TOKEN="$(cat /run/secrets/turbo_token 2>/dev/null || true)" \
   turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
