@@ -30,3 +30,17 @@ runs:
     - name: Configure pnpm store path
       run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
       shell: bash
+
+    # pnpm's store-dir lives on a NAS mount, so linking node_modules from it
+    # falls back to a cross-filesystem copy instead of a hardlink -- slow,
+    # and worse under concurrent jobs contending for the same NAS mount.
+    # Caching the already-linked node_modules (local disk, no NAS I/O) turns
+    # a cache-hit install into a no-op verification instead of a full relink.
+    - name: Cache node_modules
+      uses: actions/cache@v5
+      with:
+        path: |
+          node_modules
+          apps/*/node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('pnpm-lock.yaml') }}
