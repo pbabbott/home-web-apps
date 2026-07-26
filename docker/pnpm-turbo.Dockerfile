@@ -60,7 +60,13 @@ CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 ###############################################################
 FROM development AS builder
 
-RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm prune --prod --no-optional
+# Switching to --prod --no-optional makes pnpm redo node_modules from
+# scratch (the "included deps" no longer match the original install), which
+# would otherwise (a) prompt to confirm -- and hang forever, since stdin
+# never hits EOF in this RUN environment -- and (b) rerun lifecycle scripts
+# like husky's `prepare`, which fails because husky itself is a
+# devDependency being pruned away.
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm --config.confirm-modules-purge=false prune --prod --no-optional --ignore-scripts
 RUN rm -rf apps/*/src packages/*/src
 
 ###############################################################
