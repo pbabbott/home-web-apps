@@ -29,7 +29,7 @@ runs:
       shell: bash
 
     - name: Configure pnpm store path
-      run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
+      run: pnpm config set store-dir "$HOME/.local/share/pnpm/store"
       shell: bash
 
     # pnpm's store-dir lives on a NAS mount, so linking node_modules from it

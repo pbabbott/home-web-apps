@@ -70,3 +70,5 @@ Unlike the other server apps, `video-worker`'s final image needs the `ffmpeg` bi
 
 - `abctl.base.yml` builds and publishes the shared Dockerfile's `builder` stage (pruned prod `node_modules` + compiled `dist`, no source) as `video-worker-base`.
 - `abctl.yml` points at a local `Dockerfile`, which uses `video-worker-base` as `BASE_IMAGE` and defines its own runner stage that `apk add`s `ffmpeg`.
+
+<!-- ci: trigger docker build -->

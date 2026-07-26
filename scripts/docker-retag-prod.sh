@@ -13,7 +13,7 @@ cd "$(dirname "$0")/.."
 COMMIT_SHA="${COMMIT_SHA:?COMMIT_SHA is required}"
 RUN_NUMBER="${RUN_NUMBER:?RUN_NUMBER is required}"
 REGISTRY="${REGISTRY:-harbor.local.abbottland.io/library}"
-APPS="${APPS:-blog diagram-maker fui-components gluetun-sync harbor-cleanup}"
+APPS="${APPS:-blog diagram-maker fui-components gluetun-sync harbor-cleanup home-hud video-api video-worker}"
 
 PARENTS=$(git log --pretty=%P -1 "$COMMIT_SHA")
 PARENT_COUNT=$(echo "$PARENTS" | wc -w)

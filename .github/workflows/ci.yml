@@ -184,7 +184,7 @@ jobs:
     runs-on: [prod-gen2-dind-runner]
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 6
       matrix:
         package: ${{ fromJson(needs.docker-build-plan.outputs.packages) }}
     steps:
@@ -277,9 +277,11 @@ jobs:
         run: |
           docker run --rm \
             --ipc=host \
+            --user "$(id -u):$(id -g)" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace \
             -e CI=true \
+            -e HOME=/tmp \
             harbor.local.abbottland.io/library/playwright-runner:latest \
             bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd packages/fui-components && pnpm test:ui"
         shell: bash
@@ -346,9 +348,11 @@ jobs:
         run: |
           docker run --rm \
             --ipc=host \
+            --user "$(id -u):$(id -g)" \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace \
             -e CI=true \
+            -e HOME=/tmp \
             harbor.local.abbottland.io/library/playwright-runner:latest \
             bash -c "echo 'node-linker=hoisted' >> .npmrc && pnpm install --frozen-lockfile && cd apps/blog && pnpm test:ui"
 

@@ -90,3 +90,5 @@ pnpm test:int
 
 > [!NOTE]
 > Integration tests run migrations against the dependency Postgres automatically before exercising the routes.
+
+<!-- ci: trigger docker build -->
