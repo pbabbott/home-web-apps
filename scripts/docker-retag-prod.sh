@@ -32,6 +32,10 @@ PROD_TAG="${DATE}-${RUN_NUMBER}-${SHORT_SHA}"
 
 for APP in $APPS; do
   IMAGE_REPO="${REGISTRY}/${APP}"
+  if ! docker buildx imagetools inspect "${IMAGE_REPO}:sha-${SHORT_SHA}" > /dev/null 2>&1; then
+    echo "Skipping ${APP}: no ${IMAGE_REPO}:sha-${SHORT_SHA} image (not rebuilt this PR)"
+    continue
+  fi
   echo "Retagging ${IMAGE_REPO}:sha-${SHORT_SHA} → ${IMAGE_REPO}:${PROD_TAG}"
   docker buildx imagetools create \
     --tag "${IMAGE_REPO}:${PROD_TAG}" \
