@@ -23,6 +23,7 @@
     "@abbottland/express": "workspace:*",
     "@abbottland/video-db": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
+    "dotenv": "^16.6.1",
     "express": "catalog:",
     "reflect-metadata": "^0.2.2"
   },
@@ -35,7 +36,6 @@
     "@types/jest": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "^6.0.3",
-    "dotenv": "^16.6.1",
     "jest": "catalog:",
     "jest-junit": "^16.0.0",
     "supertest": "^7.1.4",
