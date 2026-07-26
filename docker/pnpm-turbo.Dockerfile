@@ -41,9 +41,18 @@ FROM npm AS development
 ARG IMAGE_TAG=""
 ENV IMAGE_TAG=${IMAGE_TAG}
 
+# Turbo remote cache auth. TURBO_TOKEN is mounted as a build secret (never
+# baked into a layer); API/TEAM aren't sensitive so they travel as build args.
+ARG TURBO_API=""
+ARG TURBO_TEAM=""
+ENV TURBO_API=${TURBO_API}
+ENV TURBO_TEAM=${TURBO_TEAM}
+
 # Copy source code of isolated subworkspace
 COPY --from=pruner /app/out/full .
-RUN turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
+RUN --mount=type=secret,id=turbo_token \
+  TURBO_TOKEN="$(cat /run/secrets/turbo_token 2>/dev/null || true)" \
+  turbo build --filter=@abbottland/${PROJECT} --log-prefix=none
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
 ###############################################################
@@ -51,7 +60,16 @@ CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 ###############################################################
 FROM development AS builder
 
-RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm prune --prod --no-optional
+# `pnpm prune --prod` leaves node_modules in a state where some direct
+# deps (e.g. gluetun-sync's reflect-metadata) resolve in the pnpm store but
+# aren't symlinked into the consuming package's node_modules -- a runtime
+# MODULE_NOT_FOUND that only shows up when the container actually starts.
+# A fresh --prod install always re-links from scratch, so wipe node_modules
+# and reinstall instead of pruning in place. --ignore-scripts skips husky's
+# `prepare` hook, which fails because husky itself is a devDependency no
+# longer present.
+RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm install --prod --frozen-lockfile --ignore-scripts
 RUN rm -rf apps/*/src packages/*/src
 
 ###############################################################

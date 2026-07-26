@@ -45,10 +45,15 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
         PROJECT_DIR: `${projectMetadata.parentDirName}/`,
         PROJECT: projectMetadata.projectName,
         IMAGE_TAG: '20260101-001-abc1234',
+        TURBO_API: '',
+        TURBO_TEAM: '',
       })
     })
     it('should not set cacheRef', () => {
       expect(sut.cacheRef).toBeUndefined()
+    })
+    it('should pass the turbo token as a build secret, not a build arg', () => {
+      expect(sut.secrets).toEqual([{id: 'turbo_token', env: 'TURBO_TOKEN'}])
     })
   })
 

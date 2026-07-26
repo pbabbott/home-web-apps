@@ -36,7 +36,7 @@ echo "Publishing changed app images with Docker tag: ${ABCTL_IMAGE_TAG} (IMAGE_T
 
 if [[ -n "$PACKAGE" ]]; then
   echo "Publishing package: ${PACKAGE}"
-  pnpm turbo run docker:publish --filter="@abbottland/${PACKAGE}"
+  pnpm turbo run docker:publish --log-order=stream --filter="@abbottland/${PACKAGE}"
   exit 0
 fi
 
@@ -53,5 +53,6 @@ echo "Comparing against: ${TURBO_FILTER}"
 # turbo skips packages that have no docker:publish task
 pnpm turbo run docker:publish \
   --concurrency="${CONCURRENCY}" \
+  --log-order=stream \
   --filter="{./apps/*}[${TURBO_FILTER}]" \
   --filter="...{./packages/*}[${TURBO_FILTER}]"

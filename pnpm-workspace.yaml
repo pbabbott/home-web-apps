@@ -33,3 +33,5 @@ catalog:
   '@tailwindcss/postcss': '^4.1.16'
 
   eslint: '^9.37.0'
+
+  zod: '^4.4.3'

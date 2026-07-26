@@ -15,7 +15,6 @@ services:
     environment:
       # Gluetun Sync Config
       - PORT=4000
-      - SHOW_CONFIG=true
       - TZ=America/Chicago
       - CRON_EXPRESSION=*/20 * * * * # Run every 20 minutes
       # Gluetun API Config

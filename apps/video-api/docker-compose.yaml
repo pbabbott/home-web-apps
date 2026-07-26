@@ -1,0 +1,50 @@
+services:
+  video-api:
+    image: harbor.local.abbottland.io/library/video-api:smoke
+    profiles:
+      - smoke
+    build:
+      context: ../../
+      dockerfile: docker/pnpm-turbo.Dockerfile
+      args:
+        BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
+        PROJECT_DIR: apps/
+        PROJECT: video-api
+    ports:
+      - '4002:4002'
+    environment:
+      - PORT=4002
+      - MEDIA_ROOT=/media
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=video_api
+      - POSTGRES_USER=video_api
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
+    volumes:
+      - ./docker/media:/media
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:4002/healthz']
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 4s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: video-api-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=video_api
+      - POSTGRES_USER=video_api
+      # Default password for local development, see docker-compose environment overrides above.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U video_api -d video_api']
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 4s

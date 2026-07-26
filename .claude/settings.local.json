@@ -40,7 +40,9 @@
       "Bash(gh run *)",
       "Bash(npx tsc *)",
       "Bash(gh issue *)",
-      "Bash(xargs ls)"
+      "Bash(xargs ls)",
+      "Bash(gh api *)",
+      "Bash(npx jest *)"
     ]
   }
 }

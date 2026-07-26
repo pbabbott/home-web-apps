@@ -3,13 +3,6 @@ description: 'A composite action to run pnpm setup'
 runs:
   using: 'composite'
   steps:
-    - name: Install libatomic (required by pnpm's standalone binary)
-      run: sudo apt-get update && sudo apt-get install -y libatomic1
-      shell: bash
-
-    - name: Setup PNPM
-      uses: pnpm/action-setup@v6
-
     - name: Ensure Node.js directory exists
       run: mkdir -p ~/.nvm/versions/node
       shell: bash
@@ -27,6 +20,28 @@ runs:
       with:
         node-version: 22
 
+    # pnpm/action-setup's standalone binary needs libatomic1, which isn't on
+    # these runners -- installing pnpm as an npm global (same as
+    # docker/pnpm-turbo.Dockerfile) runs under the Node.js just installed
+    # above instead, so there's no native binary/libatomic dependency at all.
+    - name: Install pnpm
+      run: npm install -g pnpm@10.15.0
+      shell: bash
+
     - name: Configure pnpm store path
       run: pnpm config set store-dir /home/runner/.local/share/pnpm/store
       shell: bash
+
+    # pnpm's store-dir lives on a NAS mount, so linking node_modules from it
+    # falls back to a cross-filesystem copy instead of a hardlink -- slow,
+    # and worse under concurrent jobs contending for the same NAS mount.
+    # Caching the already-linked node_modules (local disk, no NAS I/O) turns
+    # a cache-hit install into a no-op verification instead of a full relink.
+    - name: Cache node_modules
+      uses: actions/cache@v5
+      with:
+        path: |
+          node_modules
+          apps/*/node_modules
+          packages/*/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('pnpm-lock.yaml') }}
