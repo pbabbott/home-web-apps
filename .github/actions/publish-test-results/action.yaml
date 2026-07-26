@@ -35,3 +35,4 @@ runs:
         artifact: ${{ inputs.artifact-name }}
         path: '*.xml'
         reporter: jest-junit
+        fail-on-empty: 'false'

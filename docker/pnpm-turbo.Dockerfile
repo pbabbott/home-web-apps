@@ -60,13 +60,16 @@ CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 ###############################################################
 FROM development AS builder
 
-# Switching to --prod --no-optional makes pnpm redo node_modules from
-# scratch (the "included deps" no longer match the original install), which
-# would otherwise (a) prompt to confirm -- and hang forever, since stdin
-# never hits EOF in this RUN environment -- and (b) rerun lifecycle scripts
-# like husky's `prepare`, which fails because husky itself is a
-# devDependency being pruned away.
-RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm --config.confirm-modules-purge=false prune --prod --no-optional --ignore-scripts
+# `pnpm prune --prod` leaves node_modules in a state where some direct
+# deps (e.g. gluetun-sync's reflect-metadata) resolve in the pnpm store but
+# aren't symlinked into the consuming package's node_modules -- a runtime
+# MODULE_NOT_FOUND that only shows up when the container actually starts.
+# A fresh --prod install always re-links from scratch, so wipe node_modules
+# and reinstall instead of pruning in place. --ignore-scripts skips husky's
+# `prepare` hook, which fails because husky itself is a devDependency no
+# longer present.
+RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm install --prod --frozen-lockfile --ignore-scripts
 RUN rm -rf apps/*/src packages/*/src
 
 ###############################################################

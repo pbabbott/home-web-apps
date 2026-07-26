@@ -25,6 +25,7 @@
     "@abbottland/logger": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
     "cronstrue": "^2.59.0",
+    "dotenv": "^16.6.1",
     "express": "catalog:",
     "node-cron": "^3.0.3",
     "reflect-metadata": "^0.2.2"
@@ -39,7 +40,6 @@
     "@types/node": "catalog:",
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.3",
-    "dotenv": "^16.6.1",
     "jest": "catalog:",
     "jest-junit": "^16.0.0",
     "supertest": "^7.1.4",
