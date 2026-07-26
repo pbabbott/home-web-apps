@@ -2,6 +2,7 @@ import express, { type Express } from 'express';
 import {
   configureBaseServerMiddleware,
   configureHealthRoute,
+  configureMetricsRoute,
 } from '@abbottland/express';
 import { config } from './config';
 import { doSync } from './controllers/sync';
@@ -12,6 +13,7 @@ export const createServer = (): Express => {
 
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
+  configureMetricsRoute(app);
 
   app
     .post('/sync', doSync)
