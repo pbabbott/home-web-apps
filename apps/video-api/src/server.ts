@@ -4,6 +4,7 @@ import {
   configureBaseServerMiddleware,
   configureErrorHandler,
   configureHealthRoute,
+  configureMetricsRoute,
   validateBody,
   validateParams,
   validateQuery,
@@ -51,6 +52,7 @@ export const createServer = (): Express => {
 
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
+  configureMetricsRoute(app);
 
   app.use(DOCS_ROUTE, swaggerUi.serve, swaggerUi.setup(openApiSpec));
 

@@ -3,6 +3,7 @@ import {
   configureBaseServerMiddleware,
   configureErrorHandler,
   configureHealthRoute,
+  configureMetricsRoute,
 } from '@abbottland/express';
 import { config } from './config';
 import { getReady } from './controllers/ready';
@@ -12,6 +13,7 @@ export const createServer = (): Express => {
 
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
+  configureMetricsRoute(app);
 
   app.get('/readyz', getReady);
 

@@ -5,5 +5,6 @@ export { validateParams } from './middleware/validate-params/validate-params';
 export { validateQuery } from './middleware/validate-query/validate-query';
 
 export { configureHealthRoute } from './routes/health-route/health-route';
+export { configureMetricsRoute } from './routes/metrics-route/metrics-route';
 
 export type { ValidationError } from './lib/format-zod-error';
