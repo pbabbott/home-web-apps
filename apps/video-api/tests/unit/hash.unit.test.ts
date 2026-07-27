@@ -1,12 +1,18 @@
 import fs from 'fs';
 import os from 'os';
 import supertest from 'supertest';
+import { hashFile } from '@abbottland/video-db';
 import { createServer } from '../../src/server';
 import { initConfig } from '../../src/config';
-import { hashFile } from '../../src/lib/file-hash';
 
 jest.mock('fs');
-jest.mock('../../src/lib/file-hash');
+// Partial mock: keep real value exports (e.g. select schemas, which
+// openapi.ts needs to build the doc at module-load time) and only mock
+// hashFile under test here.
+jest.mock('@abbottland/video-db', () => ({
+  ...jest.requireActual('@abbottland/video-db'),
+  hashFile: jest.fn(),
+}));
 
 describe('GET /hash', () => {
   let consoleErrorSpy: jest.SpyInstance;

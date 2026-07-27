@@ -1,6 +1,6 @@
 import fs from 'fs';
+import { hashFile } from '@abbottland/video-db';
 import { config } from '../config';
-import { hashFile } from './file-hash';
 import { resolveWithinRoot } from './safe-path';
 
 export type ResolveAndHashResult =
