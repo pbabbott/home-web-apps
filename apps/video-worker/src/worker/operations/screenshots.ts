@@ -1,7 +1,7 @@
 import { execFile } from 'child_process';
 import fs from 'fs';
 import { promisify } from 'util';
-import type { VideoJob } from '@abbottland/video-db';
+import { hashFile, type VideoJob } from '@abbottland/video-db';
 import { config } from '../../config';
 import { resolveWithinRoot } from '../../lib/safe-path';
 import { JobProcessingError } from '../job-processing-error';
@@ -25,8 +25,12 @@ const isScreenshotParameters = (
 
 /**
  * Extracts one JPEG per timestamp in `job.parameters.timestamps` and writes
- * them to `screenshots/<jobId>/<timestamp>.jpg` under MEDIA_ROOT. Returns
- * the generated paths, relative to MEDIA_ROOT, in timestamp order.
+ * them to `screenshots/<inputFileHash>/<timestamp>.jpg` under MEDIA_ROOT.
+ * Keying by the input file's content hash (rather than the job id) means
+ * re-running screenshots for the same file — even via a different job, or
+ * after the file is renamed — lands in the same folder, and a timestamp
+ * already present there is left alone rather than re-extracted. Returns the
+ * generated paths, relative to MEDIA_ROOT, in timestamp order.
  */
 export const runScreenshotsOperation = async (
   job: VideoJob,
@@ -49,7 +53,8 @@ export const runScreenshotsOperation = async (
     throw new JobProcessingError(`input file not found: ${job.inputPath}`);
   }
 
-  const outputRelDir = `/screenshots/${job.id}`;
+  const inputHash = await hashFile(inputAbsPath);
+  const outputRelDir = `/screenshots/${inputHash}`;
   const outputAbsDir = resolveWithinRoot(config.mediaRoot, outputRelDir);
 
   if (!outputAbsDir) {
@@ -70,16 +75,18 @@ export const runScreenshotsOperation = async (
       throw new JobProcessingError('generated output path escapes MEDIA_ROOT');
     }
 
-    await execFileAsync(config.ffmpegPath, [
-      '-ss',
-      String(timestamp),
-      '-i',
-      inputAbsPath,
-      '-frames:v',
-      '1',
-      '-y',
-      outputAbsPath,
-    ]);
+    if (!fs.existsSync(outputAbsPath)) {
+      await execFileAsync(config.ffmpegPath, [
+        '-ss',
+        String(timestamp),
+        '-i',
+        inputAbsPath,
+        '-frames:v',
+        '1',
+        '-y',
+        outputAbsPath,
+      ]);
+    }
 
     outputPaths.push(outputRelPath);
   }

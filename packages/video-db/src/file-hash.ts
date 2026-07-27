@@ -3,9 +3,10 @@ import fs from 'fs';
 
 /**
  * Streams the full file at `absPath` through SHA-256. Used as the
- * rename-proof identity for a video file: source filenames in this library
- * routinely don't match episode titles, so paths alone can't be trusted to
- * stay pointed at the same content.
+ * rename-proof identity for a video file: source filenames routinely don't
+ * match episode titles or stay put, so paths alone can't be trusted to
+ * stay pointed at the same content. Shared between video-api and
+ * video-worker so both hash files identically.
  */
 export const hashFile = (absPath: string): Promise<string> =>
   new Promise((resolve, reject) => {

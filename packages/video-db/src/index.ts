@@ -1,6 +1,8 @@
 export { createDb, closeDb, pingDb } from './client';
 export type { Database, PostgresConnectionOptions } from './client';
 
+export { hashFile } from './file-hash';
+
 export {
   videoJobs,
   videoJobStatusEnum,

@@ -2,21 +2,21 @@ import fs from 'fs';
 import os from 'os';
 import supertest from 'supertest';
 import * as videoDb from '@abbottland/video-db';
+import { hashFile } from '@abbottland/video-db';
 import { createServer } from '../../src/server';
 import { initConfig } from '../../src/config';
-import { hashFile } from '../../src/lib/file-hash';
 
 jest.mock('fs');
-jest.mock('../../src/lib/file-hash');
 // Partial mock: keep real value exports (e.g. fileRenameSelectSchema, which
 // openapi.ts needs to build the doc at module-load time) and only mock the
-// query functions under test here.
+// query functions and hashFile under test here.
 jest.mock('@abbottland/video-db', () => ({
   ...jest.requireActual('@abbottland/video-db'),
   upsertFileRename: jest.fn(),
   getFileRenameById: jest.fn(),
   updateFileRenameStatus: jest.fn(),
   listFileRenames: jest.fn(),
+  hashFile: jest.fn(),
 }));
 
 const sampleFileRename = {

@@ -4,6 +4,8 @@ import { runScreenshotsOperation } from '../../src/worker/operations/screenshots
 import { JobProcessingError } from '../../src/worker/job-processing-error';
 import type { VideoJob } from '@abbottland/video-db';
 
+const FAKE_HASH = 'fakehash1234567890';
+
 jest.mock('fs');
 jest.mock('child_process', () => ({
   execFile: jest.fn(
@@ -18,6 +20,9 @@ jest.mock('child_process', () => ({
 }));
 jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media', ffmpegPath: 'ffmpeg' },
+}));
+jest.mock('@abbottland/video-db', () => ({
+  hashFile: jest.fn().mockResolvedValue('fakehash1234567890'),
 }));
 
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
@@ -40,7 +45,11 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
 
 describe('runScreenshotsOperation', () => {
   beforeEach(() => {
-    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    // Input file exists; output screenshots don't yet, so ffmpeg runs
+    // unless a test overrides this to simulate an already-generated file.
+    (fs.existsSync as jest.Mock).mockImplementation(
+      (path: string) => path === '/media/videos/example.mp4',
+    );
     (fs.mkdirSync as jest.Mock).mockReturnValue(undefined);
   });
 
@@ -74,14 +83,37 @@ describe('runScreenshotsOperation', () => {
     const outputPaths = await runScreenshotsOperation(job);
 
     expect(outputPaths).toEqual([
-      `/screenshots/${job.id}/30.jpg`,
-      `/screenshots/${job.id}/120.jpg`,
+      `/screenshots/${FAKE_HASH}/30.jpg`,
+      `/screenshots/${FAKE_HASH}/120.jpg`,
     ]);
     expect(execFile).toHaveBeenCalledTimes(2);
     expect(execFile).toHaveBeenNthCalledWith(
       1,
       'ffmpeg',
       expect.arrayContaining(['-ss', '30', '-i', '/media/videos/example.mp4']),
+      expect.any(Function),
+    );
+  });
+
+  it('skips ffmpeg for timestamps whose screenshot already exists', async () => {
+    const job = buildJob();
+
+    (fs.existsSync as jest.Mock).mockImplementation(
+      (path: string) =>
+        path === '/media/videos/example.mp4' ||
+        path === `/media/screenshots/${FAKE_HASH}/30.jpg`,
+    );
+
+    const outputPaths = await runScreenshotsOperation(job);
+
+    expect(outputPaths).toEqual([
+      `/screenshots/${FAKE_HASH}/30.jpg`,
+      `/screenshots/${FAKE_HASH}/120.jpg`,
+    ]);
+    expect(execFile).toHaveBeenCalledTimes(1);
+    expect(execFile).toHaveBeenCalledWith(
+      'ffmpeg',
+      expect.arrayContaining(['-ss', '120', '-i', '/media/videos/example.mp4']),
       expect.any(Function),
     );
   });
