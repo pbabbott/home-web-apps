@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "docker:build:base": "abctl docker build -c abctl.base.yml",
     "docker:build": "abctl docker build",
+    "docker:publish:base": "abctl docker publish -c abctl.base.yml",
     "docker:publish": "abctl docker publish",
     "build": "tsc -p tsconfig.build.json",
     "clean": "rm -rf dist",

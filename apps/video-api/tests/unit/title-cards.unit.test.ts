@@ -1,5 +1,6 @@
 import fs from 'fs';
 import os from 'os';
+import { execFile } from 'child_process';
 import supertest from 'supertest';
 import * as videoDb from '@abbottland/video-db';
 import { hashFile } from '@abbottland/video-db';
@@ -7,6 +8,9 @@ import { createServer } from '../../src/server';
 import { initConfig } from '../../src/config';
 
 jest.mock('fs');
+jest.mock('child_process', () => ({
+  execFile: jest.fn(),
+}));
 // Partial mock: keep real value exports (e.g. titleCardSelectSchema, which
 // openapi.ts needs to build the doc at module-load time) and only mock the
 // query functions and hashFile under test here.
@@ -18,11 +22,18 @@ jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn(),
 }));
 
+const mockRuntimeProbe = (stdout: string) => {
+  (execFile as unknown as jest.Mock).mockImplementation(
+    (_file, _args, callback) => callback(null, { stdout }),
+  );
+};
+
 const sampleTitleCard = {
   id: '123e4567-e89b-12d3-a456-426614174000',
   fileHash: 'deadbeef',
   filePath: '/videos/example.mp4',
   timestampSeconds: 30,
+  runTimeSeconds: 660,
   title: null,
   screenshotPath: null,
   createdAt: new Date(),
@@ -65,12 +76,14 @@ describe('POST /title-cards', () => {
 
     expect(res.body.message).toBe('file not found');
     expect(hashFile).not.toHaveBeenCalled();
+    expect(execFile).not.toHaveBeenCalled();
     expect(videoDb.upsertTitleCard).not.toHaveBeenCalled();
   });
 
-  it('hashes the file and upserts a title card', async () => {
+  it('hashes the file, probes its runtime, and upserts a title card', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (hashFile as jest.Mock).mockResolvedValue('deadbeef');
+    mockRuntimeProbe('660.000000\n');
     (videoDb.upsertTitleCard as jest.Mock).mockResolvedValue(sampleTitleCard);
 
     const res = await supertest(createServer())
@@ -81,19 +94,27 @@ describe('POST /title-cards', () => {
     expect(hashFile).toHaveBeenCalledWith(
       expect.stringContaining('example.mp4'),
     );
+    expect(execFile).toHaveBeenCalledWith(
+      'ffprobe',
+      expect.arrayContaining([expect.stringContaining('example.mp4')]),
+      expect.any(Function),
+    );
     expect(videoDb.upsertTitleCard).toHaveBeenCalledWith(undefined, {
       fileHash: 'deadbeef',
       filePath: '/videos/example.mp4',
       timestampSeconds: 30,
+      runTimeSeconds: 660,
       title: undefined,
       screenshotPath: undefined,
     });
     expect(res.body.fileHash).toBe('deadbeef');
+    expect(res.body.runTimeSeconds).toBe(660);
   });
 
   it('logs the error and returns a generic message when the upsert fails', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (hashFile as jest.Mock).mockResolvedValue('deadbeef');
+    mockRuntimeProbe('660.000000\n');
     const dbError = new Error('connection refused');
     (videoDb.upsertTitleCard as jest.Mock).mockRejectedValue(dbError);
 

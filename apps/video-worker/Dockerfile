@@ -4,9 +4,10 @@ FROM ${BASE_IMAGE} AS builder
 FROM node:22-alpine AS runner
 
 # ffmpeg is the only thing video-worker needs beyond the shared Node.js
-# runner image; every other app builds off docker/pnpm-turbo.Dockerfile's
+# runner image; most other apps build off docker/pnpm-turbo.Dockerfile's
 # runner stage directly, but that stage is shared, so ffmpeg is installed
-# here instead of bloating every other app's image.
+# here instead of bloating every other app's image (see also video-api's
+# Dockerfile, which needs ffprobe for the same reason).
 RUN apk update && apk add --no-cache ffmpeg
 
 RUN addgroup --system --gid 1001 nodejs \

@@ -1,0 +1,1 @@
+ALTER TABLE "title_cards" ADD COLUMN "run_time_seconds" integer;

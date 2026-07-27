@@ -20,6 +20,7 @@ import {
 import { getHash } from './controllers/hash';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
+import { getRunTime } from './controllers/run-time';
 import {
   getTitleCard,
   listTitleCardsHandler,
@@ -33,6 +34,7 @@ import {
 } from './schemas/jobs';
 import { browseQuerySchema } from './schemas/browse';
 import { hashQuerySchema } from './schemas/hash';
+import { runTimeQuerySchema } from './schemas/run-time';
 import {
   createTitleCardSchema,
   listTitleCardsQuerySchema,
@@ -63,6 +65,7 @@ export const createServer = (): Express => {
     .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
     .get('/browse', validateQuery(browseQuerySchema), browseDirectory)
     .get('/hash', validateQuery(hashQuerySchema), getHash)
+    .get('/run-time', validateQuery(runTimeQuerySchema), getRunTime)
     .post('/title-cards', validateBody(createTitleCardSchema), postTitleCard)
     .get(
       '/title-cards',

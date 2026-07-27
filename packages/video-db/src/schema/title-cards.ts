@@ -23,6 +23,8 @@ export const titleCards = pgTable(
     /** Last known path the hash was computed from, relative to MEDIA_ROOT. Display/debugging only — not the identity key. */
     filePath: text('file_path').notNull(),
     timestampSeconds: integer('timestamp_seconds').notNull(),
+    /** Runtime of the whole file (not just this card), in seconds. Same value across every row sharing fileHash — probed once via ffprobe when the card is recorded. */
+    runTimeSeconds: integer('run_time_seconds'),
     /** Title text read off the card, if known. */
     title: text('title'),
     /** Path (relative to MEDIA_ROOT) of the screenshot that showed this title card, if any. */

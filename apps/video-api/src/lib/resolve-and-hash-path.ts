@@ -1,7 +1,5 @@
-import fs from 'fs';
 import { hashFile } from '@abbottland/video-db';
-import { config } from '../config';
-import { resolveWithinRoot } from './safe-path';
+import { resolveFilePath } from './resolve-file-path';
 
 export type ResolveAndHashResult =
   | { ok: true; hash: string }
@@ -16,20 +14,12 @@ export type ResolveAndHashResult =
 export const resolveAndHashPath = async (
   filePath: string,
 ): Promise<ResolveAndHashResult> => {
-  const absPath = resolveWithinRoot(config.mediaRoot, filePath);
+  const resolved = resolveFilePath(filePath);
 
-  if (!absPath) {
-    return {
-      ok: false,
-      status: 400,
-      message: 'filePath is outside the configured media root',
-    };
+  if (resolved.ok === false) {
+    return resolved;
   }
 
-  if (!fs.existsSync(absPath)) {
-    return { ok: false, status: 404, message: 'file not found' };
-  }
-
-  const hash = await hashFile(absPath);
+  const hash = await hashFile(resolved.absPath);
   return { ok: true, hash };
 };
