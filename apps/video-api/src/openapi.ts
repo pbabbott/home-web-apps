@@ -12,6 +12,7 @@ import {
 } from './schemas/jobs';
 import { browseQuerySchema } from './schemas/browse';
 import { hashQuerySchema } from './schemas/hash';
+import { runTimeQuerySchema } from './schemas/run-time';
 import {
   createTitleCardSchema,
   listTitleCardsQuerySchema,
@@ -206,6 +207,31 @@ export const openApiSpec = createDocument({
         },
       },
     },
+    '/run-time': {
+      get: {
+        summary: 'Get the runtime (duration) of a video file',
+        description:
+          'Resolves filePath within MEDIA_ROOT and probes it with ffprobe. Runtime is also recorded automatically on POST /title-cards, so this route is mainly useful for checking a file up front.',
+        requestParams: { query: runTimeQuerySchema },
+        responses: {
+          '200': {
+            description: 'The runtime in seconds',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  filePath: z.string(),
+                  runTimeSeconds: z.number(),
+                }),
+              },
+            },
+          },
+          '400': {
+            description: 'filePath escapes MEDIA_ROOT',
+          },
+          '404': { description: 'filePath does not exist' },
+        },
+      },
+    },
     '/title-cards': {
       get: {
         summary: 'List recorded title cards, optionally filtered by file',
@@ -232,7 +258,7 @@ export const openApiSpec = createDocument({
       post: {
         summary: 'Record the timestamp a title card was found at',
         description:
-          'The video file at filePath is hashed (SHA-256) server-side; the hash, not filePath, is the identity used to key this record, so it stays valid if the file is later renamed. Re-submitting the same filePath/timestampSeconds pair updates the existing record instead of erroring.',
+          'The video file at filePath is hashed (SHA-256) and probed for runtime (ffprobe) server-side; the hash, not filePath, is the identity used to key this record, so it stays valid if the file is later renamed. runTimeSeconds reflects the whole file and is the same across every card recorded for it. Re-submitting the same filePath/timestampSeconds pair updates the existing record instead of erroring.',
         requestBody: {
           content: { 'application/json': { schema: createTitleCardSchema } },
         },

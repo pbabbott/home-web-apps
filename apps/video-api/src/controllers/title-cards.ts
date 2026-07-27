@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
 import {
   getTitleCardById,
+  hashFile,
   listTitleCards,
   upsertTitleCard,
 } from '@abbottland/video-db';
 import { db } from '../db';
 import { resolveAndHashPath } from '../lib/resolve-and-hash-path';
+import { resolveFilePath } from '../lib/resolve-file-path';
+import { getRuntimeSeconds } from '../lib/get-runtime';
 import type {
   CreateTitleCardBody,
   ListTitleCardsQuery,
@@ -17,15 +20,21 @@ export const postTitleCard = async (req: Request, res: Response) => {
     req.body as CreateTitleCardBody;
 
   try {
-    const result = await resolveAndHashPath(filePath);
-    if (result.ok === false) {
-      return res.status(result.status).json({ message: result.message });
+    const resolved = resolveFilePath(filePath);
+    if (resolved.ok === false) {
+      return res.status(resolved.status).json({ message: resolved.message });
     }
 
+    const [fileHash, runTimeSeconds] = await Promise.all([
+      hashFile(resolved.absPath),
+      getRuntimeSeconds(resolved.absPath),
+    ]);
+
     const titleCard = await upsertTitleCard(db, {
-      fileHash: result.hash,
+      fileHash,
       filePath,
       timestampSeconds,
+      runTimeSeconds,
       title,
       screenshotPath,
     });

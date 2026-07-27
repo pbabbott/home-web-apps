@@ -7,6 +7,25 @@ import { createServer } from '../src/server';
 import { initConfig, validateConfig } from '../src/config';
 import { db, initDb } from '../src/db';
 
+// No ffprobe binary is guaranteed in CI/dev containers. This mock is
+// registered here (not per-test-file) because createServer's module graph
+// — via controllers/run-time.ts and controllers/title-cards.ts — binds
+// child_process.execFile at import time, and jest.mock() calls are hoisted
+// above ALL imports in a file (including the '../src/server' import above),
+// so this is what actually intercepts it. A per-test-file jest.mock would
+// be too late: by then server.ts's module graph is already cached with the
+// real execFile. Individual test files can override the default stdout
+// with execFile.mockImplementation(...).
+jest.mock('child_process', () => ({
+  execFile: jest.fn(
+    (
+      _file: string,
+      _args: string[],
+      callback: (err: Error | null, result?: unknown) => void,
+    ) => callback(null, { stdout: '0\n', stderr: '' }),
+  ),
+}));
+
 export const MEDIA_ROOT = fs.mkdtempSync(
   path.join(os.tmpdir(), 'video-api-media-'),
 );

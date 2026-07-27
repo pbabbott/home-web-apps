@@ -35,6 +35,10 @@ export class ApplicationConfig {
   @EnvironmentVariable()
   mediaRoot: string = '';
 
+  /** Path/binary name used to invoke ffprobe (for GET /run-time and POST /title-cards). Must be on PATH in the container. */
+  @EnvironmentVariable()
+  ffprobePath: string = 'ffprobe';
+
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
 }

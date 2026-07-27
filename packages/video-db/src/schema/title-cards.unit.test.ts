@@ -7,6 +7,7 @@ describe('titleCardSelectSchema', () => {
       fileHash: 'deadbeefcafe',
       filePath: '/tv_shows/Show A/S01E01.mp4',
       timestampSeconds: 128,
+      runTimeSeconds: 660,
       title: 'Pups Save a Toof',
       screenshotPath: '/screenshots/some-job-id/128.jpg',
       createdAt: new Date(),
@@ -17,12 +18,13 @@ describe('titleCardSelectSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts null title and screenshotPath', () => {
+  it('accepts null runTimeSeconds, title, and screenshotPath', () => {
     const result = titleCardSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       filePath: '/tv_shows/Show A/S01E01.mp4',
       timestampSeconds: 128,
+      runTimeSeconds: null,
       title: null,
       screenshotPath: null,
       createdAt: new Date(),
@@ -36,6 +38,7 @@ describe('titleCardSelectSchema', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       filePath: '/tv_shows/Show A/S01E01.mp4',
       timestampSeconds: 128,
+      runTimeSeconds: null,
       title: null,
       screenshotPath: null,
       createdAt: new Date(),

@@ -8,7 +8,12 @@ import {
 
 export type UpsertTitleCardInput = Pick<
   NewTitleCard,
-  'fileHash' | 'filePath' | 'timestampSeconds' | 'title' | 'screenshotPath'
+  | 'fileHash'
+  | 'filePath'
+  | 'timestampSeconds'
+  | 'runTimeSeconds'
+  | 'title'
+  | 'screenshotPath'
 >;
 
 /**
@@ -28,6 +33,7 @@ export const upsertTitleCard = async (
       target: [titleCards.fileHash, titleCards.timestampSeconds],
       set: {
         filePath: input.filePath,
+        runTimeSeconds: input.runTimeSeconds,
         title: input.title,
         screenshotPath: input.screenshotPath,
       },

@@ -1,7 +1,20 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import { execFile } from 'child_process';
 import { getRequest, MEDIA_ROOT } from '../jest.integration.setup';
+
+// child_process is mocked globally in jest.integration.setup.ts (see the
+// comment there); override its default stdout with a fixed runtime so
+// notes.txt (not a real video) can still stand in for POST /title-cards'
+// runtime probe.
+(execFile as unknown as jest.Mock).mockImplementation(
+  (
+    _file: string,
+    _args: string[],
+    callback: (err: Error | null, result?: unknown) => void,
+  ) => callback(null, { stdout: '660.000000\n', stderr: '' }),
+);
 
 describe('title-cards', () => {
   const filePath = '/tv_shows/notes.txt';
@@ -20,8 +33,24 @@ describe('title-cards', () => {
           expect(res.body.fileHash).toBe(expectedHash);
           expect(res.body.filePath).toBe(filePath);
           expect(res.body.timestampSeconds).toBe(128);
+          expect(res.body.runTimeSeconds).toBe(660);
           expect(res.body.title).toBe('Pups Save a Toof');
         });
+    });
+
+    it('carries the same runTimeSeconds across multiple cards for the same file', async () => {
+      const first = await getRequest()
+        .post('/title-cards')
+        .send({ filePath, timestampSeconds: 250 })
+        .expect(201);
+
+      const second = await getRequest()
+        .post('/title-cards')
+        .send({ filePath, timestampSeconds: 600 })
+        .expect(201);
+
+      expect(first.body.runTimeSeconds).toBe(660);
+      expect(second.body.runTimeSeconds).toBe(660);
     });
 
     it('updates the existing record instead of erroring on a repeat submission', async () => {
