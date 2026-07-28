@@ -16,6 +16,7 @@ export const runPawPatrolTitleCardsOperation = async (
     {
       job,
       seasonNumber: job.parameters.seasonNumber,
+      episodeFilenames: [],
       outputPaths: [],
       message: '',
     },

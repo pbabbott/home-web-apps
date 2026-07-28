@@ -1,9 +1,10 @@
 import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
+import { listSeasonFiles } from './list-season-files';
 
 /**
- * Ordered pipeline for the paw_patrol_title_cards operation. Empty until
- * the processing steps (locate season files, detect title cards, extract
- * screenshots, ...) are added — one step per file in this directory.
+ * Ordered pipeline for the paw_patrol_title_cards operation — one step per
+ * file in this directory. More steps (detect title cards, extract
+ * screenshots, ...) land here next.
  */
-export const steps: Step<PawPatrolTitleCardsContext>[] = [];
+export const steps: Step<PawPatrolTitleCardsContext>[] = [listSeasonFiles];

@@ -8,6 +8,7 @@ import type { VideoJob } from '@abbottland/video-db';
 export type PawPatrolTitleCardsContext = {
   job: VideoJob;
   seasonNumber: number;
+  episodeFilenames: string[];
   outputPaths: string[];
   message: string;
 };

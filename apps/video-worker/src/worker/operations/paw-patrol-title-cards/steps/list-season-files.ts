@@ -1,0 +1,38 @@
+import fs from 'fs';
+import { config } from '../../../../config';
+import { resolveWithinRoot } from '../../../../lib/safe-path';
+import { JobProcessingError } from '../../../job-processing-error';
+import type { Step } from '../../pipeline';
+import type { PawPatrolTitleCardsContext } from '../context';
+
+const SHOW_DIRECTORY_NAME = 'Paw Patrol';
+
+/** Lists the episode filenames in `<MEDIA_ROOT>/Paw Patrol/Season <N>`. */
+export const listSeasonFiles: Step<PawPatrolTitleCardsContext> = async (
+  ctx,
+) => {
+  const seasonRelPath = `${SHOW_DIRECTORY_NAME}/Season ${ctx.seasonNumber}`;
+  const seasonAbsPath = resolveWithinRoot(config.mediaRoot, seasonRelPath);
+
+  if (!seasonAbsPath) {
+    throw new JobProcessingError(
+      `season path escapes MEDIA_ROOT: ${seasonRelPath}`,
+    );
+  }
+
+  if (
+    !fs.existsSync(seasonAbsPath) ||
+    !fs.statSync(seasonAbsPath).isDirectory()
+  ) {
+    throw new JobProcessingError(
+      `season directory not found: ${seasonRelPath}`,
+    );
+  }
+
+  const episodeFilenames = fs
+    .readdirSync(seasonAbsPath, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name);
+
+  return { ...ctx, episodeFilenames };
+};

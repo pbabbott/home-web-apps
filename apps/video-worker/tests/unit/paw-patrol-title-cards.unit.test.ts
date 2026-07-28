@@ -1,6 +1,12 @@
+import fs from 'fs';
 import type { VideoJob } from '@abbottland/video-db';
 import { runPawPatrolTitleCardsOperation } from '../../src/worker/operations/paw-patrol-title-cards';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
+
+jest.mock('fs');
+jest.mock('../../src/config', () => ({
+  config: { mediaRoot: '/media' },
+}));
 
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
@@ -19,7 +25,14 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
     ...overrides,
   }) as VideoJob;
 
+const direntFor = (name: string, isFile: boolean) =>
+  ({ name, isFile: () => isFile }) as fs.Dirent;
+
 describe('runPawPatrolTitleCardsOperation', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('rejects parameters without a numeric seasonNumber', async () => {
     const job = buildJob({ parameters: {} });
 
@@ -28,7 +41,23 @@ describe('runPawPatrolTitleCardsOperation', () => {
     );
   });
 
-  it('returns no output paths or message with an empty step pipeline', async () => {
+  it('rejects a season that has no matching directory under MEDIA_ROOT', async () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(false);
+
+    const job = buildJob({ parameters: { seasonNumber: 99 } });
+
+    await expect(runPawPatrolTitleCardsOperation(job)).rejects.toThrow(
+      JobProcessingError,
+    );
+  });
+
+  it('runs the pipeline and returns no output paths or message yet', async () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => true });
+    (fs.readdirSync as jest.Mock).mockReturnValue([
+      direntFor('Paw Patrol - S03E01 - Pups Save a Blimp.mp4', true),
+    ]);
+
     const job = buildJob();
 
     await expect(runPawPatrolTitleCardsOperation(job)).resolves.toEqual({
