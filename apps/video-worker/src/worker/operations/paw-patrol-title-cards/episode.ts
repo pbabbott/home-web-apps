@@ -14,4 +14,6 @@ export type Episode = {
   titleCards?: TitleCard[];
   /** Probed (ffprobe) duration in seconds. Only computed for episodes missing title_cards records. */
   runTimeSeconds?: number;
+  /** MEDIA_ROOT-relative screenshot paths generated for episodes missing title_cards records. */
+  screenshotPaths?: string[];
 };
