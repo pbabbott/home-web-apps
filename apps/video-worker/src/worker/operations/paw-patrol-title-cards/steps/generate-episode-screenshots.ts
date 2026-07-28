@@ -7,7 +7,7 @@ import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
-import { seasonDirectoryRelPath } from '../paths';
+import { screenshotDirectoryRelPath } from '../paths';
 
 const execFileAsync = promisify(execFile);
 
@@ -43,7 +43,7 @@ const buildSampleTimestamps = (): number[] => {
 /**
  * For each episode with no title_cards record, generates
  * SCREENSHOT_WIDTHxSCREENSHOT_HEIGHT screenshots at the sample timestamps
- * into `<MEDIA_ROOT>/Paw Patrol/Season <N>/<fileHash>/<second>_<dimensions>.jpg`,
+ * into `<MEDIA_ROOT>/screenshots/Paw Patrol/Season <N>/<fileHash>/<second>_<dimensions>.jpg`,
  * skipping any that already exist. Episodes that already have title_cards
  * records pass through unchanged.
  */
@@ -64,7 +64,10 @@ export const generateEpisodeScreenshots: Step<
         );
       }
 
-      const screenshotDirRelPath = `${seasonDirectoryRelPath(ctx.seasonNumber)}/${episode.hash}`;
+      const screenshotDirRelPath = screenshotDirectoryRelPath(
+        ctx.seasonNumber,
+        episode.hash,
+      );
       const screenshotDirAbsPath = resolveWithinRoot(
         config.mediaRoot,
         screenshotDirRelPath,

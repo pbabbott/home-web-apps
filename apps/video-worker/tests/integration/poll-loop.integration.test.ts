@@ -46,7 +46,7 @@ describe('worker job processing', () => {
     expect(updated?.status).toBe('completed');
     expect(updated?.outputPaths).toHaveLength(15);
     expect(updated?.outputPaths?.[0]).toMatch(
-      /^Paw Patrol\/Season 3\/[0-9a-f]{64}\/31_480x270\.jpg$/,
+      /^screenshots\/Paw Patrol\/Season 3\/[0-9a-f]{64}\/31_480x270\.jpg$/,
     );
     expect(updated?.message).toBe('');
   });

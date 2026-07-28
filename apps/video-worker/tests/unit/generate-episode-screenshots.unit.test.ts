@@ -99,7 +99,7 @@ describe('generateEpisodeScreenshots', () => {
     const result = await generateEpisodeScreenshots(context);
 
     expect(fs.mkdirSync).toHaveBeenCalledWith(
-      '/media/Paw Patrol/Season 3/hash-1',
+      '/media/screenshots/Paw Patrol/Season 3/hash-1',
       { recursive: true },
     );
 
@@ -107,7 +107,7 @@ describe('generateEpisodeScreenshots', () => {
       31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59,
     ];
     const expectedPaths = expectedTimestamps.map(
-      (t) => `Paw Patrol/Season 3/hash-1/${t}_480x270.jpg`,
+      (t) => `screenshots/Paw Patrol/Season 3/hash-1/${t}_480x270.jpg`,
     );
 
     expect(result.episodes[0].screenshotPaths).toEqual(expectedPaths);

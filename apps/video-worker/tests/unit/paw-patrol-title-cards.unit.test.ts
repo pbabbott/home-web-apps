@@ -80,7 +80,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
     expect(result.message).toBe('');
     expect(result.outputPaths).toHaveLength(15);
     expect(result.outputPaths[0]).toBe(
-      'Paw Patrol/Season 3/fakehash/31_480x270.jpg',
+      'screenshots/Paw Patrol/Season 3/fakehash/31_480x270.jpg',
     );
   });
 });
