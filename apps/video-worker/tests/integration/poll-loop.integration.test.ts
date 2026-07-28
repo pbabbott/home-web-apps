@@ -1,18 +1,18 @@
-import path from 'path';
 import { execFile } from 'child_process';
 import {
   claimNextVideoJob,
   createVideoJob,
   getVideoJobById,
-  hashFile,
 } from '@abbottland/video-db';
 import { db } from '../../src/db';
 import { processJob } from '../../src/worker/job-processor';
-import { MEDIA_ROOT } from '../jest.integration.setup';
 
 // No ffmpeg binary is guaranteed in CI/dev containers. Mocking the
 // subprocess call keeps this test focused on what it can actually verify:
 // the real claim -> process -> complete/fail round trip against Postgres.
+// Also writes a stub file at ffmpeg's output path (its last arg, always a
+// .jpg here) so detectEpisodeTitleCards has real bytes to read back off
+// disk instead of a path that was never actually written to.
 //
 // This exercises claimNextVideoJob + processJob directly rather than the
 // poll loop's pollOnce(), which self-reschedules via a real setTimeout —
@@ -23,9 +23,17 @@ jest.mock('child_process', () => ({
   execFile: jest.fn(
     (
       _file: string,
-      _args: string[],
+      args: string[],
       callback: (err: Error | null, result?: unknown) => void,
-    ) => callback(null, { stdout: '', stderr: '' }),
+    ) => {
+      const outputPath = args[args.length - 1];
+
+      if (outputPath.endsWith('.jpg')) {
+        require('fs').writeFileSync(outputPath, 'fake jpg bytes');
+      }
+
+      callback(null, { stdout: '', stderr: '' });
+    },
   ),
 }));
 
@@ -34,11 +42,10 @@ describe('worker job processing', () => {
     jest.clearAllMocks();
   });
 
-  it('claims a pending screenshots job, runs ffmpeg per timestamp, and marks it completed', async () => {
+  it('completes a paw_patrol_title_cards job and records the handler message', async () => {
     const created = await createVideoJob(db, {
-      operation: 'screenshots',
-      inputPath: '/videos/example.mp4',
-      parameters: { timestamps: [30, 60] },
+      operation: 'paw_patrol_title_cards',
+      parameters: { seasonNumber: 3 },
     });
 
     const claimed = await claimNextVideoJob(db, 'test-worker');
@@ -47,23 +54,17 @@ describe('worker job processing', () => {
     await processJob(claimed!);
 
     const updated = await getVideoJobById(db, created.id);
-    const inputHash = await hashFile(
-      path.join(MEDIA_ROOT, 'videos', 'example.mp4'),
-    );
     expect(updated?.status).toBe('completed');
-    expect(updated?.outputPaths).toEqual([
-      `/screenshots/${inputHash}/30.jpg`,
-      `/screenshots/${inputHash}/60.jpg`,
-    ]);
-    expect(updated?.workerId).toBe('test-worker');
-    expect(updated?.attempts).toBe(1);
-    expect(execFile).toHaveBeenCalledTimes(2);
+    expect(updated?.outputPaths).toHaveLength(15);
+    expect(updated?.outputPaths?.[0]).toMatch(
+      /^screenshots\/Paw Patrol\/Season 3\/[0-9a-f]{64}\/31_480x270\.jpg$/,
+    );
+    expect(updated?.message).toBe('');
   });
 
   it('marks a job with an unsupported operation as failed', async () => {
     const created = await createVideoJob(db, {
       operation: 'transcode',
-      inputPath: '/videos/example.mp4',
       parameters: {},
     });
 

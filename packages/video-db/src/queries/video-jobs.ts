@@ -7,10 +7,7 @@ import {
   type VideoJobStatus,
 } from '../schema/video-jobs';
 
-export type CreateVideoJobInput = Pick<
-  NewVideoJob,
-  'operation' | 'inputPath' | 'parameters'
->;
+export type CreateVideoJobInput = Pick<NewVideoJob, 'operation' | 'parameters'>;
 
 export const createVideoJob = async (
   db: Database,
@@ -99,10 +96,11 @@ export const completeVideoJob = async (
   db: Database,
   id: string,
   outputPaths: string[],
+  message: string,
 ): Promise<VideoJob> => {
   const [job] = await db
     .update(videoJobs)
-    .set({ status: 'completed', completedAt: new Date(), outputPaths })
+    .set({ status: 'completed', completedAt: new Date(), outputPaths, message })
     .where(eq(videoJobs.id, id))
     .returning();
 

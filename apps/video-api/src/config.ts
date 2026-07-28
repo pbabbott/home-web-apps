@@ -1,4 +1,3 @@
-import fs from 'fs';
 import * as dotenv from 'dotenv';
 import {
   ConfigSection,
@@ -31,14 +30,6 @@ export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4002;
 
-  /** Absolute path video-api is allowed to browse/reference. All /browse and job paths are resolved relative to, and constrained within, this directory. */
-  @EnvironmentVariable()
-  mediaRoot: string = '';
-
-  /** Path/binary name used to invoke ffprobe (for GET /run-time and POST /title-cards). Must be on PATH in the container. */
-  @EnvironmentVariable()
-  ffprobePath: string = 'ffprobe';
-
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
 }
@@ -68,16 +59,6 @@ export const validateConfig = () => {
         `❌ Missing required config variable: ${status.envVarName}`,
       );
     });
-    errorExit();
-  }
-
-  if (
-    !fs.existsSync(config.mediaRoot) ||
-    !fs.statSync(config.mediaRoot).isDirectory()
-  ) {
-    console.error(
-      `❌ MEDIA_ROOT does not exist or is not a directory: ${config.mediaRoot}`,
-    );
     errorExit();
   }
 };

@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import type { VideoJobStatus } from '@abbottland/video-db';
 
-export const SUPPORTED_OPERATIONS = ['screenshots'] as const;
-
 // Type-only import above keeps this in sync with video-db's status enum at
 // compile time, without a runtime dependency on the module (which would
 // otherwise break under jest.mock('@abbottland/video-db') in tests).
@@ -13,22 +11,24 @@ const JOB_STATUSES: readonly VideoJobStatus[] = [
   'failed',
 ];
 
-export const createJobSchema = z.object({
-  operation: z.enum(SUPPORTED_OPERATIONS),
-  inputPath: z.string().min(1, 'inputPath is required').meta({
-    description: 'Path to the source video, relative to MEDIA_ROOT',
-    example: '/videos/example.mp4',
-  }),
+const pawPatrolTitleCardsJobSchema = z.object({
+  operation: z.literal('paw_patrol_title_cards'),
   parameters: z.object({
-    timestamps: z
-      .array(z.number())
-      .min(1, 'timestamps must be a non-empty array of numbers')
-      .meta({
-        description: 'Second offsets to capture a screenshot at',
-        example: [30, 120, 300],
-      }),
+    seasonNumber: z.number().int().positive().meta({
+      description: 'Paw Patrol season number to generate title cards for',
+      example: 3,
+    }),
   }),
 });
+
+/**
+ * Discriminated on `operation` so each job type declares its own
+ * `parameters` shape. Adding a new operation means adding a branch here,
+ * not widening a shared `parameters` bag.
+ */
+export const createJobSchema = z.discriminatedUnion('operation', [
+  pawPatrolTitleCardsJobSchema,
+]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;
 

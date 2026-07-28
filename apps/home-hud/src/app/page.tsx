@@ -15,8 +15,8 @@ export default function Home() {
           your house, at a glance
         </Typography>
         <Counter />
-        <Button component="a" href="tv-show-cleanup">
-          TV Show Cleanup
+        <Button component="a" href="jobs">
+          Video Jobs
         </Button>
       </div>
       <Footer />

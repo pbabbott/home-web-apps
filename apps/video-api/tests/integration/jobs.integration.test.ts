@@ -2,13 +2,12 @@ import { getRequest } from '../jest.integration.setup';
 
 describe('jobs', () => {
   describe('POST /jobs', () => {
-    it('creates a pending screenshots job', async () => {
+    it('creates a pending paw_patrol_title_cards job', async () => {
       await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/example.mp4',
-          parameters: { timestamps: [30, 120, 300] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 3 },
         })
         .expect(201)
         .then((res) => {
@@ -22,7 +21,6 @@ describe('jobs', () => {
         .post('/jobs')
         .send({
           operation: 'transcode',
-          inputPath: '/mnt/nas/videos/example.mp4',
         })
         .expect(400)
         .then((res) => {
@@ -35,46 +33,15 @@ describe('jobs', () => {
         });
     });
 
-    it('reports every missing/invalid field at once, not just the first', async () => {
+    it('rejects a missing seasonNumber', async () => {
       await getRequest()
         .post('/jobs')
-        .send({ operation: 'transcode' })
-        .expect(400)
-        .then((res) => {
-          const fields = res.body.errors.map((e: { field: string }) => e.field);
-          expect(fields).toEqual(
-            expect.arrayContaining(['operation', 'inputPath', 'parameters']),
-          );
-        });
-    });
-
-    it('rejects a missing inputPath', async () => {
-      await getRequest()
-        .post('/jobs')
-        .send({ operation: 'screenshots', parameters: { timestamps: [30] } })
+        .send({ operation: 'paw_patrol_title_cards', parameters: {} })
         .expect(400)
         .then((res) => {
           expect(res.body.errors).toEqual(
             expect.arrayContaining([
-              expect.objectContaining({ field: 'inputPath' }),
-            ]),
-          );
-        });
-    });
-
-    it('rejects missing timestamps for screenshots', async () => {
-      await getRequest()
-        .post('/jobs')
-        .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/example.mp4',
-          parameters: {},
-        })
-        .expect(400)
-        .then((res) => {
-          expect(res.body.errors).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({ field: 'parameters.timestamps' }),
+              expect.objectContaining({ field: 'parameters.seasonNumber' }),
             ]),
           );
         });
@@ -86,9 +53,8 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/example.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 3 },
         });
 
       await getRequest()
@@ -96,7 +62,7 @@ describe('jobs', () => {
         .expect(200)
         .then((res) => {
           expect(res.body.id).toBe(created.body.jobId);
-          expect(res.body.inputPath).toBe('/mnt/nas/videos/example.mp4');
+          expect(res.body.parameters).toEqual({ seasonNumber: 3 });
           expect(res.body.status).toBe('pending');
         });
     });
@@ -125,9 +91,8 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/list-all-example.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 1 },
         });
 
       await getRequest()
@@ -143,9 +108,8 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/list-pending-example.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 2 },
         });
 
       await getRequest()
@@ -165,9 +129,8 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/list-failed-example.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 4 },
         });
 
       await getRequest()
@@ -184,16 +147,14 @@ describe('jobs', () => {
       const first = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/order-first.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 5 },
         });
       const second = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'screenshots',
-          inputPath: '/mnt/nas/videos/order-second.mp4',
-          parameters: { timestamps: [30] },
+          operation: 'paw_patrol_title_cards',
+          parameters: { seasonNumber: 6 },
         });
 
       await getRequest()

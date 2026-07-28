@@ -31,7 +31,7 @@ export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4003;
 
-  /** Absolute path video-worker resolves job input/output paths against. Job inputPath/outputPaths are always relative to, and constrained within, this directory. */
+  /** Absolute path video-worker resolves job input/output paths against. Job outputPaths are always relative to, and constrained within, this directory. */
   @EnvironmentVariable()
   mediaRoot: string = '';
 
@@ -42,6 +42,18 @@ export class ApplicationConfig {
   /** Path/binary name used to invoke ffmpeg. Must be on PATH in the container. */
   @EnvironmentVariable()
   ffmpegPath: string = 'ffmpeg';
+
+  /** Path/binary name used to invoke ffprobe (for probing episode runtime). Must be on PATH in the container. */
+  @EnvironmentVariable()
+  ffprobePath: string = 'ffprobe';
+
+  /** Base URL of the OpenAI-compatible AI API server (LM Studio-style) used to ask a vision model about screenshots. No path — endpoints are appended by the client. */
+  @EnvironmentVariable()
+  aiApiUrl: string = 'http://192.168.5.142:1234';
+
+  /** Model name to request from aiApiUrl. */
+  @EnvironmentVariable()
+  aiModel: string = 'qwen/qwen3-vl-8b-instruct';
 
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();

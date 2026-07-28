@@ -9,10 +9,10 @@ import type { CreateJobBody, ListJobsQuery } from '../schemas/jobs';
 
 export const postJob = async (req: Request, res: Response) => {
   // req.body is already validated/typed by the validateBody(createJobSchema) middleware.
-  const { operation, inputPath, parameters } = req.body as CreateJobBody;
+  const { operation, parameters } = req.body as CreateJobBody;
 
   try {
-    const job = await createVideoJob(db, { operation, inputPath, parameters });
+    const job = await createVideoJob(db, { operation, parameters });
 
     res.status(201).json({ jobId: job.id, status: job.status });
   } catch (err) {
