@@ -15,3 +15,16 @@ export const screenshotDirectoryRelPath = (
   fileHash: string,
 ): string =>
   `${SCREENSHOTS_DIRECTORY_NAME}/${seasonDirectoryRelPath(seasonNumber)}/${fileHash}`;
+
+/** Recovers the sample timestamp encoded in a `<second>_<dimensions>.jpg` screenshot filename. */
+export const parseScreenshotTimestamp = (screenshotPath: string): number => {
+  const match = screenshotPath.match(/\/(\d+)_\d+x\d+\.jpg$/);
+
+  if (!match) {
+    throw new Error(
+      `screenshot path has no encoded timestamp: ${screenshotPath}`,
+    );
+  }
+
+  return Number(match[1]);
+};

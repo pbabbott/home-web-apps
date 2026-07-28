@@ -1,4 +1,5 @@
 import type { TitleCard } from '@abbottland/video-db';
+import type { TitleCardDetection } from './lib/detect-title-card';
 
 /**
  * Metadata for one episode file, built up incrementally as pipeline steps
@@ -16,4 +17,6 @@ export type Episode = {
   runTimeSeconds?: number;
   /** MEDIA_ROOT-relative screenshot paths generated for episodes missing title_cards records. */
   screenshotPaths?: string[];
+  /** Per-screenshot AI detection results, one per entry in screenshotPaths. Only checked for episodes missing title_cards records. */
+  titleCardDetections?: TitleCardDetection[];
 };

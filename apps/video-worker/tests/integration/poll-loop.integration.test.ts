@@ -10,6 +10,9 @@ import { processJob } from '../../src/worker/job-processor';
 // No ffmpeg binary is guaranteed in CI/dev containers. Mocking the
 // subprocess call keeps this test focused on what it can actually verify:
 // the real claim -> process -> complete/fail round trip against Postgres.
+// Also writes a stub file at ffmpeg's output path (its last arg, always a
+// .jpg here) so detectEpisodeTitleCards has real bytes to read back off
+// disk instead of a path that was never actually written to.
 //
 // This exercises claimNextVideoJob + processJob directly rather than the
 // poll loop's pollOnce(), which self-reschedules via a real setTimeout —
@@ -20,9 +23,17 @@ jest.mock('child_process', () => ({
   execFile: jest.fn(
     (
       _file: string,
-      _args: string[],
+      args: string[],
       callback: (err: Error | null, result?: unknown) => void,
-    ) => callback(null, { stdout: '', stderr: '' }),
+    ) => {
+      const outputPath = args[args.length - 1];
+
+      if (outputPath.endsWith('.jpg')) {
+        require('fs').writeFileSync(outputPath, 'fake jpg bytes');
+      }
+
+      callback(null, { stdout: '', stderr: '' });
+    },
   ),
 }));
 

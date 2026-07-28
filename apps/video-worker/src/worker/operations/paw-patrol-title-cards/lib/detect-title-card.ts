@@ -16,6 +16,11 @@ export type TitleCardDetectionResult =
   | { found: true; title: string }
   | { found: false };
 
+export type TitleCardDetection = TitleCardDetectionResult & {
+  screenshotPath: string;
+  timestampSeconds: number;
+};
+
 /**
  * Asks the AI API (via the generic chatCompletion client) whether the
  * screenshot at `screenshotPath` shows a Paw Patrol title card, caching

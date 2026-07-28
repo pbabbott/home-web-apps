@@ -19,8 +19,14 @@ jest.mock('../../src/config', () => ({
 jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn().mockResolvedValue('fakehash'),
   listTitleCards: jest.fn().mockResolvedValue([]),
+  getAiResponseCache: jest.fn().mockResolvedValue(undefined),
+  upsertAiResponseCache: jest.fn().mockResolvedValue(undefined),
+  upsertTitleCard: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
+jest.mock('../../src/api/ai/ai-client', () => ({
+  chatCompletion: jest.fn().mockResolvedValue('{"found":false}'),
+}));
 
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
@@ -72,6 +78,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
       direntFor('Paw Patrol - S03E01 - Pups Save a Blimp.mp4', true),
     ]);
     (fs.mkdirSync as jest.Mock).mockReturnValue(undefined);
+    (fs.readFileSync as jest.Mock).mockReturnValue(Buffer.from('jpegbytes'));
 
     const job = buildJob();
 
