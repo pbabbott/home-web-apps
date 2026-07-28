@@ -27,6 +27,16 @@ export class PostgresConfig {
   password: string = '';
 }
 
+export class SonarrConfig {
+  /** Base URL of the Sonarr instance (e.g. http://sonarr.local:8989). No path — endpoints are appended by the client. */
+  @EnvironmentVariable()
+  apiUrl: string = '';
+
+  /** Sonarr API key, from Settings > General in the Sonarr UI. */
+  @EnvironmentVariable()
+  apiKey: string = '';
+}
+
 export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4003;
@@ -57,6 +67,9 @@ export class ApplicationConfig {
 
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
+
+  @ConfigSection({ sectionPrefix: 'SONARR' })
+  sonarr = new SonarrConfig();
 }
 
 export let config: ApplicationConfig;

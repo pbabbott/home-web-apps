@@ -1,5 +1,6 @@
 import type { VideoJob } from '@abbottland/video-db';
 import type { OperationResult } from './operation-result';
+import { runPawPatrolFileSuggestionsOperation } from './paw-patrol-file-suggestions';
 import { runPawPatrolTitleCardsOperation } from './paw-patrol-title-cards';
 
 export type { OperationResult } from './operation-result';
@@ -15,4 +16,5 @@ export const operationHandlers: Record<
   (job: VideoJob) => Promise<OperationResult>
 > = {
   paw_patrol_title_cards: runPawPatrolTitleCardsOperation,
+  paw_patrol_file_suggestions: runPawPatrolFileSuggestionsOperation,
 };
