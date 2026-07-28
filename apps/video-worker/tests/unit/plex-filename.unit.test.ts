@@ -1,6 +1,8 @@
 import {
   buildPlexEpisodeFilename,
   buildPlexEpisodeRelPath,
+  buildPlexMultiEpisodeFilename,
+  buildPlexMultiEpisodeRelPath,
 } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/plex-filename';
 
 describe('buildPlexEpisodeFilename', () => {
@@ -27,6 +29,55 @@ describe('buildPlexEpisodeRelPath', () => {
   it('prefixes the season directory', () => {
     expect(buildPlexEpisodeRelPath(3, 1, 'Pups Save a Blimp', '.mp4')).toBe(
       'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+    );
+  });
+});
+
+describe('buildPlexMultiEpisodeFilename', () => {
+  it('builds the sXXeYY-eZZ multi-episode pattern with both titles joined', () => {
+    expect(
+      buildPlexMultiEpisodeFilename(
+        3,
+        18,
+        19,
+        'Pups Save a Goldrush',
+        'Pups Save a Space Alien',
+        '.mp4',
+      ),
+    ).toBe(
+      'Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien.mp4',
+    );
+  });
+
+  it('strips filesystem-illegal characters from both titles', () => {
+    expect(
+      buildPlexMultiEpisodeFilename(
+        3,
+        18,
+        19,
+        'Pups: Save "the" Blimp',
+        'Pups/Save?the Alien',
+        '.mp4',
+      ),
+    ).toBe(
+      'Paw Patrol - S03E18-E19 - Pups Save the Blimp & PupsSavethe Alien.mp4',
+    );
+  });
+});
+
+describe('buildPlexMultiEpisodeRelPath', () => {
+  it('prefixes the season directory', () => {
+    expect(
+      buildPlexMultiEpisodeRelPath(
+        3,
+        18,
+        19,
+        'Pups Save a Goldrush',
+        'Pups Save a Space Alien',
+        '.mp4',
+      ),
+    ).toBe(
+      'Paw Patrol/Season 3/Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien.mp4',
     );
   });
 });
