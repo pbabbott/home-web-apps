@@ -7,6 +7,9 @@ jest.mock('fs');
 jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media' },
 }));
+jest.mock('@abbottland/video-db', () => ({
+  hashFile: jest.fn().mockResolvedValue('fakehash'),
+}));
 
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
@@ -51,7 +54,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
     );
   });
 
-  it('runs the pipeline and returns no output paths or message yet', async () => {
+  it('runs the full pipeline (list + hash) and returns no output paths or message yet', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => true });
     (fs.readdirSync as jest.Mock).mockReturnValue([

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { config } from '../../../../config';
 import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
@@ -7,7 +8,7 @@ import type { PawPatrolTitleCardsContext } from '../context';
 
 const SHOW_DIRECTORY_NAME = 'Paw Patrol';
 
-/** Lists the episode filenames in `<MEDIA_ROOT>/Paw Patrol/Season <N>`. */
+/** Lists the episode files in `<MEDIA_ROOT>/Paw Patrol/Season <N>`. */
 export const listSeasonFiles: Step<PawPatrolTitleCardsContext> = async (
   ctx,
 ) => {
@@ -29,10 +30,13 @@ export const listSeasonFiles: Step<PawPatrolTitleCardsContext> = async (
     );
   }
 
-  const episodeFilenames = fs
+  const episodes = fs
     .readdirSync(seasonAbsPath, { withFileTypes: true })
     .filter((entry) => entry.isFile())
-    .map((entry) => entry.name);
+    .map((entry) => ({
+      filename: entry.name,
+      absPath: path.join(seasonAbsPath, entry.name),
+    }));
 
-  return { ...ctx, episodeFilenames };
+  return { ...ctx, episodes };
 };

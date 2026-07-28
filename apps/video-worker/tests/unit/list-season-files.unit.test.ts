@@ -14,7 +14,7 @@ const buildContext = (
 ): PawPatrolTitleCardsContext => ({
   job: {} as VideoJob,
   seasonNumber: 3,
-  episodeFilenames: [],
+  episodes: [],
   outputPaths: [],
   message: '',
   ...overrides,
@@ -56,9 +56,17 @@ describe('listSeasonFiles', () => {
 
     const result = await listSeasonFiles(buildContext({ seasonNumber: 3 }));
 
-    expect(result.episodeFilenames).toEqual([
-      'Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
-      'Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
+    expect(result.episodes).toEqual([
+      {
+        filename: 'Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+        absPath:
+          '/media/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+      },
+      {
+        filename: 'Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
+        absPath:
+          '/media/Paw Patrol/Season 3/Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
+      },
     ]);
     expect(fs.readdirSync).toHaveBeenCalledWith('/media/Paw Patrol/Season 3', {
       withFileTypes: true,

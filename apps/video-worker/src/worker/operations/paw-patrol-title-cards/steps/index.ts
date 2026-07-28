@@ -1,5 +1,6 @@
 import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
+import { hashEpisodeFiles } from './hash-episode-files';
 import { listSeasonFiles } from './list-season-files';
 
 /**
@@ -7,4 +8,7 @@ import { listSeasonFiles } from './list-season-files';
  * file in this directory. More steps (detect title cards, extract
  * screenshots, ...) land here next.
  */
-export const steps: Step<PawPatrolTitleCardsContext>[] = [listSeasonFiles];
+export const steps: Step<PawPatrolTitleCardsContext>[] = [
+  listSeasonFiles,
+  hashEpisodeFiles,
+];
