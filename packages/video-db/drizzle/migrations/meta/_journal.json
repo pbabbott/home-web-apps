@@ -43,6 +43,13 @@
       "when": 1785200195769,
       "tag": "0005_graceful_viper",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785204845254,
+      "tag": "0006_outstanding_lilandra",
+      "breakpoints": true
     }
   ]
 }

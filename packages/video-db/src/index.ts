@@ -64,6 +64,21 @@ export type {
 } from './queries/file-renames';
 
 export {
+  aiResponseCache,
+  aiResponseCacheSelectSchema,
+} from './schema/ai-response-cache';
+export type {
+  AiResponseCache,
+  NewAiResponseCache,
+} from './schema/ai-response-cache';
+
+export {
+  upsertAiResponseCache,
+  getAiResponseCache,
+} from './queries/ai-response-cache';
+export type { UpsertAiResponseCacheInput } from './queries/ai-response-cache';
+
+export {
   runMigrations,
   runMigrationsWithLock,
   hasAppliedLatestMigration,

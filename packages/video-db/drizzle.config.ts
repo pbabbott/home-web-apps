@@ -9,6 +9,7 @@ export default defineConfig({
     './src/schema/video-jobs.ts',
     './src/schema/title-cards.ts',
     './src/schema/file-renames.ts',
+    './src/schema/ai-response-cache.ts',
   ],
   out: './drizzle/migrations',
   dbCredentials: {

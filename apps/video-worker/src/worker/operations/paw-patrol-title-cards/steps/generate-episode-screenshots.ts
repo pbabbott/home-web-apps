@@ -7,7 +7,7 @@ import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
-import { screenshotDirectoryRelPath } from '../paths';
+import { screenshotDirectoryRelPath } from '../lib/paths';
 
 const execFileAsync = promisify(execFile);
 

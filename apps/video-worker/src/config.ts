@@ -47,6 +47,14 @@ export class ApplicationConfig {
   @EnvironmentVariable()
   ffprobePath: string = 'ffprobe';
 
+  /** Base URL of the OpenAI-compatible AI API server (LM Studio-style) used to ask a vision model about screenshots. No path — endpoints are appended by the client. */
+  @EnvironmentVariable()
+  aiApiUrl: string = 'http://192.168.5.142:1234';
+
+  /** Model name to request from aiApiUrl. */
+  @EnvironmentVariable()
+  aiModel: string = 'qwen/qwen3-vl-8b-instruct';
+
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
 }
