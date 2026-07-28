@@ -29,10 +29,10 @@ export const processJob = async (job: VideoJob): Promise<void> => {
       throw new JobProcessingError(`unsupported operation: ${job.operation}`);
     }
 
-    const outputPaths = await handler(job);
+    const result = await handler(job);
 
-    await completeVideoJob(db, job.id, outputPaths);
-    console.log(`✅ job ${job.id} completed`);
+    await completeVideoJob(db, job.id, result.outputPaths, result.message);
+    console.log(`✅ job ${job.id} completed: ${result.message}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 

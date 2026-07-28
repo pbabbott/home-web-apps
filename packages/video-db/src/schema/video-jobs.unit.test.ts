@@ -15,6 +15,7 @@ describe('videoJobSelectSchema', () => {
       completedAt: null,
       heartbeatAt: null,
       error: null,
+      message: null,
     };
 
     const result = videoJobSelectSchema.safeParse(row);
@@ -39,6 +40,7 @@ describe('videoJobSelectSchema', () => {
       completedAt: new Date(),
       heartbeatAt: new Date(),
       error: null,
+      message: 'processed 2 title cards',
     });
 
     expect(result.success).toBe(true);
@@ -58,6 +60,7 @@ describe('videoJobSelectSchema', () => {
       completedAt: null,
       heartbeatAt: null,
       error: null,
+      message: null,
     });
 
     expect(result.success).toBe(false);

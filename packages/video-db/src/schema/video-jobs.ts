@@ -32,6 +32,7 @@ export const videoJobs = pgTable('video_jobs', {
   completedAt: timestamp('completed_at', { withTimezone: true }),
   heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }),
   error: text('error'),
+  message: text('message'),
 });
 
 export type VideoJob = typeof videoJobs.$inferSelect;

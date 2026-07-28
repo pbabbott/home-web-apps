@@ -58,17 +58,21 @@ describe('processJob', () => {
     expect(completeVideoJob).not.toHaveBeenCalled();
   });
 
-  it('completes the job with the handler output paths on success', async () => {
+  it('completes the job with the handler output paths and message on success', async () => {
     const job = buildJob();
-    (operationHandlers['stub-operation'] as jest.Mock).mockResolvedValue([
-      '/title-cards/x/30.jpg',
-    ]);
+    (operationHandlers['stub-operation'] as jest.Mock).mockResolvedValue({
+      outputPaths: ['/title-cards/x/30.jpg'],
+      message: 'processed 1 title card',
+    });
 
     await processJob(job);
 
-    expect(completeVideoJob).toHaveBeenCalledWith({}, job.id, [
-      '/title-cards/x/30.jpg',
-    ]);
+    expect(completeVideoJob).toHaveBeenCalledWith(
+      {},
+      job.id,
+      ['/title-cards/x/30.jpg'],
+      'processed 1 title card',
+    );
     expect(failVideoJob).not.toHaveBeenCalled();
   });
 
@@ -86,10 +90,13 @@ describe('processJob', () => {
   it('sends periodic heartbeats while the handler is still running', async () => {
     jest.useFakeTimers();
     const job = buildJob();
-    let resolveHandler!: (paths: string[]) => void;
+    let resolveHandler!: (result: {
+      outputPaths: string[];
+      message: string;
+    }) => void;
     (operationHandlers['stub-operation'] as jest.Mock).mockImplementation(
       () =>
-        new Promise<string[]>((resolve) => {
+        new Promise((resolve) => {
           resolveHandler = resolve;
         }),
     );
@@ -98,7 +105,7 @@ describe('processJob', () => {
     await jest.advanceTimersByTimeAsync(25_000);
     expect(heartbeatVideoJob).toHaveBeenCalledTimes(2);
 
-    resolveHandler([]);
+    resolveHandler({ outputPaths: [], message: '' });
     await processing;
     jest.useRealTimers();
   });

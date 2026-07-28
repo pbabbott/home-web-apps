@@ -31,6 +31,23 @@ describe('worker job processing', () => {
     jest.clearAllMocks();
   });
 
+  it('completes a paw_patrol_title_cards job and records the handler message', async () => {
+    const created = await createVideoJob(db, {
+      operation: 'paw_patrol_title_cards',
+      parameters: { seasonNumber: 3 },
+    });
+
+    const claimed = await claimNextVideoJob(db, 'test-worker');
+    expect(claimed?.id).toBe(created.id);
+
+    await processJob(claimed!);
+
+    const updated = await getVideoJobById(db, created.id);
+    expect(updated?.status).toBe('completed');
+    expect(updated?.outputPaths).toEqual([]);
+    expect(updated?.message).toBe('');
+  });
+
   it('marks a job with an unsupported operation as failed', async () => {
     const created = await createVideoJob(db, {
       operation: 'transcode',
