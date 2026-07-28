@@ -4,8 +4,17 @@ import { runPawPatrolTitleCardsOperation } from '../../src/worker/operations/paw
 import { JobProcessingError } from '../../src/worker/job-processing-error';
 
 jest.mock('fs');
+jest.mock('child_process', () => ({
+  execFile: jest.fn(
+    (
+      _file: string,
+      _args: string[],
+      callback: (err: Error | null, result?: unknown) => void,
+    ) => callback(null, { stdout: '0\n', stderr: '' }),
+  ),
+}));
 jest.mock('../../src/config', () => ({
-  config: { mediaRoot: '/media' },
+  config: { mediaRoot: '/media', ffprobePath: 'ffprobe' },
 }));
 jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn().mockResolvedValue('fakehash'),
@@ -56,7 +65,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
     );
   });
 
-  it('runs the full pipeline (list + hash + title-card lookup) and returns no output paths or message yet', async () => {
+  it('runs the full pipeline (list + hash + title-card lookup + runtime) and returns no output paths or message yet', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => true });
     (fs.readdirSync as jest.Mock).mockReturnValue([

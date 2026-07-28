@@ -1,6 +1,7 @@
 import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
 import { checkTitleCardRecords } from './check-title-card-records';
+import { computeEpisodeRuntime } from './compute-episode-runtime';
 import { hashEpisodeFiles } from './hash-episode-files';
 import { listSeasonFiles } from './list-season-files';
 
@@ -13,4 +14,5 @@ export const steps: Step<PawPatrolTitleCardsContext>[] = [
   listSeasonFiles,
   hashEpisodeFiles,
   checkTitleCardRecords,
+  computeEpisodeRuntime,
 ];

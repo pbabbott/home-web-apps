@@ -12,4 +12,6 @@ export type Episode = {
   hash?: string;
   /** Existing title_cards rows for this episode's hash. Empty means this episode still needs title-card data generated. */
   titleCards?: TitleCard[];
+  /** Probed (ffprobe) duration in seconds. Only computed for episodes missing title_cards records. */
+  runTimeSeconds?: number;
 };

@@ -43,6 +43,10 @@ export class ApplicationConfig {
   @EnvironmentVariable()
   ffmpegPath: string = 'ffmpeg';
 
+  /** Path/binary name used to invoke ffprobe (for probing episode runtime). Must be on PATH in the container. */
+  @EnvironmentVariable()
+  ffprobePath: string = 'ffprobe';
+
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
 }
