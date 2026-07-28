@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Typography } from '@abbottland/fui-components';
+import { Typography } from '@abbottland/fui-components';
 import { Counter } from './components/Counter';
 import { Footer } from './components/Footer';
 
@@ -15,9 +15,6 @@ export default function Home() {
           your house, at a glance
         </Typography>
         <Counter />
-        <Button component="a" href="tv-show-cleanup">
-          TV Show Cleanup
-        </Button>
       </div>
       <Footer />
     </main>

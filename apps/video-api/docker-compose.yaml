@@ -14,14 +14,11 @@ services:
       - '4002:4002'
     environment:
       - PORT=4002
-      - MEDIA_ROOT=/media
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_DATABASE=video_api
       - POSTGRES_USER=video_api
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
-    volumes:
-      - ./docker/media:/media
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:4002/healthz']
       interval: 2s
