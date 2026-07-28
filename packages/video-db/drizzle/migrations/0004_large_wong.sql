@@ -1,0 +1,1 @@
+ALTER TABLE "video_jobs" DROP COLUMN "input_path";

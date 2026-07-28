@@ -11,8 +11,8 @@ const validationErrorSchema = z.object({
   message: z.string().meta({ example: 'Invalid request body' }),
   errors: z.array(
     z.object({
-      field: z.string().meta({ example: 'inputPath' }),
-      message: z.string().meta({ example: 'inputPath is required' }),
+      field: z.string().meta({ example: 'parameters.seasonNumber' }),
+      message: z.string().meta({ example: 'Invalid input: expected number' }),
     }),
   ),
 });

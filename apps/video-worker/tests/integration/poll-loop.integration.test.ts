@@ -1,14 +1,11 @@
-import path from 'path';
 import { execFile } from 'child_process';
 import {
   claimNextVideoJob,
   createVideoJob,
   getVideoJobById,
-  hashFile,
 } from '@abbottland/video-db';
 import { db } from '../../src/db';
 import { processJob } from '../../src/worker/job-processor';
-import { MEDIA_ROOT } from '../jest.integration.setup';
 
 // No ffmpeg binary is guaranteed in CI/dev containers. Mocking the
 // subprocess call keeps this test focused on what it can actually verify:
@@ -34,36 +31,9 @@ describe('worker job processing', () => {
     jest.clearAllMocks();
   });
 
-  it('claims a pending screenshots job, runs ffmpeg per timestamp, and marks it completed', async () => {
-    const created = await createVideoJob(db, {
-      operation: 'screenshots',
-      inputPath: '/videos/example.mp4',
-      parameters: { timestamps: [30, 60] },
-    });
-
-    const claimed = await claimNextVideoJob(db, 'test-worker');
-    expect(claimed?.id).toBe(created.id);
-
-    await processJob(claimed!);
-
-    const updated = await getVideoJobById(db, created.id);
-    const inputHash = await hashFile(
-      path.join(MEDIA_ROOT, 'videos', 'example.mp4'),
-    );
-    expect(updated?.status).toBe('completed');
-    expect(updated?.outputPaths).toEqual([
-      `/screenshots/${inputHash}/30.jpg`,
-      `/screenshots/${inputHash}/60.jpg`,
-    ]);
-    expect(updated?.workerId).toBe('test-worker');
-    expect(updated?.attempts).toBe(1);
-    expect(execFile).toHaveBeenCalledTimes(2);
-  });
-
   it('marks a job with an unsupported operation as failed', async () => {
     const created = await createVideoJob(db, {
       operation: 'transcode',
-      inputPath: '/videos/example.mp4',
       parameters: {},
     });
 

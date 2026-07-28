@@ -10,7 +10,7 @@ Routes:
 
 - `GET /healthz` — liveness check (from `@abbottland/express`); always `200` if the process is up.
 - `GET /readyz` — readiness check; `200` if PostgreSQL is reachable, `503` otherwise.
-- `POST /jobs` — create a job. Only the `screenshots` operation is currently supported.
+- `POST /jobs` — create a job. Only the `paw_patrol_title_cards` operation is currently supported (`parameters: { seasonNumber }`).
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, most recently created first (capped at 100), optionally filtered by status. Omit `status` to list all.
 - `GET /jobs/:id` — fetch a job's current status/result.
 - `GET /docs` — interactive Swagger UI for the routes above. The URL is also logged at startup.
@@ -26,16 +26,14 @@ Schema and migrations live in `@abbottland/video-db` (`packages/video-db`), shar
   "message": "Invalid request body",
   "errors": [
     {
-      "field": "inputPath",
-      "message": "Invalid input: expected string, received undefined"
-    },
-    {
-      "field": "parameters.timestamps",
-      "message": "timestamps must be a non-empty array of numbers"
+      "field": "parameters.seasonNumber",
+      "message": "Invalid input: expected number, received undefined"
     }
   ]
 }
 ```
+
+`operation` and `parameters` are validated together as a discriminated union (`src/schemas/jobs.ts`) — each operation declares its own `parameters` shape, so adding a new job type means adding a branch there rather than widening a shared `parameters` bag.
 
 Anything that isn't a request-shape problem (e.g. the database being unreachable) still returns a generic `500` and gets logged in full server-side — see `configureErrorHandler` in `@abbottland/express`.
 

@@ -4,11 +4,10 @@ describe('videoJobSelectSchema', () => {
   it('accepts a realistic row shape', () => {
     const row = {
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'screenshots',
+      operation: 'paw_patrol_title_cards',
       status: 'pending',
-      inputPath: '/videos/example.mp4',
       outputPaths: null,
-      parameters: { timestamps: [30, 120, 300] },
+      parameters: { seasonNumber: 3 },
       attempts: 0,
       workerId: null,
       createdAt: new Date(),
@@ -23,18 +22,16 @@ describe('videoJobSelectSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts multiple output paths, one per timestamp', () => {
+  it('accepts multiple output paths', () => {
     const result = videoJobSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'screenshots',
+      operation: 'paw_patrol_title_cards',
       status: 'completed',
-      inputPath: '/videos/example.mp4',
       outputPaths: [
-        '/screenshots/example-00030.jpg',
-        '/screenshots/example-00120.jpg',
-        '/screenshots/example-00300.jpg',
+        '/title-cards/example-00030.jpg',
+        '/title-cards/example-00120.jpg',
       ],
-      parameters: { timestamps: [30, 120, 300] },
+      parameters: { seasonNumber: 3 },
       attempts: 1,
       workerId: 'worker-1',
       createdAt: new Date(),
@@ -50,9 +47,8 @@ describe('videoJobSelectSchema', () => {
   it('rejects a row with an invalid status', () => {
     const result = videoJobSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'screenshots',
+      operation: 'paw_patrol_title_cards',
       status: 'bogus',
-      inputPath: '/videos/example.mp4',
       outputPaths: null,
       parameters: {},
       attempts: 0,

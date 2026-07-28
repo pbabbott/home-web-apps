@@ -1,5 +1,4 @@
 import type { VideoJob } from '@abbottland/video-db';
-import { runScreenshotsOperation } from './screenshots';
 
 /**
  * Maps a job's `operation` to the handler that processes it and returns the
@@ -10,6 +9,4 @@ import { runScreenshotsOperation } from './screenshots';
 export const operationHandlers: Record<
   string,
   (job: VideoJob) => Promise<string[]>
-> = {
-  screenshots: runScreenshotsOperation,
-};
+> = {};

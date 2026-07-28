@@ -31,9 +31,8 @@ describe('POST /jobs error handling', () => {
     const res = await supertest(createServer())
       .post('/jobs')
       .send({
-        operation: 'screenshots',
-        inputPath: '/videos/example.mp4',
-        parameters: { timestamps: [30] },
+        operation: 'paw_patrol_title_cards',
+        parameters: { seasonNumber: 3 },
       })
       .expect(500);
 

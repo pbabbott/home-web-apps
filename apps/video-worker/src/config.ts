@@ -31,7 +31,7 @@ export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4003;
 
-  /** Absolute path video-worker resolves job input/output paths against. Job inputPath/outputPaths are always relative to, and constrained within, this directory. */
+  /** Absolute path video-worker resolves job input/output paths against. Job outputPaths are always relative to, and constrained within, this directory. */
   @EnvironmentVariable()
   mediaRoot: string = '';
 

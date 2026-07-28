@@ -21,7 +21,6 @@ export const videoJobs = pgTable('video_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   operation: text('operation').notNull(),
   status: videoJobStatusEnum('status').notNull().default('pending'),
-  inputPath: text('input_path').notNull(),
   outputPaths: text('output_paths').array(),
   parameters: jsonb('parameters').notNull().default({}),
   attempts: integer('attempts').notNull().default(0),

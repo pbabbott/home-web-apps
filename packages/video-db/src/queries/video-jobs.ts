@@ -7,10 +7,7 @@ import {
   type VideoJobStatus,
 } from '../schema/video-jobs';
 
-export type CreateVideoJobInput = Pick<
-  NewVideoJob,
-  'operation' | 'inputPath' | 'parameters'
->;
+export type CreateVideoJobInput = Pick<NewVideoJob, 'operation' | 'parameters'>;
 
 export const createVideoJob = async (
   db: Database,

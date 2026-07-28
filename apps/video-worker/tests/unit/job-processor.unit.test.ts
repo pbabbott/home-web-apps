@@ -13,18 +13,17 @@ jest.mock('@abbottland/video-db', () => ({
   heartbeatVideoJob: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../../src/worker/operations', () => ({
-  operationHandlers: { screenshots: jest.fn() },
+  operationHandlers: { 'stub-operation': jest.fn() },
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
-    operation: 'screenshots',
+    operation: 'stub-operation',
     status: 'processing',
-    inputPath: '/videos/example.mp4',
     outputPaths: null,
-    parameters: { timestamps: [30] },
+    parameters: {},
     attempts: 1,
     workerId: 'worker-1',
     createdAt: new Date(),
@@ -47,7 +46,7 @@ describe('processJob', () => {
   });
 
   it('fails the job for an unsupported operation without invoking a handler', async () => {
-    const job = buildJob({ operation: 'transcode' });
+    const job = buildJob({ operation: 'unsupported-operation' });
 
     await processJob(job);
 
@@ -61,21 +60,21 @@ describe('processJob', () => {
 
   it('completes the job with the handler output paths on success', async () => {
     const job = buildJob();
-    (operationHandlers.screenshots as jest.Mock).mockResolvedValue([
-      '/screenshots/x/30.jpg',
+    (operationHandlers['stub-operation'] as jest.Mock).mockResolvedValue([
+      '/title-cards/x/30.jpg',
     ]);
 
     await processJob(job);
 
     expect(completeVideoJob).toHaveBeenCalledWith({}, job.id, [
-      '/screenshots/x/30.jpg',
+      '/title-cards/x/30.jpg',
     ]);
     expect(failVideoJob).not.toHaveBeenCalled();
   });
 
   it('fails the job with the handler error message', async () => {
     const job = buildJob();
-    (operationHandlers.screenshots as jest.Mock).mockRejectedValue(
+    (operationHandlers['stub-operation'] as jest.Mock).mockRejectedValue(
       new Error('boom'),
     );
 
@@ -88,7 +87,7 @@ describe('processJob', () => {
     jest.useFakeTimers();
     const job = buildJob();
     let resolveHandler!: (paths: string[]) => void;
-    (operationHandlers.screenshots as jest.Mock).mockImplementation(
+    (operationHandlers['stub-operation'] as jest.Mock).mockImplementation(
       () =>
         new Promise<string[]>((resolve) => {
           resolveHandler = resolve;

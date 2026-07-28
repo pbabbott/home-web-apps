@@ -14,12 +14,12 @@ The process runs two things side by side:
 ### Job lifecycle
 
 1. `claimNextVideoJob` atomically claims the oldest `pending` job, marking it `processing` with `workerId`, `startedAt`, and `heartbeatAt` set.
-2. The job's `operation` and `parameters` are dispatched to the matching handler. Only `screenshots` is supported today: it runs `ffmpeg` once per timestamp in `parameters.timestamps`, writing `screenshots/<jobId>/<timestamp>.jpg` under `MEDIA_ROOT`.
+2. The job's `operation` and `parameters` are dispatched to the matching handler in `operationHandlers` (`src/worker/operations/index.ts`). No operation handler is registered yet — every job currently fails as unsupported until one is added.
 3. On success, `completeVideoJob` sets `status: 'completed'`, `completedAt`, and `outputPaths`.
 4. On failure (unsupported operation, path traversal, or an `ffmpeg` non-zero exit), `failVideoJob` sets `status: 'failed'`, `completedAt`, and `error`.
 5. The loop immediately polls again for another pending job; when none are pending, it waits `POLL_INTERVAL_MS` before polling again.
 
-`inputPath` and generated output paths are resolved relative to, and constrained within, `MEDIA_ROOT` (same `resolveWithinRoot` guard `video-api` uses for `/browse`) — a job can never read or write outside that directory.
+Generated output paths are resolved relative to, and constrained within, `MEDIA_ROOT` via `resolveWithinRoot` (`src/lib/safe-path.ts`, same guard `video-api` used for its now-removed `/browse` route) — a job can never write outside that directory.
 
 Worker crash recovery (detecting jobs stuck in `processing` via a stale `heartbeatAt` and returning them to `pending`) is not implemented yet; jobs currently track `workerId`/`heartbeatAt` so that recovery process can be added later without a schema change.
 
