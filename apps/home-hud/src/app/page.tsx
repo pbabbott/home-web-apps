@@ -1,6 +1,6 @@
 'use client';
 
-import { Typography } from '@abbottland/fui-components';
+import { Button, Typography } from '@abbottland/fui-components';
 import { Counter } from './components/Counter';
 import { Footer } from './components/Footer';
 
@@ -15,6 +15,9 @@ export default function Home() {
           your house, at a glance
         </Typography>
         <Counter />
+        <Button component="a" href="jobs">
+          Video Jobs
+        </Button>
       </div>
       <Footer />
     </main>
