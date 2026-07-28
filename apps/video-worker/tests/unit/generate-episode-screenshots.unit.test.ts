@@ -64,6 +64,23 @@ describe('generateEpisodeScreenshots', () => {
     );
   });
 
+  it('rejects an episode with no runtime yet', async () => {
+    const context = buildContext({
+      episodes: [
+        {
+          filename: 'e01.mp4',
+          absPath: '/media/e01.mp4',
+          hash: 'hash-1',
+          titleCards: [],
+        },
+      ],
+    });
+
+    await expect(generateEpisodeScreenshots(context)).rejects.toThrow(
+      JobProcessingError,
+    );
+  });
+
   it('skips episodes that already have title_cards records', async () => {
     const context = buildContext({
       episodes: [
@@ -83,7 +100,7 @@ describe('generateEpisodeScreenshots', () => {
     expect(execFile).not.toHaveBeenCalled();
   });
 
-  it('generates 15 screenshots (31..59 odd) for an episode missing title_cards', async () => {
+  it('generates 15 screenshots (31..59 odd) for a <=780s episode missing title_cards', async () => {
     const context = buildContext({
       seasonNumber: 3,
       episodes: [
@@ -92,6 +109,7 @@ describe('generateEpisodeScreenshots', () => {
           absPath: '/media/e01.mp4',
           hash: 'hash-1',
           titleCards: [],
+          runTimeSeconds: 780,
         },
       ],
     });
@@ -137,6 +155,7 @@ describe('generateEpisodeScreenshots', () => {
           absPath: '/media/e01.mp4',
           hash: 'hash-1',
           titleCards: [],
+          runTimeSeconds: 600,
         },
       ],
     });
@@ -145,5 +164,40 @@ describe('generateEpisodeScreenshots', () => {
 
     expect(execFile).not.toHaveBeenCalled();
     expect(result.episodes[0].screenshotPaths).toHaveLength(15);
+  });
+
+  it('samples both 45s and 705s for an episode longer than 780s', async () => {
+    const context = buildContext({
+      seasonNumber: 3,
+      episodes: [
+        {
+          filename: 'e01.mp4',
+          absPath: '/media/e01.mp4',
+          hash: 'hash-1',
+          titleCards: [],
+          runTimeSeconds: 781,
+        },
+      ],
+    });
+
+    const result = await generateEpisodeScreenshots(context);
+
+    expect(result.episodes[0].screenshotPaths).toHaveLength(30);
+    expect(execFile).toHaveBeenCalledTimes(30);
+    expect(execFile).toHaveBeenCalledWith(
+      'ffmpeg',
+      expect.arrayContaining(['-ss', '705']),
+      expect.any(Function),
+    );
+    expect(
+      result.episodes[0].screenshotPaths?.includes(
+        'screenshots/Paw Patrol/Season 3/hash-1/691_480x270.jpg',
+      ),
+    ).toBe(true);
+    expect(
+      result.episodes[0].screenshotPaths?.includes(
+        'screenshots/Paw Patrol/Season 3/hash-1/719_480x270.jpg',
+      ),
+    ).toBe(true);
   });
 });

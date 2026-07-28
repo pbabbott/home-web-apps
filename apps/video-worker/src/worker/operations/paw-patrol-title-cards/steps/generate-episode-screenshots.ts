@@ -13,17 +13,20 @@ const execFileAsync = promisify(execFile);
 
 const SCREENSHOT_WIDTH = 480;
 const SCREENSHOT_HEIGHT = 270;
-const SAMPLE_TIMESTAMP_SECONDS = 45;
 const SAMPLE_WINDOW_SECONDS = 15;
 const SAMPLE_INTERVAL_SECONDS = 2;
+const FIRST_SAMPLE_CENTER_SECONDS = 45;
+/** Second sampling center, only used for episodes longer than SECOND_SAMPLE_RUNTIME_THRESHOLD_SECONDS. */
+const SECOND_SAMPLE_CENTER_SECONDS = 705;
+const SECOND_SAMPLE_RUNTIME_THRESHOLD_SECONDS = 780;
 
 /**
- * Timestamps to screenshot: SAMPLE_TIMESTAMP_SECONDS itself, plus samples
- * every SAMPLE_INTERVAL_SECONDS out to (but not exceeding)
- * +/- SAMPLE_WINDOW_SECONDS, symmetric around the center. E.g. with
- * 45 / 15 / 2 that's 31, 33, ..., 43, 45, 47, ..., 59.
+ * Timestamps to screenshot around `centerSeconds`: the center itself, plus
+ * samples every SAMPLE_INTERVAL_SECONDS out to (but not exceeding)
+ * +/- SAMPLE_WINDOW_SECONDS. E.g. with center 45, window 15, interval 2
+ * that's 31, 33, ..., 43, 45, 47, ..., 59.
  */
-const buildSampleTimestamps = (): number[] => {
+const buildSampleTimestamps = (centerSeconds: number): number[] => {
   const maxOffset =
     Math.floor(SAMPLE_WINDOW_SECONDS / SAMPLE_INTERVAL_SECONDS) *
     SAMPLE_INTERVAL_SECONDS;
@@ -34,10 +37,24 @@ const buildSampleTimestamps = (): number[] => {
     offset <= maxOffset;
     offset += SAMPLE_INTERVAL_SECONDS
   ) {
-    timestamps.push(SAMPLE_TIMESTAMP_SECONDS + offset);
+    timestamps.push(centerSeconds + offset);
   }
 
   return timestamps;
+};
+
+/**
+ * Samples around FIRST_SAMPLE_CENTER_SECONDS, plus a second batch around
+ * SECOND_SAMPLE_CENTER_SECONDS for episodes long enough that a title card
+ * might also appear there (over SECOND_SAMPLE_RUNTIME_THRESHOLD_SECONDS).
+ */
+const buildSampleTimestampsForEpisode = (runTimeSeconds: number): number[] => {
+  const centers =
+    runTimeSeconds > SECOND_SAMPLE_RUNTIME_THRESHOLD_SECONDS
+      ? [FIRST_SAMPLE_CENTER_SECONDS, SECOND_SAMPLE_CENTER_SECONDS]
+      : [FIRST_SAMPLE_CENTER_SECONDS];
+
+  return centers.flatMap(buildSampleTimestamps);
 };
 
 /**
@@ -64,6 +81,12 @@ export const generateEpisodeScreenshots: Step<
         );
       }
 
+      if (episode.runTimeSeconds === undefined) {
+        throw new JobProcessingError(
+          `episode is missing a runtime: ${episode.filename}`,
+        );
+      }
+
       const screenshotDirRelPath = screenshotDirectoryRelPath(
         ctx.seasonNumber,
         episode.hash,
@@ -83,7 +106,9 @@ export const generateEpisodeScreenshots: Step<
 
       const screenshotPaths: string[] = [];
 
-      for (const timestamp of buildSampleTimestamps()) {
+      for (const timestamp of buildSampleTimestampsForEpisode(
+        episode.runTimeSeconds,
+      )) {
         const filename = `${timestamp}_${SCREENSHOT_WIDTH}x${SCREENSHOT_HEIGHT}.jpg`;
         const outputAbsPath = path.join(screenshotDirAbsPath, filename);
 
