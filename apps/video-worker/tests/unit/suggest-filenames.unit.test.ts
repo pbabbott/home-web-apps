@@ -2,6 +2,7 @@ import type { FileRename, TitleCard, VideoJob } from '@abbottland/video-db';
 import { suggestFilenames } from '../../src/worker/operations/paw-patrol-file-suggestions/steps/suggest-filenames';
 import { suggestDoubleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-double-episode';
 import { suggestSingleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-single-episode';
+import { refineSplitPoint } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/refine-split-point';
 import type { PawPatrolFileSuggestionsContext } from '../../src/worker/operations/paw-patrol-file-suggestions/context';
 
 jest.mock(
@@ -14,6 +15,12 @@ jest.mock(
   '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-double-episode',
   () => ({
     suggestDoubleEpisode: jest.fn(),
+  }),
+);
+jest.mock(
+  '../../src/worker/operations/paw-patrol-file-suggestions/lib/refine-split-point',
+  () => ({
+    refineSplitPoint: jest.fn(),
   }),
 );
 
@@ -157,7 +164,7 @@ describe('suggestFilenames', () => {
     });
   });
 
-  describe('two title cards (bundled double episode)', () => {
+  describe('two title cards (split into two episodes)', () => {
     it('leaves suggestedFilePath unset when the AI has no confident match', async () => {
       (suggestDoubleEpisode as jest.Mock).mockResolvedValue({
         found: false,
@@ -170,8 +177,14 @@ describe('suggestFilenames', () => {
             absPath: '/media/e18-19.mp4',
             hash: 'hash-1',
             titleCards: [
-              { title: 'Pups Save a Goldrush' } as TitleCard,
-              { title: 'Pups Save a Space Alien' } as TitleCard,
+              {
+                title: 'Pups Save a Goldrush',
+                timestampSeconds: 0,
+              } as TitleCard,
+              {
+                title: 'Pups Save a Space Alien',
+                timestampSeconds: 660,
+              } as TitleCard,
             ],
           },
         ],
@@ -180,9 +193,12 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBeUndefined();
+      expect(result.episodes[0].secondSuggestedFilePath).toBeUndefined();
+      expect(result.episodes[0].splitAtSeconds).toBeUndefined();
+      expect(refineSplitPoint).not.toHaveBeenCalled();
     });
 
-    it('computes a Plex multi-episode suggestedFilePath in file order from a confident match', async () => {
+    it('computes two single-episode destination paths and the refined split point from a confident match', async () => {
       (suggestDoubleEpisode as jest.Mock).mockResolvedValue({
         found: true,
         episodes: [
@@ -190,6 +206,7 @@ describe('suggestFilenames', () => {
           { episodeNumber: 19, episodeTitle: 'Pups Save a Space Alien' },
         ],
       });
+      (refineSplitPoint as jest.Mock).mockResolvedValue(658.6);
 
       const context = buildContext({
         episodes: [
@@ -198,8 +215,14 @@ describe('suggestFilenames', () => {
             absPath: '/media/random-name.mp4',
             hash: 'hash-1',
             titleCards: [
-              { title: 'Pups Save a Goldrush' } as TitleCard,
-              { title: 'Pups Save a Space Alien' } as TitleCard,
+              {
+                title: 'Pups Save a Goldrush',
+                timestampSeconds: 0,
+              } as TitleCard,
+              {
+                title: 'Pups Save a Space Alien',
+                timestampSeconds: 660,
+              } as TitleCard,
             ],
           },
         ],
@@ -208,8 +231,12 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien.mp4',
+        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
       );
+      expect(result.episodes[0].secondSuggestedFilePath).toBe(
+        'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+      );
+      expect(result.episodes[0].splitAtSeconds).toBe(658.6);
       expect(result.episodes[0].sourceTitleCardTitles).toEqual([
         'Pups Save a Goldrush',
         'Pups Save a Space Alien',
@@ -219,6 +246,12 @@ describe('suggestFilenames', () => {
         'Pups Save a Goldrush',
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
+      );
+      expect(refineSplitPoint).toHaveBeenCalledWith(
+        3,
+        'hash-1',
+        '/media/random-name.mp4',
+        660,
       );
       expect(suggestSingleEpisode).not.toHaveBeenCalled();
     });
@@ -231,6 +264,7 @@ describe('suggestFilenames', () => {
           { episodeNumber: 19, episodeTitle: 'Pups Save a Space Alien' },
         ],
       });
+      (refineSplitPoint as jest.Mock).mockResolvedValue(660);
 
       const context = buildContext({
         episodes: [
@@ -239,9 +273,18 @@ describe('suggestFilenames', () => {
             absPath: '/media/random-name.mp4',
             hash: 'hash-1',
             titleCards: [
-              { title: 'Pups Save a Goldrush' } as TitleCard,
-              { title: 'Pups Save a Space Alien' } as TitleCard,
-              { title: 'A Third Card' } as TitleCard,
+              {
+                title: 'Pups Save a Goldrush',
+                timestampSeconds: 0,
+              } as TitleCard,
+              {
+                title: 'Pups Save a Space Alien',
+                timestampSeconds: 660,
+              } as TitleCard,
+              {
+                title: 'A Third Card',
+                timestampSeconds: 1200,
+              } as TitleCard,
             ],
           },
         ],
@@ -257,7 +300,7 @@ describe('suggestFilenames', () => {
       );
     });
 
-    it('carries a quality tag from the original filename into the suggestion', async () => {
+    it('carries a quality tag from the original filename into both suggestions', async () => {
       (suggestDoubleEpisode as jest.Mock).mockResolvedValue({
         found: true,
         episodes: [
@@ -265,6 +308,7 @@ describe('suggestFilenames', () => {
           { episodeNumber: 19, episodeTitle: 'Pups Save a Space Alien' },
         ],
       });
+      (refineSplitPoint as jest.Mock).mockResolvedValue(660);
 
       const context = buildContext({
         episodes: [
@@ -273,8 +317,14 @@ describe('suggestFilenames', () => {
             absPath: '/media/Paw.Patrol.S03E18-E19.HDTV-720p.mp4',
             hash: 'hash-1',
             titleCards: [
-              { title: 'Pups Save a Goldrush' } as TitleCard,
-              { title: 'Pups Save a Space Alien' } as TitleCard,
+              {
+                title: 'Pups Save a Goldrush',
+                timestampSeconds: 0,
+              } as TitleCard,
+              {
+                title: 'Pups Save a Space Alien',
+                timestampSeconds: 660,
+              } as TitleCard,
             ],
           },
         ],
@@ -283,7 +333,10 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien [HDTV-720p].mp4',
+        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [HDTV-720p].mp4',
+      );
+      expect(result.episodes[0].secondSuggestedFilePath).toBe(
+        'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien [HDTV-720p].mp4',
       );
     });
   });

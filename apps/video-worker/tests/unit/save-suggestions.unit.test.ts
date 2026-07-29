@@ -97,11 +97,60 @@ describe('saveSuggestions', () => {
         originalFilePath: 'Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:
           'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+        secondSuggestedFilePath: undefined,
+        splitAtSeconds: undefined,
         sourceTitleCardTitles: ['Pups Save a Blimp'],
       },
     );
     expect(result.outputPaths).toEqual([
       'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+    ]);
+  });
+
+  it('upserts a split suggestion and records both output paths', async () => {
+    (upsertFileRename as jest.Mock).mockResolvedValue({});
+
+    const context = buildContext({
+      seasonNumber: 3,
+      episodes: [
+        {
+          filename: 'random-name.mp4',
+          absPath: '/media/random-name.mp4',
+          hash: 'hash-1',
+          suggestedFilePath:
+            'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+          secondSuggestedFilePath:
+            'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+          splitAtSeconds: 660,
+          sourceTitleCardTitles: [
+            'Pups Save a Goldrush',
+            'Pups Save a Space Alien',
+          ],
+        },
+      ],
+    });
+
+    const result = await saveSuggestions(context);
+
+    expect(upsertFileRename).toHaveBeenCalledWith(
+      {},
+      {
+        fileHash: 'hash-1',
+        originalFilePath: 'Paw Patrol/Season 3/random-name.mp4',
+        suggestedFilePath:
+          'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+        secondSuggestedFilePath:
+          'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+        splitAtSeconds: 660,
+        sourceTitleCardTitles: [
+          'Pups Save a Goldrush',
+          'Pups Save a Space Alien',
+        ],
+      },
+    );
+    expect(result.outputPaths).toEqual([
+      'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+      'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
     ]);
   });
 });

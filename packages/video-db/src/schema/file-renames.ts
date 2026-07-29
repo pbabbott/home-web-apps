@@ -1,4 +1,11 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  doublePrecision,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -26,9 +33,13 @@ export const fileRenames = pgTable('file_renames', {
   fileHash: text('file_hash').notNull().unique(),
   /** Path the hash was computed from at suggestion time, relative to MEDIA_ROOT. */
   originalFilePath: text('original_file_path').notNull(),
-  /** AI-suggested destination path, relative to MEDIA_ROOT. Not guaranteed to exist yet — nothing renames the file automatically. */
+  /** AI-suggested destination path, relative to MEDIA_ROOT. For a split suggestion (see splitAtSeconds), this is the first segment's destination. Not guaranteed to exist yet — nothing renames or splits the file automatically. */
   suggestedFilePath: text('suggested_file_path').notNull(),
-  /** title_cards titles the AI was given as evidence for this suggestion — one per matched episode (one for a single-episode file, two for a bundled double-episode file). Recorded so a suggestion can be audited without re-joining against title_cards, which may have since changed. */
+  /** Second segment's suggested destination path, set only when this file bundles two episodes and needs to be split rather than just renamed — see splitAtSeconds. */
+  secondSuggestedFilePath: text('second_suggested_file_path'),
+  /** Approximate point, in seconds from the start of the original file, where it should be split into suggestedFilePath and secondSuggestedFilePath — refined to ~0.1s precision by refineSplitPoint. Null for a single-episode (no split needed) suggestion. */
+  splitAtSeconds: doublePrecision('split_at_seconds'),
+  /** title_cards titles the AI was given as evidence for this suggestion — one per matched episode (one for a single-episode file, two for a bundled double-episode file, in which case index 0 matches suggestedFilePath and index 1 matches secondSuggestedFilePath). Recorded so a suggestion can be audited without re-joining against title_cards, which may have since changed. */
   sourceTitleCardTitles: text('source_title_card_titles').array(),
   status: fileRenameStatusEnum('status').notNull().default('pending'),
   createdAt: timestamp('created_at', { withTimezone: true })

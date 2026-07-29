@@ -12,6 +12,8 @@ export type UpsertFileRenameInput = Pick<
   | 'fileHash'
   | 'originalFilePath'
   | 'suggestedFilePath'
+  | 'secondSuggestedFilePath'
+  | 'splitAtSeconds'
   | 'sourceTitleCardTitles'
 >;
 
@@ -35,6 +37,8 @@ export const upsertFileRename = async (
       set: {
         originalFilePath: input.originalFilePath,
         suggestedFilePath: input.suggestedFilePath,
+        secondSuggestedFilePath: input.secondSuggestedFilePath ?? null,
+        splitAtSeconds: input.splitAtSeconds ?? null,
         sourceTitleCardTitles: input.sourceTitleCardTitles,
         status: 'pending',
         appliedAt: null,

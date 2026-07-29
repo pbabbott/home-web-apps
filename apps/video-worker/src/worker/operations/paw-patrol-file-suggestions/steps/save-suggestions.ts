@@ -33,10 +33,15 @@ export const saveSuggestions: Step<PawPatrolFileSuggestionsContext> = async (
       fileHash: episode.hash,
       originalFilePath,
       suggestedFilePath: episode.suggestedFilePath,
+      secondSuggestedFilePath: episode.secondSuggestedFilePath,
+      splitAtSeconds: episode.splitAtSeconds,
       sourceTitleCardTitles: episode.sourceTitleCardTitles,
     });
 
     outputPaths.push(episode.suggestedFilePath);
+    if (episode.secondSuggestedFilePath) {
+      outputPaths.push(episode.secondSuggestedFilePath);
+    }
   }
 
   return { ...ctx, outputPaths };
