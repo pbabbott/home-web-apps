@@ -7,6 +7,8 @@ export interface FileRename {
   fileHash: string;
   originalFilePath: string;
   suggestedFilePath: string;
+  secondSuggestedFilePath: string | null;
+  splitAtSeconds: number | null;
   sourceTitleCardTitles: string[] | null;
   status: FileRenameStatus;
   createdAt: string;

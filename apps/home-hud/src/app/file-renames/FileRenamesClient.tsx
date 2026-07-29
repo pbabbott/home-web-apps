@@ -36,6 +36,18 @@ function formatDate(iso: string): string {
   return dateFormatter.format(new Date(iso));
 }
 
+// mm:ss(.s) — a whole-number of seconds renders without a decimal, a
+// refined (fractional) split point keeps its one decimal place.
+function formatSplitAt(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds - minutes * 60;
+  const secondsText = Number.isInteger(remainingSeconds)
+    ? String(remainingSeconds).padStart(2, '0')
+    : remainingSeconds.toFixed(1).padStart(4, '0');
+
+  return `${minutes}:${secondsText}`;
+}
+
 interface FileRenamesClientProps {
   fileRenames: FileRename[] | null;
 }
@@ -73,6 +85,7 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                 <TableRow>
                   <Th>Original Path</Th>
                   <Th>Suggested Path</Th>
+                  <Th>Split At</Th>
                   <Th>Source Titles</Th>
                   <Th>Status</Th>
                   <Th>Created</Th>
@@ -83,7 +96,21 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                 {pageFileRenames.map((fileRename) => (
                   <TableRow key={fileRename.id}>
                     <Td>{fileRename.originalFilePath}</Td>
-                    <Td>{fileRename.suggestedFilePath}</Td>
+                    <Td>
+                      {fileRename.secondSuggestedFilePath ? (
+                        <div className="flex flex-col gap-1">
+                          <span>{fileRename.suggestedFilePath}</span>
+                          <span>{fileRename.secondSuggestedFilePath}</span>
+                        </div>
+                      ) : (
+                        fileRename.suggestedFilePath
+                      )}
+                    </Td>
+                    <Td>
+                      {fileRename.splitAtSeconds !== null
+                        ? formatSplitAt(fileRename.splitAtSeconds)
+                        : '—'}
+                    </Td>
                     <Td>
                       {fileRename.sourceTitleCardTitles?.length
                         ? fileRename.sourceTitleCardTitles.join(', ')
