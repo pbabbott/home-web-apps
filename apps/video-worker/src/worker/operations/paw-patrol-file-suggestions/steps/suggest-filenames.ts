@@ -3,6 +3,7 @@ import type { Step } from '../../pipeline';
 import {
   buildPlexEpisodeRelPath,
   buildPlexMultiEpisodeRelPath,
+  extractQualityTag,
 } from '../lib/plex-filename';
 import { suggestDoubleEpisode } from '../lib/suggest-double-episode';
 import { suggestSingleEpisode } from '../lib/suggest-single-episode';
@@ -34,6 +35,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
       }
 
       const extension = path.extname(episode.filename);
+      const qualityTag = extractQualityTag(episode.filename);
 
       if (titleCards.length === 1) {
         const match = await suggestSingleEpisode(
@@ -52,8 +54,10 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
             ctx.seasonNumber,
             match.episodeNumber,
             match.episodeTitle,
+            qualityTag,
             extension,
           ),
+          sourceTitleCardTitles: [titleCards[0].title ?? ''],
         };
       }
 
@@ -78,8 +82,13 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
           second.episodeNumber,
           first.episodeTitle,
           second.episodeTitle,
+          qualityTag,
           extension,
         ),
+        sourceTitleCardTitles: [
+          titleCards[0].title ?? '',
+          titleCards[1].title ?? '',
+        ],
       };
     }),
   );

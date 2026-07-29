@@ -83,6 +83,7 @@ describe('saveSuggestions', () => {
           hash: 'hash-1',
           suggestedFilePath:
             'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+          sourceTitleCardTitles: ['Pups Save a Blimp'],
         },
       ],
     });
@@ -96,6 +97,7 @@ describe('saveSuggestions', () => {
         originalFilePath: 'Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:
           'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+        sourceTitleCardTitles: ['Pups Save a Blimp'],
       },
     );
     expect(result.outputPaths).toEqual([

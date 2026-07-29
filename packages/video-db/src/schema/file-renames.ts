@@ -28,6 +28,8 @@ export const fileRenames = pgTable('file_renames', {
   originalFilePath: text('original_file_path').notNull(),
   /** AI-suggested destination path, relative to MEDIA_ROOT. Not guaranteed to exist yet — nothing renames the file automatically. */
   suggestedFilePath: text('suggested_file_path').notNull(),
+  /** title_cards titles the AI was given as evidence for this suggestion — one per matched episode (one for a single-episode file, two for a bundled double-episode file). Recorded so a suggestion can be audited without re-joining against title_cards, which may have since changed. */
+  sourceTitleCardTitles: text('source_title_card_titles').array(),
   status: fileRenameStatusEnum('status').notNull().default('pending'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()

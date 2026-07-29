@@ -7,6 +7,7 @@ describe('fileRenameSelectSchema', () => {
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
+      sourceTitleCardTitles: null,
       status: 'pending',
       createdAt: new Date(),
       appliedAt: null,
@@ -23,9 +24,25 @@ describe('fileRenameSelectSchema', () => {
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
+      sourceTitleCardTitles: null,
       status: 'applied',
       createdAt: new Date(),
       appliedAt: new Date(),
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts a row with sourceTitleCardTitles set', () => {
+    const result = fileRenameSelectSchema.safeParse({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      fileHash: 'deadbeefcafe',
+      originalFilePath: '/tv_shows/Show A/S01E01.mp4',
+      suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
+      sourceTitleCardTitles: ['Pups Save a Toof'],
+      status: 'pending',
+      createdAt: new Date(),
+      appliedAt: null,
     });
 
     expect(result.success).toBe(true);

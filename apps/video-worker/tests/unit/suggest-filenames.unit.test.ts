@@ -120,12 +120,40 @@ describe('suggestFilenames', () => {
       expect(result.episodes[0].suggestedFilePath).toBe(
         'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
       );
+      expect(result.episodes[0].sourceTitleCardTitles).toEqual([
+        'Pups Save a Goldrush',
+      ]);
       expect(suggestSingleEpisode).toHaveBeenCalledWith(
         'random-name.mp4',
         'Pups Save a Goldrush',
         context.sonarrEpisodes,
       );
       expect(suggestDoubleEpisode).not.toHaveBeenCalled();
+    });
+
+    it('carries a quality tag from the original filename into the suggestion', async () => {
+      (suggestSingleEpisode as jest.Mock).mockResolvedValue({
+        found: true,
+        episodeNumber: 18,
+        episodeTitle: 'Pups Save a Goldrush',
+      });
+
+      const context = buildContext({
+        episodes: [
+          {
+            filename: 'Paw.Patrol.S03E18.WEBDL-1080p.mp4',
+            absPath: '/media/Paw.Patrol.S03E18.WEBDL-1080p.mp4',
+            hash: 'hash-1',
+            titleCards: [{ title: 'Pups Save a Goldrush' } as TitleCard],
+          },
+        ],
+      });
+
+      const result = await suggestFilenames(context);
+
+      expect(result.episodes[0].suggestedFilePath).toBe(
+        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [WEBDL-1080p].mp4',
+      );
     });
   });
 
@@ -182,6 +210,10 @@ describe('suggestFilenames', () => {
       expect(result.episodes[0].suggestedFilePath).toBe(
         'Paw Patrol/Season 3/Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien.mp4',
       );
+      expect(result.episodes[0].sourceTitleCardTitles).toEqual([
+        'Pups Save a Goldrush',
+        'Pups Save a Space Alien',
+      ]);
       expect(suggestDoubleEpisode).toHaveBeenCalledWith(
         'random-name.mp4',
         'Pups Save a Goldrush',
@@ -222,6 +254,36 @@ describe('suggestFilenames', () => {
         'Pups Save a Goldrush',
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
+      );
+    });
+
+    it('carries a quality tag from the original filename into the suggestion', async () => {
+      (suggestDoubleEpisode as jest.Mock).mockResolvedValue({
+        found: true,
+        episodes: [
+          { episodeNumber: 18, episodeTitle: 'Pups Save a Goldrush' },
+          { episodeNumber: 19, episodeTitle: 'Pups Save a Space Alien' },
+        ],
+      });
+
+      const context = buildContext({
+        episodes: [
+          {
+            filename: 'Paw.Patrol.S03E18-E19.HDTV-720p.mp4',
+            absPath: '/media/Paw.Patrol.S03E18-E19.HDTV-720p.mp4',
+            hash: 'hash-1',
+            titleCards: [
+              { title: 'Pups Save a Goldrush' } as TitleCard,
+              { title: 'Pups Save a Space Alien' } as TitleCard,
+            ],
+          },
+        ],
+      });
+
+      const result = await suggestFilenames(context);
+
+      expect(result.episodes[0].suggestedFilePath).toBe(
+        'Paw Patrol/Season 3/Paw Patrol - S03E18-E19 - Pups Save a Goldrush & Pups Save a Space Alien [HDTV-720p].mp4',
       );
     });
   });

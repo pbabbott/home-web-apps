@@ -9,7 +9,10 @@ import {
 
 export type UpsertFileRenameInput = Pick<
   NewFileRename,
-  'fileHash' | 'originalFilePath' | 'suggestedFilePath'
+  | 'fileHash'
+  | 'originalFilePath'
+  | 'suggestedFilePath'
+  | 'sourceTitleCardTitles'
 >;
 
 /**
@@ -32,6 +35,7 @@ export const upsertFileRename = async (
       set: {
         originalFilePath: input.originalFilePath,
         suggestedFilePath: input.suggestedFilePath,
+        sourceTitleCardTitles: input.sourceTitleCardTitles,
         status: 'pending',
         appliedAt: null,
       },

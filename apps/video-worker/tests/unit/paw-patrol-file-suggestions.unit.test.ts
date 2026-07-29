@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { upsertFileRename } from '@abbottland/video-db';
 import type { VideoJob } from '@abbottland/video-db';
 import { runPawPatrolFileSuggestionsOperation } from '../../src/worker/operations/paw-patrol-file-suggestions';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
@@ -92,5 +93,11 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
     expect(result.outputPaths).toEqual([
       'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
     ]);
+    expect(upsertFileRename).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({
+        sourceTitleCardTitles: ['Pups Save a Blimp'],
+      }),
+    );
   });
 });

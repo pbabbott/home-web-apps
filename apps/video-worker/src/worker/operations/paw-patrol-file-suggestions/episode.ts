@@ -16,4 +16,6 @@ export type Episode = {
   titleCards?: TitleCard[];
   /** MEDIA_ROOT-relative destination path computed by suggest-filenames, ready to be saved by save-suggestions. */
   suggestedFilePath?: string;
+  /** title_cards titles the AI was given as evidence for suggestedFilePath — one per matched episode, in file order. Set alongside suggestedFilePath by suggest-filenames. */
+  sourceTitleCardTitles?: string[];
 };
