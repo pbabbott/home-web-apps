@@ -1,5 +1,6 @@
 import type { VideoJob } from '@abbottland/video-db';
 import type { OperationResult } from './operation-result';
+import { runPawPatrolApplyFileRenamesOperation } from './paw-patrol-apply-file-renames';
 import { runPawPatrolFileSuggestionsOperation } from './paw-patrol-file-suggestions';
 import { runPawPatrolTitleCardsOperation } from './paw-patrol-title-cards';
 
@@ -17,4 +18,5 @@ export const operationHandlers: Record<
 > = {
   paw_patrol_title_cards: runPawPatrolTitleCardsOperation,
   paw_patrol_file_suggestions: runPawPatrolFileSuggestionsOperation,
+  paw_patrol_apply_file_renames: runPawPatrolApplyFileRenamesOperation,
 };

@@ -41,12 +41,19 @@ const SEASON_OPTIONS = Array.from(
 const OPERATION_OPTIONS: JobOperation[] = [
   'paw_patrol_title_cards',
   'paw_patrol_file_suggestions',
+  'paw_patrol_apply_file_renames',
 ];
 
 const operationLabels: Record<JobOperation, string> = {
   paw_patrol_title_cards: 'Title Cards',
   paw_patrol_file_suggestions: 'File Suggestions',
+  paw_patrol_apply_file_renames: 'Apply Renames',
 };
+
+// Only paw_patrol_apply_file_renames processes every pending file_renames
+// row regardless of season — every other operation is season-scoped.
+const operationNeedsSeason = (operation: JobOperation): boolean =>
+  operation !== 'paw_patrol_apply_file_renames';
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -85,7 +92,10 @@ export function JobsClient({ jobs }: JobsClientProps) {
     setSubmitError(null);
 
     try {
-      await createJob(operation, season);
+      await createJob(
+        operation,
+        operationNeedsSeason(operation) ? season : undefined,
+      );
       router.refresh();
     } catch (err) {
       setSubmitError(
@@ -122,18 +132,23 @@ export function JobsClient({ jobs }: JobsClientProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton size="small">Season: {season}</OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Choose Season">
-              {SEASON_OPTIONS.map((s) => (
-                <DropdownMenuItem key={s} onSelect={() => setSeason(s)}>
-                  Season {s}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {operationNeedsSeason(operation) && (
+            <DropdownMenu
+              open={seasonMenuOpen}
+              onOpenChange={setSeasonMenuOpen}
+            >
+              <DropdownMenuTrigger asChild>
+                <OutlinedButton size="small">Season: {season}</OutlinedButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent label="Choose Season">
+                {SEASON_OPTIONS.map((s) => (
+                  <DropdownMenuItem key={s} onSelect={() => setSeason(s)}>
+                    Season {s}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <Button
             size="small"

@@ -57,6 +57,7 @@ export {
   getFileRenameById,
   updateFileRenameStatus,
   listFileRenames,
+  listPendingFileRenames,
 } from './queries/file-renames';
 export type {
   UpsertFileRenameInput,
