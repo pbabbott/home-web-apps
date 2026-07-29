@@ -10,14 +10,18 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
+import { listFileRenames } from './controllers/file-renames';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
+import { listTitleCards } from './controllers/title-cards';
 import { openApiSpec } from './openapi';
+import { listFileRenamesQuerySchema } from './schemas/file-renames';
 import {
   createJobSchema,
   jobIdParamsSchema,
   listJobsQuerySchema,
 } from './schemas/jobs';
+import { listTitleCardsQuerySchema } from './schemas/title-cards';
 
 export const DOCS_ROUTE = '/docs';
 
@@ -34,7 +38,17 @@ export const createServer = (): Express => {
     .get('/readyz', getReady)
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
-    .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob);
+    .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
+    .get(
+      '/title-cards',
+      validateQuery(listTitleCardsQuerySchema),
+      listTitleCards,
+    )
+    .get(
+      '/file-renames',
+      validateQuery(listFileRenamesQuerySchema),
+      listFileRenames,
+    );
 
   configureErrorHandler(app);
 
