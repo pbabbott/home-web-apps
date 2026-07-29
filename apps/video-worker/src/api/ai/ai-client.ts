@@ -30,7 +30,11 @@ type ChatCompletionResponse = {
 export const chatCompletion = async (
   request: ChatCompletionRequest,
 ): Promise<string> => {
-  const response = await fetch(`${config.aiApiUrl}${CHAT_COMPLETIONS_PATH}`, {
+  const url = `${config.aiApiUrl}${CHAT_COMPLETIONS_PATH}`;
+
+  console.log(`🤖 POST ${url} ${request.model}`);
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

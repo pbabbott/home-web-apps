@@ -1,11 +1,17 @@
 import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
-import { videoJobSelectSchema } from '@abbottland/video-db';
+import {
+  fileRenameSelectSchema,
+  titleCardSelectSchema,
+  videoJobSelectSchema,
+} from '@abbottland/video-db';
+import { listFileRenamesQuerySchema } from './schemas/file-renames';
 import {
   createJobSchema,
   jobIdParamsSchema,
   listJobsQuerySchema,
 } from './schemas/jobs';
+import { listTitleCardsQuerySchema } from './schemas/title-cards';
 
 const validationErrorSchema = z.object({
   message: z.string().meta({ example: 'Invalid request body' }),
@@ -131,6 +137,44 @@ export const openApiSpec = createDocument({
           },
           '400': validationErrorResponse,
           '404': { description: 'No job with that id' },
+        },
+      },
+    },
+    '/title-cards': {
+      get: {
+        summary: 'List detected title cards, optionally filtered by fileHash',
+        requestParams: { query: listTitleCardsQuerySchema },
+        responses: {
+          '200': {
+            description: 'Matching title cards',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  titleCards: z.array(titleCardSelectSchema),
+                }),
+              },
+            },
+          },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/file-renames': {
+      get: {
+        summary: 'List rename suggestions, optionally filtered by status',
+        requestParams: { query: listFileRenamesQuerySchema },
+        responses: {
+          '200': {
+            description: 'Matching rename suggestions, most recent first',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  fileRenames: z.array(fileRenameSelectSchema),
+                }),
+              },
+            },
+          },
+          '400': validationErrorResponse,
         },
       },
     },

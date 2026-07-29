@@ -1,0 +1,1 @@
+ALTER TABLE "file_renames" ADD COLUMN "source_title_card_titles" text[];

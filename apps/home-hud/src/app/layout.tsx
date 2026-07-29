@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '@abbottland/fui-components/globals.css';
 import './globals.css';
+import { Nav } from './components/Nav';
 
 export const metadata: Metadata = {
   title: 'Home HUD',
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <Nav />
+        {children}
+      </body>
     </html>
   );
 }

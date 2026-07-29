@@ -21,6 +21,24 @@ const pawPatrolTitleCardsJobSchema = z.object({
   }),
 });
 
+const pawPatrolFileSuggestionsJobSchema = z.object({
+  operation: z.literal('paw_patrol_file_suggestions'),
+  parameters: z.object({
+    seasonNumber: z.number().int().positive().meta({
+      description:
+        'Paw Patrol season number to generate file rename suggestions for',
+      example: 3,
+    }),
+  }),
+});
+
+const pawPatrolApplyFileRenamesJobSchema = z.object({
+  operation: z.literal('paw_patrol_apply_file_renames'),
+  // No inputs — applies every pending file_renames row, not a season-scoped
+  // subset. .default({}) lets a caller omit `parameters` entirely.
+  parameters: z.object({}).default({}),
+});
+
 /**
  * Discriminated on `operation` so each job type declares its own
  * `parameters` shape. Adding a new operation means adding a branch here,
@@ -28,6 +46,8 @@ const pawPatrolTitleCardsJobSchema = z.object({
  */
 export const createJobSchema = z.discriminatedUnion('operation', [
   pawPatrolTitleCardsJobSchema,
+  pawPatrolFileSuggestionsJobSchema,
+  pawPatrolApplyFileRenamesJobSchema,
 ]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;

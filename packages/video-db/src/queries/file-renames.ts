@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   fileRenames,
@@ -9,7 +9,12 @@ import {
 
 export type UpsertFileRenameInput = Pick<
   NewFileRename,
-  'fileHash' | 'originalFilePath' | 'suggestedFilePath'
+  | 'fileHash'
+  | 'originalFilePath'
+  | 'suggestedFilePath'
+  | 'secondSuggestedFilePath'
+  | 'splitAtSeconds'
+  | 'sourceTitleCardTitles'
 >;
 
 /**
@@ -32,6 +37,9 @@ export const upsertFileRename = async (
       set: {
         originalFilePath: input.originalFilePath,
         suggestedFilePath: input.suggestedFilePath,
+        secondSuggestedFilePath: input.secondSuggestedFilePath ?? null,
+        splitAtSeconds: input.splitAtSeconds ?? null,
+        sourceTitleCardTitles: input.sourceTitleCardTitles,
         status: 'pending',
         appliedAt: null,
       },
@@ -90,3 +98,20 @@ export const listFileRenames = async (
     .orderBy(desc(fileRenames.createdAt))
     .limit(LIST_FILE_RENAMES_LIMIT);
 };
+
+/**
+ * Every pending rename/split, unbounded and oldest-first. Unlike
+ * listFileRenames (capped at LIST_FILE_RENAMES_LIMIT, newest-first — built
+ * for the paged UI), the apply job needs to consider every pending row in
+ * one pass, and oldest-first gives a stable, predictable processing order
+ * across runs (collision-chain resolution can reorder execution within
+ * that, but the starting point is deterministic).
+ */
+export const listPendingFileRenames = async (
+  db: Database,
+): Promise<FileRename[]> =>
+  db
+    .select()
+    .from(fileRenames)
+    .where(eq(fileRenames.status, 'pending'))
+    .orderBy(asc(fileRenames.createdAt));

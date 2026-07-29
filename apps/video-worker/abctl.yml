@@ -7,3 +7,9 @@ secrets:
   generateEnv: true
   envFile: .env
   envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: SONARR_API_KEY
+        secretKey: API_KEY
+        envVarName: SONARR_API_KEY

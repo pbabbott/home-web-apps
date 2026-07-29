@@ -1,3 +1,19 @@
 @import 'tailwindcss';
 
 @config '../../tailwind.config.ts';
+
+@layer base {
+  /*
+   * Re-asserts the monobit font fui-components/globals.css sets on `html`.
+   * This file's own `@import 'tailwindcss'` re-emits Tailwind's default
+   * sans-serif preflight rule for `html` into the same `base` layer, and
+   * because it's declared after fui-components' import, it wins the
+   * cascade and silently reverts the whole app to system sans-serif.
+   * See apps/blog/src/app/globals.css, which re-asserts the same rule for
+   * the same reason.
+   */
+  html {
+    font-family: 'monobit', system-ui, sans-serif;
+    font-size: 16px;
+  }
+}
