@@ -1,11 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   Badge,
   type BadgeColor,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   OutlinedButton,
-  Panel,
   Table,
   TableBody,
   TableHead,
@@ -14,6 +19,7 @@ import {
   Td,
   Typography,
 } from '@abbottland/fui-components';
+import { createJob, type JobOperation } from './lib/actions';
 import type { VideoJob, VideoJobStatus } from './lib/video-api';
 
 const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
@@ -24,6 +30,23 @@ const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
 };
 
 const PAGE_SIZE = 10;
+
+const FIRST_SEASON = 1;
+const LAST_SEASON = 13;
+const SEASON_OPTIONS = Array.from(
+  { length: LAST_SEASON - FIRST_SEASON + 1 },
+  (_, i) => FIRST_SEASON + i,
+);
+
+const OPERATION_OPTIONS: JobOperation[] = [
+  'paw_patrol_title_cards',
+  'paw_patrol_file_suggestions',
+];
+
+const operationLabels: Record<JobOperation, string> = {
+  paw_patrol_title_cards: 'Title Cards',
+  paw_patrol_file_suggestions: 'File Suggestions',
+};
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -43,10 +66,35 @@ interface JobsClientProps {
 }
 
 export function JobsClient({ jobs }: JobsClientProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
+  const [operation, setOperation] = useState<JobOperation>(
+    OPERATION_OPTIONS[0],
+  );
+  const [season, setSeason] = useState(FIRST_SEASON);
+  const [operationMenuOpen, setOperationMenuOpen] = useState(false);
+  const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const totalPages = jobs ? Math.max(1, Math.ceil(jobs.length / PAGE_SIZE)) : 1;
   const pageJobs = jobs?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  async function startJob() {
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await createJob(operation, season);
+      router.refresh();
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : 'Failed to start job',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col gap-8 bg-neutral-800 p-8">
@@ -54,9 +102,57 @@ export function JobsClient({ jobs }: JobsClientProps) {
         Video Jobs
       </Typography>
 
-      <Panel color={jobs ? 'default' : 'error'} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2 self-start">
+        <div className="flex items-center gap-4">
+          <DropdownMenu
+            open={operationMenuOpen}
+            onOpenChange={setOperationMenuOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <OutlinedButton size="small">
+                Operation: {operationLabels[operation]}
+              </OutlinedButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent label="Choose Operation">
+              {OPERATION_OPTIONS.map((op) => (
+                <DropdownMenuItem key={op} onSelect={() => setOperation(op)}>
+                  {operationLabels[op]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <OutlinedButton size="small">Season: {season}</OutlinedButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent label="Choose Season">
+              {SEASON_OPTIONS.map((s) => (
+                <DropdownMenuItem key={s} onSelect={() => setSeason(s)}>
+                  Season {s}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            size="small"
+            disabled={submitting}
+            onClick={() => void startJob()}
+          >
+            {submitting ? 'Starting…' : 'Start Job'}
+          </Button>
+        </div>
+        {submitError && (
+          <Typography variant="body2" className="text-error-400">
+            {submitError}
+          </Typography>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-4">
         {jobs === null && (
-          <Typography variant="body1">
+          <Typography variant="body1" className="text-error-400">
             Failed to load jobs from video-api.
           </Typography>
         )}
@@ -117,7 +213,7 @@ export function JobsClient({ jobs }: JobsClientProps) {
             )}
           </>
         )}
-      </Panel>
+      </div>
     </main>
   );
 }
