@@ -20,6 +20,14 @@ test.describe('Table Visual Regression Tests', () => {
     );
   });
 
+  test('small', async ({ page }) => {
+    await gotoStory(page, 'components-table--small');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-table--small.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('multi-column', async ({ page }) => {
     await gotoStory(page, 'components-table--multi-column');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(

@@ -220,7 +220,7 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
         {pageJobs && pageJobs.length > 0 && (
           <>
             <ScrollableTable className="mb-0">
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <Th>Operation</Th>

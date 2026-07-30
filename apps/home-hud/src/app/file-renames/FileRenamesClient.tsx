@@ -214,7 +214,7 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
         {pageFileRenames && pageFileRenames.length > 0 && (
           <>
             <ScrollableTable className="mb-0">
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <Th>Original Path</Th>

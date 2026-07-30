@@ -160,7 +160,7 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
         {pageTitleCards && pageTitleCards.length > 0 && (
           <>
             <ScrollableTable className="mb-0">
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow>
                     <Th>Title</Th>

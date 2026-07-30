@@ -190,6 +190,7 @@ export {
   type ThProps,
   type TdProps,
   type TableColor,
+  type TableSize,
   type ScrollableTableProps,
 } from './components/Table/Table';
 
