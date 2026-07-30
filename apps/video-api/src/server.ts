@@ -10,6 +10,7 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
+import { getAiStatusRoute } from './controllers/ai';
 import { deleteFileRenames, listFileRenames } from './controllers/file-renames';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
@@ -42,6 +43,7 @@ export const createServer = (): Express => {
 
   app
     .get('/readyz', getReady)
+    .get('/ai/status', getAiStatusRoute)
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
     .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)

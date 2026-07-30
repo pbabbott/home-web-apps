@@ -30,6 +30,10 @@ export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4002;
 
+  /** Base URL of the OpenAI-compatible AI API server (LM Studio-style) that video-worker also targets. No path — endpoints are appended by the client. Used only to report online/model status to home-hud, not to make chat-completion requests. */
+  @EnvironmentVariable()
+  aiApiUrl: string = 'http://192.168.5.142:1234';
+
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
 }

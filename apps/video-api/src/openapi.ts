@@ -89,6 +89,33 @@ export const openApiSpec = createDocument({
         },
       },
     },
+    '/ai/status': {
+      get: {
+        summary:
+          'Check whether the AI API server is online, and which models it has loaded',
+        description:
+          'Proxies a request to the configured OpenAI-compatible AI API server (aiApiUrl). Always responds 200 — an unreachable or errored AI server is reported as {"online": false, "models": []}, not a video-api failure.',
+        responses: {
+          '200': {
+            description: 'AI server status',
+            content: {
+              'application/json': {
+                schema: z.discriminatedUnion('online', [
+                  z.object({
+                    online: z.literal(true),
+                    models: z.array(z.string()),
+                  }),
+                  z.object({
+                    online: z.literal(false),
+                    models: z.tuple([]),
+                  }),
+                ]),
+              },
+            },
+          },
+        },
+      },
+    },
     '/jobs': {
       get: {
         summary: 'List jobs, optionally filtered by status',
