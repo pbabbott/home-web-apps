@@ -15,7 +15,12 @@ const jsonResponse = (body: unknown, ok = true, status = 200) => ({
 });
 
 describe('chatCompletion', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -56,16 +61,40 @@ describe('chatCompletion', () => {
   it('throws when the API responds with a non-ok status', async () => {
     mockFetch.mockResolvedValue(jsonResponse('server error', false, 500));
 
-    await expect(chatCompletion({ model: 'm', messages: [] })).rejects.toThrow(
-      'AI API request failed: 500',
-    );
+    const assertion = expect(
+      chatCompletion({ model: 'm', messages: [] }),
+    ).rejects.toThrow('AI API request failed: 500');
+    await jest.runAllTimersAsync();
+    await assertion;
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 
   it('throws when the response has no message content', async () => {
     mockFetch.mockResolvedValue(jsonResponse({ choices: [] }));
 
-    await expect(chatCompletion({ model: 'm', messages: [] })).rejects.toThrow(
-      'no message content',
-    );
+    const assertion = expect(
+      chatCompletion({ model: 'm', messages: [] }),
+    ).rejects.toThrow('no message content');
+    await jest.runAllTimersAsync();
+    await assertion;
+
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('retries a transient fetch failure and succeeds once the API responds', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(
+        jsonResponse({ choices: [{ message: { content: 'recovered' } }] }),
+      );
+
+    const assertion = expect(
+      chatCompletion({ model: 'm', messages: [] }),
+    ).resolves.toBe('recovered');
+    await jest.runAllTimersAsync();
+    await assertion;
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 });
