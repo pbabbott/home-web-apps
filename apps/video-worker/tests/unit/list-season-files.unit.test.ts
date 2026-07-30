@@ -60,16 +60,19 @@ describe('listSeasonFiles', () => {
       {
         filename: 'Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
         absPath:
-          '/media/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+          '/media/media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
       },
       {
         filename: 'Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
         absPath:
-          '/media/Paw Patrol/Season 3/Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
+          '/media/media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E02 - Pups Save a Goldrush.mp4',
       },
     ]);
-    expect(fs.readdirSync).toHaveBeenCalledWith('/media/Paw Patrol/Season 3', {
-      withFileTypes: true,
-    });
+    expect(fs.readdirSync).toHaveBeenCalledWith(
+      '/media/media/tv_shows/Paw Patrol/Season 3',
+      {
+        withFileTypes: true,
+      },
+    );
   });
 });

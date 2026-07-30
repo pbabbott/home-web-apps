@@ -125,7 +125,7 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
       );
       expect(result.episodes[0].sourceTitleCardTitles).toEqual([
         'Pups Save a Goldrush',
@@ -159,7 +159,7 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [WEBDL-1080p].mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [WEBDL-1080p].mp4',
       );
     });
   });
@@ -231,10 +231,10 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
       );
       expect(result.episodes[0].secondSuggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
       );
       expect(result.episodes[0].splitAtSeconds).toBe(658.6);
       expect(result.episodes[0].sourceTitleCardTitles).toEqual([
@@ -333,10 +333,10 @@ describe('suggestFilenames', () => {
       const result = await suggestFilenames(context);
 
       expect(result.episodes[0].suggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [HDTV-720p].mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush [HDTV-720p].mp4',
       );
       expect(result.episodes[0].secondSuggestedFilePath).toBe(
-        'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien [HDTV-720p].mp4',
+        'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien [HDTV-720p].mp4',
       );
     });
   });

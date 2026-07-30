@@ -7,7 +7,7 @@ import type { Step } from '../../pipeline';
 import type { PawPatrolTitleCardsContext } from '../context';
 import { seasonDirectoryRelPath } from '../lib/paths';
 
-/** Lists the episode files in `<MEDIA_ROOT>/Paw Patrol/Season <N>`. */
+/** Lists the episode files in `<MEDIA_ROOT>/media/tv_shows/Paw Patrol/Season <N>`. */
 export const listSeasonFiles: Step<PawPatrolTitleCardsContext> = async (
   ctx,
 ) => {
