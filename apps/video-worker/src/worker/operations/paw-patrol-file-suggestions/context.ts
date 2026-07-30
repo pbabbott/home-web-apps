@@ -12,6 +12,8 @@ import type { Episode } from './episode';
 export type PawPatrolFileSuggestionsContext = {
   job: VideoJob;
   seasonNumber: number;
+  /** AI model for episode-matching calls — job.parameters.model, falling back to config.aiModel. */
+  model: string;
   episodes: Episode[];
   sonarrEpisodes: SonarrEpisode[];
   outputPaths: string[];

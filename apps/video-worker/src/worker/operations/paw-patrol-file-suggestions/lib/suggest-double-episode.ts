@@ -1,6 +1,5 @@
 import { chatCompletion } from '../../../../api/ai/ai-client';
 import type { SonarrEpisode } from '../../../../api/sonarr/sonarr-client';
-import { config } from '../../../../config';
 
 const SYSTEM_PROMPT = `You are a TV episode identification specialist for a Paw Patrol media library. Your only job is matching ONE video file that bundles TWO back-to-back episodes — a common release pattern for this show — to its two official episodes from Sonarr.
 
@@ -57,9 +56,10 @@ export const suggestDoubleEpisode = async (
   firstTitleCardTitle: string,
   secondTitleCardTitle: string,
   sonarrEpisodes: SonarrEpisode[],
+  model: string,
 ): Promise<DoubleEpisodeMatchResult> => {
   const content = await chatCompletion({
-    model: config.aiModel,
+    model,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       {

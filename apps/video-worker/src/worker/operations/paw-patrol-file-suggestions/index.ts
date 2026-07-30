@@ -1,4 +1,5 @@
 import type { VideoJob } from '@abbottland/video-db';
+import { config } from '../../../config';
 import { JobProcessingError } from '../../job-processing-error';
 import type { OperationResult } from '../operation-result';
 import { runSteps } from '../pipeline';
@@ -16,6 +17,7 @@ export const runPawPatrolFileSuggestionsOperation = async (
     {
       job,
       seasonNumber: job.parameters.seasonNumber,
+      model: job.parameters.model ?? config.aiModel,
       episodes: [],
       sonarrEpisodes: [],
       outputPaths: [],

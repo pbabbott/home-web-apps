@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Input,
   OutlinedButton,
   Table,
   TableBody,
@@ -55,6 +56,12 @@ const operationLabels: Record<JobOperation, string> = {
 const operationNeedsSeason = (operation: JobOperation): boolean =>
   operation !== 'paw_patrol_apply_file_renames';
 
+// Only file_suggestions calls out to the AI per-episode-matching step in a
+// way where swapping models job-to-job is useful — title_cards' detection
+// step and apply_file_renames don't take a model input at all.
+const operationSupportsModelOverride = (operation: JobOperation): boolean =>
+  operation === 'paw_patrol_file_suggestions';
+
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
 // SSR/hydration boundary whenever the server and browser timezones differ.
@@ -79,6 +86,7 @@ export function JobsClient({ jobs }: JobsClientProps) {
     OPERATION_OPTIONS[0],
   );
   const [season, setSeason] = useState(FIRST_SEASON);
+  const [model, setModel] = useState('');
   const [operationMenuOpen, setOperationMenuOpen] = useState(false);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -95,6 +103,7 @@ export function JobsClient({ jobs }: JobsClientProps) {
       await createJob(
         operation,
         operationNeedsSeason(operation) ? season : undefined,
+        operationSupportsModelOverride(operation) ? model.trim() : undefined,
       );
       router.refresh();
     } catch (err) {
@@ -148,6 +157,15 @@ export function JobsClient({ jobs }: JobsClientProps) {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+
+          {operationSupportsModelOverride(operation) && (
+            <Input
+              placeholder="Model (default)"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="w-56"
+            />
           )}
 
           <Button

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, like, or } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   fileRenames,
@@ -115,3 +115,33 @@ export const listPendingFileRenames = async (
     .from(fileRenames)
     .where(eq(fileRenames.status, 'pending'))
     .orderBy(asc(fileRenames.createdAt));
+
+/** Matches a path segment `/Season <N>/` exactly — `%Season 1%` alone would also match `Season 10`, `Season 11`, etc. */
+const seasonPathPattern = (seasonNumber: number): string =>
+  `%/Season ${seasonNumber}/%`;
+
+/**
+ * Deletes every file_renames row for a season, matched by path (there's no
+ * season column — season only ever existed as a path segment, same as
+ * title_cards). Checks both originalFilePath and suggestedFilePath: a
+ * suggestion always has the former, but only the latter reflects the
+ * season once a suggested destination has actually moved the file's
+ * apparent season (e.g. a mis-suggested cross-season rename). Returns the
+ * deleted rows so the caller can report how many were removed.
+ */
+export const deleteFileRenamesBySeason = async (
+  db: Database,
+  seasonNumber: number,
+): Promise<FileRename[]> => {
+  const pattern = seasonPathPattern(seasonNumber);
+
+  return db
+    .delete(fileRenames)
+    .where(
+      or(
+        like(fileRenames.originalFilePath, pattern),
+        like(fileRenames.suggestedFilePath, pattern),
+      ),
+    )
+    .returning();
+};

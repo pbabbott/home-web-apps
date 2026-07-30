@@ -8,6 +8,7 @@ import { createServer } from '../../src/server';
 jest.mock('@abbottland/video-db', () => ({
   ...jest.requireActual('@abbottland/video-db'),
   listFileRenames: jest.fn(),
+  deleteFileRenamesBySeason: jest.fn(),
 }));
 
 describe('GET /file-renames', () => {
@@ -70,6 +71,72 @@ describe('GET /file-renames', () => {
     expect(res.body).toEqual({ message: 'internal server error' });
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'GET /file-renames failed:',
+      dbError,
+    );
+  });
+});
+
+describe('DELETE /file-renames', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    jest.resetAllMocks();
+  });
+
+  it('rejects a missing season without touching the database', async () => {
+    const res = await supertest(createServer())
+      .delete('/file-renames')
+      .expect(400);
+
+    expect(res.body.message).toBe('Invalid query parameters');
+    expect(videoDb.deleteFileRenamesBySeason).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-numeric season without touching the database', async () => {
+    const res = await supertest(createServer())
+      .delete('/file-renames')
+      .query({ season: 'bogus' })
+      .expect(400);
+
+    expect(res.body.message).toBe('Invalid query parameters');
+    expect(videoDb.deleteFileRenamesBySeason).not.toHaveBeenCalled();
+  });
+
+  it('deletes the season and returns the deleted count', async () => {
+    (videoDb.deleteFileRenamesBySeason as jest.Mock).mockResolvedValue([
+      { id: 'fr-1' },
+      { id: 'fr-2' },
+    ]);
+
+    const res = await supertest(createServer())
+      .delete('/file-renames')
+      .query({ season: 3 })
+      .expect(200);
+
+    expect(videoDb.deleteFileRenamesBySeason).toHaveBeenCalledWith(
+      undefined,
+      3,
+    );
+    expect(res.body).toEqual({ deletedCount: 2 });
+  });
+
+  it('logs the error and returns a generic message when deletion fails', async () => {
+    const dbError = new Error('connection refused');
+    (videoDb.deleteFileRenamesBySeason as jest.Mock).mockRejectedValue(dbError);
+
+    const res = await supertest(createServer())
+      .delete('/file-renames')
+      .query({ season: 3 })
+      .expect(500);
+
+    expect(res.body).toEqual({ message: 'internal server error' });
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'DELETE /file-renames failed:',
       dbError,
     );
   });

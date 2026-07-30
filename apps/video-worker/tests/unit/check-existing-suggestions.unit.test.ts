@@ -14,6 +14,7 @@ const buildContext = (
 ): PawPatrolFileSuggestionsContext => ({
   job: {} as VideoJob,
   seasonNumber: 3,
+  model: 'test-model',
   episodes: [],
   sonarrEpisodes: [],
   outputPaths: [],

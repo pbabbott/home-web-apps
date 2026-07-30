@@ -29,6 +29,7 @@ const buildContext = (
 ): PawPatrolFileSuggestionsContext => ({
   job: {} as VideoJob,
   seasonNumber: 3,
+  model: 'test-model',
   episodes: [],
   sonarrEpisodes: [
     { seasonNumber: 3, episodeNumber: 18, title: 'Pups Save a Goldrush' },
@@ -134,6 +135,7 @@ describe('suggestFilenames', () => {
         'random-name.mp4',
         'Pups Save a Goldrush',
         context.sonarrEpisodes,
+        context.model,
       );
       expect(suggestDoubleEpisode).not.toHaveBeenCalled();
     });
@@ -246,6 +248,7 @@ describe('suggestFilenames', () => {
         'Pups Save a Goldrush',
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
+        context.model,
       );
       expect(refineSplitPoint).toHaveBeenCalledWith(
         3,
@@ -297,6 +300,7 @@ describe('suggestFilenames', () => {
         'Pups Save a Goldrush',
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
+        context.model,
       );
     });
 

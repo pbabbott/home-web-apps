@@ -29,6 +29,11 @@ const pawPatrolFileSuggestionsJobSchema = z.object({
         'Paw Patrol season number to generate file rename suggestions for',
       example: 3,
     }),
+    model: z.string().min(1).optional().meta({
+      description:
+        'AI model to request for this job’s episode-matching calls, overriding the worker’s configured default',
+      example: 'qwen/qwen3-vl-8b-instruct',
+    }),
   }),
 });
 

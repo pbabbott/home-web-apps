@@ -1,5 +1,7 @@
 export type PawPatrolFileSuggestionsParameters = {
   seasonNumber: number;
+  /** Overrides config.aiModel for this job's episode-matching AI calls, when set. */
+  model?: string;
 };
 
 export const isPawPatrolFileSuggestionsParameters = (
@@ -8,4 +10,6 @@ export const isPawPatrolFileSuggestionsParameters = (
   typeof value === 'object' &&
   value !== null &&
   typeof (value as PawPatrolFileSuggestionsParameters).seasonNumber ===
-    'number';
+    'number' &&
+  (typeof (value as PawPatrolFileSuggestionsParameters).model === 'undefined' ||
+    typeof (value as PawPatrolFileSuggestionsParameters).model === 'string');

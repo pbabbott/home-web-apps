@@ -100,4 +100,23 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
       }),
     );
   });
+
+  it('uses parameters.model instead of config.aiModel when given', async () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => true });
+    (fs.readdirSync as jest.Mock).mockReturnValue([
+      direntFor('random-name.mp4', true),
+    ]);
+
+    const job = buildJob({
+      parameters: { seasonNumber: 3, model: 'custom-model' },
+    });
+
+    await runPawPatrolFileSuggestionsOperation(job);
+
+    const { chatCompletion } = jest.requireMock('../../src/api/ai/ai-client');
+    expect(chatCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'custom-model' }),
+    );
+  });
 });
