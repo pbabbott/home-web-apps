@@ -5,3 +5,7 @@ export const listTitleCardsQuerySchema = z.object({
 });
 
 export type ListTitleCardsQuery = z.infer<typeof listTitleCardsQuerySchema>;
+
+export const titleCardIdParamsSchema = z.object({
+  id: z.uuid('id must be a valid UUID'),
+});

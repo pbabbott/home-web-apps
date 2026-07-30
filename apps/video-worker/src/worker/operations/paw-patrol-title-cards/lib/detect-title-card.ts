@@ -18,6 +18,7 @@ export type TitleCardDetectionResult =
 
 export type TitleCardDetection = TitleCardDetectionResult & {
   screenshotPath: string;
+  screenshotBase64: string;
   timestampSeconds: number;
 };
 

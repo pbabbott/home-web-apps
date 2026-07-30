@@ -35,6 +35,7 @@ export {
   upsertTitleCard,
   getTitleCardById,
   listTitleCards,
+  deleteTitleCardById,
 } from './queries/title-cards';
 export type {
   UpsertTitleCardInput,

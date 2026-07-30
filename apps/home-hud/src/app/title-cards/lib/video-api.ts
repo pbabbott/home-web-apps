@@ -8,6 +8,7 @@ export interface TitleCard {
   runTimeSeconds: number | null;
   title: string | null;
   screenshotPath: string | null;
+  screenshotBase64: string | null;
   createdAt: string;
 }
 

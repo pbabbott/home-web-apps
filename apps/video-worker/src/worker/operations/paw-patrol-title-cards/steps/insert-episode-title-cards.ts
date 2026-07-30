@@ -82,6 +82,7 @@ export const insertEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
           runTimeSeconds: episode.runTimeSeconds,
           title: detection.title,
           screenshotPath: detection.screenshotPath,
+          screenshotBase64: detection.screenshotBase64,
         }),
       );
     }

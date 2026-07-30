@@ -28,6 +28,7 @@ const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   runTimeSeconds: 600,
   title: 'Pups Save a Blimp',
   screenshotPath: 'screenshots/Paw Patrol/Season 3/hash-1/45_480x270.jpg',
+  screenshotBase64: 'ZmFrZQ==',
   createdAt: new Date(),
   ...overrides,
 });
@@ -86,6 +87,7 @@ describe('insertEpisodeTitleCards', () => {
           titleCardDetections: [
             {
               screenshotPath: 'screenshots/x/31_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 31,
               found: false,
             },
@@ -117,17 +119,20 @@ describe('insertEpisodeTitleCards', () => {
           titleCardDetections: [
             {
               screenshotPath: 'screenshots/x/31_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 31,
               found: false,
             },
             {
               screenshotPath: 'screenshots/x/51_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 51,
               found: true,
               title: 'Pups Save a Blimp',
             },
             {
               screenshotPath: 'screenshots/x/53_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 53,
               found: true,
               title: 'Pups Save a Blimp',
@@ -150,6 +155,7 @@ describe('insertEpisodeTitleCards', () => {
         runTimeSeconds: 600,
         title: 'Pups Save a Blimp',
         screenshotPath: 'screenshots/x/51_480x270.jpg',
+        screenshotBase64: 'ZmFrZQ==',
       },
     );
     expect(result.episodes[0].titleCards).toHaveLength(1);
@@ -171,12 +177,14 @@ describe('insertEpisodeTitleCards', () => {
           titleCardDetections: [
             {
               screenshotPath: 'screenshots/x/45_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 45,
               found: true,
               title: 'Pups Save a Blimp',
             },
             {
               screenshotPath: 'screenshots/x/705_480x270.jpg',
+              screenshotBase64: 'ZmFrZQ==',
               timestampSeconds: 705,
               found: true,
               title: 'Pups Save a Goldrush',

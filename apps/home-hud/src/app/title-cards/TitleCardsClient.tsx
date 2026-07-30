@@ -1,11 +1,18 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalTitle,
+  ModalTrigger,
   OutlinedButton,
   ScrollableTable,
   Table,
@@ -16,6 +23,7 @@ import {
   Td,
   Typography,
 } from '@abbottland/fui-components';
+import { deleteTitleCard } from './lib/actions';
 import type { TitleCard } from './lib/video-api';
 
 const PAGE_SIZE = 10;
@@ -51,9 +59,13 @@ interface TitleCardsClientProps {
 }
 
 export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const filteredTitleCards = titleCards?.filter(
     (titleCard) =>
@@ -76,6 +88,23 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
   function selectSeason(season: number | null) {
     setSelectedSeason(season);
     setPage(1);
+  }
+
+  async function handleDelete(id: string) {
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteTitleCard(id);
+      setConfirmDeleteId(null);
+      router.refresh();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete title card',
+      );
+    } finally {
+      setDeleting(false);
+    }
   }
 
   return (
@@ -108,6 +137,11 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
       </div>
 
       <div className="flex flex-col gap-4">
+        {deleteError && (
+          <Typography variant="body2" className="text-error-400">
+            {deleteError}
+          </Typography>
+        )}
         {titleCards === null && (
           <Typography variant="body1" className="text-error-400">
             Failed to load title cards from video-api.
@@ -135,6 +169,7 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
                     <Th>Runtime (s)</Th>
                     <Th>Screenshot</Th>
                     <Th>Created</Th>
+                    <Th>Actions</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -144,8 +179,75 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
                       <Td>{titleCard.filePath}</Td>
                       <Td>{titleCard.timestampSeconds}</Td>
                       <Td>{titleCard.runTimeSeconds ?? '—'}</Td>
-                      <Td>{titleCard.screenshotPath ?? '—'}</Td>
+                      <Td>
+                        {titleCard.screenshotBase64 ? (
+                          <Modal>
+                            <ModalTrigger asChild>
+                              <button type="button" className="cursor-pointer">
+                                <img
+                                  src={`data:image/jpeg;base64,${titleCard.screenshotBase64}`}
+                                  alt={`Screenshot at ${titleCard.timestampSeconds}s for ${titleCard.title ?? titleCard.filePath}`}
+                                  className="h-16 w-auto border border-neutral-500"
+                                />
+                              </button>
+                            </ModalTrigger>
+                            <ModalContent color="secondary">
+                              <ModalTitle>
+                                {titleCard.title ?? 'No title detected'}
+                              </ModalTitle>
+                              <img
+                                src={`data:image/jpeg;base64,${titleCard.screenshotBase64}`}
+                                alt={`Screenshot at ${titleCard.timestampSeconds}s for ${titleCard.title ?? titleCard.filePath}`}
+                                className="mt-4 w-full"
+                              />
+                            </ModalContent>
+                          </Modal>
+                        ) : (
+                          '—'
+                        )}
+                      </Td>
                       <Td>{formatDate(titleCard.createdAt)}</Td>
+                      <Td>
+                        <Modal
+                          open={confirmDeleteId === titleCard.id}
+                          onOpenChange={(open) =>
+                            setConfirmDeleteId(open ? titleCard.id : null)
+                          }
+                        >
+                          <ModalTrigger asChild>
+                            <Button size="small" color="error">
+                              Delete
+                            </Button>
+                          </ModalTrigger>
+                          <ModalContent color="secondary">
+                            <ModalTitle>Delete this title card?</ModalTitle>
+                            <ModalDescription>
+                              Permanently deletes the record for{' '}
+                              {titleCard.title ?? 'this title card'} at{' '}
+                              {titleCard.timestampSeconds}s. The episode becomes
+                              eligible for title-card detection again on the
+                              next job run. This cannot be undone.
+                            </ModalDescription>
+                            <div className="mt-4 flex justify-end gap-3">
+                              <OutlinedButton
+                                size="small"
+                                disabled={deleting}
+                                onClick={() => setConfirmDeleteId(null)}
+                              >
+                                Cancel
+                              </OutlinedButton>
+                              <Button
+                                size="small"
+                                color="error"
+                                disabled={deleting}
+                                onClick={() => void handleDelete(titleCard.id)}
+                              >
+                                {deleting ? 'Deleting…' : 'Delete'}
+                              </Button>
+                            </div>
+                          </ModalContent>
+                        </Modal>
+                      </Td>
                     </TableRow>
                   ))}
                 </TableBody>

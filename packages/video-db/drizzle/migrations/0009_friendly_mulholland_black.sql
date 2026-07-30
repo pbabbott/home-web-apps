@@ -1,0 +1,1 @@
+ALTER TABLE "title_cards" ADD COLUMN "screenshot_base64" text;
