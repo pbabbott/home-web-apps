@@ -22,6 +22,7 @@ import {
   TableRow,
   Th,
   Td,
+  ScrollableTable,
 } from '@abbottland/fui-components';
 
 Welcome to your first MDX blog post! This example demonstrates how to structure your blog content using MDX with frontmatter metadata.
@@ -32,111 +33,113 @@ MDX is a format that lets you seamlessly write JSX in your Markdown documents. Y
 
 ### Frontmatter field usage (codebase reference)
 
-<Table color="primary">
-  <TableHead>
-    <TableRow>
-      <Th>Field</Th>
-      <Th>Description</Th>
-      <Th>Usage</Th>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    <TableRow>
-      <Td>
-        <strong>title</strong>
-      </Td>
-      <Td>The post title displayed in headings and SEO</Td>
-      <Td>
-        Used in Next.js `generateMetadata` (page + Open Graph),
-        `BlogPostHeader`, `BlogPostCard`, `HeroBlogPostCard`, and in the blog
-        listing search filter ( `BlogPageClient`).
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>excerpt</strong>
-      </Td>
-      <Td>A brief description for post cards and previews</Td>
-      <Td>
-        Used in post cards (`BlogPostCard`, `HeroBlogPostCard`), in the blog
-        listing search filter, and as fallback for meta description when
-        `seoDescription` is missing (`[slug]/page.tsx`).
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>date</strong>
-      </Td>
-      <Td>Publication date in YYYY-MM-DD format</Td>
-      <Td>
-        Used for sorting posts (newest first) in `getAllBlogPosts`, displayed in
-        the post header and on cards, and in Open Graph `publishedTime`.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>categories</strong>
-      </Td>
-      <Td>An array of predefined categories</Td>
-      <Td>
-        Used to build the category filter list ( `getAllBlogCategories`), to
-        filter posts by category on the blog page, and displayed as badges on
-        cards and on the post header.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>status</strong>
-      </Td>
-      <Td>—</Td>
-      <Td>
-        Used in `getAllBlogPosts`: only posts with `status: 'published'` (or no
-        status) are included; `draft` posts are excluded from the listing.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>seoDescription</strong>
-      </Td>
-      <Td>SEO meta description (optional)</Td>
-      <Td>
-        Used in `generateMetadata` for meta description and Open Graph
-        description; falls back to `excerpt` when not set.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>seoKeywords</strong>
-      </Td>
-      <Td>SEO keywords array (optional)</Td>
-      <Td>
-        Passed to Next.js metadata `keywords` in `generateMetadata` for SEO.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>bannerImage</strong>
-      </Td>
-      <Td>—</Td>
-      <Td>
-        Filename (relative to the post folder) for the banner image; used by
-        `BlogPostBannerImage` (served via `/api/blog-images/[slug]/[filename]`)
-        and passed into `BlogPostCard` and `HeroBlogPostCard`; if missing, a
-        gradient placeholder is shown.
-      </Td>
-    </TableRow>
-    <TableRow>
-      <Td>
-        <strong>readTime</strong>
-      </Td>
-      <Td>Computed automatically from content (do not set in frontmatter)</Td>
-      <Td>
-        Not a frontmatter field; computed from content in `getBlogPostBySlug`
-        with the `reading-time` library and always set on the loaded post.
-      </Td>
-    </TableRow>
-  </TableBody>
-</Table>
+<ScrollableTable>
+  <Table color="primary">
+    <TableHead>
+      <TableRow>
+        <Th>Field</Th>
+        <Th>Description</Th>
+        <Th>Usage</Th>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      <TableRow>
+        <Td>
+          <strong>title</strong>
+        </Td>
+        <Td>The post title displayed in headings and SEO</Td>
+        <Td>
+          Used in Next.js `generateMetadata` (page + Open Graph),
+          `BlogPostHeader`, `BlogPostCard`, `HeroBlogPostCard`, and in the blog
+          listing search filter ( `BlogPageClient`).
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>excerpt</strong>
+        </Td>
+        <Td>A brief description for post cards and previews</Td>
+        <Td>
+          Used in post cards (`BlogPostCard`, `HeroBlogPostCard`), in the blog
+          listing search filter, and as fallback for meta description when
+          `seoDescription` is missing (`[slug]/page.tsx`).
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>date</strong>
+        </Td>
+        <Td>Publication date in YYYY-MM-DD format</Td>
+        <Td>
+          Used for sorting posts (newest first) in `getAllBlogPosts`, displayed
+          in the post header and on cards, and in Open Graph `publishedTime`.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>categories</strong>
+        </Td>
+        <Td>An array of predefined categories</Td>
+        <Td>
+          Used to build the category filter list ( `getAllBlogCategories`), to
+          filter posts by category on the blog page, and displayed as badges on
+          cards and on the post header.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>status</strong>
+        </Td>
+        <Td>—</Td>
+        <Td>
+          Used in `getAllBlogPosts`: only posts with `status: 'published'` (or
+          no status) are included; `draft` posts are excluded from the listing.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>seoDescription</strong>
+        </Td>
+        <Td>SEO meta description (optional)</Td>
+        <Td>
+          Used in `generateMetadata` for meta description and Open Graph
+          description; falls back to `excerpt` when not set.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>seoKeywords</strong>
+        </Td>
+        <Td>SEO keywords array (optional)</Td>
+        <Td>
+          Passed to Next.js metadata `keywords` in `generateMetadata` for SEO.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>bannerImage</strong>
+        </Td>
+        <Td>—</Td>
+        <Td>
+          Filename (relative to the post folder) for the banner image; used by
+          `BlogPostBannerImage` (served via
+          `/api/blog-images/[slug]/[filename]`) and passed into `BlogPostCard`
+          and `HeroBlogPostCard`; if missing, a gradient placeholder is shown.
+        </Td>
+      </TableRow>
+      <TableRow>
+        <Td>
+          <strong>readTime</strong>
+        </Td>
+        <Td>Computed automatically from content (do not set in frontmatter)</Td>
+        <Td>
+          Not a frontmatter field; computed from content in `getBlogPostBySlug`
+          with the `reading-time` library and always set on the loaded post.
+        </Td>
+      </TableRow>
+    </TableBody>
+  </Table>
+</ScrollableTable>
 
 ## Using React Components
 

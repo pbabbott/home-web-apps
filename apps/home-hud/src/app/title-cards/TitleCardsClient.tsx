@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   OutlinedButton,
+  ScrollableTable,
   Table,
   TableBody,
   TableHead,
@@ -124,30 +125,32 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
           )}
         {pageTitleCards && pageTitleCards.length > 0 && (
           <>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <Th>Title</Th>
-                  <Th>File Path</Th>
-                  <Th>Timestamp (s)</Th>
-                  <Th>Runtime (s)</Th>
-                  <Th>Screenshot</Th>
-                  <Th>Created</Th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pageTitleCards.map((titleCard) => (
-                  <TableRow key={titleCard.id}>
-                    <Td>{titleCard.title ?? '—'}</Td>
-                    <Td>{titleCard.filePath}</Td>
-                    <Td>{titleCard.timestampSeconds}</Td>
-                    <Td>{titleCard.runTimeSeconds ?? '—'}</Td>
-                    <Td>{titleCard.screenshotPath ?? '—'}</Td>
-                    <Td>{formatDate(titleCard.createdAt)}</Td>
+            <ScrollableTable className="mb-0">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <Th>Title</Th>
+                    <Th>File Path</Th>
+                    <Th>Timestamp (s)</Th>
+                    <Th>Runtime (s)</Th>
+                    <Th>Screenshot</Th>
+                    <Th>Created</Th>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {pageTitleCards.map((titleCard) => (
+                    <TableRow key={titleCard.id}>
+                      <Td>{titleCard.title ?? '—'}</Td>
+                      <Td>{titleCard.filePath}</Td>
+                      <Td>{titleCard.timestampSeconds}</Td>
+                      <Td>{titleCard.runTimeSeconds ?? '—'}</Td>
+                      <Td>{titleCard.screenshotPath ?? '—'}</Td>
+                      <Td>{formatDate(titleCard.createdAt)}</Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTable>
 
             {totalPages > 1 && (
               <div className="flex items-center justify-end gap-4">

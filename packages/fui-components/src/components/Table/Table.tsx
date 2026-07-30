@@ -10,6 +10,22 @@ const borderColorClasses: Record<TableColor, string> = {
   neutral: 'border-neutral-500',
 };
 
+export type ScrollableTableProps = React.HTMLAttributes<HTMLDivElement>;
+
+// A table with `w-full` still expands past its container when content
+// (long cell text, many columns) can't shrink to fit — this wrapper
+// contains that overflow in a scrollable box instead of letting it blow
+// out the page.
+export const ScrollableTable = ({
+  className,
+  ...props
+}: ScrollableTableProps) => (
+  <div
+    className={extendedTwMerge('overflow-x-auto w-full mb-8', className)}
+    {...props}
+  />
+);
+
 export type TableProps = React.TableHTMLAttributes<HTMLTableElement> & {
   color?: TableColor;
 };

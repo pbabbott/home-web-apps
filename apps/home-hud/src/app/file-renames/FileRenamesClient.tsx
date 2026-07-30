@@ -16,6 +16,7 @@ import {
   ModalTitle,
   ModalTrigger,
   OutlinedButton,
+  ScrollableTable,
   Table,
   TableBody,
   TableHead,
@@ -212,57 +213,59 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
           )}
         {pageFileRenames && pageFileRenames.length > 0 && (
           <>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <Th>Original Path</Th>
-                  <Th>Suggested Path</Th>
-                  <Th>Split At</Th>
-                  <Th>Source Titles</Th>
-                  <Th>Status</Th>
-                  <Th>Created</Th>
-                  <Th>Applied</Th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pageFileRenames.map((fileRename) => (
-                  <TableRow key={fileRename.id}>
-                    <Td>{fileRename.originalFilePath}</Td>
-                    <Td>
-                      {fileRename.secondSuggestedFilePath ? (
-                        <div className="flex flex-col gap-1">
-                          <span>{fileRename.suggestedFilePath}</span>
-                          <span>{fileRename.secondSuggestedFilePath}</span>
-                        </div>
-                      ) : (
-                        fileRename.suggestedFilePath
-                      )}
-                    </Td>
-                    <Td>
-                      {fileRename.splitAtSeconds !== null
-                        ? formatSplitAt(fileRename.splitAtSeconds)
-                        : '—'}
-                    </Td>
-                    <Td>
-                      {fileRename.sourceTitleCardTitles?.length
-                        ? fileRename.sourceTitleCardTitles.join(', ')
-                        : '—'}
-                    </Td>
-                    <Td>
-                      <Badge color={fileRenameStatusColor[fileRename.status]}>
-                        {fileRename.status}
-                      </Badge>
-                    </Td>
-                    <Td>{formatDate(fileRename.createdAt)}</Td>
-                    <Td>
-                      {fileRename.appliedAt
-                        ? formatDate(fileRename.appliedAt)
-                        : '—'}
-                    </Td>
+            <ScrollableTable className="mb-0">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <Th>Original Path</Th>
+                    <Th>Suggested Path</Th>
+                    <Th>Split At</Th>
+                    <Th>Source Titles</Th>
+                    <Th>Status</Th>
+                    <Th>Created</Th>
+                    <Th>Applied</Th>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {pageFileRenames.map((fileRename) => (
+                    <TableRow key={fileRename.id}>
+                      <Td>{fileRename.originalFilePath}</Td>
+                      <Td>
+                        {fileRename.secondSuggestedFilePath ? (
+                          <div className="flex flex-col gap-1">
+                            <span>{fileRename.suggestedFilePath}</span>
+                            <span>{fileRename.secondSuggestedFilePath}</span>
+                          </div>
+                        ) : (
+                          fileRename.suggestedFilePath
+                        )}
+                      </Td>
+                      <Td>
+                        {fileRename.splitAtSeconds !== null
+                          ? formatSplitAt(fileRename.splitAtSeconds)
+                          : '—'}
+                      </Td>
+                      <Td>
+                        {fileRename.sourceTitleCardTitles?.length
+                          ? fileRename.sourceTitleCardTitles.join(', ')
+                          : '—'}
+                      </Td>
+                      <Td>
+                        <Badge color={fileRenameStatusColor[fileRename.status]}>
+                          {fileRename.status}
+                        </Badge>
+                      </Td>
+                      <Td>{formatDate(fileRename.createdAt)}</Td>
+                      <Td>
+                        {fileRename.appliedAt
+                          ? formatDate(fileRename.appliedAt)
+                          : '—'}
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTable>
 
             {totalPages > 1 && (
               <div className="flex items-center justify-end gap-4">

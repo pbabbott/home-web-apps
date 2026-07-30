@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   Input,
   OutlinedButton,
+  ScrollableTable,
   Table,
   TableBody,
   TableHead,
@@ -194,34 +195,36 @@ export function JobsClient({ jobs }: JobsClientProps) {
         )}
         {pageJobs && pageJobs.length > 0 && (
           <>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <Th>Operation</Th>
-                  <Th>Parameters</Th>
-                  <Th>Status</Th>
-                  <Th>Attempts</Th>
-                  <Th>Result</Th>
-                  <Th>Created</Th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pageJobs.map((job) => (
-                  <TableRow key={job.id}>
-                    <Td>{job.operation}</Td>
-                    <Td>{JSON.stringify(job.parameters)}</Td>
-                    <Td>
-                      <Badge color={jobStatusColor[job.status]}>
-                        {job.status}
-                      </Badge>
-                    </Td>
-                    <Td>{job.attempts}</Td>
-                    <Td>{job.error ?? job.message ?? '—'}</Td>
-                    <Td>{formatDate(job.createdAt)}</Td>
+            <ScrollableTable className="mb-0">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <Th>Operation</Th>
+                    <Th>Parameters</Th>
+                    <Th>Status</Th>
+                    <Th>Attempts</Th>
+                    <Th>Result</Th>
+                    <Th>Created</Th>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {pageJobs.map((job) => (
+                    <TableRow key={job.id}>
+                      <Td>{job.operation}</Td>
+                      <Td>{JSON.stringify(job.parameters)}</Td>
+                      <Td>
+                        <Badge color={jobStatusColor[job.status]}>
+                          {job.status}
+                        </Badge>
+                      </Td>
+                      <Td>{job.attempts}</Td>
+                      <Td>{job.error ?? job.message ?? '—'}</Td>
+                      <Td>{formatDate(job.createdAt)}</Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTable>
 
             {totalPages > 1 && (
               <div className="flex items-center justify-end gap-4">
