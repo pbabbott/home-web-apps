@@ -29,3 +29,20 @@ export async function getJobs(): Promise<VideoJob[]> {
   const data: { jobs: VideoJob[] } = await res.json();
   return data.jobs;
 }
+
+export type AiStatus =
+  | { online: true; models: string[] }
+  | { online: false; models: [] };
+
+export async function getAiStatus(): Promise<AiStatus> {
+  const res = await fetch(`${VIDEO_API_URL}/ai/status`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`video-api GET /ai/status returned ${res.status}: ${body}`);
+  }
+
+  return res.json();
+}

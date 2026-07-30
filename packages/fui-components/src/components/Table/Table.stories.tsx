@@ -51,6 +51,29 @@ export const Default: Story = {
   ),
 };
 
+export const Small: Story = {
+  render: (args) => (
+    <Table {...args} size="small">
+      <TableHead>
+        <TableRow>
+          <Th>Column A</Th>
+          <Th>Column B</Th>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          <Td>Cell 1</Td>
+          <Td>Cell 2</Td>
+        </TableRow>
+        <TableRow>
+          <Td>Cell 3</Td>
+          <Td>Cell 4</Td>
+        </TableRow>
+      </TableBody>
+    </Table>
+  ),
+};
+
 export const MultiColumn: Story = {
   render: (args) => (
     <Table {...args}>

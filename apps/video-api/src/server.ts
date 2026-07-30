@@ -10,10 +10,11 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
+import { getAiStatusRoute } from './controllers/ai';
 import { deleteFileRenames, listFileRenames } from './controllers/file-renames';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
-import { listTitleCards } from './controllers/title-cards';
+import { deleteTitleCard, listTitleCards } from './controllers/title-cards';
 import { openApiSpec } from './openapi';
 import {
   deleteFileRenamesQuerySchema,
@@ -24,7 +25,10 @@ import {
   jobIdParamsSchema,
   listJobsQuerySchema,
 } from './schemas/jobs';
-import { listTitleCardsQuerySchema } from './schemas/title-cards';
+import {
+  listTitleCardsQuerySchema,
+  titleCardIdParamsSchema,
+} from './schemas/title-cards';
 
 export const DOCS_ROUTE = '/docs';
 
@@ -39,6 +43,7 @@ export const createServer = (): Express => {
 
   app
     .get('/readyz', getReady)
+    .get('/ai/status', getAiStatusRoute)
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
     .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
@@ -46,6 +51,11 @@ export const createServer = (): Express => {
       '/title-cards',
       validateQuery(listTitleCardsQuerySchema),
       listTitleCards,
+    )
+    .delete(
+      '/title-cards/:id',
+      validateParams(titleCardIdParamsSchema),
+      deleteTitleCard,
     )
     .get(
       '/file-renames',

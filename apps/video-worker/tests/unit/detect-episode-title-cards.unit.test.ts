@@ -35,6 +35,7 @@ const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   runTimeSeconds: 600,
   title: 'Pups Save a Blimp',
   screenshotPath: null,
+  screenshotBase64: null,
   createdAt: new Date(),
   ...overrides,
 });
@@ -115,20 +116,25 @@ describe('detectEpisodeTitleCards', () => {
       'image/jpeg',
     );
 
+    const screenshotBase64 = Buffer.from('jpegbytes').toString('base64');
+
     expect(result.episodes[0].titleCardDetections).toEqual([
       {
         screenshotPath: 'screenshots/Paw Patrol/Season 3/hash-1/31_480x270.jpg',
+        screenshotBase64,
         timestampSeconds: 31,
         found: false,
       },
       {
         screenshotPath: 'screenshots/Paw Patrol/Season 3/hash-1/45_480x270.jpg',
+        screenshotBase64,
         timestampSeconds: 45,
         found: true,
         title: 'Pups Save a Blimp',
       },
       {
         screenshotPath: 'screenshots/Paw Patrol/Season 3/hash-1/59_480x270.jpg',
+        screenshotBase64,
         timestampSeconds: 59,
         found: false,
       },

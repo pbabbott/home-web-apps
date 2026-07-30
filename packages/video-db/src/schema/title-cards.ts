@@ -29,6 +29,8 @@ export const titleCards = pgTable(
     title: text('title'),
     /** Path (relative to MEDIA_ROOT) of the screenshot that showed this title card, if any. */
     screenshotPath: text('screenshot_path'),
+    /** Base64-encoded bytes of the screenshot at screenshotPath, so the image can be reviewed (e.g. in home-hud) without filesystem access to MEDIA_ROOT. */
+    screenshotBase64: text('screenshot_base64'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

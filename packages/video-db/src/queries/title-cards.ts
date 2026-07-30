@@ -14,6 +14,7 @@ export type UpsertTitleCardInput = Pick<
   | 'runTimeSeconds'
   | 'title'
   | 'screenshotPath'
+  | 'screenshotBase64'
 >;
 
 /**
@@ -36,6 +37,7 @@ export const upsertTitleCard = async (
         runTimeSeconds: input.runTimeSeconds,
         title: input.title,
         screenshotPath: input.screenshotPath,
+        screenshotBase64: input.screenshotBase64,
       },
     })
     .returning();
@@ -51,6 +53,25 @@ export const getTitleCardById = async (
     .select()
     .from(titleCards)
     .where(eq(titleCards.id, id));
+
+  return titleCard;
+};
+
+/**
+ * Deletes a single title-card row by id, returning it (or undefined if no
+ * row matched). Row-level rather than season/file-scoped so a bad
+ * detection can be removed on its own without disturbing correctly
+ * detected siblings — the episode becomes eligible for reprocessing again
+ * (checkTitleCardRecords only skips episodes that still have a row).
+ */
+export const deleteTitleCardById = async (
+  db: Database,
+  id: string,
+): Promise<TitleCard | undefined> => {
+  const [titleCard] = await db
+    .delete(titleCards)
+    .where(eq(titleCards.id, id))
+    .returning();
 
   return titleCard;
 };

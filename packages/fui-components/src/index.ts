@@ -182,6 +182,7 @@ export {
   TableRow,
   Th,
   Td,
+  ScrollableTable,
   type TableProps,
   type TableHeadProps,
   type TableBodyProps,
@@ -189,6 +190,8 @@ export {
   type ThProps,
   type TdProps,
   type TableColor,
+  type TableSize,
+  type ScrollableTableProps,
 } from './components/Table/Table';
 
 // HexagonButton & TiledHexagons

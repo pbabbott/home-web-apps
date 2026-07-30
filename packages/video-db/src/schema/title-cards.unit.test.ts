@@ -10,6 +10,7 @@ describe('titleCardSelectSchema', () => {
       runTimeSeconds: 660,
       title: 'Pups Save a Toof',
       screenshotPath: '/screenshots/some-job-id/128.jpg',
+      screenshotBase64: 'ZmFrZQ==',
       createdAt: new Date(),
     };
 
@@ -18,7 +19,7 @@ describe('titleCardSelectSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts null runTimeSeconds, title, and screenshotPath', () => {
+  it('accepts null runTimeSeconds, title, screenshotPath, and screenshotBase64', () => {
     const result = titleCardSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
@@ -27,6 +28,7 @@ describe('titleCardSelectSchema', () => {
       runTimeSeconds: null,
       title: null,
       screenshotPath: null,
+      screenshotBase64: null,
       createdAt: new Date(),
     });
 
@@ -41,6 +43,7 @@ describe('titleCardSelectSchema', () => {
       runTimeSeconds: null,
       title: null,
       screenshotPath: null,
+      screenshotBase64: null,
       createdAt: new Date(),
     });
 

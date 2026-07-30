@@ -38,6 +38,7 @@ const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   runTimeSeconds: 600,
   title: 'Pups Save a Blimp',
   screenshotPath: null,
+  screenshotBase64: null,
   createdAt: new Date(),
   ...overrides,
 });

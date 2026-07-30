@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   Input,
   OutlinedButton,
+  ScrollableTable,
   Table,
   TableBody,
   TableHead,
@@ -21,7 +22,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { createJob, type JobOperation } from './lib/actions';
-import type { VideoJob, VideoJobStatus } from './lib/video-api';
+import type { AiStatus, VideoJob, VideoJobStatus } from './lib/video-api';
 
 const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
   pending: 'warning',
@@ -77,9 +78,10 @@ function formatDate(iso: string): string {
 
 interface JobsClientProps {
   jobs: VideoJob[] | null;
+  aiStatus: AiStatus | null;
 }
 
-export function JobsClient({ jobs }: JobsClientProps) {
+export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [operation, setOperation] = useState<JobOperation>(
@@ -120,6 +122,29 @@ export function JobsClient({ jobs }: JobsClientProps) {
       <Typography variant="h1" component="h1">
         Video Jobs
       </Typography>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge color={aiStatus?.online ? 'success' : 'error'}>
+          AI Server:{' '}
+          {aiStatus === null
+            ? 'Unknown'
+            : aiStatus.online
+              ? 'Online'
+              : 'Offline'}
+        </Badge>
+        {aiStatus?.online &&
+          (aiStatus.models.length > 0 ? (
+            aiStatus.models.map((model) => (
+              <Badge key={model} color="dark">
+                {model}
+              </Badge>
+            ))
+          ) : (
+            <Typography variant="body2" className="text-neutral-400">
+              No models loaded
+            </Typography>
+          ))}
+      </div>
 
       <div className="flex flex-col gap-2 self-start">
         <div className="flex items-center gap-4">
@@ -194,34 +219,36 @@ export function JobsClient({ jobs }: JobsClientProps) {
         )}
         {pageJobs && pageJobs.length > 0 && (
           <>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <Th>Operation</Th>
-                  <Th>Parameters</Th>
-                  <Th>Status</Th>
-                  <Th>Attempts</Th>
-                  <Th>Result</Th>
-                  <Th>Created</Th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pageJobs.map((job) => (
-                  <TableRow key={job.id}>
-                    <Td>{job.operation}</Td>
-                    <Td>{JSON.stringify(job.parameters)}</Td>
-                    <Td>
-                      <Badge color={jobStatusColor[job.status]}>
-                        {job.status}
-                      </Badge>
-                    </Td>
-                    <Td>{job.attempts}</Td>
-                    <Td>{job.error ?? job.message ?? '—'}</Td>
-                    <Td>{formatDate(job.createdAt)}</Td>
+            <ScrollableTable className="mb-0">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <Th>Operation</Th>
+                    <Th>Parameters</Th>
+                    <Th>Status</Th>
+                    <Th>Attempts</Th>
+                    <Th>Result</Th>
+                    <Th>Created</Th>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {pageJobs.map((job) => (
+                    <TableRow key={job.id}>
+                      <Td>{job.operation}</Td>
+                      <Td>{JSON.stringify(job.parameters)}</Td>
+                      <Td>
+                        <Badge color={jobStatusColor[job.status]}>
+                          {job.status}
+                        </Badge>
+                      </Td>
+                      <Td>{job.attempts}</Td>
+                      <Td>{job.error ?? job.message ?? '—'}</Td>
+                      <Td>{formatDate(job.createdAt)}</Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTable>
 
             {totalPages > 1 && (
               <div className="flex items-center justify-end gap-4">
