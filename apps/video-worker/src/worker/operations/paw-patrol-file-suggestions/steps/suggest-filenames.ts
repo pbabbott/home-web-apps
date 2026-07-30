@@ -50,6 +50,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
           episode.filename,
           titleCards[0].title ?? '',
           ctx.sonarrEpisodes,
+          ctx.model,
         );
 
         if (!match.found) {
@@ -74,6 +75,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
         titleCards[0].title ?? '',
         titleCards[1].title ?? '',
         ctx.sonarrEpisodes,
+        ctx.model,
       );
 
       if (!match.found) {

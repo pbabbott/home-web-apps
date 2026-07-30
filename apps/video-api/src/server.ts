@@ -10,12 +10,15 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
-import { listFileRenames } from './controllers/file-renames';
+import { deleteFileRenames, listFileRenames } from './controllers/file-renames';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
 import { listTitleCards } from './controllers/title-cards';
 import { openApiSpec } from './openapi';
-import { listFileRenamesQuerySchema } from './schemas/file-renames';
+import {
+  deleteFileRenamesQuerySchema,
+  listFileRenamesQuerySchema,
+} from './schemas/file-renames';
 import {
   createJobSchema,
   jobIdParamsSchema,
@@ -48,6 +51,11 @@ export const createServer = (): Express => {
       '/file-renames',
       validateQuery(listFileRenamesQuerySchema),
       listFileRenames,
+    )
+    .delete(
+      '/file-renames',
+      validateQuery(deleteFileRenamesQuerySchema),
+      deleteFileRenames,
     );
 
   configureErrorHandler(app);

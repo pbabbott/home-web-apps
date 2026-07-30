@@ -58,6 +58,7 @@ export {
   updateFileRenameStatus,
   listFileRenames,
   listPendingFileRenames,
+  deleteFileRenamesBySeason,
 } from './queries/file-renames';
 export type {
   UpsertFileRenameInput,

@@ -15,3 +15,11 @@ export const listFileRenamesQuerySchema = z.object({
 });
 
 export type ListFileRenamesQuery = z.infer<typeof listFileRenamesQuerySchema>;
+
+export const deleteFileRenamesQuerySchema = z.object({
+  season: z.coerce.number().int().positive(),
+});
+
+export type DeleteFileRenamesQuery = z.infer<
+  typeof deleteFileRenamesQuerySchema
+>;

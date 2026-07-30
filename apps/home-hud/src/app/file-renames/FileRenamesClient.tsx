@@ -1,9 +1,20 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   Badge,
   type BadgeColor,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalTitle,
+  ModalTrigger,
   OutlinedButton,
   Table,
   TableBody,
@@ -13,6 +24,7 @@ import {
   Td,
   Typography,
 } from '@abbottland/fui-components';
+import { deleteFileRenamesForSeason } from './lib/actions';
 import type { FileRename, FileRenameStatus } from './lib/video-api';
 
 const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
@@ -22,6 +34,19 @@ const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
 };
 
 const PAGE_SIZE = 10;
+
+const FIRST_SEASON = 1;
+const LAST_SEASON = 13;
+const SEASON_OPTIONS = Array.from(
+  { length: LAST_SEASON - FIRST_SEASON + 1 },
+  (_, i) => FIRST_SEASON + i,
+);
+
+/** Pulls the season number out of a `<Show>/Season <N>/<file>` path. */
+function extractSeasonNumber(filePath: string): number | null {
+  const match = filePath.match(/Season (\d+)/);
+  return match ? Number(match[1]) : null;
+}
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -53,21 +78,121 @@ interface FileRenamesClientProps {
 }
 
 export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
+  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
+  const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const totalPages = fileRenames
-    ? Math.max(1, Math.ceil(fileRenames.length / PAGE_SIZE))
+  const filteredFileRenames = fileRenames?.filter(
+    (fileRename) =>
+      selectedSeason === null ||
+      extractSeasonNumber(fileRename.originalFilePath) === selectedSeason,
+  );
+
+  const totalPages = filteredFileRenames
+    ? Math.max(1, Math.ceil(filteredFileRenames.length / PAGE_SIZE))
     : 1;
-  const pageFileRenames = fileRenames?.slice(
+  const pageFileRenames = filteredFileRenames?.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
+
+  function selectSeason(season: number | null) {
+    setSelectedSeason(season);
+    setPage(1);
+  }
+
+  async function deleteSeason() {
+    if (selectedSeason === null) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteFileRenamesForSeason(selectedSeason);
+      setDeleteModalOpen(false);
+      router.refresh();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete file renames',
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col gap-8 bg-neutral-800 p-8">
       <Typography variant="h1" component="h1">
         File Renames
       </Typography>
+
+      <div className="flex flex-col gap-2 self-start">
+        <div className="flex items-center gap-4">
+          <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <OutlinedButton size="small">
+                Season: {selectedSeason ?? 'All'}
+              </OutlinedButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent label="Filter by Season">
+              <DropdownMenuItem onSelect={() => selectSeason(null)}>
+                All Seasons
+              </DropdownMenuItem>
+              {SEASON_OPTIONS.map((season) => (
+                <DropdownMenuItem
+                  key={season}
+                  onSelect={() => selectSeason(season)}
+                >
+                  Season {season}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {selectedSeason !== null && (
+            <Modal open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+              <ModalTrigger asChild>
+                <Button size="small" color="error">
+                  Delete Season {selectedSeason}
+                </Button>
+              </ModalTrigger>
+              <ModalContent color="secondary">
+                <ModalTitle>Delete Season {selectedSeason}?</ModalTitle>
+                <ModalDescription>
+                  This permanently deletes every file-rename suggestion for
+                  Season {selectedSeason}. This cannot be undone.
+                </ModalDescription>
+                <div className="mt-4 flex justify-end gap-3">
+                  <OutlinedButton
+                    size="small"
+                    disabled={deleting}
+                    onClick={() => setDeleteModalOpen(false)}
+                  >
+                    Cancel
+                  </OutlinedButton>
+                  <Button
+                    size="small"
+                    color="error"
+                    disabled={deleting}
+                    onClick={() => void deleteSeason()}
+                  >
+                    {deleting ? 'Deleting…' : 'Delete'}
+                  </Button>
+                </div>
+              </ModalContent>
+            </Modal>
+          )}
+        </div>
+        {deleteError && (
+          <Typography variant="body2" className="text-error-400">
+            {deleteError}
+          </Typography>
+        )}
+      </div>
 
       <div className="flex flex-col gap-4">
         {fileRenames === null && (
@@ -78,6 +203,13 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
         {fileRenames?.length === 0 && (
           <Typography variant="body1">No rename suggestions yet.</Typography>
         )}
+        {fileRenames &&
+          fileRenames.length > 0 &&
+          filteredFileRenames?.length === 0 && (
+            <Typography variant="body1">
+              No rename suggestions for Season {selectedSeason}.
+            </Typography>
+          )}
         {pageFileRenames && pageFileRenames.length > 0 && (
           <>
             <Table>

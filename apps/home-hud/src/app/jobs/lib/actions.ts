@@ -10,11 +10,16 @@ export type JobOperation =
 export async function createJob(
   operation: JobOperation,
   seasonNumber?: number,
+  model?: string,
 ): Promise<void> {
-  const body =
-    seasonNumber === undefined
-      ? { operation }
-      : { operation, parameters: { seasonNumber } };
+  const parameters = {
+    ...(seasonNumber !== undefined && { seasonNumber }),
+    ...(model && { model }),
+  };
+
+  const body = Object.keys(parameters).length
+    ? { operation, parameters }
+    : { operation };
 
   const res = await fetch(`${VIDEO_API_URL}/jobs`, {
     method: 'POST',

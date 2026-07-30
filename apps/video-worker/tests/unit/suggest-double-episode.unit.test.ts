@@ -4,16 +4,13 @@ import { suggestDoubleEpisode } from '../../src/worker/operations/paw-patrol-fil
 jest.mock('../../src/api/ai/ai-client', () => ({
   chatCompletion: jest.fn(),
 }));
-jest.mock('../../src/config', () => ({
-  config: { aiModel: 'test-model' },
-}));
 
 describe('suggestDoubleEpisode', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('sends both title cards in file order and the Sonarr episode list', async () => {
+  it('sends both title cards in file order and the Sonarr episode list, using the given model', async () => {
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
     await suggestDoubleEpisode(
@@ -28,6 +25,7 @@ describe('suggestDoubleEpisode', () => {
           title: 'Pups Save a Space Alien',
         },
       ],
+      'test-model',
     );
 
     const call = (chatCompletion as jest.Mock).mock.calls[0][0];
@@ -48,7 +46,7 @@ describe('suggestDoubleEpisode', () => {
     );
 
     await expect(
-      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', []),
+      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', [], 'test-model'),
     ).resolves.toEqual({
       found: true,
       episodes: [
@@ -62,7 +60,7 @@ describe('suggestDoubleEpisode', () => {
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
     await expect(
-      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', []),
+      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', [], 'test-model'),
     ).resolves.toEqual({ found: false });
   });
 });
