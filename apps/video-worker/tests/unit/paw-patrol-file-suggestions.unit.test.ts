@@ -91,7 +91,7 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
 
     expect(result.message).toBe('');
     expect(result.outputPaths).toEqual([
-      'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
     ]);
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},

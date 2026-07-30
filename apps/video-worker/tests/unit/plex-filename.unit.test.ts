@@ -58,14 +58,16 @@ describe('buildPlexEpisodeRelPath', () => {
   it('prefixes the season directory', () => {
     expect(
       buildPlexEpisodeRelPath(3, 1, 'Pups Save a Blimp', null, '.mp4'),
-    ).toBe('Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4');
+    ).toBe(
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+    );
   });
 
   it('carries the quality tag through', () => {
     expect(
       buildPlexEpisodeRelPath(3, 1, 'Pups Save a Blimp', 'HDTV-720p', '.mp4'),
     ).toBe(
-      'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp [HDTV-720p].mp4',
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp [HDTV-720p].mp4',
     );
   });
 });

@@ -53,12 +53,17 @@ global.fetch = jest.fn(() =>
 export const MEDIA_ROOT = fs.mkdtempSync(
   path.join(os.tmpdir(), 'video-worker-media-'),
 );
-fs.mkdirSync(path.join(MEDIA_ROOT, 'Paw Patrol', 'Season 3'), {
-  recursive: true,
-});
+fs.mkdirSync(
+  path.join(MEDIA_ROOT, 'media', 'tv_shows', 'Paw Patrol', 'Season 3'),
+  {
+    recursive: true,
+  },
+);
 fs.writeFileSync(
   path.join(
     MEDIA_ROOT,
+    'media',
+    'tv_shows',
     'Paw Patrol',
     'Season 3',
     'Paw Patrol - S03E01 - Pups Save a Blimp.mp4',

@@ -63,7 +63,7 @@ describe('saveSuggestions', () => {
         {
           filename: 'e01.mp4',
           absPath: '/media/e01.mp4',
-          suggestedFilePath: 'Paw Patrol/Season 3/x.mp4',
+          suggestedFilePath: 'media/tv_shows/Paw Patrol/Season 3/x.mp4',
         },
       ],
     });
@@ -82,7 +82,7 @@ describe('saveSuggestions', () => {
           absPath: '/media/random-name.mp4',
           hash: 'hash-1',
           suggestedFilePath:
-            'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+            'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
           sourceTitleCardTitles: ['Pups Save a Blimp'],
         },
       ],
@@ -94,16 +94,16 @@ describe('saveSuggestions', () => {
       {},
       {
         fileHash: 'hash-1',
-        originalFilePath: 'Paw Patrol/Season 3/random-name.mp4',
+        originalFilePath: 'media/tv_shows/Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:
-          'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+          'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
         secondSuggestedFilePath: undefined,
         splitAtSeconds: undefined,
         sourceTitleCardTitles: ['Pups Save a Blimp'],
       },
     );
     expect(result.outputPaths).toEqual([
-      'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
     ]);
   });
 
@@ -118,9 +118,9 @@ describe('saveSuggestions', () => {
           absPath: '/media/random-name.mp4',
           hash: 'hash-1',
           suggestedFilePath:
-            'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+            'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
           secondSuggestedFilePath:
-            'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+            'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
           splitAtSeconds: 660,
           sourceTitleCardTitles: [
             'Pups Save a Goldrush',
@@ -136,11 +136,11 @@ describe('saveSuggestions', () => {
       {},
       {
         fileHash: 'hash-1',
-        originalFilePath: 'Paw Patrol/Season 3/random-name.mp4',
+        originalFilePath: 'media/tv_shows/Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:
-          'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+          'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
         secondSuggestedFilePath:
-          'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+          'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
         splitAtSeconds: 660,
         sourceTitleCardTitles: [
           'Pups Save a Goldrush',
@@ -149,8 +149,8 @@ describe('saveSuggestions', () => {
       },
     );
     expect(result.outputPaths).toEqual([
-      'Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
-      'Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
+      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
     ]);
   });
 });

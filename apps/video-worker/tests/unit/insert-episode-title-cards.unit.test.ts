@@ -145,7 +145,7 @@ describe('insertEpisodeTitleCards', () => {
       {
         fileHash: 'hash-1',
         filePath:
-          'Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
+          'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
         timestampSeconds: 51,
         runTimeSeconds: 600,
         title: 'Pups Save a Blimp',
