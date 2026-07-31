@@ -42,7 +42,8 @@
       "Bash(gh issue *)",
       "Bash(xargs ls)",
       "Bash(gh api *)",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(node _tmp_check.mjs)"
     ]
   }
 }
