@@ -18,6 +18,11 @@ const pawPatrolTitleCardsJobSchema = z.object({
       description: 'Paw Patrol season number to generate title cards for',
       example: 3,
     }),
+    model: z.string().min(1).optional().meta({
+      description:
+        'AI model to request for this job’s title-card detection calls, overriding the worker’s configured default',
+      example: 'qwen/qwen3-vl-8b-instruct',
+    }),
   }),
 });
 

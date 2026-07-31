@@ -14,7 +14,12 @@ jest.mock('child_process', () => ({
   ),
 }));
 jest.mock('../../src/config', () => ({
-  config: { mediaRoot: '/media', ffprobePath: 'ffprobe', ffmpegPath: 'ffmpeg' },
+  config: {
+    mediaRoot: '/media',
+    ffprobePath: 'ffprobe',
+    ffmpegPath: 'ffmpeg',
+    aiModel: 'default-model',
+  },
 }));
 jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn().mockResolvedValue('fakehash'),
@@ -25,6 +30,7 @@ jest.mock('@abbottland/video-db', () => ({
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 jest.mock('../../src/api/ai/ai-client', () => ({
+  ...jest.requireActual('../../src/api/ai/ai-client'),
   chatCompletion: jest.fn().mockResolvedValue('{"found":false}'),
 }));
 

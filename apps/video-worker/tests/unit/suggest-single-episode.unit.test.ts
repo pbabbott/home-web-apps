@@ -2,6 +2,7 @@ import { chatCompletion } from '../../src/api/ai/ai-client';
 import { suggestSingleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-single-episode';
 
 jest.mock('../../src/api/ai/ai-client', () => ({
+  ...jest.requireActual('../../src/api/ai/ai-client'),
   chatCompletion: jest.fn(),
 }));
 

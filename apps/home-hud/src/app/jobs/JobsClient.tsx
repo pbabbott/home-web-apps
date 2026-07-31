@@ -57,11 +57,12 @@ const operationLabels: Record<JobOperation, string> = {
 const operationNeedsSeason = (operation: JobOperation): boolean =>
   operation !== 'paw_patrol_apply_file_renames';
 
-// Only file_suggestions calls out to the AI per-episode-matching step in a
-// way where swapping models job-to-job is useful — title_cards' detection
-// step and apply_file_renames don't take a model input at all.
+// file_suggestions (episode-matching) and title_cards (title-card detection)
+// both call out to the AI in a way where swapping models job-to-job is
+// useful — apply_file_renames doesn't take a model input at all.
 const operationSupportsModelOverride = (operation: JobOperation): boolean =>
-  operation === 'paw_patrol_file_suggestions';
+  operation === 'paw_patrol_file_suggestions' ||
+  operation === 'paw_patrol_title_cards';
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -134,10 +135,14 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
         </Badge>
         {aiStatus?.online &&
           (aiStatus.models.length > 0 ? (
-            aiStatus.models.map((model) => (
-              <Badge key={model} color="dark">
-                {model}
-              </Badge>
+            aiStatus.models.map((modelName) => (
+              <OutlinedButton
+                key={modelName}
+                size="small"
+                onClick={() => setModel(modelName)}
+              >
+                {modelName}
+              </OutlinedButton>
             ))
           ) : (
             <Typography variant="body2" className="text-neutral-400">
@@ -189,6 +194,7 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
               placeholder="Model (default)"
               value={model}
               onChange={(e) => setModel(e.target.value)}
+              color="primary"
               className="w-56"
             />
           )}
