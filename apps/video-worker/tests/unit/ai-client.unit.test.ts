@@ -53,9 +53,11 @@ describe('chatCompletion', () => {
       }),
     );
 
-    await expect(chatCompletion({ model: 'm', messages: [] })).resolves.toBe(
-      '{"found":false}',
-    );
+    const assertion = expect(
+      chatCompletion({ model: 'm', messages: [] }),
+    ).resolves.toBe('{"found":false}');
+    await jest.runAllTimersAsync();
+    await assertion;
   });
 
   it('throws when the API responds with a non-ok status', async () => {
