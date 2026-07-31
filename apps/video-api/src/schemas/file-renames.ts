@@ -23,3 +23,7 @@ export const deleteFileRenamesQuerySchema = z.object({
 export type DeleteFileRenamesQuery = z.infer<
   typeof deleteFileRenamesQuerySchema
 >;
+
+export const fileRenameIdParamsSchema = z.object({
+  id: z.uuid('id must be a valid UUID'),
+});

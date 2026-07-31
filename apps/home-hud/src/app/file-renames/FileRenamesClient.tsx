@@ -25,7 +25,7 @@ import {
   Td,
   Typography,
 } from '@abbottland/fui-components';
-import { deleteFileRenamesForSeason } from './lib/actions';
+import { deleteFileRename, deleteFileRenamesForSeason } from './lib/actions';
 import type { FileRename, FileRenameStatus } from './lib/video-api';
 
 const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
@@ -33,6 +33,8 @@ const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
   applied: 'success',
   rejected: 'error',
 };
+
+const STATUS_OPTIONS: FileRenameStatus[] = ['pending', 'applied', 'rejected'];
 
 const PAGE_SIZE = 10;
 
@@ -83,15 +85,26 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
   const [page, setPage] = useState(1);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<FileRenameStatus | null>(
+    null,
+  );
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [rowDeleting, setRowDeleting] = useState(false);
+  const [rowDeleteError, setRowDeleteError] = useState<string | null>(null);
 
-  const filteredFileRenames = fileRenames?.filter(
-    (fileRename) =>
-      selectedSeason === null ||
-      extractSeasonNumber(fileRename.originalFilePath) === selectedSeason,
-  );
+  const filteredFileRenames = fileRenames
+    ?.filter(
+      (fileRename) =>
+        (selectedSeason === null ||
+          extractSeasonNumber(fileRename.originalFilePath) ===
+            selectedSeason) &&
+        (selectedStatus === null || fileRename.status === selectedStatus),
+    )
+    .sort((a, b) => a.originalFilePath.localeCompare(b.originalFilePath));
 
   const totalPages = filteredFileRenames
     ? Math.max(1, Math.ceil(filteredFileRenames.length / PAGE_SIZE))
@@ -104,6 +117,28 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
   function selectSeason(season: number | null) {
     setSelectedSeason(season);
     setPage(1);
+  }
+
+  function selectStatus(status: FileRenameStatus | null) {
+    setSelectedStatus(status);
+    setPage(1);
+  }
+
+  async function handleDeleteFileRename(id: string) {
+    setRowDeleting(true);
+    setRowDeleteError(null);
+
+    try {
+      await deleteFileRename(id);
+      setConfirmDeleteId(null);
+      router.refresh();
+    } catch (err) {
+      setRowDeleteError(
+        err instanceof Error ? err.message : 'Failed to delete file rename',
+      );
+    } finally {
+      setRowDeleting(false);
+    }
   }
 
   async function deleteSeason() {
@@ -149,6 +184,27 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                   onSelect={() => selectSeason(season)}
                 >
                   Season {season}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu open={statusMenuOpen} onOpenChange={setStatusMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <OutlinedButton size="small">
+                Status: {selectedStatus ?? 'All'}
+              </OutlinedButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent label="Filter by Status">
+              <DropdownMenuItem onSelect={() => selectStatus(null)}>
+                All Statuses
+              </DropdownMenuItem>
+              {STATUS_OPTIONS.map((status) => (
+                <DropdownMenuItem
+                  key={status}
+                  onSelect={() => selectStatus(status)}
+                >
+                  {status}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -201,6 +257,11 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
             Failed to load file renames from video-api.
           </Typography>
         )}
+        {rowDeleteError && (
+          <Typography variant="body2" className="text-error-400">
+            {rowDeleteError}
+          </Typography>
+        )}
         {fileRenames?.length === 0 && (
           <Typography variant="body1">No rename suggestions yet.</Typography>
         )}
@@ -208,7 +269,7 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
           fileRenames.length > 0 &&
           filteredFileRenames?.length === 0 && (
             <Typography variant="body1">
-              No rename suggestions for Season {selectedSeason}.
+              No rename suggestions match the current filters.
             </Typography>
           )}
         {pageFileRenames && pageFileRenames.length > 0 && (
@@ -224,6 +285,7 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                     <Th>Status</Th>
                     <Th>Created</Th>
                     <Th>Applied</Th>
+                    <Th>Actions</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -268,6 +330,49 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                         {fileRename.appliedAt
                           ? formatDate(fileRename.appliedAt)
                           : '—'}
+                      </Td>
+                      <Td>
+                        <Modal
+                          open={confirmDeleteId === fileRename.id}
+                          onOpenChange={(open) =>
+                            setConfirmDeleteId(open ? fileRename.id : null)
+                          }
+                        >
+                          <ModalTrigger asChild>
+                            <Button size="small" color="error">
+                              Delete
+                            </Button>
+                          </ModalTrigger>
+                          <ModalContent color="secondary">
+                            <ModalTitle>
+                              Delete this rename suggestion?
+                            </ModalTitle>
+                            <ModalDescription>
+                              Permanently deletes the rename suggestion for{' '}
+                              {fileRename.originalFilePath}. This cannot be
+                              undone.
+                            </ModalDescription>
+                            <div className="mt-4 flex justify-end gap-3">
+                              <OutlinedButton
+                                size="small"
+                                disabled={rowDeleting}
+                                onClick={() => setConfirmDeleteId(null)}
+                              >
+                                Cancel
+                              </OutlinedButton>
+                              <Button
+                                size="small"
+                                color="error"
+                                disabled={rowDeleting}
+                                onClick={() =>
+                                  void handleDeleteFileRename(fileRename.id)
+                                }
+                              >
+                                {rowDeleting ? 'Deleting…' : 'Delete'}
+                              </Button>
+                            </div>
+                          </ModalContent>
+                        </Modal>
                       </Td>
                     </TableRow>
                   ))}

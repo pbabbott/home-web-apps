@@ -75,6 +75,23 @@ export const updateFileRenameStatus = async (
   return fileRename;
 };
 
+/**
+ * Deletes a single file_renames row by id, returning it (or undefined if no
+ * row matched). Row-level rather than season-scoped so a bad suggestion can
+ * be removed on its own without disturbing correctly suggested siblings.
+ */
+export const deleteFileRenameById = async (
+  db: Database,
+  id: string,
+): Promise<FileRename | undefined> => {
+  const [fileRename] = await db
+    .delete(fileRenames)
+    .where(eq(fileRenames.id, id))
+    .returning();
+
+  return fileRename;
+};
+
 export type ListFileRenamesOptions = {
   fileHash?: string;
   status?: FileRenameStatus;
