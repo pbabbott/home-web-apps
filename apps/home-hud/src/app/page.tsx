@@ -1,22 +1,49 @@
-'use client';
+import { HomeClient } from './components/HomeClient';
+import {
+  getAiStatus,
+  getJobs,
+  type AiStatus,
+  type VideoJob,
+} from './jobs/lib/video-api';
+import { getTitleCards, type TitleCard } from './title-cards/lib/video-api';
+import { getFileRenames, type FileRename } from './file-renames/lib/video-api';
 
-import { Typography } from '@abbottland/fui-components';
-import { Counter } from './components/Counter';
-import { Footer } from './components/Footer';
+export default async function Home() {
+  let jobs: VideoJob[] | null = null;
+  let aiStatus: AiStatus | null = null;
+  let titleCards: TitleCard[] | null = null;
+  let fileRenames: FileRename[] | null = null;
 
-export default function Home() {
+  try {
+    jobs = await getJobs();
+  } catch (err) {
+    console.error('Failed to load jobs from video-api:', err);
+  }
+
+  try {
+    aiStatus = await getAiStatus();
+  } catch (err) {
+    console.error('Failed to load AI status from video-api:', err);
+  }
+
+  try {
+    titleCards = await getTitleCards();
+  } catch (err) {
+    console.error('Failed to load title cards from video-api:', err);
+  }
+
+  try {
+    fileRenames = await getFileRenames();
+  } catch (err) {
+    console.error('Failed to load file renames from video-api:', err);
+  }
+
   return (
-    <main className="flex min-h-screen flex-col bg-neutral-800">
-      <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <Typography variant="h1" component="h1">
-          Home HUD
-        </Typography>
-        <Typography variant="h3" component="h3">
-          your house, at a glance
-        </Typography>
-        <Counter />
-      </div>
-      <Footer />
-    </main>
+    <HomeClient
+      jobs={jobs}
+      aiStatus={aiStatus}
+      titleCards={titleCards}
+      fileRenames={fileRenames}
+    />
   );
 }
