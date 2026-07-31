@@ -11,10 +11,18 @@ const borderColorClasses: Record<TableColor, string> = {
 };
 
 /**
- * 'small' trades the design system's default display-sized body2 text
- * (28px, meant for hero copy) for a size that reads as an actual data
- * table. Set once on `Table` and read by Th/Td via context, rather than
- * repeated on every cell, since a table is either dense or it isn't.
+ * 'small' tightens padding for a table that reads as actual data rather
+ * than hero copy. Text stays at the design system's normal body2 size —
+ * only line-height and padding shrink — so cell content stays as legible
+ * as everywhere else in the app; `text-body2` is reapplied explicitly on
+ * the cell element itself (not just the inner Typography) because a
+ * table cell with only inline content reserves line-box height from its
+ * *own* font-size/line-height (the CSS "strut"), not its content's —
+ * leaving it unset here would inherit the ambient 28px body font-size at
+ * the browser's default (much taller) line-height and silently reopen
+ * the dead-space bug this size prop exists to fix. Set once on `Table`
+ * and read by Th/Td via context, rather than repeated on every cell,
+ * since a table is either dense or it isn't.
  */
 export type TableSize = 'default' | 'small';
 
@@ -27,7 +35,7 @@ const tableCellPaddingClasses: Record<TableSize, string> = {
 
 const tableCellTextClasses: Record<TableSize, string> = {
   default: '',
-  small: 'text-[0.875rem] leading-snug',
+  small: 'text-body2',
 };
 
 export type ScrollableTableProps = React.HTMLAttributes<HTMLDivElement>;
