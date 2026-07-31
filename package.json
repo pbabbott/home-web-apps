@@ -11,6 +11,7 @@
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "dev:ui": "turbo run dev --filter=@abbottland/blog --filter=@abbottland/fui-components --filter=@abbottland/diagram-maker --filter=@abbottland/home-hud",
+    "dev:video": "turbo run dev --filter=@abbottland/home-hud --filter=@abbottland/video-api --filter=@abbottland/video-worker",
     "dev:deps": "turbo run dev:deps",
     "dev:deps:down": "turbo run dev:deps:down",
     "format:check": "prettier . --check",
