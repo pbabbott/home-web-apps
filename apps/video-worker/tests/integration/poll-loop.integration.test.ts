@@ -42,6 +42,8 @@ describe('worker job processing', () => {
     jest.clearAllMocks();
   });
 
+  // 15 screenshots at the AI client's real 1 req/s throttle (3 concurrent)
+  // take a few seconds by design, well past Jest's 5s default.
   it('completes a paw_patrol_title_cards job and records the handler message', async () => {
     const created = await createVideoJob(db, {
       operation: 'paw_patrol_title_cards',
@@ -60,7 +62,7 @@ describe('worker job processing', () => {
       /^screenshots\/Paw Patrol\/Season 3\/[0-9a-f]{64}\/31_480x270\.jpg$/,
     );
     expect(updated?.message).toBe('');
-  });
+  }, 20000);
 
   it('marks a job with an unsupported operation as failed', async () => {
     const created = await createVideoJob(db, {
