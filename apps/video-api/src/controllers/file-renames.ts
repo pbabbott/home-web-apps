@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import {
+  deleteFileRenameById,
   deleteFileRenamesBySeason,
   listFileRenames as listFileRenamesQuery,
 } from '@abbottland/video-db';
@@ -19,6 +20,22 @@ export const listFileRenames = async (req: Request, res: Response) => {
     res.status(200).json({ fileRenames });
   } catch (err) {
     console.error('GET /file-renames failed:', err);
+    res.status(500).json({ message: 'internal server error' });
+  }
+};
+
+export const deleteFileRename = async (req: Request, res: Response) => {
+  // req.params is already validated/typed by the validateParams(fileRenameIdParamsSchema) middleware.
+  try {
+    const fileRename = await deleteFileRenameById(db, req.params.id);
+
+    if (!fileRename) {
+      return res.status(404).json({ message: 'file rename not found' });
+    }
+
+    res.status(200).json(fileRename);
+  } catch (err) {
+    console.error(`DELETE /file-renames/${req.params.id} failed:`, err);
     res.status(500).json({ message: 'internal server error' });
   }
 };

@@ -95,6 +95,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
         episode.hash,
         episode.absPath,
         titleCards[1].timestampSeconds,
+        ctx.model,
       );
 
       return {

@@ -2,8 +2,11 @@ import {
   getAiResponseCache,
   upsertAiResponseCache,
 } from '@abbottland/video-db';
-import { chatCompletion } from '../../../../api/ai/ai-client';
-import { config } from '../../../../config';
+import {
+  chatCompletion,
+  parseJsonResponse,
+  type ChatCompletionRequest,
+} from '../../../../api/ai/ai-client';
 import { db } from '../../../../db';
 
 const SYSTEM_PROMPT =
@@ -36,15 +39,16 @@ export const detectTitleCard = async (
   screenshotPath: string,
   imageBase64: string,
   mimeType: string,
+  model: string,
 ): Promise<TitleCardDetectionResult> => {
-  const cached = await getAiResponseCache(db, screenshotPath, config.aiModel);
+  const cached = await getAiResponseCache(db, screenshotPath, model);
 
   if (cached) {
     return cached.response as TitleCardDetectionResult;
   }
 
-  const content = await chatCompletion({
-    model: config.aiModel,
+  const request: ChatCompletionRequest = {
+    model,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       {
@@ -58,13 +62,14 @@ export const detectTitleCard = async (
         ],
       },
     ],
-  });
+  };
 
-  const result = JSON.parse(content) as TitleCardDetectionResult;
+  const content = await chatCompletion(request);
+  const result = parseJsonResponse<TitleCardDetectionResult>(request, content);
 
   await upsertAiResponseCache(db, {
     screenshotPath,
-    model: config.aiModel,
+    model,
     response: result,
   });
 

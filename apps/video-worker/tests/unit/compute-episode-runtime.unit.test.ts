@@ -12,6 +12,7 @@ const buildContext = (
 ): PawPatrolTitleCardsContext => ({
   job: {} as VideoJob,
   seasonNumber: 3,
+  model: 'test-model',
   episodes: [],
   outputPaths: [],
   message: '',

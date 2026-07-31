@@ -50,6 +50,7 @@ export const refineSplitPoint = async (
   fileHash: string,
   episodeAbsPath: string,
   coarseTimestampSeconds: number,
+  model: string,
 ): Promise<number> => {
   const screenshotDirRelPath = screenshotDirectoryRelPath(
     seasonNumber,
@@ -101,6 +102,7 @@ export const refineSplitPoint = async (
       outputRelPath,
       imageBase64,
       SCREENSHOT_MIME_TYPE,
+      model,
     );
 
     if (!result.found) break;

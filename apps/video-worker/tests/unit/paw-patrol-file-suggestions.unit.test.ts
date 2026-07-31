@@ -28,6 +28,7 @@ jest.mock('../../src/api/sonarr/sonarr-client', () => ({
     ]),
 }));
 jest.mock('../../src/api/ai/ai-client', () => ({
+  ...jest.requireActual('../../src/api/ai/ai-client'),
   chatCompletion: jest
     .fn()
     .mockResolvedValue(

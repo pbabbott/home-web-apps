@@ -1,4 +1,8 @@
-import { chatCompletion } from '../../../../api/ai/ai-client';
+import {
+  chatCompletion,
+  parseJsonResponse,
+  type ChatCompletionRequest,
+} from '../../../../api/ai/ai-client';
 import type { SonarrEpisode } from '../../../../api/sonarr/sonarr-client';
 
 const SYSTEM_PROMPT = `You are a TV episode identification specialist for a Paw Patrol media library. Your only job is matching ONE video file — which shows exactly one detected on-screen title card — to its single official episode from Sonarr.
@@ -48,7 +52,7 @@ export const suggestSingleEpisode = async (
   sonarrEpisodes: SonarrEpisode[],
   model: string,
 ): Promise<SingleEpisodeMatchResult> => {
-  const content = await chatCompletion({
+  const request: ChatCompletionRequest = {
     model,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -57,7 +61,8 @@ export const suggestSingleEpisode = async (
         content: buildUserPrompt(filename, titleCardTitle, sonarrEpisodes),
       },
     ],
-  });
+  };
 
-  return JSON.parse(content) as SingleEpisodeMatchResult;
+  const content = await chatCompletion(request);
+  return parseJsonResponse<SingleEpisodeMatchResult>(request, content);
 };

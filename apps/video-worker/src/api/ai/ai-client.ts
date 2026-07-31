@@ -109,6 +109,48 @@ const sendChatCompletionRequest = async (
   }
 };
 
+const describeMessageContent = (content: ChatMessage['content']): string => {
+  if (typeof content === 'string') return content;
+
+  return content
+    .map((part) =>
+      part.type === 'text'
+        ? part.text
+        : `[image omitted, ${part.image_url.url.length} chars]`,
+    )
+    .join('\n');
+};
+
+const describeMessages = (messages: ChatMessage[]): string =>
+  messages
+    .map(
+      (message) =>
+        `--- ${message.role} ---\n${describeMessageContent(message.content)}`,
+    )
+    .join('\n\n');
+
+/**
+ * Parses an AI response as JSON, dumping the full prompt and raw response to
+ * the logs before rethrowing on failure — the model occasionally wraps its
+ * JSON in a markdown code fence or adds stray text despite being told not
+ * to, and the bare SyntaxError from JSON.parse alone doesn't say what it
+ * actually sent back, making that failure mode otherwise undiagnosable
+ * after the fact.
+ */
+export const parseJsonResponse = <T>(
+  request: ChatCompletionRequest,
+  content: string,
+): T => {
+  try {
+    return JSON.parse(content) as T;
+  } catch (err) {
+    console.error(
+      `❌ AI response was not valid JSON (model=${request.model})\n${describeMessages(request.messages)}\n--- response ---\n${content}`,
+    );
+    throw err;
+  }
+};
+
 /**
  * Sends a chat completion request to the configured OpenAI-compatible AI
  * API server (aiApiUrl, an LM Studio-style local server) and returns the

@@ -1,4 +1,4 @@
-import { chatCompletion } from '../../src/api/ai/ai-client';
+import { chatCompletion, parseJsonResponse } from '../../src/api/ai/ai-client';
 
 jest.mock('../../src/config', () => ({
   config: { aiApiUrl: 'http://ai.local:1234' },
@@ -98,5 +98,74 @@ describe('chatCompletion', () => {
     await assertion;
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('parseJsonResponse', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('returns the parsed JSON on success', () => {
+    const request = {
+      model: 'm',
+      messages: [{ role: 'user' as const, content: 'hi' }],
+    };
+
+    expect(parseJsonResponse(request, '{"found":true}')).toEqual({
+      found: true,
+    });
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('logs the prompt and raw response, then rethrows, on malformed JSON', () => {
+    const request = {
+      model: 'm',
+      messages: [
+        { role: 'system' as const, content: 'be terse' },
+        { role: 'user' as const, content: 'describe this image' },
+      ],
+    };
+    const content = '```json\n{"found":true}\n```';
+
+    expect(() => parseJsonResponse(request, content)).toThrow(SyntaxError);
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    const logged = consoleErrorSpy.mock.calls[0][0] as string;
+    expect(logged).toContain('m');
+    expect(logged).toContain('be terse');
+    expect(logged).toContain('describe this image');
+    expect(logged).toContain(content);
+  });
+
+  it('summarizes image_url parts instead of dumping the raw base64', () => {
+    const request = {
+      model: 'm',
+      messages: [
+        {
+          role: 'user' as const,
+          content: [
+            { type: 'text' as const, text: 'look at this' },
+            {
+              type: 'image_url' as const,
+              image_url: { url: `data:image/jpeg;base64,${'A'.repeat(500)}` },
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(() => parseJsonResponse(request, 'not json')).toThrow(SyntaxError);
+
+    const logged = consoleErrorSpy.mock.calls[0][0] as string;
+    expect(logged).toContain('look at this');
+    expect(logged).toContain('[image omitted');
+    expect(logged).not.toContain('A'.repeat(500));
   });
 });

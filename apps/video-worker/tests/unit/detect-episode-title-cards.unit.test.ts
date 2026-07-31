@@ -21,6 +21,7 @@ const buildContext = (
 ): PawPatrolTitleCardsContext => ({
   job: {} as VideoJob,
   seasonNumber: 3,
+  model: 'test-model',
   episodes: [],
   outputPaths: [],
   message: '',
@@ -114,6 +115,7 @@ describe('detectEpisodeTitleCards', () => {
       'screenshots/Paw Patrol/Season 3/hash-1/45_480x270.jpg',
       Buffer.from('jpegbytes').toString('base64'),
       'image/jpeg',
+      'test-model',
     );
 
     const screenshotBase64 = Buffer.from('jpegbytes').toString('base64');

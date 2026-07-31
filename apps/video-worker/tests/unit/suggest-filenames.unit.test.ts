@@ -255,6 +255,7 @@ describe('suggestFilenames', () => {
         'hash-1',
         '/media/random-name.mp4',
         660,
+        context.model,
       );
       expect(suggestSingleEpisode).not.toHaveBeenCalled();
     });

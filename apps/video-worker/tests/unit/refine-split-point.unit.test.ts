@@ -40,7 +40,13 @@ describe('refineSplitPoint', () => {
       .mockResolvedValueOnce({ found: true, title: 'x' }) // 44.8
       .mockResolvedValueOnce({ found: false }); // 44.7
 
-    const result = await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45);
+    const result = await refineSplitPoint(
+      3,
+      'hash-1',
+      '/media/e18-19.mp4',
+      45,
+      'test-model',
+    );
 
     expect(result).toBe(44.8);
     expect(execFile).toHaveBeenCalledTimes(3);
@@ -55,13 +61,20 @@ describe('refineSplitPoint', () => {
       'screenshots/Paw Patrol/Season 3/hash-1/44.7_refine_480x270.jpg',
       'aW1n',
       'image/jpeg',
+      'test-model',
     );
   });
 
   it('returns the coarse timestamp unchanged when the card is not found even one step back', async () => {
     (detectTitleCard as jest.Mock).mockResolvedValue({ found: false });
 
-    const result = await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45);
+    const result = await refineSplitPoint(
+      3,
+      'hash-1',
+      '/media/e18-19.mp4',
+      45,
+      'test-model',
+    );
 
     expect(result).toBe(45);
     expect(execFile).toHaveBeenCalledTimes(1);
@@ -73,7 +86,13 @@ describe('refineSplitPoint', () => {
       title: 'x',
     });
 
-    const result = await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45);
+    const result = await refineSplitPoint(
+      3,
+      'hash-1',
+      '/media/e18-19.mp4',
+      45,
+      'test-model',
+    );
 
     expect(result).toBe(42.5);
     expect(execFile).toHaveBeenCalledTimes(25);
@@ -83,7 +102,7 @@ describe('refineSplitPoint', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (detectTitleCard as jest.Mock).mockResolvedValueOnce({ found: false });
 
-    await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45);
+    await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45, 'test-model');
 
     expect(execFile).not.toHaveBeenCalled();
   });
@@ -99,6 +118,7 @@ describe('refineSplitPoint', () => {
       'hash-1',
       '/media/e18-19.mp4',
       0.1,
+      'test-model',
     );
 
     expect(result).toBe(0);

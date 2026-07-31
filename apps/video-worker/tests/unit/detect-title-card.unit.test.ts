@@ -6,18 +6,17 @@ import { chatCompletion } from '../../src/api/ai/ai-client';
 import { detectTitleCard } from '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card';
 
 jest.mock('../../src/api/ai/ai-client', () => ({
+  ...jest.requireActual('../../src/api/ai/ai-client'),
   chatCompletion: jest.fn(),
 }));
 jest.mock('@abbottland/video-db', () => ({
   getAiResponseCache: jest.fn(),
   upsertAiResponseCache: jest.fn(),
 }));
-jest.mock('../../src/config', () => ({
-  config: { aiModel: 'qwen/qwen3-vl-8b-instruct' },
-}));
 jest.mock('../../src/db', () => ({ db: {} }));
 
 const SCREENSHOT_PATH = 'screenshots/Paw Patrol/Season 3/hash-1/45_480x270.jpg';
+const MODEL = 'qwen/qwen3-vl-8b-instruct';
 
 describe('detectTitleCard', () => {
   afterEach(() => {
@@ -37,14 +36,11 @@ describe('detectTitleCard', () => {
       SCREENSHOT_PATH,
       'BASE64DATA',
       'image/jpeg',
+      MODEL,
     );
 
     expect(result).toEqual({ found: true, title: 'Pups Save a Blimp' });
-    expect(getAiResponseCache).toHaveBeenCalledWith(
-      {},
-      SCREENSHOT_PATH,
-      'qwen/qwen3-vl-8b-instruct',
-    );
+    expect(getAiResponseCache).toHaveBeenCalledWith({}, SCREENSHOT_PATH, MODEL);
     expect(chatCompletion).not.toHaveBeenCalled();
     expect(upsertAiResponseCache).not.toHaveBeenCalled();
   });
@@ -59,17 +55,18 @@ describe('detectTitleCard', () => {
       SCREENSHOT_PATH,
       'BASE64DATA',
       'image/jpeg',
+      MODEL,
     );
 
     expect(result).toEqual({ found: false });
     expect(chatCompletion).toHaveBeenCalledWith(
-      expect.objectContaining({ model: 'qwen/qwen3-vl-8b-instruct' }),
+      expect.objectContaining({ model: MODEL }),
     );
     expect(upsertAiResponseCache).toHaveBeenCalledWith(
       {},
       {
         screenshotPath: SCREENSHOT_PATH,
-        model: 'qwen/qwen3-vl-8b-instruct',
+        model: MODEL,
         response: { found: false },
       },
     );
@@ -79,7 +76,7 @@ describe('detectTitleCard', () => {
     (getAiResponseCache as jest.Mock).mockResolvedValue(undefined);
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
-    await detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg');
+    await detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg', MODEL);
 
     const request = (chatCompletion as jest.Mock).mock.calls[0][0];
     expect(request.messages[0]).toEqual({
@@ -99,7 +96,7 @@ describe('detectTitleCard', () => {
     (chatCompletion as jest.Mock).mockResolvedValue('not json');
 
     await expect(
-      detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg'),
+      detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg', MODEL),
     ).rejects.toThrow();
     expect(upsertAiResponseCache).not.toHaveBeenCalled();
   });

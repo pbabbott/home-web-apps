@@ -11,13 +11,18 @@ import {
 } from '@abbottland/express';
 import { config } from './config';
 import { getAiStatusRoute } from './controllers/ai';
-import { deleteFileRenames, listFileRenames } from './controllers/file-renames';
+import {
+  deleteFileRename,
+  deleteFileRenames,
+  listFileRenames,
+} from './controllers/file-renames';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
 import { deleteTitleCard, listTitleCards } from './controllers/title-cards';
 import { openApiSpec } from './openapi';
 import {
   deleteFileRenamesQuerySchema,
+  fileRenameIdParamsSchema,
   listFileRenamesQuerySchema,
 } from './schemas/file-renames';
 import {
@@ -66,6 +71,11 @@ export const createServer = (): Express => {
       '/file-renames',
       validateQuery(deleteFileRenamesQuerySchema),
       deleteFileRenames,
+    )
+    .delete(
+      '/file-renames/:id',
+      validateParams(fileRenameIdParamsSchema),
+      deleteFileRename,
     );
 
   configureErrorHandler(app);

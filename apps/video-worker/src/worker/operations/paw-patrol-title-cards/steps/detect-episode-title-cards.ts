@@ -58,6 +58,7 @@ export const detectEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
         screenshotPath,
         imageBase64,
         SCREENSHOT_MIME_TYPE,
+        ctx.model,
       );
 
       titleCardDetections.push({
