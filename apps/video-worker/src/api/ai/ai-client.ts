@@ -22,34 +22,91 @@ type ChatCompletionResponse = {
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1000;
+const MIN_REQUEST_INTERVAL_MS = 1000;
+const MAX_CONCURRENT_REQUESTS = 3;
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Rate-gates request starts to one per MIN_REQUEST_INTERVAL_MS, serialized
+ * across every concurrent chatCompletion caller (e.g. suggest-filenames.ts's
+ * Promise.all over episodes) via a single chained queue — a request only
+ * gets its start slot once every prior queued request has taken its own.
+ */
+let startQueue: Promise<void> = Promise.resolve();
+let lastRequestAt = 0;
+
+const waitForStartSlot = (): Promise<void> => {
+  const slot = startQueue.then(async () => {
+    const wait = lastRequestAt + MIN_REQUEST_INTERVAL_MS - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastRequestAt = Date.now();
+  });
+
+  startQueue = slot;
+  return slot;
+};
+
+/**
+ * Caps how many requests are in flight at once, independent of the start
+ * rate above: aiApiUrl is a single home LAN box, and a slow vision-model
+ * response could otherwise let one-per-second starts stack into an
+ * unbounded pile of concurrent in-flight requests.
+ */
+let activeRequests = 0;
+const concurrencyWaiters: (() => void)[] = [];
+
+const acquireConcurrencySlot = (): Promise<void> => {
+  if (activeRequests < MAX_CONCURRENT_REQUESTS) {
+    activeRequests++;
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    concurrencyWaiters.push(() => {
+      activeRequests++;
+      resolve();
+    });
+  });
+};
+
+const releaseConcurrencySlot = (): void => {
+  activeRequests--;
+  concurrencyWaiters.shift()?.();
+};
 
 const sendChatCompletionRequest = async (
   url: string,
   request: ChatCompletionRequest,
 ): Promise<string> => {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
-  });
+  await waitForStartSlot();
+  await acquireConcurrencySlot();
 
-  if (!response.ok) {
-    throw new Error(
-      `AI API request failed: ${response.status} ${await response.text()}`,
-    );
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `AI API request failed: ${response.status} ${await response.text()}`,
+      );
+    }
+
+    const data = (await response.json()) as ChatCompletionResponse;
+    const content = data.choices[0]?.message.content;
+
+    if (!content) {
+      throw new Error('AI API response had no message content');
+    }
+
+    return content;
+  } finally {
+    releaseConcurrencySlot();
   }
-
-  const data = (await response.json()) as ChatCompletionResponse;
-  const content = data.choices[0]?.message.content;
-
-  if (!content) {
-    throw new Error('AI API response had no message content');
-  }
-
-  return content;
 };
 
 /**
