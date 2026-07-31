@@ -163,11 +163,11 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <Th>Screenshot</Th>
                     <Th>Title</Th>
                     <Th>File Path</Th>
                     <Th>Timestamp (s)</Th>
                     <Th>Runtime (s)</Th>
-                    <Th>Screenshot</Th>
                     <Th>Created</Th>
                     <Th>Actions</Th>
                   </TableRow>
@@ -175,10 +175,6 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
                 <TableBody>
                   {pageTitleCards.map((titleCard) => (
                     <TableRow key={titleCard.id}>
-                      <Td>{titleCard.title ?? '—'}</Td>
-                      <Td>{titleCard.filePath}</Td>
-                      <Td>{titleCard.timestampSeconds}</Td>
-                      <Td>{titleCard.runTimeSeconds ?? '—'}</Td>
                       <Td>
                         {titleCard.screenshotBase64 ? (
                           <Modal>
@@ -206,6 +202,10 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
                           '—'
                         )}
                       </Td>
+                      <Td>{titleCard.title ?? '—'}</Td>
+                      <Td>{titleCard.filePath}</Td>
+                      <Td>{titleCard.timestampSeconds}</Td>
+                      <Td>{titleCard.runTimeSeconds ?? '—'}</Td>
                       <Td>{formatDate(titleCard.createdAt)}</Td>
                       <Td>
                         <Modal

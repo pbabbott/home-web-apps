@@ -1,10 +1,10 @@
 import { config } from '../../config';
 
-const MODELS_PATH = '/v1/models';
+const MODELS_PATH = '/api/v0/models';
 const REQUEST_TIMEOUT_MS = 3000;
 
 type ModelsResponse = {
-  data: { id: string }[];
+  data: { id: string; state: 'loaded' | 'not-loaded' }[];
 };
 
 export type AiStatus =
@@ -32,8 +32,9 @@ export const getAiStatus = async (): Promise<AiStatus> => {
     }
 
     const data = (await response.json()) as ModelsResponse;
+    const loadedModels = data.data.filter((model) => model.state === 'loaded');
 
-    return { online: true, models: data.data.map((model) => model.id) };
+    return { online: true, models: loadedModels.map((model) => model.id) };
   } catch {
     return { online: false, models: [] };
   }

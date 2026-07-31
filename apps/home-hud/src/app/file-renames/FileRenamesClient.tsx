@@ -218,9 +218,9 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                 <TableHead>
                   <TableRow>
                     <Th>Original Path</Th>
+                    <Th>Source Titles</Th>
                     <Th>Suggested Path</Th>
                     <Th>Split At</Th>
-                    <Th>Source Titles</Th>
                     <Th>Status</Th>
                     <Th>Created</Th>
                     <Th>Applied</Th>
@@ -230,6 +230,19 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                   {pageFileRenames.map((fileRename) => (
                     <TableRow key={fileRename.id}>
                       <Td>{fileRename.originalFilePath}</Td>
+                      <Td>
+                        {fileRename.sourceTitleCardTitles?.length ? (
+                          <div className="flex flex-col gap-1">
+                            {fileRename.sourceTitleCardTitles.map(
+                              (title, i) => (
+                                <span key={i}>{title}</span>
+                              ),
+                            )}
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </Td>
                       <Td>
                         {fileRename.secondSuggestedFilePath ? (
                           <div className="flex flex-col gap-1">
@@ -243,11 +256,6 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
                       <Td>
                         {fileRename.splitAtSeconds !== null
                           ? formatSplitAt(fileRename.splitAtSeconds)
-                          : '—'}
-                      </Td>
-                      <Td>
-                        {fileRename.sourceTitleCardTitles?.length
-                          ? fileRename.sourceTitleCardTitles.join(', ')
                           : '—'}
                       </Td>
                       <Td>

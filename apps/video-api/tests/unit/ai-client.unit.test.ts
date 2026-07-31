@@ -19,20 +19,26 @@ describe('getAiStatus', () => {
     jest.clearAllMocks();
   });
 
-  it('GETs <aiApiUrl>/v1/models', async () => {
+  it('GETs <aiApiUrl>/api/v0/models', async () => {
     mockFetch.mockResolvedValue(jsonResponse({ data: [] }));
 
     await getAiStatus();
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://ai.local:1234/v1/models',
+      'http://ai.local:1234/api/v0/models',
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 
   it('reports online with the loaded model ids', async () => {
     mockFetch.mockResolvedValue(
-      jsonResponse({ data: [{ id: 'model-a' }, { id: 'model-b' }] }),
+      jsonResponse({
+        data: [
+          { id: 'model-a', state: 'loaded' },
+          { id: 'model-b', state: 'loaded' },
+          { id: 'model-c', state: 'not-loaded' },
+        ],
+      }),
     );
 
     await expect(getAiStatus()).resolves.toEqual({
