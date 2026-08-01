@@ -12,7 +12,7 @@ Matching rules:
 - The detected text must correspond to the SAME episode, not just a similar-sounding or thematically related one. "Pups Save a Goldfish" and "Pups Save a Goldrush" are different episodes even though they look alike.
 - If the detected text is empty, garbled, or doesn't clearly correspond to exactly one entry in the official list, you do not have enough evidence — do not guess.
 
-Respond with valid JSON only, no markdown, no explanation, no other text.`;
+Respond with valid JSON only: no markdown, no code fences, no explanation, no other text.`;
 
 const buildUserPrompt = (
   filename: string,
