@@ -17,7 +17,6 @@ const buildContext = (
   model: 'test-model',
   episodes: [],
   outputPaths: [],
-  message: '',
   ...overrides,
 });
 

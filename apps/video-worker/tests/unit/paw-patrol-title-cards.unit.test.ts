@@ -90,10 +90,46 @@ describe('runPawPatrolTitleCardsOperation', () => {
 
     const result = await runPawPatrolTitleCardsOperation(job);
 
-    expect(result.message).toBe('');
+    expect(result.message).toBe(
+      'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 with no title card detected',
+    );
     expect(result.outputPaths).toHaveLength(15);
     expect(result.outputPaths[0]).toBe(
       'screenshots/Paw Patrol/Season 3/fakehash/31_480x270.jpg',
+    );
+  });
+
+  it('summarizes a mix of already-done and newly-processed episodes', async () => {
+    (fs.existsSync as jest.Mock).mockReturnValue(true);
+    (fs.statSync as jest.Mock).mockReturnValue({ isDirectory: () => true });
+    (fs.readdirSync as jest.Mock).mockReturnValue([
+      direntFor('Paw Patrol - S03E01 - Pups Save a Blimp.mp4', true),
+      direntFor('Paw Patrol - S03E02 - Pups Save a Train.mp4', true),
+    ]);
+    (fs.mkdirSync as jest.Mock).mockReturnValue(undefined);
+    (fs.readFileSync as jest.Mock).mockReturnValue(Buffer.from('jpegbytes'));
+
+    const { hashFile, listTitleCards } = jest.requireMock(
+      '@abbottland/video-db',
+    ) as {
+      hashFile: jest.Mock;
+      listTitleCards: jest.Mock;
+    };
+    hashFile.mockImplementation(async (absPath: string) =>
+      absPath.includes('E01') ? 'hash-done' : 'hash-new',
+    );
+    listTitleCards.mockImplementation(async (_db: unknown, { fileHash }) =>
+      fileHash === 'hash-done'
+        ? [{ id: 't1', fileHash: 'hash-done', title: 'existing' }]
+        : [],
+    );
+
+    const job = buildJob();
+
+    const result = await runPawPatrolTitleCardsOperation(job);
+
+    expect(result.message).toBe(
+      'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 already had title cards, 1 with no title card detected',
     );
   });
 });
