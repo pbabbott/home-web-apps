@@ -124,6 +124,29 @@ describe('parseJsonResponse', () => {
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('strips a ```json code fence before parsing', () => {
+    const request = {
+      model: 'm',
+      messages: [{ role: 'user' as const, content: 'hi' }],
+    };
+
+    expect(parseJsonResponse(request, '```json\n{"found":true}\n```')).toEqual({
+      found: true,
+    });
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('strips a bare ``` code fence before parsing', () => {
+    const request = {
+      model: 'm',
+      messages: [{ role: 'user' as const, content: 'hi' }],
+    };
+
+    expect(parseJsonResponse(request, '```\n{"found":true}\n```')).toEqual({
+      found: true,
+    });
+  });
+
   it('logs the prompt and raw response, then rethrows, on malformed JSON', () => {
     const request = {
       model: 'm',
@@ -132,7 +155,7 @@ describe('parseJsonResponse', () => {
         { role: 'user' as const, content: 'describe this image' },
       ],
     };
-    const content = '```json\n{"found":true}\n```';
+    const content = 'sure, here you go: {"found":true}';
 
     expect(() => parseJsonResponse(request, content)).toThrow(SyntaxError);
 

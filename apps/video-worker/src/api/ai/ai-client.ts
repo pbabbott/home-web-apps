@@ -129,20 +129,32 @@ const describeMessages = (messages: ChatMessage[]): string =>
     )
     .join('\n\n');
 
+const CODE_FENCE_PATTERN = /^```(?:json)?\s*([\s\S]*?)\s*```$/;
+
 /**
- * Parses an AI response as JSON, dumping the full prompt and raw response to
- * the logs before rethrowing on failure — the model occasionally wraps its
- * JSON in a markdown code fence or adds stray text despite being told not
- * to, and the bare SyntaxError from JSON.parse alone doesn't say what it
- * actually sent back, making that failure mode otherwise undiagnosable
- * after the fact.
+ * Strips a wrapping markdown code fence (```json ... ``` or ``` ... ```),
+ * if present. Models are told to respond with JSON only but routinely wrap
+ * it in a fence anyway.
+ */
+const stripCodeFence = (content: string): string => {
+  const match = content.trim().match(CODE_FENCE_PATTERN);
+  return match ? match[1] : content;
+};
+
+/**
+ * Parses an AI response as JSON, tolerating a wrapping markdown code fence.
+ * Dumps the full prompt and raw response to the logs before rethrowing on
+ * failure — the model occasionally adds stray text outside a fence despite
+ * being told not to, and the bare SyntaxError from JSON.parse alone doesn't
+ * say what it actually sent back, making that failure mode otherwise
+ * undiagnosable after the fact.
  */
 export const parseJsonResponse = <T>(
   request: ChatCompletionRequest,
   content: string,
 ): T => {
   try {
-    return JSON.parse(content) as T;
+    return JSON.parse(stripCodeFence(content)) as T;
   } catch (err) {
     console.error(
       `❌ AI response was not valid JSON (model=${request.model})\n${describeMessages(request.messages)}\n--- response ---\n${content}`,

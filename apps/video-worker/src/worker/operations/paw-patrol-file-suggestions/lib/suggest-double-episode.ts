@@ -16,7 +16,7 @@ Matching rules:
 - Preserve file order: "episodes[0]" must correspond to the FIRST title card given (the earlier segment), and "episodes[1]" to the SECOND.
 - If either segment's text is empty, garbled, or doesn't clearly correspond to exactly one entry in the official list, you do not have enough evidence for a confident match on the whole file — do not guess.
 
-Respond with valid JSON only, no markdown, no explanation, no other text.`;
+Respond with valid JSON only: no markdown, no code fences, no explanation, no other text.`;
 
 const buildUserPrompt = (
   filename: string,

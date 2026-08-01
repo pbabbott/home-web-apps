@@ -10,7 +10,7 @@ import {
 import { db } from '../../../../db';
 
 const SYSTEM_PROMPT =
-  'You extract text from images. Respond with valid JSON only, no other text.';
+  'You extract text from images. Respond with valid JSON only: no markdown, no code fences, no explanation, no other text.';
 
 const USER_PROMPT =
   'Look at this image. If it shows a Paw Patrol episode title (large stylized text on screen), return {"found": true, "title": "the exact title text"}. If no title is visible, return {"found": false}.';

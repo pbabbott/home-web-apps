@@ -14,5 +14,4 @@ export type PawPatrolTitleCardsContext = {
   model: string;
   episodes: Episode[];
   outputPaths: string[];
-  message: string;
 };

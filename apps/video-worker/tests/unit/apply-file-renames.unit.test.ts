@@ -453,6 +453,38 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
     );
     expect(result.message).toBe('applied 1 rename(s), skipped 1 (1 error)');
   });
+
+  it('throws when every row errors (e.g. a systemic permission problem)', async () => {
+    const rowA = buildFileRename({
+      fileHash: 'hash-a',
+      originalFilePath: 'Paw Patrol/Season 3/a.mp4',
+      suggestedFilePath: 'Paw Patrol/Season 3/a-target.mp4',
+    });
+    const rowB = buildFileRename({
+      fileHash: 'hash-b',
+      originalFilePath: 'Paw Patrol/Season 3/b.mp4',
+      suggestedFilePath: 'Paw Patrol/Season 3/b-target.mp4',
+    });
+    (listPendingFileRenames as jest.Mock).mockResolvedValue([rowA, rowB]);
+
+    existingPaths.add(absPath(rowA.originalFilePath));
+    existingPaths.add(absPath(rowB.originalFilePath));
+    mockHashMap({
+      [absPath(rowA.originalFilePath)]: 'hash-a',
+      [absPath(rowB.originalFilePath)]: 'hash-b',
+    });
+    (fs.renameSync as jest.Mock).mockImplementation(() => {
+      throw Object.assign(new Error('EACCES: permission denied'), {
+        code: 'EACCES',
+      });
+    });
+
+    await expect(
+      runPawPatrolApplyFileRenamesOperation({ parameters: {} } as VideoJob),
+    ).rejects.toThrow(/all 2 row\(s\) errored, 0 applied/);
+
+    expect(updateFileRenameStatus).not.toHaveBeenCalled();
+  });
 });
 
 function mockHashMap(map: Record<string, string>) {
