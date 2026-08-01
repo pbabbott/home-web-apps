@@ -27,11 +27,13 @@ const summarizeSkips = (skipped: SkippedRow[]): string => {
  * chain could plausibly span season directories.
  *
  * One row failing (an unresolvable collision, a cycle, a missing/mismatched
- * source, an ffmpeg error) never fails the whole job — it's recorded in
- * ctx.skipped, left `pending` in the DB, and the loop moves on. Every row
- * that does apply is marked so immediately after its filesystem mutation
- * succeeds, not batched at the end, so a mid-run crash leaves a resumable
- * state (already-applied rows stay applied, the rest are picked up next run).
+ * source, an ffmpeg error) never fails the whole job on its own — it's
+ * recorded in ctx.skipped, left `pending` in the DB, and the loop moves on.
+ * Every row that does apply is marked so immediately after its filesystem
+ * mutation succeeds, not batched at the end, so a mid-run crash leaves a
+ * resumable state (already-applied rows stay applied, the rest are picked up
+ * next run). If every row errored (e.g. a systemic permission/mount problem),
+ * the job throws instead of reporting a misleading "completed" — see below.
  */
 export const runPawPatrolApplyFileRenamesOperation = async (
   job: VideoJob,
@@ -79,6 +81,17 @@ export const runPawPatrolApplyFileRenamesOperation = async (
   const skipSummary = ctx.skipped.length
     ? ` (${summarizeSkips(ctx.skipped)})`
     : '';
+
+  if (
+    rows.length > 0 &&
+    applied === 0 &&
+    ctx.skipped.length > 0 &&
+    ctx.skipped.every((skip) => skip.reason === 'error')
+  ) {
+    throw new JobProcessingError(
+      `all ${ctx.skipped.length} row(s) errored, 0 applied: ${summarizeSkips(ctx.skipped)}`,
+    );
+  }
 
   return {
     outputPaths: ctx.outputPaths,
