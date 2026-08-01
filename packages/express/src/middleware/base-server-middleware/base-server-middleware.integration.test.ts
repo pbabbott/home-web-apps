@@ -109,6 +109,38 @@ describe('Base Server Middleware Integration Tests', () => {
 
       expect(response.body).toEqual({ logged: true });
     });
+
+    it('should not log probe/scrape endpoints', async () => {
+      app.get('/readyz', (_, res) => res.json({ ready: true }));
+      app.get('/healthz', (_, res) => res.json({ ok: true }));
+      app.get('/metrics', (_, res) => res.send('# metrics'));
+
+      const writeSpy = jest
+        .spyOn(process.stdout, 'write')
+        .mockImplementation(() => true);
+
+      await request(app).get('/readyz').expect(200);
+      await request(app).get('/healthz').expect(200);
+      await request(app).get('/metrics').expect(200);
+
+      expect(writeSpy).not.toHaveBeenCalled();
+
+      writeSpy.mockRestore();
+    });
+
+    it('should still log other endpoints', async () => {
+      app.get('/test-still-logged', (_, res) => res.json({ ok: true }));
+
+      const writeSpy = jest
+        .spyOn(process.stdout, 'write')
+        .mockImplementation(() => true);
+
+      await request(app).get('/test-still-logged').expect(200);
+
+      expect(writeSpy).toHaveBeenCalled();
+
+      writeSpy.mockRestore();
+    });
   });
 
   describe('Middleware Order and Integration', () => {
