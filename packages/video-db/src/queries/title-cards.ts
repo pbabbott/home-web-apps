@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, like } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   titleCards,
@@ -78,20 +78,34 @@ export const deleteTitleCardById = async (
 
 export type ListTitleCardsOptions = {
   fileHash?: string;
+  season?: number;
 };
 
 const LIST_TITLE_CARDS_LIMIT = 100;
+
+/** Matches a file_path with `Season <N>` as its own path segment — same convention as seasonDirectoryRelPath in video-worker, e.g. "media/tv_shows/Paw Patrol/Season 4/...". The trailing slash keeps "Season 4" from also matching "Season 40". */
+const seasonPathPattern = (season: number): string => `%/Season ${season}/%`;
 
 export const listTitleCards = async (
   db: Database,
   options: ListTitleCardsOptions = {},
 ): Promise<TitleCard[]> => {
+  const conditions = [];
+
+  if (options.fileHash) {
+    conditions.push(eq(titleCards.fileHash, options.fileHash));
+  }
+
+  if (options.season !== undefined) {
+    conditions.push(
+      like(titleCards.filePath, seasonPathPattern(options.season)),
+    );
+  }
+
   return db
     .select()
     .from(titleCards)
-    .where(
-      options.fileHash ? eq(titleCards.fileHash, options.fileHash) : undefined,
-    )
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(titleCards.timestampSeconds)
     .limit(LIST_TITLE_CARDS_LIMIT);
 };

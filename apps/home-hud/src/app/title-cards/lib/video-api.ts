@@ -12,8 +12,13 @@ export interface TitleCard {
   createdAt: string;
 }
 
-export async function getTitleCards(): Promise<TitleCard[]> {
-  const res = await fetch(`${VIDEO_API_URL}/title-cards`, {
+export async function getTitleCards(season?: number): Promise<TitleCard[]> {
+  const url = new URL(`${VIDEO_API_URL}/title-cards`);
+  if (season !== undefined) {
+    url.searchParams.set('season', String(season));
+  }
+
+  const res = await fetch(url, {
     cache: 'no-store',
   });
 

@@ -45,7 +45,32 @@ describe('GET /title-cards', () => {
 
     expect(videoDb.listTitleCards).toHaveBeenCalledWith(undefined, {
       fileHash: 'hash-1',
+      season: undefined,
     });
+  });
+
+  it('passes a valid season through to listTitleCards', async () => {
+    (videoDb.listTitleCards as jest.Mock).mockResolvedValue([]);
+
+    await supertest(createServer())
+      .get('/title-cards')
+      .query({ season: '4' })
+      .expect(200);
+
+    expect(videoDb.listTitleCards).toHaveBeenCalledWith(undefined, {
+      fileHash: undefined,
+      season: 4,
+    });
+  });
+
+  it('rejects a non-numeric season', async () => {
+    const res = await supertest(createServer())
+      .get('/title-cards')
+      .query({ season: 'bogus' })
+      .expect(400);
+
+    expect(res.body.message).toBe('Invalid query parameters');
+    expect(videoDb.listTitleCards).not.toHaveBeenCalled();
   });
 
   it('logs the error and returns a generic message when listing fails', async () => {
