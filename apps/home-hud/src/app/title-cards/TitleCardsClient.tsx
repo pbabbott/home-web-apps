@@ -35,12 +35,6 @@ const SEASON_OPTIONS = Array.from(
   (_, i) => FIRST_SEASON + i,
 );
 
-/** Pulls the season number out of a `<Show>/Season <N>/<file>` filePath. */
-function extractSeasonNumber(filePath: string): number | null {
-  const match = filePath.match(/Season (\d+)/);
-  return match ? Number(match[1]) : null;
-}
-
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
 // SSR/hydration boundary whenever the server and browser timezones differ.
@@ -56,24 +50,21 @@ function formatDate(iso: string): string {
 
 interface TitleCardsClientProps {
   titleCards: TitleCard[] | null;
+  selectedSeason: number | null;
 }
 
-export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
+export function TitleCardsClient({
+  titleCards,
+  selectedSeason,
+}: TitleCardsClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const filteredTitleCards = titleCards?.filter(
-    (titleCard) =>
-      selectedSeason === null ||
-      extractSeasonNumber(titleCard.filePath) === selectedSeason,
-  );
-
-  const sortedTitleCards = filteredTitleCards
+  const sortedTitleCards = titleCards
     ?.slice()
     .sort((a, b) => a.filePath.localeCompare(b.filePath));
 
@@ -86,7 +77,9 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
   );
 
   function selectSeason(season: number | null) {
-    setSelectedSeason(season);
+    router.push(
+      season === null ? '/title-cards' : `/title-cards?season=${season}`,
+    );
     setPage(1);
   }
 
@@ -147,16 +140,14 @@ export function TitleCardsClient({ titleCards }: TitleCardsClientProps) {
             Failed to load title cards from video-api.
           </Typography>
         )}
-        {titleCards?.length === 0 && (
+        {titleCards?.length === 0 && selectedSeason === null && (
           <Typography variant="body1">No title cards yet.</Typography>
         )}
-        {titleCards &&
-          titleCards.length > 0 &&
-          filteredTitleCards?.length === 0 && (
-            <Typography variant="body1">
-              No title cards for Season {selectedSeason}.
-            </Typography>
-          )}
+        {titleCards?.length === 0 && selectedSeason !== null && (
+          <Typography variant="body1">
+            No title cards for Season {selectedSeason}.
+          </Typography>
+        )}
         {pageTitleCards && pageTitleCards.length > 0 && (
           <>
             <ScrollableTable className="mb-0">
