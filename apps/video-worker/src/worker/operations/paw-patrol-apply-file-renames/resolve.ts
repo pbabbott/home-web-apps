@@ -35,6 +35,10 @@ const pushSkip = (
   reason: SkipReason,
   detail?: string,
 ): void => {
+  console.log(
+    `⏭️  skipped ${row.originalFilePath} (${reason}${detail ? `: ${detail}` : ''})`,
+  );
+
   ctx.skipped.push({
     fileHash: row.fileHash,
     originalFilePath: row.originalFilePath,
@@ -53,9 +57,15 @@ const pushSkip = (
 const markApplied = async (
   ctx: ApplyContext,
   row: FileRename,
+  kind: 'renamed' | 'split' | 'reconciled',
   extraOutputPath?: string,
 ): Promise<void> => {
   await updateFileRenameStatus(db, row.id, 'applied');
+
+  const dest = row.secondSuggestedFilePath
+    ? `${row.suggestedFilePath} + ${row.secondSuggestedFilePath}`
+    : row.suggestedFilePath;
+  console.log(`✅ ${kind} ${row.originalFilePath} -> ${dest}`);
 
   ctx.appliedHashes.add(row.fileHash);
   ctx.pendingByOriginalPath.delete(normalizeRelPath(row.originalFilePath));
@@ -102,7 +112,7 @@ const verifySource = async (
     const abs2 = resolveMediaPath(row.secondSuggestedFilePath);
 
     if (nonEmptyExists(abs1) && nonEmptyExists(abs2)) {
-      await markApplied(ctx, row);
+      await markApplied(ctx, row, 'reconciled');
       return { status: 'already-applied' };
     }
   } else {
@@ -112,7 +122,7 @@ const verifySource = async (
       const actualHash = await hashFile(suggestedAbsPath);
 
       if (actualHash === row.fileHash) {
-        await markApplied(ctx, row);
+        await markApplied(ctx, row, 'reconciled');
         return { status: 'already-applied' };
       }
     }
@@ -177,7 +187,7 @@ const applyPlainRename = async (
 
   fs.mkdirSync(path.dirname(suggestedAbsPath), { recursive: true });
   fs.renameSync(originalAbsPath, suggestedAbsPath);
-  await markApplied(ctx, row);
+  await markApplied(ctx, row, 'renamed');
 
   return 'applied';
 };
@@ -225,6 +235,10 @@ const applySplit = async (
     return 'split-output-missing';
   }
 
+  console.log(
+    `🔎 ${row.originalFilePath}: target split at ${row.splitAtSeconds}s -> nearest keyframe ${cutSeconds}s`,
+  );
+
   const abs1 = resolveMediaPath(row.suggestedFilePath);
   const abs2 = resolveMediaPath(secondSuggestedFilePath);
 
@@ -243,7 +257,7 @@ const applySplit = async (
   }
 
   const discardedPath = moveToDiscarded(row.originalFilePath, originalAbsPath);
-  await markApplied(ctx, row, discardedPath);
+  await markApplied(ctx, row, 'split', discardedPath);
 
   return 'applied';
 };
@@ -267,6 +281,8 @@ export const applyRow = async (
   if (cachedFailure) {
     return cachedFailure;
   }
+
+  console.log(`▶️  processing ${row.originalFilePath}`);
 
   const originalAbsPath = resolveMediaPath(row.originalFilePath);
   const gate = await verifySource(ctx, row, originalAbsPath);
