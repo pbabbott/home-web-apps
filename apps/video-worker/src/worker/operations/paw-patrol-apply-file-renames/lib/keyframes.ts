@@ -30,7 +30,7 @@ export const probeKeyframeTimes = async (
     '-skip_frame',
     'nokey',
     '-show_entries',
-    'frame=pts_time',
+    'frame=best_effort_timestamp_time',
     '-read_intervals',
     `${start}%${end}`,
     '-of',
