@@ -21,30 +21,53 @@ export const probeKeyframeTimes = async (
 ): Promise<number[]> => {
   const start = Math.max(0, aroundSeconds - PROBE_WINDOW_SECONDS);
   const end = aroundSeconds + PROBE_WINDOW_SECONDS;
+  const window = `${start}%${end}`;
 
-  const { stdout } = await execFileAsync(config.ffprobePath, [
-    '-v',
-    'error',
-    '-select_streams',
-    'v:0',
-    '-skip_frame',
-    'nokey',
-    '-show_entries',
-    'frame=best_effort_timestamp_time',
-    '-read_intervals',
-    `${start}%${end}`,
-    '-of',
-    'csv=p=0',
-    absPath,
-  ]);
+  let stdout: string;
+  try {
+    ({ stdout } = await execFileAsync(config.ffprobePath, [
+      '-v',
+      'error',
+      '-select_streams',
+      'v:0',
+      '-skip_frame',
+      'nokey',
+      '-show_entries',
+      'frame=best_effort_timestamp_time',
+      '-read_intervals',
+      window,
+      '-of',
+      'csv=p=0',
+      absPath,
+    ]));
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error(
+      `❌ ffprobe keyframe probe failed for ${absPath} (window ${window}): ${detail}`,
+    );
+    throw err;
+  }
 
-  return stdout
+  const keyframeTimes = stdout
     .split('\n')
-    .map((line) => line.trim())
+    .map((line) => line.trim().replace(/,$/, ''))
     .filter(Boolean)
     .map(Number)
     .filter((value) => Number.isFinite(value))
     .sort((a, b) => a - b);
+
+  // ffprobe ran and printed something, but none of it parsed as a keyframe
+  // timestamp — almost certainly an ffprobe output-format change (e.g. the
+  // csv trailing-comma quirk that caused this exact silent failure once
+  // already) rather than "no keyframes in this window". Surface the raw
+  // output so that's diagnosable from logs alone next time.
+  if (stdout.trim() && keyframeTimes.length === 0) {
+    console.warn(
+      `⚠️  ffprobe produced output but no parseable keyframe timestamps for ${absPath} (window ${window}): ${JSON.stringify(stdout)}`,
+    );
+  }
+
+  return keyframeTimes;
 };
 
 /**
