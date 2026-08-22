@@ -79,4 +79,38 @@ describe('probeKeyframeTimes', () => {
       expect.any(Function),
     );
   });
+
+  it('logs and rethrows when ffprobe itself fails', async () => {
+    const execError = new Error('Command failed: ffprobe ...: No such file');
+    (execFile as unknown as jest.Mock).mockImplementation(
+      (_file, _args, callback) => callback(execError),
+    );
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(probeKeyframeTimes('/media/e18-19.mp4', 45)).rejects.toBe(
+      execError,
+    );
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/media/e18-19.mp4'),
+    );
+
+    errorSpy.mockRestore();
+  });
+
+  it('warns when ffprobe output has content but nothing parses as a timestamp', async () => {
+    (execFile as unknown as jest.Mock).mockImplementation(
+      (_file, _args, callback) =>
+        callback(null, { stdout: 'frame,pict_type\n', stderr: '' }),
+    );
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    const result = await probeKeyframeTimes('/media/e18-19.mp4', 45);
+
+    expect(result).toEqual([]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/media/e18-19.mp4'),
+    );
+
+    warnSpy.mockRestore();
+  });
 });
