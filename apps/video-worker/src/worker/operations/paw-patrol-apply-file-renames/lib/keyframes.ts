@@ -40,7 +40,7 @@ export const probeKeyframeTimes = async (
 
   return stdout
     .split('\n')
-    .map((line) => line.trim())
+    .map((line) => line.trim().replace(/,$/, ''))
     .filter(Boolean)
     .map(Number)
     .filter((value) => Number.isFinite(value))

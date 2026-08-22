@@ -45,10 +45,13 @@ describe('probeKeyframeTimes', () => {
   });
 
   it('builds a -read_intervals window around the target and parses/sorts the CSV output', async () => {
+    // ffprobe's `-of csv=p=0` terminates every row with a trailing comma,
+    // even for a single selected field — the parser must strip it before
+    // reading the timestamp.
     (execFile as unknown as jest.Mock).mockImplementation(
       (_file, _args, callback) =>
         callback(null, {
-          stdout: '46.0\n44.5\nnot-a-number\n45.2\n',
+          stdout: '46.0,\n44.5,\nnot-a-number,\n45.2,\n',
           stderr: '',
         }),
     );
