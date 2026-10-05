@@ -64,5 +64,17 @@ export const suggestSingleEpisode = async (
   };
 
   const content = await chatCompletion(request);
-  return parseJsonResponse<SingleEpisodeMatchResult>(request, content);
+  const result = parseJsonResponse<SingleEpisodeMatchResult>(request, content);
+
+  if (
+    result.found &&
+    (typeof result.episodeTitle !== 'string' || !result.episodeTitle.trim())
+  ) {
+    console.warn(
+      `⚠️ AI returned found:true with an invalid episodeTitle (model=${model}): ${JSON.stringify(result)}`,
+    );
+    return { found: false };
+  }
+
+  return result;
 };
