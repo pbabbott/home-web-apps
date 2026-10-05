@@ -79,5 +79,21 @@ export const suggestDoubleEpisode = async (
   };
 
   const content = await chatCompletion(request);
-  return parseJsonResponse<DoubleEpisodeMatchResult>(request, content);
+  const result = parseJsonResponse<DoubleEpisodeMatchResult>(request, content);
+
+  if (
+    result.found &&
+    result.episodes.some(
+      (episode) =>
+        typeof episode.episodeTitle !== 'string' ||
+        !episode.episodeTitle.trim(),
+    )
+  ) {
+    console.warn(
+      `⚠️ AI returned found:true with an invalid episodeTitle (model=${model}): ${JSON.stringify(result)}`,
+    );
+    return { found: false };
+  }
+
+  return result;
 };
