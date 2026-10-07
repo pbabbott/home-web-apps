@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Setup Turbo auth
@@ -54,7 +54,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Run format check
@@ -74,7 +74,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Setup Turbo auth
@@ -92,8 +92,13 @@ jobs:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
 
+      # --concurrency=2: this job isn't matrixed per-package like docker-build,
+      # so a lockfile change that busts turbo's cache for every package at
+      # once (e.g. a catalog-wide dependency bump) tries to build all ~9
+      # apps/packages in parallel inside the runner pod's 4Gi memory limit --
+      # OOMs the pod, which surfaces to Actions as the runner losing contact.
       - name: Build
-        run: pnpm build
+        run: pnpm turbo run build --concurrency=2
         shell: bash
 
       - name: Upload build artifact
@@ -122,7 +127,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Compute changed docker:publish packages
@@ -144,7 +149,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Compute test:unit packages
@@ -164,7 +169,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Compute test:int packages
@@ -200,7 +205,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Setup Turbo auth
@@ -474,7 +479,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Run unit tests (${{ matrix.package }})
@@ -516,7 +521,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Setup test environment
@@ -566,7 +571,7 @@ jobs:
         uses: ./.github/actions/pnpm-setup
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --offline
+        run: bash ./scripts/pnpm-install-ci.sh
         shell: bash
 
       - name: Setup test environment
