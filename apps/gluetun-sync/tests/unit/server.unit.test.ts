@@ -1,6 +1,6 @@
 import supertest from 'supertest';
 import { createServer, DOCS_ROUTE } from '../../src/server';
-import { PortsResult } from '../../src/controllers/status';
+import { PortsResult } from '../../src/controllers/get-ports';
 import * as gluetunApi from '../../src/api/gluetun/gluetun';
 import * as qbittorrentApi from '../../src/api/qbittorrent';
 

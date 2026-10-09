@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
+import { getPortsOperation } from './controllers/get-ports';
+import { getPublicIpOperation } from './controllers/get-public-ip';
+import { getStatusOperation } from './controllers/get-status';
+import { doSyncOperation } from './controllers/sync-ports';
 import { SyncCaller } from './data';
 
 const syncCallerSchema = z.enum(SyncCaller);
@@ -41,9 +45,8 @@ export const openApiSpec = createDocument({
     },
     '/sync': {
       post: {
-        summary: 'Trigger a port sync between Gluetun and qBittorrent',
-        description:
-          'Reads the forwarded port from Gluetun and, if it differs from qBittorrent listen_port, updates qBittorrent to match.',
+        summary: doSyncOperation.summary,
+        description: doSyncOperation.description,
         responses: {
           '200': {
             description: 'Sync succeeded (ports now match, or already did)',
@@ -66,7 +69,7 @@ export const openApiSpec = createDocument({
     },
     '/status': {
       get: {
-        summary: 'Get the last recorded sync attempt/result',
+        summary: getStatusOperation.summary,
         responses: {
           '200': {
             description: 'Current in-memory status record',
@@ -81,7 +84,7 @@ export const openApiSpec = createDocument({
     },
     '/status/public-ip': {
       get: {
-        summary: 'Get the current public IP, as reported by ipify',
+        summary: getPublicIpOperation.summary,
         responses: {
           '200': {
             description: 'Public IP lookup succeeded',
@@ -104,8 +107,7 @@ export const openApiSpec = createDocument({
     },
     '/status/ports': {
       get: {
-        summary:
-          'Get the forwarded port from Gluetun and the listen_port from qBittorrent, side by side',
+        summary: getPortsOperation.summary,
         responses: {
           '200': {
             description:

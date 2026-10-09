@@ -16,6 +16,8 @@ export enum SyncCaller {
   CRON = 'CRON',
 
   API = 'API',
+
+  MCP = 'MCP',
 }
 
 export const getStatusRecord = () => {
