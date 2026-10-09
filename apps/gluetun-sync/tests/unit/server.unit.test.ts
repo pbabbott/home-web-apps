@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import { createServer } from '../../src/server';
+import { createServer, DOCS_ROUTE } from '../../src/server';
 import { PortsResult } from '../../src/controllers/status';
 import * as gluetunApi from '../../src/api/gluetun/gluetun';
 import * as qbittorrentApi from '../../src/api/qbittorrent';
@@ -14,6 +14,17 @@ describe('GET /healthz', () => {
       .expect(200)
       .then((res) => {
         expect(res.body.status).toBe('ok');
+      });
+  });
+});
+
+describe('GET /docs', () => {
+  it('serves the Swagger UI', async () => {
+    await supertest(createServer())
+      .get(`${DOCS_ROUTE}/`)
+      .expect(200)
+      .then((res) => {
+        expect(res.text).toContain('swagger-ui');
       });
   });
 });

@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import {
   configureBaseServerMiddleware,
   configureHealthRoute,
@@ -7,6 +8,9 @@ import {
 import { config } from './config';
 import { doSync } from './controllers/sync';
 import { getPorts, getPublicIp, getStatus } from './controllers/status';
+import { openApiSpec } from './openapi';
+
+export const DOCS_ROUTE = '/docs';
 
 export const createServer = (): Express => {
   const app = express();
@@ -14,6 +18,8 @@ export const createServer = (): Express => {
   configureBaseServerMiddleware(app);
   configureHealthRoute(app);
   configureMetricsRoute(app);
+
+  app.use(DOCS_ROUTE, swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
   app
     .post('/sync', doSync)
@@ -31,5 +37,6 @@ export const startServer = () => {
 
   server.listen(port, () => {
     console.log(`gluetun-sync running on ${port}`);
+    console.log(`📚 Swagger docs: http://localhost:${port}${DOCS_ROUTE}`);
   });
 };
