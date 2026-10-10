@@ -29,6 +29,21 @@ export async function getJobs(): Promise<VideoJob[]> {
   return data.jobs;
 }
 
+export async function getJobById(id: string): Promise<VideoJob | null> {
+  const res = await fetch(`${VIDEO_API_URL}/jobs/${id}`, { cache: 'no-store' });
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `video-api GET /jobs/${id} returned ${res.status}: ${body}`,
+    );
+  }
+
+  return res.json();
+}
+
 export type AiStatus =
   | { online: true; models: string[] }
   | { online: false; models: [] };
