@@ -1,6 +1,8 @@
 import { listPendingFileRenames, type VideoJob } from '@abbottland/video-db';
 import { db } from '../../../db';
 import { JobProcessingError } from '../../job-processing-error';
+import type { NamedStep } from '../pipeline';
+import { runSteps } from '../pipeline';
 import type { OperationResult } from '../operation-result';
 import type { ApplyContext, SkippedRow } from './context';
 import { normalizeRelPath } from './lib/paths';
@@ -19,6 +21,18 @@ const summarizeSkips = (skipped: SkippedRow[]): string => {
     .join(', ');
 };
 
+const listPendingRenames: NamedStep<ApplyContext>['run'] = async (ctx) => {
+  const rows = await listPendingFileRenames(db);
+
+  return {
+    ...ctx,
+    rows,
+    pendingByOriginalPath: new Map(
+      rows.map((row) => [normalizeRelPath(row.originalFilePath), row]),
+    ),
+  };
+};
+
 /**
  * Applies every pending file_renames row: a plain rename (fs.rename), or a
  * split (ffmpeg cut into two files, original moved to discarded/) — see
@@ -33,28 +47,10 @@ const summarizeSkips = (skipped: SkippedRow[]): string => {
  * mutation succeeds, not batched at the end, so a mid-run crash leaves a
  * resumable state (already-applied rows stay applied, the rest are picked up
  * next run). If every row errored (e.g. a systemic permission/mount problem),
- * the job throws instead of reporting a misleading "completed" — see below.
+ * this step throws instead of reporting a misleading "completed" — see below.
  */
-export const runPawPatrolApplyFileRenamesOperation = async (
-  job: VideoJob,
-): Promise<OperationResult> => {
-  if (!isPawPatrolApplyFileRenamesParameters(job.parameters)) {
-    throw new JobProcessingError('parameters must be an object');
-  }
-
-  const rows = await listPendingFileRenames(db);
-
-  const ctx: ApplyContext = {
-    job,
-    pendingByOriginalPath: new Map(
-      rows.map((row) => [normalizeRelPath(row.originalFilePath), row]),
-    ),
-    appliedHashes: new Set(),
-    failedHashes: new Map(),
-    skipped: [],
-  };
-
-  for (const row of rows) {
+const applyRenames: NamedStep<ApplyContext>['run'] = async (ctx) => {
+  for (const row of ctx.rows) {
     // already resolved (applied or failed) via another row's chain
     if (
       ctx.appliedHashes.has(row.fileHash) ||
@@ -76,14 +72,9 @@ export const runPawPatrolApplyFileRenamesOperation = async (
     }
   }
 
-  const applied = ctx.appliedHashes.size;
-  const skipSummary = ctx.skipped.length
-    ? ` (${summarizeSkips(ctx.skipped)})`
-    : '';
-
   if (
-    rows.length > 0 &&
-    applied === 0 &&
+    ctx.rows.length > 0 &&
+    ctx.appliedHashes.size === 0 &&
     ctx.skipped.length > 0 &&
     ctx.skipped.every((skip) => skip.reason === 'error')
   ) {
@@ -92,7 +83,46 @@ export const runPawPatrolApplyFileRenamesOperation = async (
     );
   }
 
+  return ctx;
+};
+
+const steps: NamedStep<ApplyContext>[] = [
+  {
+    name: 'list-pending-renames',
+    message: 'Listing pending renames',
+    run: listPendingRenames,
+  },
+  {
+    name: 'apply-renames',
+    message: 'Applying renames',
+    run: applyRenames,
+  },
+];
+
+export const runPawPatrolApplyFileRenamesOperation = async (
+  job: VideoJob,
+): Promise<OperationResult> => {
+  if (!isPawPatrolApplyFileRenamesParameters(job.parameters)) {
+    throw new JobProcessingError('parameters must be an object');
+  }
+
+  const ctx: ApplyContext = {
+    job,
+    rows: [],
+    pendingByOriginalPath: new Map(),
+    appliedHashes: new Set(),
+    failedHashes: new Map(),
+    skipped: [],
+  };
+
+  const result = await runSteps(ctx, steps);
+
+  const applied = result.appliedHashes.size;
+  const skipSummary = result.skipped.length
+    ? ` (${summarizeSkips(result.skipped)})`
+    : '';
+
   return {
-    message: `applied ${applied} rename(s), skipped ${ctx.skipped.length}${skipSummary}`,
+    message: `applied ${applied} rename(s), skipped ${result.skipped.length}${skipSummary}`,
   };
 };

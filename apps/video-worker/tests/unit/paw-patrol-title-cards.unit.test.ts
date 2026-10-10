@@ -27,6 +27,9 @@ jest.mock('@abbottland/video-db', () => ({
   getAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertTitleCard: jest.fn(),
+  createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
+  completeVideoJobStep: jest.fn(),
+  failVideoJobStep: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 jest.mock('../../src/api/ai/ai-client', () => ({

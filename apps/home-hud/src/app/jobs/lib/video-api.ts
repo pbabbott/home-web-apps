@@ -43,6 +43,33 @@ export async function getJobById(id: string): Promise<VideoJob | null> {
   return res.json();
 }
 
+export type VideoJobStepStatus = 'in_progress' | 'completed' | 'failed';
+
+export interface VideoJobStep {
+  id: string;
+  jobId: string;
+  stepName: string;
+  status: VideoJobStepStatus;
+  message: string | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export async function getJobSteps(id: string): Promise<VideoJobStep[]> {
+  const res = await fetch(`${VIDEO_API_URL}/jobs/${id}/steps`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `video-api GET /jobs/${id}/steps returned ${res.status}: ${body}`,
+    );
+  }
+
+  return res.json();
+}
+
 export type AiStatus =
   | { online: true; models: string[] }
   | { online: false; models: [] };

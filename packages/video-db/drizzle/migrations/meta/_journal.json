@@ -85,6 +85,13 @@
       "when": 1791596928080,
       "tag": "0011_simple_lady_ursula",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791599392051,
+      "tag": "0012_red_zombie",
+      "breakpoints": true
     }
   ]
 }

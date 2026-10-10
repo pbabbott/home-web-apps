@@ -26,7 +26,11 @@ jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn(),
   listPendingFileRenames: jest.fn(),
   updateFileRenameStatus: jest.fn(),
+  createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
+  completeVideoJobStep: jest.fn(),
+  failVideoJobStep: jest.fn(),
 }));
+jest.mock('../../src/db', () => ({ db: {} }));
 
 const MEDIA_ROOT = '/media';
 const absPath = (relPath: string): string => `${MEDIA_ROOT}/${relPath}`;

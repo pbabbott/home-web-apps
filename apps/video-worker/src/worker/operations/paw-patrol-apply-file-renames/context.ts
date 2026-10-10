@@ -17,6 +17,8 @@ export type SkippedRow = {
 
 export type ApplyContext = {
   job: VideoJob;
+  /** Pending rows for this run — populated by the list-pending-renames step, consumed by apply-renames. */
+  rows: FileRename[];
   /**
    * Pending rows keyed by normalizeRelPath(originalFilePath) — answers "is
    * the file currently occupying this target path itself a pending row

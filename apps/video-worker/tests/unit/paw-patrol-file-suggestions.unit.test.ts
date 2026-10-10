@@ -17,6 +17,9 @@ jest.mock('@abbottland/video-db', () => ({
   listFileRenames: jest.fn().mockResolvedValue([]),
   listTitleCards: jest.fn().mockResolvedValue([{ title: 'Pups Save a Blimp' }]),
   upsertFileRename: jest.fn().mockResolvedValue({}),
+  createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
+  completeVideoJobStep: jest.fn(),
+  failVideoJobStep: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 jest.mock('../../src/api/sonarr/sonarr-client', () => ({

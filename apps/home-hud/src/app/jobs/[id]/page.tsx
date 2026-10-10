@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { JobDetailClient } from './JobDetailClient';
-import { getJobById } from '../lib/video-api';
+import { getJobById, getJobSteps } from '../lib/video-api';
 
 type PageProps = {
   params: Promise<{
@@ -14,5 +14,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
   if (!job) notFound();
 
-  return <JobDetailClient job={job} />;
+  const steps = await getJobSteps(id);
+
+  return <JobDetailClient job={job} initialSteps={steps} />;
 }

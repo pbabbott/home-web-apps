@@ -6,6 +6,7 @@ import {
   type VideoJob,
   type VideoJobStatus,
 } from '../schema/video-jobs';
+import { notifyJobStepsChanged } from './notify';
 
 export type CreateVideoJobInput = Pick<NewVideoJob, 'operation' | 'parameters'>;
 
@@ -102,6 +103,8 @@ export const completeVideoJob = async (
     .where(eq(videoJobs.id, id))
     .returning();
 
+  await notifyJobStepsChanged(db, job.id);
+
   return job;
 };
 
@@ -115,6 +118,8 @@ export const failVideoJob = async (
     .set({ status: 'failed', completedAt: new Date(), error })
     .where(eq(videoJobs.id, id))
     .returning();
+
+  await notifyJobStepsChanged(db, job.id);
 
   return job;
 };

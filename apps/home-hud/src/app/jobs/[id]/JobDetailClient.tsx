@@ -1,16 +1,29 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   Badge,
   type BadgeColor,
   OutlinedButton,
   Panel,
+  ScrollableTable,
+  Table,
+  TableBody,
+  TableHead,
+  TableRow,
+  Th,
+  Td,
   Typography,
 } from '@abbottland/fui-components';
 import { Icon } from '@abbottland/fui-icons';
-import type { VideoJob, VideoJobStatus } from '../lib/video-api';
+import type {
+  VideoJob,
+  VideoJobStatus,
+  VideoJobStep,
+  VideoJobStepStatus,
+} from '../lib/video-api';
 
 const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
   pending: 'warning',
@@ -18,6 +31,15 @@ const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
   completed: 'success',
   failed: 'error',
 };
+
+const stepStatusColor: Record<VideoJobStepStatus, BadgeColor> = {
+  in_progress: 'secondary',
+  completed: 'success',
+  failed: 'error',
+};
+
+const isTerminal = (status: VideoJobStatus): boolean =>
+  status === 'completed' || status === 'failed';
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -47,9 +69,41 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
 
 interface JobDetailClientProps {
   job: VideoJob;
+  initialSteps: VideoJobStep[];
 }
 
-export function JobDetailClient({ job }: JobDetailClientProps) {
+export function JobDetailClient({
+  job: initialJob,
+  initialSteps,
+}: JobDetailClientProps) {
+  const [job, setJob] = useState(initialJob);
+  const [steps, setSteps] = useState(initialSteps);
+
+  useEffect(() => {
+    // Nothing left to watch — a terminal job never changes again.
+    if (isTerminal(initialJob.status)) return;
+
+    const source = new EventSource(`/jobs/${initialJob.id}/steps`);
+
+    source.onmessage = (event) => {
+      const payload: { job: VideoJob; steps: VideoJobStep[] } = JSON.parse(
+        event.data,
+      );
+
+      setJob(payload.job);
+      setSteps(payload.steps);
+
+      // Server ends its response on a terminal status, but that alone
+      // doesn't stop a browser EventSource from auto-reconnecting — close
+      // it explicitly once we see the job is actually done.
+      if (isTerminal(payload.job.status)) {
+        source.close();
+      }
+    };
+
+    return () => source.close();
+  }, [initialJob.id, initialJob.status]);
+
   return (
     <main className="flex min-h-screen flex-col gap-6 bg-neutral-800 px-8 py-2">
       <div className="flex flex-col gap-4">
@@ -103,6 +157,47 @@ export function JobDetailClient({ job }: JobDetailClientProps) {
           />
         )}
       </Panel>
+
+      <div className="flex flex-col gap-2">
+        <Typography variant="h5" component="h2">
+          Steps
+        </Typography>
+
+        {steps.length === 0 ? (
+          <Typography variant="body2" className="text-neutral-400">
+            No steps recorded yet.
+          </Typography>
+        ) : (
+          <ScrollableTable className="mb-0">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <Th>Step</Th>
+                  <Th>Status</Th>
+                  <Th>Message</Th>
+                  <Th>Started</Th>
+                  <Th>Completed</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {steps.map((step) => (
+                  <TableRow key={step.id}>
+                    <Td>{step.stepName}</Td>
+                    <Td>
+                      <Badge color={stepStatusColor[step.status]}>
+                        {step.status}
+                      </Badge>
+                    </Td>
+                    <Td>{step.message ?? '—'}</Td>
+                    <Td>{formatDate(step.startedAt)}</Td>
+                    <Td>{formatDate(step.completedAt)}</Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
+        )}
+      </div>
     </main>
   );
 }

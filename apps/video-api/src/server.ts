@@ -16,6 +16,7 @@ import {
   deleteFileRenames,
   listFileRenames,
 } from './controllers/file-renames';
+import { getJobSteps, streamJobSteps } from './controllers/job-steps';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
 import { deleteTitleCard, listTitleCards } from './controllers/title-cards';
@@ -52,6 +53,12 @@ export const createServer = (): Express => {
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
     .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
+    .get('/jobs/:id/steps', validateParams(jobIdParamsSchema), getJobSteps)
+    .get(
+      '/jobs/:id/steps/stream',
+      validateParams(jobIdParamsSchema),
+      streamJobSteps,
+    )
     .get(
       '/title-cards',
       validateQuery(listTitleCardsQuerySchema),
