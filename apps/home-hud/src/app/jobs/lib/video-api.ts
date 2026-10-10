@@ -6,9 +6,7 @@ export interface VideoJob {
   id: string;
   operation: string;
   status: VideoJobStatus;
-  outputPaths: string[] | null;
   parameters: Record<string, unknown>;
-  attempts: number;
   workerId: string | null;
   createdAt: string;
   startedAt: string | null;
@@ -28,6 +26,48 @@ export async function getJobs(): Promise<VideoJob[]> {
 
   const data: { jobs: VideoJob[] } = await res.json();
   return data.jobs;
+}
+
+export async function getJobById(id: string): Promise<VideoJob | null> {
+  const res = await fetch(`${VIDEO_API_URL}/jobs/${id}`, { cache: 'no-store' });
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `video-api GET /jobs/${id} returned ${res.status}: ${body}`,
+    );
+  }
+
+  return res.json();
+}
+
+export type VideoJobStepStatus = 'in_progress' | 'completed' | 'failed';
+
+export interface VideoJobStep {
+  id: string;
+  jobId: string;
+  stepName: string;
+  status: VideoJobStepStatus;
+  message: string | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
+export async function getJobSteps(id: string): Promise<VideoJobStep[]> {
+  const res = await fetch(`${VIDEO_API_URL}/jobs/${id}/steps`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `video-api GET /jobs/${id}/steps returned ${res.status}: ${body}`,
+    );
+  }
+
+  return res.json();
 }
 
 export type AiStatus =

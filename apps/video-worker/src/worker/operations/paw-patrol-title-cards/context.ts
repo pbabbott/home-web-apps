@@ -13,5 +13,4 @@ export type PawPatrolTitleCardsContext = {
   /** AI model for title-card detection calls — job.parameters.model, falling back to config.aiModel. */
   model: string;
   episodes: Episode[];
-  outputPaths: string[];
 };

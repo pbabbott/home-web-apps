@@ -22,9 +22,7 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
     operation: 'stub-operation',
     status: 'processing',
-    outputPaths: null,
     parameters: {},
-    attempts: 1,
     workerId: 'worker-1',
     createdAt: new Date(),
     startedAt: new Date(),
@@ -58,10 +56,9 @@ describe('processJob', () => {
     expect(completeVideoJob).not.toHaveBeenCalled();
   });
 
-  it('completes the job with the handler output paths and message on success', async () => {
+  it('completes the job with the handler message on success', async () => {
     const job = buildJob();
     (operationHandlers['stub-operation'] as jest.Mock).mockResolvedValue({
-      outputPaths: ['/title-cards/x/30.jpg'],
       message: 'processed 1 title card',
     });
 
@@ -70,7 +67,6 @@ describe('processJob', () => {
     expect(completeVideoJob).toHaveBeenCalledWith(
       {},
       job.id,
-      ['/title-cards/x/30.jpg'],
       'processed 1 title card',
     );
     expect(failVideoJob).not.toHaveBeenCalled();
@@ -90,10 +86,7 @@ describe('processJob', () => {
   it('sends periodic heartbeats while the handler is still running', async () => {
     jest.useFakeTimers();
     const job = buildJob();
-    let resolveHandler!: (result: {
-      outputPaths: string[];
-      message: string;
-    }) => void;
+    let resolveHandler!: (result: { message: string }) => void;
     (operationHandlers['stub-operation'] as jest.Mock).mockImplementation(
       () =>
         new Promise((resolve) => {
@@ -105,7 +98,7 @@ describe('processJob', () => {
     await jest.advanceTimersByTimeAsync(25_000);
     expect(heartbeatVideoJob).toHaveBeenCalledTimes(2);
 
-    resolveHandler({ outputPaths: [], message: '' });
+    resolveHandler({ message: '' });
     await processing;
     jest.useRealTimers();
   });

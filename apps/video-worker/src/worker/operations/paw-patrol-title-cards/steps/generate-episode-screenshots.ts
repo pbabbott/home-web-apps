@@ -160,18 +160,15 @@ export const generateEpisodeScreenshots: Step<
     }
   }
 
-  const outputPaths = [...ctx.outputPaths];
-
   const episodes = ctx.episodes.map((episode, episodeIndex) => {
     const tasks = tasksByEpisode[episodeIndex];
 
     if (tasks.length === 0) return episode;
 
     const screenshotPaths = tasks.map((task) => task.outputRelPath);
-    outputPaths.push(...screenshotPaths);
 
     return { ...episode, screenshotPaths };
   });
 
-  return { ...ctx, episodes, outputPaths };
+  return { ...ctx, episodes };
 };

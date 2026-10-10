@@ -4,7 +4,6 @@ import { Typography } from '@abbottland/fui-components';
 import type { AiStatus, VideoJob } from '../jobs/lib/video-api';
 import type { TitleCard } from '../title-cards/lib/video-api';
 import type { FileRename } from '../file-renames/lib/video-api';
-import { Counter } from './Counter';
 import { Footer } from './Footer';
 import { HomeSummaryPanels } from './HomeSummaryPanels';
 
@@ -31,7 +30,6 @@ export function HomeClient({
           <Typography variant="h3" component="h3">
             your house, at a glance
           </Typography>
-          <Counter />
         </div>
 
         <HomeSummaryPanels

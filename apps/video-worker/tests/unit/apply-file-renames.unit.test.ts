@@ -26,7 +26,11 @@ jest.mock('@abbottland/video-db', () => ({
   hashFile: jest.fn(),
   listPendingFileRenames: jest.fn(),
   updateFileRenameStatus: jest.fn(),
+  createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
+  completeVideoJobStep: jest.fn(),
+  failVideoJobStep: jest.fn(),
 }));
+jest.mock('../../src/db', () => ({ db: {} }));
 
 const MEDIA_ROOT = '/media';
 const absPath = (relPath: string): string => `${MEDIA_ROOT}/${relPath}`;
@@ -104,7 +108,6 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       absPath(row.suggestedFilePath),
     );
     expect(updateFileRenameStatus).toHaveBeenCalledWith({}, row.id, 'applied');
-    expect(result.outputPaths).toEqual([row.suggestedFilePath]);
     expect(result.message).toBe('applied 1 rename(s), skipped 0');
   });
 
@@ -212,7 +215,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       },
     );
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    await runPawPatrolApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -231,11 +234,6 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       absPath('discarded/Paw Patrol/Season 3/combined.mp4'),
     );
     expect(updateFileRenameStatus).toHaveBeenCalledWith({}, row.id, 'applied');
-    expect(result.outputPaths).toEqual([
-      row.suggestedFilePath,
-      row.secondSuggestedFilePath,
-      'discarded/Paw Patrol/Season 3/combined.mp4',
-    ]);
   });
 
   it('resolves a chain on one split target before splitting', async () => {

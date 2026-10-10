@@ -17,7 +17,6 @@ const buildContext = (
   model: 'test-model',
   episodes: [],
   sonarrEpisodes: [],
-  outputPaths: [],
   message: '',
   ...overrides,
 });
@@ -39,10 +38,9 @@ describe('saveSuggestions', () => {
       ],
     });
 
-    const result = await saveSuggestions(context);
+    await saveSuggestions(context);
 
     expect(upsertFileRename).not.toHaveBeenCalled();
-    expect(result.outputPaths).toEqual([]);
   });
 
   it('skips an episode with no computed suggestedFilePath', async () => {
@@ -52,10 +50,9 @@ describe('saveSuggestions', () => {
       ],
     });
 
-    const result = await saveSuggestions(context);
+    await saveSuggestions(context);
 
     expect(upsertFileRename).not.toHaveBeenCalled();
-    expect(result.outputPaths).toEqual([]);
   });
 
   it('rejects an episode with a suggestion but no hash', async () => {
@@ -89,7 +86,7 @@ describe('saveSuggestions', () => {
       ],
     });
 
-    const result = await saveSuggestions(context);
+    await saveSuggestions(context);
 
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},
@@ -103,9 +100,6 @@ describe('saveSuggestions', () => {
         sourceTitleCardTitles: ['Pups Save a Blimp'],
       },
     );
-    expect(result.outputPaths).toEqual([
-      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
-    ]);
   });
 
   it('upserts a split suggestion and records both output paths', async () => {
@@ -131,7 +125,7 @@ describe('saveSuggestions', () => {
       ],
     });
 
-    const result = await saveSuggestions(context);
+    await saveSuggestions(context);
 
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},
@@ -149,9 +143,5 @@ describe('saveSuggestions', () => {
         ],
       },
     );
-    expect(result.outputPaths).toEqual([
-      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E18 - Pups Save a Goldrush.mp4',
-      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E19 - Pups Save a Space Alien.mp4',
-    ]);
   });
 });

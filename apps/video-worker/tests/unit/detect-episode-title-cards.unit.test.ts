@@ -23,7 +23,6 @@ const buildContext = (
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
-  outputPaths: [],
   ...overrides,
 });
 

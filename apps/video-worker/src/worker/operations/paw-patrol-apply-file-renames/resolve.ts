@@ -58,7 +58,6 @@ const markApplied = async (
   ctx: ApplyContext,
   row: FileRename,
   kind: 'renamed' | 'split' | 'reconciled',
-  extraOutputPath?: string,
 ): Promise<void> => {
   await updateFileRenameStatus(db, row.id, 'applied');
 
@@ -69,13 +68,6 @@ const markApplied = async (
 
   ctx.appliedHashes.add(row.fileHash);
   ctx.pendingByOriginalPath.delete(normalizeRelPath(row.originalFilePath));
-  ctx.outputPaths.push(row.suggestedFilePath);
-  if (row.secondSuggestedFilePath) {
-    ctx.outputPaths.push(row.secondSuggestedFilePath);
-  }
-  if (extraOutputPath) {
-    ctx.outputPaths.push(extraOutputPath);
-  }
 };
 
 /**
@@ -256,8 +248,8 @@ const applySplit = async (
     return 'split-output-missing';
   }
 
-  const discardedPath = moveToDiscarded(row.originalFilePath, originalAbsPath);
-  await markApplied(ctx, row, 'split', discardedPath);
+  moveToDiscarded(row.originalFilePath, originalAbsPath);
+  await markApplied(ctx, row, 'split');
 
   return 'applied';
 };

@@ -20,11 +20,10 @@ export const runPawPatrolFileSuggestionsOperation = async (
       model: job.parameters.model ?? config.aiModel,
       episodes: [],
       sonarrEpisodes: [],
-      outputPaths: [],
       message: '',
     },
     steps,
   );
 
-  return { outputPaths: context.outputPaths, message: context.message };
+  return { message: context.message };
 };

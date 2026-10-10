@@ -1,4 +1,4 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   videoJobs,
@@ -6,6 +6,7 @@ import {
   type VideoJob,
   type VideoJobStatus,
 } from '../schema/video-jobs';
+import { notifyJobStepsChanged } from './notify';
 
 export type CreateVideoJobInput = Pick<NewVideoJob, 'operation' | 'parameters'>;
 
@@ -73,7 +74,6 @@ export const claimNextVideoJob = async (
         workerId,
         startedAt: new Date(),
         heartbeatAt: new Date(),
-        attempts: sql`${videoJobs.attempts} + 1`,
       })
       .where(eq(videoJobs.id, next.id))
       .returning();
@@ -95,14 +95,15 @@ export const heartbeatVideoJob = async (
 export const completeVideoJob = async (
   db: Database,
   id: string,
-  outputPaths: string[],
   message: string,
 ): Promise<VideoJob> => {
   const [job] = await db
     .update(videoJobs)
-    .set({ status: 'completed', completedAt: new Date(), outputPaths, message })
+    .set({ status: 'completed', completedAt: new Date(), message })
     .where(eq(videoJobs.id, id))
     .returning();
+
+  await notifyJobStepsChanged(db, job.id);
 
   return job;
 };
@@ -117,6 +118,8 @@ export const failVideoJob = async (
     .set({ status: 'failed', completedAt: new Date(), error })
     .where(eq(videoJobs.id, id))
     .returning();
+
+  await notifyJobStepsChanged(db, job.id);
 
   return job;
 };

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -229,10 +230,10 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <Th>Id</Th>
                     <Th>Operation</Th>
                     <Th>Parameters</Th>
                     <Th>Status</Th>
-                    <Th>Attempts</Th>
                     <Th>Result</Th>
                     <Th>Created</Th>
                   </TableRow>
@@ -240,6 +241,14 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                 <TableBody>
                   {pageJobs.map((job) => (
                     <TableRow key={job.id}>
+                      <Td>
+                        <Link
+                          href={`/jobs/${job.id}`}
+                          className="text-primary-400 hover:underline"
+                        >
+                          {job.id.slice(0, 8)}
+                        </Link>
+                      </Td>
                       <Td>{job.operation}</Td>
                       <Td>{JSON.stringify(job.parameters)}</Td>
                       <Td>
@@ -247,7 +256,6 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                           {job.status}
                         </Badge>
                       </Td>
-                      <Td>{job.attempts}</Td>
                       <Td>{job.error ?? job.message ?? '—'}</Td>
                       <Td>{formatDate(job.createdAt)}</Td>
                     </TableRow>

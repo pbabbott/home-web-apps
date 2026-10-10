@@ -67,7 +67,7 @@ export function Icon({
     return (
       <CustomComponent
         size={size}
-        className={['text-neutral-200', className].filter(Boolean).join(' ')}
+        className={className ?? 'text-neutral-200'}
         aria-label={ariaLabel}
       />
     );
@@ -82,7 +82,7 @@ export function Icon({
       <RadixComponent
         width={size}
         height={size}
-        className={['text-neutral-200', className].filter(Boolean).join(' ')}
+        className={className ?? 'text-neutral-200'}
         aria-label={ariaLabel}
       />
     );
@@ -95,11 +95,7 @@ export function Icon({
         slug={def.slug}
         size={size}
         colored={colored}
-        className={
-          colored
-            ? className
-            : ['text-neutral-200', className].filter(Boolean).join(' ')
-        }
+        className={colored ? className : (className ?? 'text-neutral-200')}
         ariaLabel={ariaLabel}
       />
     </Suspense>

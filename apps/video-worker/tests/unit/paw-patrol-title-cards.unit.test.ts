@@ -27,6 +27,9 @@ jest.mock('@abbottland/video-db', () => ({
   getAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertTitleCard: jest.fn(),
+  createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
+  completeVideoJobStep: jest.fn(),
+  failVideoJobStep: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 jest.mock('../../src/api/ai/ai-client', () => ({
@@ -39,9 +42,7 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
     operation: 'paw_patrol_title_cards',
     status: 'processing',
-    outputPaths: null,
     parameters: { seasonNumber: 3 },
-    attempts: 1,
     workerId: 'worker-1',
     createdAt: new Date(),
     startedAt: new Date(),
@@ -92,10 +93,6 @@ describe('runPawPatrolTitleCardsOperation', () => {
 
     expect(result.message).toBe(
       'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 with no title card detected',
-    );
-    expect(result.outputPaths).toHaveLength(15);
-    expect(result.outputPaths[0]).toBe(
-      'screenshots/Paw Patrol/Season 3/fakehash/31_480x270.jpg',
     );
   });
 

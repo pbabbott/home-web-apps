@@ -28,6 +28,25 @@ export type {
   ListVideoJobsOptions,
 } from './queries/video-jobs';
 
+export {
+  videoJobSteps,
+  videoJobStepStatusEnum,
+  videoJobStepSelectSchema,
+} from './schema/video-job-steps';
+export type {
+  VideoJobStep,
+  NewVideoJobStep,
+  VideoJobStepStatus,
+} from './schema/video-job-steps';
+
+export {
+  createVideoJobStep,
+  completeVideoJobStep,
+  failVideoJobStep,
+  listVideoJobStepsByJobId,
+} from './queries/video-job-steps';
+export type { CreateVideoJobStepInput } from './queries/video-job-steps';
+
 export { titleCards, titleCardSelectSchema } from './schema/title-cards';
 export type { TitleCard, NewTitleCard } from './schema/title-cards';
 

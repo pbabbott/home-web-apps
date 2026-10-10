@@ -26,7 +26,6 @@ const buildContext = (
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
-  outputPaths: [],
   ...overrides,
 });
 
@@ -130,7 +129,6 @@ describe('generateEpisodeScreenshots', () => {
     );
 
     expect(result.episodes[0].screenshotPaths).toEqual(expectedPaths);
-    expect(result.outputPaths).toEqual(expectedPaths);
     expect(execFile).toHaveBeenCalledTimes(15);
     expect(execFile).toHaveBeenCalledWith(
       'ffmpeg',

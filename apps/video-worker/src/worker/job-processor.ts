@@ -31,7 +31,7 @@ export const processJob = async (job: VideoJob): Promise<void> => {
 
     const result = await handler(job);
 
-    await completeVideoJob(db, job.id, result.outputPaths, result.message);
+    await completeVideoJob(db, job.id, result.message);
     console.log(`✅ job ${job.id} completed: ${result.message}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
