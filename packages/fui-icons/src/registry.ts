@@ -503,6 +503,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     source: 'radix',
     keywords: ['upload', 'push', 'publish', 'deploy', 'transfer'],
   },
+  {
+    id: 'radix-chevron-left',
+    label: 'Chevron Left',
+    slug: 'ChevronLeftIcon',
+    source: 'radix',
+    keywords: ['back', 'previous', 'left', 'navigate', 'return'],
+  },
 ];
 
 export function lookupById(id: string): FuiIconDefinition | undefined {
