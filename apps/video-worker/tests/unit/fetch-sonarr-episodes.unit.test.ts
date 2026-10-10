@@ -19,7 +19,6 @@ const buildContext = (
   model: 'test-model',
   episodes: [],
   sonarrEpisodes: [],
-  outputPaths: [],
   message: '',
   ...overrides,
 });

@@ -94,12 +94,11 @@ export const heartbeatVideoJob = async (
 export const completeVideoJob = async (
   db: Database,
   id: string,
-  outputPaths: string[],
   message: string,
 ): Promise<VideoJob> => {
   const [job] = await db
     .update(videoJobs)
-    .set({ status: 'completed', completedAt: new Date(), outputPaths, message })
+    .set({ status: 'completed', completedAt: new Date(), message })
     .where(eq(videoJobs.id, id))
     .returning();
 

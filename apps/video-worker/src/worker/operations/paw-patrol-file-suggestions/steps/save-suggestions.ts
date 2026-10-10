@@ -14,8 +14,6 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
 export const saveSuggestions: Step<PawPatrolFileSuggestionsContext> = async (
   ctx,
 ) => {
-  const outputPaths: string[] = [];
-
   for (const episode of ctx.episodes) {
     if (episode.existingSuggestion || !episode.suggestedFilePath) {
       continue;
@@ -37,12 +35,7 @@ export const saveSuggestions: Step<PawPatrolFileSuggestionsContext> = async (
       splitAtSeconds: episode.splitAtSeconds,
       sourceTitleCardTitles: episode.sourceTitleCardTitles,
     });
-
-    outputPaths.push(episode.suggestedFilePath);
-    if (episode.secondSuggestedFilePath) {
-      outputPaths.push(episode.secondSuggestedFilePath);
-    }
   }
 
-  return { ...ctx, outputPaths };
+  return ctx;
 };

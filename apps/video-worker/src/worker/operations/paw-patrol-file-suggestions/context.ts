@@ -16,6 +16,5 @@ export type PawPatrolFileSuggestionsContext = {
   model: string;
   episodes: Episode[];
   sonarrEpisodes: SonarrEpisode[];
-  outputPaths: string[];
   message: string;
 };

@@ -20,7 +20,6 @@ export const videoJobs = pgTable('video_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   operation: text('operation').notNull(),
   status: videoJobStatusEnum('status').notNull().default('pending'),
-  outputPaths: text('output_paths').array(),
   parameters: jsonb('parameters').notNull().default({}),
   workerId: text('worker_id'),
   createdAt: timestamp('created_at', { withTimezone: true })

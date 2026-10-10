@@ -57,10 +57,6 @@ describe('worker job processing', () => {
 
     const updated = await getVideoJobById(db, created.id);
     expect(updated?.status).toBe('completed');
-    expect(updated?.outputPaths).toHaveLength(15);
-    expect(updated?.outputPaths?.[0]).toMatch(
-      /^screenshots\/Paw Patrol\/Season 3\/[0-9a-f]{64}\/31_480x270\.jpg$/,
-    );
     expect(updated?.message).toBe(
       'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 with no title card detected',
     );

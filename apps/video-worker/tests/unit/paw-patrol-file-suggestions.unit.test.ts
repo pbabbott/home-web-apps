@@ -41,9 +41,7 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
     operation: 'paw_patrol_file_suggestions',
     status: 'processing',
-    outputPaths: null,
     parameters: { seasonNumber: 3 },
-    attempts: 1,
     workerId: 'worker-1',
     createdAt: new Date(),
     startedAt: new Date(),
@@ -91,9 +89,6 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
     const result = await runPawPatrolFileSuggestionsOperation(job);
 
     expect(result.message).toBe('');
-    expect(result.outputPaths).toEqual([
-      'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',
-    ]);
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},
       expect.objectContaining({

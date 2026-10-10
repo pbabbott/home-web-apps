@@ -39,6 +39,4 @@ export type ApplyContext = {
    */
   failedHashes: Map<string, SkipReason>;
   skipped: SkippedRow[];
-  /** MEDIA_ROOT-relative paths written this run, for the job's OperationResult. */
-  outputPaths: string[];
 };

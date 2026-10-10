@@ -30,9 +30,14 @@ const summarizeResult = (context: PawPatrolTitleCardsContext): string => {
     (episode) => (episode.titleCards?.length ?? 0) === 0,
   ).length;
 
+  const screenshotsGenerated = context.episodes.reduce(
+    (sum, episode) => sum + (episode.screenshotPaths?.length ?? 0),
+    0,
+  );
+
   const parts = [
     `processed ${processed.length} episode(s)`,
-    `${context.outputPaths.length} screenshot(s) generated`,
+    `${screenshotsGenerated} screenshot(s) generated`,
     `${titleCardsWritten} title card record(s) written`,
   ];
 
@@ -60,13 +65,11 @@ export const runPawPatrolTitleCardsOperation = async (
       seasonNumber: job.parameters.seasonNumber,
       model: job.parameters.model ?? config.aiModel,
       episodes: [],
-      outputPaths: [],
     },
     steps,
   );
 
   return {
-    outputPaths: context.outputPaths,
     message: summarizeResult(context),
   };
 };

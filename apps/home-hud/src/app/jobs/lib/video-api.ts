@@ -6,7 +6,6 @@ export interface VideoJob {
   id: string;
   operation: string;
   status: VideoJobStatus;
-  outputPaths: string[] | null;
   parameters: Record<string, unknown>;
   workerId: string | null;
   createdAt: string;

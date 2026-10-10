@@ -94,19 +94,6 @@ export function JobDetailClient({ job }: JobDetailClientProps) {
           }
         />
 
-        {job.outputPaths && job.outputPaths.length > 0 && (
-          <Field
-            label="Output Paths"
-            value={
-              <ul className="flex flex-col gap-1">
-                {job.outputPaths.map((path) => (
-                  <li key={path}>{path}</li>
-                ))}
-              </ul>
-            }
-          />
-        )}
-
         {job.message && <Field label="Message" value={job.message} />}
 
         {job.error && (

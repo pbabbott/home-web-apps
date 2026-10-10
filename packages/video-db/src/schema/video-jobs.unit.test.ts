@@ -6,7 +6,6 @@ describe('videoJobSelectSchema', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       operation: 'paw_patrol_title_cards',
       status: 'pending',
-      outputPaths: null,
       parameters: { seasonNumber: 3 },
       workerId: null,
       createdAt: new Date(),
@@ -22,15 +21,11 @@ describe('videoJobSelectSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts multiple output paths', () => {
+  it('accepts a completed row', () => {
     const result = videoJobSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
       operation: 'paw_patrol_title_cards',
       status: 'completed',
-      outputPaths: [
-        '/title-cards/example-00030.jpg',
-        '/title-cards/example-00120.jpg',
-      ],
       parameters: { seasonNumber: 3 },
       workerId: 'worker-1',
       createdAt: new Date(),
@@ -49,7 +44,6 @@ describe('videoJobSelectSchema', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       operation: 'paw_patrol_title_cards',
       status: 'bogus',
-      outputPaths: null,
       parameters: {},
       workerId: null,
       createdAt: new Date(),

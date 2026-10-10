@@ -35,7 +35,6 @@ const buildContext = (
     { seasonNumber: 3, episodeNumber: 18, title: 'Pups Save a Goldrush' },
     { seasonNumber: 3, episodeNumber: 19, title: 'Pups Save a Space Alien' },
   ],
-  outputPaths: [],
   message: '',
   ...overrides,
 });

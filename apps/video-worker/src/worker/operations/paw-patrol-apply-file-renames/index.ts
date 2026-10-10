@@ -52,7 +52,6 @@ export const runPawPatrolApplyFileRenamesOperation = async (
     appliedHashes: new Set(),
     failedHashes: new Map(),
     skipped: [],
-    outputPaths: [],
   };
 
   for (const row of rows) {
@@ -94,7 +93,6 @@ export const runPawPatrolApplyFileRenamesOperation = async (
   }
 
   return {
-    outputPaths: ctx.outputPaths,
     message: `applied ${applied} rename(s), skipped ${ctx.skipped.length}${skipSummary}`,
   };
 };
