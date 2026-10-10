@@ -1,4 +1,4 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   videoJobs,
@@ -73,7 +73,6 @@ export const claimNextVideoJob = async (
         workerId,
         startedAt: new Date(),
         heartbeatAt: new Date(),
-        attempts: sql`${videoJobs.attempts} + 1`,
       })
       .where(eq(videoJobs.id, next.id))
       .returning();

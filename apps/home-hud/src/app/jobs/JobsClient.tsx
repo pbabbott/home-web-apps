@@ -232,7 +232,6 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                     <Th>Operation</Th>
                     <Th>Parameters</Th>
                     <Th>Status</Th>
-                    <Th>Attempts</Th>
                     <Th>Result</Th>
                     <Th>Created</Th>
                   </TableRow>
@@ -247,7 +246,6 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                           {job.status}
                         </Badge>
                       </Td>
-                      <Td>{job.attempts}</Td>
                       <Td>{job.error ?? job.message ?? '—'}</Td>
                       <Td>{formatDate(job.createdAt)}</Td>
                     </TableRow>

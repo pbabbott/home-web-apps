@@ -1,5 +1,4 @@
 import {
-  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -23,7 +22,6 @@ export const videoJobs = pgTable('video_jobs', {
   status: videoJobStatusEnum('status').notNull().default('pending'),
   outputPaths: text('output_paths').array(),
   parameters: jsonb('parameters').notNull().default({}),
-  attempts: integer('attempts').notNull().default(0),
   workerId: text('worker_id'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()

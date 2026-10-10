@@ -71,6 +71,13 @@
       "when": 1785425891198,
       "tag": "0009_friendly_mulholland_black",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791595204038,
+      "tag": "0010_naive_sentry",
+      "breakpoints": true
     }
   ]
 }

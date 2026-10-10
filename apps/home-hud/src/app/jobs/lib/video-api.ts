@@ -8,7 +8,6 @@ export interface VideoJob {
   status: VideoJobStatus;
   outputPaths: string[] | null;
   parameters: Record<string, unknown>;
-  attempts: number;
   workerId: string | null;
   createdAt: string;
   startedAt: string | null;
