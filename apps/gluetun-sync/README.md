@@ -4,6 +4,7 @@ The purpose of this document is to explain what is `gluetun-sync` and how the ap
 
 - [gluetun-sync](#gluetun-sync)
   - [Overview](#overview)
+  - [MCP](#mcp)
   - [Development Procedure](#development-procedure)
     - [Step 1 - Generate a .env file](#step-1---generate-a-env-file)
     - [Step 2 - Start dependencies](#step-2---start-dependencies)
@@ -17,6 +18,10 @@ The purpose of this document is to explain what is `gluetun-sync` and how the ap
 ## Overview
 
 The gluetun sync application is an Express.js API that is meant to connect two services in sync: `qbittorrent` and `gluetun`. `gluetun` is a vpn client and `qbittorrent` is a torrent client. In order for these two work together successfully, the port that gluetun is assigned when connecting to PIA needs to be set in qbittorrent. Ocassionally, this port will change and so a CRON routine has also been established to keep this port in sync across services. A few API routes also exist to check on the status of the last sync, the current ports, and another exists to manually get things back-in-sync.
+
+## MCP
+
+In addition to the REST routes above, `gluetun-sync` exposes the same four operations as MCP (Model Context Protocol) tools over Streamable HTTP at `POST /mcp`, so MCP-capable clients (Claude Desktop, other agents) can call them directly: `sync_ports`, `get_status`, `get_ports`, and `get_public_ip`. The endpoint is stateless — no session store, no sticky sessions required — which fits a horizontally-scaled deployment. `GET`/`DELETE` on `/mcp` are not supported and return `405`.
 
 ## Development Procedure
 
