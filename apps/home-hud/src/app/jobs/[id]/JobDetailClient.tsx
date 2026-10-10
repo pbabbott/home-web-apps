@@ -54,6 +54,24 @@ function formatDate(iso: string | null): string {
   return iso ? dateFormatter.format(new Date(iso)) : '—';
 }
 
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_SECOND = 1000;
+
+/** Elapsed time from startedAt to completedAt (or now, if still running), as m:ss.mmm. */
+function formatDuration(startedAt: string, completedAt: string | null): string {
+  const elapsedMs = Math.max(
+    0,
+    (completedAt ? new Date(completedAt) : new Date()).getTime() -
+      new Date(startedAt).getTime(),
+  );
+  const totalSeconds = Math.floor(elapsedMs / MS_PER_SECOND);
+  const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
+  const millis = elapsedMs % MS_PER_SECOND;
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+}
+
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
@@ -175,8 +193,7 @@ export function JobDetailClient({
                   <Th>Step</Th>
                   <Th>Status</Th>
                   <Th>Message</Th>
-                  <Th>Started</Th>
-                  <Th>Completed</Th>
+                  <Th>Duration</Th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -189,8 +206,7 @@ export function JobDetailClient({
                       </Badge>
                     </Td>
                     <Td>{step.message ?? '—'}</Td>
-                    <Td>{formatDate(step.startedAt)}</Td>
-                    <Td>{formatDate(step.completedAt)}</Td>
+                    <Td>{formatDuration(step.startedAt, step.completedAt)}</Td>
                   </TableRow>
                 ))}
               </TableBody>
