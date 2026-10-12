@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { series } from './series';
 
 /**
  * Records a timestamp where a title card was found in a video file. Keyed
@@ -19,6 +20,10 @@ export const titleCards = pgTable(
   'title_cards',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    /** Show this card belongs to. */
+    seriesId: uuid('series_id')
+      .notNull()
+      .references(() => series.id),
     fileHash: text('file_hash').notNull(),
     /** Last known path the hash was computed from, relative to MEDIA_ROOT. Display/debugging only — not the identity key. */
     filePath: text('file_path').notNull(),

@@ -8,6 +8,7 @@ export default defineConfig({
   schema: [
     './src/schema/video-jobs.ts',
     './src/schema/video-job-steps.ts',
+    './src/schema/series.ts',
     './src/schema/title-cards.ts',
     './src/schema/file-renames.ts',
     './src/schema/ai-response-cache.ts',

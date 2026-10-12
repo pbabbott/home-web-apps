@@ -17,6 +17,7 @@ export type {
 export {
   createVideoJob,
   getVideoJobById,
+  deleteVideoJobById,
   listVideoJobs,
   claimNextVideoJob,
   heartbeatVideoJob,
@@ -46,6 +47,11 @@ export {
   listVideoJobStepsByJobId,
 } from './queries/video-job-steps';
 export type { CreateVideoJobStepInput } from './queries/video-job-steps';
+
+export { series, seriesSelectSchema } from './schema/series';
+export type { Series, NewSeries } from './schema/series';
+
+export { listSeries, getSeriesById, getSeriesByName } from './queries/series';
 
 export { titleCards, titleCardSelectSchema } from './schema/title-cards';
 export type { TitleCard, NewTitleCard } from './schema/title-cards';

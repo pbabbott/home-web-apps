@@ -4,6 +4,7 @@ describe('titleCardSelectSchema', () => {
   it('accepts a realistic row shape', () => {
     const row = {
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       filePath: '/tv_shows/Show A/S01E01.mp4',
       timestampSeconds: 128,
@@ -22,6 +23,7 @@ describe('titleCardSelectSchema', () => {
   it('accepts null runTimeSeconds, title, screenshotPath, and screenshotBase64', () => {
     const result = titleCardSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       filePath: '/tv_shows/Show A/S01E01.mp4',
       timestampSeconds: 128,

@@ -4,6 +4,7 @@ describe('fileRenameSelectSchema', () => {
   it('accepts a realistic pending row', () => {
     const row = {
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
@@ -23,6 +24,7 @@ describe('fileRenameSelectSchema', () => {
   it('accepts an applied row with appliedAt set', () => {
     const result = fileRenameSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
@@ -40,6 +42,7 @@ describe('fileRenameSelectSchema', () => {
   it('accepts a row with sourceTitleCardTitles set', () => {
     const result = fileRenameSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',
@@ -57,6 +60,7 @@ describe('fileRenameSelectSchema', () => {
   it('accepts a split suggestion with a second path and split point', () => {
     const result = fileRenameSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E18-E19.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E18 - Pups Save a Goldrush.mp4',
@@ -78,6 +82,7 @@ describe('fileRenameSelectSchema', () => {
   it('rejects an invalid status', () => {
     const result = fileRenameSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
+      seriesId: '223e4567-e89b-12d3-a456-426614174000',
       fileHash: 'deadbeefcafe',
       originalFilePath: '/tv_shows/Show A/S01E01.mp4',
       suggestedFilePath: '/tv_shows/Show A/S01E01 - Pups Save a Toof.mp4',

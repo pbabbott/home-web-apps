@@ -1,5 +1,6 @@
-import { and, eq, like } from 'drizzle-orm';
+import { and, eq, inArray, like } from 'drizzle-orm';
 import type { Database } from '../client';
+import { series } from '../schema/series';
 import {
   titleCards,
   type NewTitleCard,
@@ -8,6 +9,7 @@ import {
 
 export type UpsertTitleCardInput = Pick<
   NewTitleCard,
+  | 'seriesId'
   | 'fileHash'
   | 'filePath'
   | 'timestampSeconds'
@@ -33,6 +35,7 @@ export const upsertTitleCard = async (
     .onConflictDoUpdate({
       target: [titleCards.fileHash, titleCards.timestampSeconds],
       set: {
+        seriesId: input.seriesId,
         filePath: input.filePath,
         runTimeSeconds: input.runTimeSeconds,
         title: input.title,
@@ -79,6 +82,8 @@ export const deleteTitleCardById = async (
 export type ListTitleCardsOptions = {
   fileHash?: string;
   season?: number;
+  /** Series display name (series.seriesName), not the directory name. */
+  series?: string;
 };
 
 const LIST_TITLE_CARDS_LIMIT = 100;
@@ -99,6 +104,18 @@ export const listTitleCards = async (
   if (options.season !== undefined) {
     conditions.push(
       like(titleCards.filePath, seasonPathPattern(options.season)),
+    );
+  }
+
+  if (options.series) {
+    conditions.push(
+      inArray(
+        titleCards.seriesId,
+        db
+          .select({ id: series.id })
+          .from(series)
+          .where(eq(series.seriesName, options.series)),
+      ),
     );
   }
 

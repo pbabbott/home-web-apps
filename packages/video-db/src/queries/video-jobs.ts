@@ -28,6 +28,18 @@ export const getVideoJobById = async (
   return job;
 };
 
+export const deleteVideoJobById = async (
+  db: Database,
+  id: string,
+): Promise<VideoJob | undefined> => {
+  const [job] = await db
+    .delete(videoJobs)
+    .where(eq(videoJobs.id, id))
+    .returning();
+
+  return job;
+};
+
 export type ListVideoJobsOptions = {
   status?: VideoJobStatus;
 };

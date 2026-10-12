@@ -4,7 +4,7 @@ describe('videoJobSelectSchema', () => {
   it('accepts a realistic row shape', () => {
     const row = {
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       status: 'pending',
       parameters: { seasonNumber: 3 },
       workerId: null,
@@ -24,7 +24,7 @@ describe('videoJobSelectSchema', () => {
   it('accepts a completed row', () => {
     const result = videoJobSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       status: 'completed',
       parameters: { seasonNumber: 3 },
       workerId: 'worker-1',
@@ -42,7 +42,7 @@ describe('videoJobSelectSchema', () => {
   it('rejects a row with an invalid status', () => {
     const result = videoJobSelectSchema.safeParse({
       id: '123e4567-e89b-12d3-a456-426614174000',
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       status: 'bogus',
       parameters: {},
       workerId: null,
