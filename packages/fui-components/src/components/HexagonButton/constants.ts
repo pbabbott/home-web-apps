@@ -1,4 +1,14 @@
-import { primary, success, warning, neutral } from '../../tokens/colors';
+import {
+  primary,
+  success,
+  warning,
+  error,
+  neutral,
+  withOpacity,
+} from '../../tokens/colors';
+
+/** Drives idle fill/border/glow when a tile represents a live health status rather than plain idle/hover/active chrome. */
+export type HexStatus = 'healthy' | 'warning' | 'error' | 'unknown';
 
 function hexPoints(cx: number, cy: number, r: number): [number, number][] {
   return Array.from({ length: 6 }, (_, i) => {
@@ -39,6 +49,33 @@ export const COLORS = {
   innerGlowStrokeWarning: 'rgba(249, 132, 7, 0.25)', // warning[500] + alpha
   glowTeal: 'rgba(58, 252, 255, 0.5)', // success[500] + alpha
 } as const;
+
+/** Idle fill/border/glow per status, used by useHexagonButtonStyles when a `status` is given. Hover/active chrome still layers on top unchanged. */
+export const STATUS_COLORS: Record<
+  HexStatus,
+  { fill: string; border: string; glowStroke: string }
+> = {
+  healthy: {
+    fill: withOpacity(success[900], 0.72),
+    border: success[500],
+    glowStroke: withOpacity(success[500], 0.25),
+  },
+  warning: {
+    fill: withOpacity(warning[900], 0.75),
+    border: warning[500],
+    glowStroke: withOpacity(warning[500], 0.35),
+  },
+  error: {
+    fill: withOpacity(error[900], 0.78),
+    border: error[500],
+    glowStroke: withOpacity(error[500], 0.4),
+  },
+  unknown: {
+    fill: COLORS.hexBg,
+    border: neutral[600],
+    glowStroke: 'transparent',
+  },
+};
 
 export const KEYFRAMES_STYLES = `
   @keyframes shimmerSweep {

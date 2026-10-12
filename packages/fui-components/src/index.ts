@@ -198,6 +198,7 @@ export {
 export {
   HexagonButton,
   type HexagonButtonProps,
+  type HexStatus,
 } from './components/HexagonButton/HexagonButton';
 export {
   TiledHexagons,

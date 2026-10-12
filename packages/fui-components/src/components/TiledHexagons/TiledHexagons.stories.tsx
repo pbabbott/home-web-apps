@@ -57,3 +57,17 @@ export const CustomGapThreeColumns: Story = {
     ],
   },
 };
+
+export const MixedStatus: Story = {
+  args: {
+    maxHorizontal: 4,
+    tiles: [
+      { label: 'blog', lowerLabel: '8%', status: 'healthy' },
+      { label: 'video-api', lowerLabel: '34%', status: 'healthy' },
+      { label: 'home-hud', lowerLabel: '72%', status: 'warning' },
+      { label: 'gluetun', lowerLabel: '95%', status: 'error' },
+      { label: 'pi-led-api', lowerLabel: 'n/a', status: 'unknown' },
+      { label: 'postgres', lowerLabel: '41%', status: 'healthy', active: true },
+    ],
+  },
+};

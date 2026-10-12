@@ -24,12 +24,16 @@ export function Nav() {
   const [open, setOpen] = useState(false);
 
   const videoActive = pathname.startsWith('/video');
+  const infraMapActive = pathname.startsWith('/infra-map');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">
       <NavBar>
         <NavItem as="a" href="/" active={pathname === '/'}>
           Home
+        </NavItem>
+        <NavItem as="a" href="/infra-map" active={infraMapActive}>
+          Infra Map
         </NavItem>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">

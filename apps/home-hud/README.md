@@ -4,19 +4,21 @@ The purpose of this document is to explain what `home-hud` is and how the applic
 
 ## Overview
 
-`home-hud` is a Next.js dashboard for at-a-glance views into other home services. It currently has one page:
+`home-hud` is a Next.js dashboard for at-a-glance views into other home services. Pages include:
 
-- `/jobs` — reads `GET /jobs` from `video-api` (`apps/video-api`) and renders it as a table.
+- `/video` — reads from `video-api` (`apps/video-api`).
+- `/infra-map` — reads `GET /maps/pods` from `homelab-api` (`apps/homelab-api`) and renders it as a hexagonal status map.
 
 ## Environment Variables
 
-| Variable                | Required for deployment?                            | Default                 | Purpose                                                                                                                                      |
-| ----------------------- | --------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VIDEO_API_URL`         | **Yes** — set to the deployed `video-api`'s address | `http://localhost:4002` | Server-side base URL `/jobs` fetches `video-api` from (`src/app/jobs/lib/video-api.ts`). Read at request time, not build time.               |
-| `IMAGE_TAG`             | No — set automatically by CI                        | `dev`                   | Baked into the build by `next.config.mjs`; shown in the page footer. See [Image Tag Footer Tracing](../../docs/image-tag-footer-tracing.md). |
-| `NEXT_PUBLIC_BASE_PATH` | No — local dev only                                 | `''`                    | Coder code-server proxy prefix. Only needed running behind that proxy locally; leave unset in every deployed environment. See `/proxy-dev`.  |
+| Variable                | Required for deployment?                              | Default                 | Purpose                                                                                                                                      |
+| ----------------------- | ----------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VIDEO_API_URL`         | **Yes** — set to the deployed `video-api`'s address   | `http://localhost:4002` | Server-side base URL `/video` fetches `video-api` from. Read at request time, not build time.                                                |
+| `HOMELAB_API_URL`       | **Yes** — set to the deployed `homelab-api`'s address | `http://localhost:4003` | Server-side base URL `/infra-map` fetches `homelab-api` from (`src/app/infra-map/lib/homelab-api.ts`). Read at request time, not build time. |
+| `IMAGE_TAG`             | No — set automatically by CI                          | `dev`                   | Baked into the build by `next.config.mjs`; shown in the page footer. See [Image Tag Footer Tracing](../../docs/image-tag-footer-tracing.md). |
+| `NEXT_PUBLIC_BASE_PATH` | No — local dev only                                   | `''`                    | Coder code-server proxy prefix. Only needed running behind that proxy locally; leave unset in every deployed environment. See `/proxy-dev`.  |
 
-`VIDEO_API_URL` is the only variable an actual deployment needs to set — it must resolve to `video-api` from wherever `home-hud` is running (e.g. a k8s service DNS name), since the `localhost` default only works when both apps run on the same host.
+`VIDEO_API_URL` and `HOMELAB_API_URL` are the variables an actual deployment needs to set — each must resolve to its respective service from wherever `home-hud` is running (e.g. a k8s service DNS name), since the `localhost` defaults only work when both apps run on the same host.
 
 ## Development Procedure
 

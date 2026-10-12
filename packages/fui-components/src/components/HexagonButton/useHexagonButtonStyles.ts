@@ -1,4 +1,4 @@
-import { COLORS } from './constants';
+import { COLORS, STATUS_COLORS, type HexStatus } from './constants';
 
 export interface HexagonButtonStyles {
   fillColor: string;
@@ -22,28 +22,47 @@ export function useHexagonButtonStyles(
   active: boolean,
   hovered: boolean,
   animated: boolean = true,
+  status?: HexStatus,
 ): HexagonButtonStyles {
   const reducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const motionEnabled = animated && !reducedMotion;
 
-  // Hover = warning-based look (amber/orange border, inner glow, fill). Active = "hover" look (shimmer, runner, blue glow).
+  // Idle chrome comes from the status palette when a status is given (a
+  // live health tile), otherwise the plain neutral idle look. Hover/active
+  // are unaffected by status — hover keeps its warning-amber affordance,
+  // active keeps the primary "selected" look — so a user can still tell
+  // "selected" apart from "unhealthy" when both are true.
+  const idleFillColor = status ? STATUS_COLORS[status].fill : COLORS.hexBg;
+  const idleBorderColor = status
+    ? STATUS_COLORS[status].border
+    : COLORS.borderIdle;
+  // Error/warning tiles glow even at rest so they read at a glance without
+  // requiring hover; healthy/unknown stay flat until interacted with.
+  const idleGlowOpacity =
+    status === 'error' ? 0.6 : status === 'warning' ? 0.4 : 0;
+  const idleGlowStroke = status
+    ? STATUS_COLORS[status].glowStroke
+    : 'transparent';
+
   const fillColor = hovered
     ? COLORS.hexBgHoverWarning
     : active
       ? COLORS.hexBgHover
-      : COLORS.hexBg;
+      : idleFillColor;
   const borderColor = hovered
     ? COLORS.borderHoverWarning
     : active
       ? COLORS.borderHover
-      : COLORS.borderIdle;
+      : idleBorderColor;
   const borderWidth = hovered || active ? 2 : 1.5;
-  const innerGlowOpacity = hovered ? 0.9 : active ? 1 : 0;
+  const innerGlowOpacity = hovered ? 0.9 : active ? 1 : idleGlowOpacity;
   const innerGlowStroke = hovered
     ? COLORS.innerGlowStrokeWarning
-    : 'transparent';
+    : active
+      ? 'transparent'
+      : idleGlowStroke;
   const glossOpacity = hovered ? 0.2 : active ? 0.15 : 0.08;
   // Shimmer sweep and travel rings are pure motion effects — suppressed
   // entirely (not just frozen) when !motionEnabled, so a static "selected"
