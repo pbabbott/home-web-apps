@@ -1,7 +1,7 @@
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
 export type HexStatus = 'healthy' | 'warning' | 'error' | 'unknown';
-export type MapMetric = 'cpu' | 'memory' | 'both';
+export type MapMetric = 'cpu' | 'memory' | 'both' | 'restarts';
 export type GroupDimension = 'namespace' | 'node' | 'workload';
 
 export interface MetricStat {
@@ -9,6 +9,13 @@ export interface MetricStat {
   request: number | null;
   limit: number | null;
   ratio: number | null;
+  status: HexStatus;
+}
+
+export interface RestartStat {
+  count: number;
+  maxCount: number;
+  ratio: number;
   status: HexStatus;
 }
 
@@ -23,7 +30,7 @@ export interface PodMapItem {
   restarts: number;
   containers: string[];
   age: string | null;
-  metrics: { cpu: MetricStat; memory: MetricStat };
+  metrics: { cpu: MetricStat; memory: MetricStat; restarts: RestartStat };
 }
 
 export interface PodMapGroup {

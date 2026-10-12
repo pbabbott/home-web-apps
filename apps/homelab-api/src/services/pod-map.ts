@@ -7,7 +7,7 @@ import {
 import { parseCpuQuantity, parseMemoryQuantity } from '../lib/k8s-quantity';
 
 export type HexStatus = 'healthy' | 'warning' | 'error' | 'unknown';
-export type MapMetric = 'cpu' | 'memory' | 'both';
+export type MapMetric = 'cpu' | 'memory' | 'both' | 'restarts';
 export type GroupDimension = 'namespace' | 'node' | 'workload';
 
 export interface MetricStat {
@@ -15,6 +15,14 @@ export interface MetricStat {
   request: number | null;
   limit: number | null;
   ratio: number | null;
+  status: HexStatus;
+}
+
+/** Restarts has no request/limit like cpu/memory — severity is relative to the worst pod in this same response, not an absolute quantity. */
+export interface RestartStat {
+  count: number;
+  maxCount: number;
+  ratio: number;
   status: HexStatus;
 }
 
@@ -29,7 +37,7 @@ export interface PodMapItem {
   restarts: number;
   containers: string[];
   age: string | null;
-  metrics: { cpu: MetricStat; memory: MetricStat };
+  metrics: { cpu: MetricStat; memory: MetricStat; restarts: RestartStat };
 }
 
 export interface PodMapGroup {
@@ -63,6 +71,26 @@ function ratioStatus(ratio: number | null): HexStatus {
   if (ratio === null) return 'unknown';
   if (ratio >= ERROR_RATIO) return 'error';
   if (ratio >= WARNING_RATIO) return 'warning';
+  return 'healthy';
+}
+
+// A handful of restarts is normal pod churn, not a health signal — only
+// pods at/above this floor are even considered for the relative bands
+// below. "Most restarts in this response" is deliberately the worst case
+// (ratio 1 -> error) rather than an absolute cutoff, since what counts as
+// "a lot" varies a great deal by workload.
+const RESTART_HEALTHY_FLOOR = 10;
+// Looser than the generic cpu/memory bands — restart counts in the wild
+// cluster run e.g. 103/123/144/149/157 against a max of 157, and anything
+// north of ~0.6 of the worst pod is worth flagging, not just >=0.7.
+const RESTART_WARNING_RATIO = 0.6;
+const RESTART_ERROR_RATIO = 0.9;
+
+function restartStatus(count: number, maxCount: number): HexStatus {
+  if (count < RESTART_HEALTHY_FLOOR || maxCount <= 0) return 'healthy';
+  const ratio = count / maxCount;
+  if (ratio >= RESTART_ERROR_RATIO) return 'error';
+  if (ratio >= RESTART_WARNING_RATIO) return 'warning';
   return 'healthy';
 }
 
@@ -195,6 +223,13 @@ function buildGroups(
   return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
+function countRestarts(pod: V1Pod): number {
+  return (pod.status?.containerStatuses ?? []).reduce(
+    (sum, containerStatus) => sum + (containerStatus.restartCount ?? 0),
+    0,
+  );
+}
+
 export async function buildPodMap(
   metric: MapMetric,
   groupBy?: GroupDimension,
@@ -205,6 +240,13 @@ export async function buildPodMap(
     getPodCpuUsage(),
     getPodMemoryUsage(),
   ]);
+
+  // Restart severity is relative to the worst pod in this same response, so
+  // the max has to be known before any pod's final status can be computed.
+  const maxRestarts = pods.reduce(
+    (max, pod) => Math.max(max, countRestarts(pod)),
+    0,
+  );
 
   const items: PodMapItem[] = pods.map((pod) => {
     const namespace = pod.metadata?.namespace ?? 'default';
@@ -225,18 +267,22 @@ export async function buildPodMap(
       sumContainerQuantities(pod, 'limits', 'memory', parseMemoryQuantity),
       capacity?.memoryBytes ?? null,
     );
+    const restarts = countRestarts(pod);
+    const restartsStat: RestartStat = {
+      count: restarts,
+      maxCount: maxRestarts,
+      ratio: maxRestarts > 0 ? restarts / maxRestarts : 0,
+      status: restartStatus(restarts, maxRestarts),
+    };
 
     const selectedStatuses =
       metric === 'cpu'
         ? [cpuStat.status]
         : metric === 'memory'
           ? [memoryStat.status]
-          : [cpuStat.status, memoryStat.status];
-
-    const restarts = (pod.status?.containerStatuses ?? []).reduce(
-      (sum, containerStatus) => sum + (containerStatus.restartCount ?? 0),
-      0,
-    );
+          : metric === 'restarts'
+            ? [restartsStat.status]
+            : [cpuStat.status, memoryStat.status];
 
     return {
       id: key,
@@ -251,7 +297,7 @@ export async function buildPodMap(
         (container) => container.name,
       ),
       age: formatAge(pod.metadata?.creationTimestamp),
-      metrics: { cpu: cpuStat, memory: memoryStat },
+      metrics: { cpu: cpuStat, memory: memoryStat, restarts: restartsStat },
     };
   });
 

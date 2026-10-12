@@ -207,6 +207,94 @@ describe('buildPodMap', () => {
     });
   });
 
+  it('treats fewer than 10 restarts as always healthy, even for the worst pod', async () => {
+    (listPods as jest.Mock).mockResolvedValue([
+      makePod({ name: 'low-a', restartCount: 1 }),
+      makePod({ name: 'low-b', restartCount: 9 }),
+    ]);
+    (getPodCpuUsage as jest.Mock).mockResolvedValue(new Map());
+    (getPodMemoryUsage as jest.Mock).mockResolvedValue(new Map());
+
+    const result = await buildPodMap('restarts');
+    const byLabel = Object.fromEntries(
+      result.items.map((item) => [item.label, item]),
+    );
+
+    expect(byLabel['low-a'].status).toBe('healthy');
+    expect(byLabel['low-b'].status).toBe('healthy');
+    expect(byLabel['low-b'].metrics.restarts).toEqual({
+      count: 9,
+      maxCount: 9,
+      ratio: 1,
+      status: 'healthy',
+    });
+  });
+
+  it('scores restarts relative to the worst pod in the response once past the floor', async () => {
+    (listPods as jest.Mock).mockResolvedValue([
+      makePod({ name: 'worst', restartCount: 20 }), // ratio 1.0 -> error
+      makePod({ name: 'mid', restartCount: 15 }), // ratio 0.75 -> warning
+      makePod({ name: 'over-floor-low-ratio', restartCount: 11 }), // ratio 0.55 -> healthy (below the 0.6 band, not the floor)
+    ]);
+    (getPodCpuUsage as jest.Mock).mockResolvedValue(new Map());
+    (getPodMemoryUsage as jest.Mock).mockResolvedValue(new Map());
+
+    const result = await buildPodMap('restarts');
+    const byLabel = Object.fromEntries(
+      result.items.map((item) => [item.label, item]),
+    );
+
+    expect(byLabel['worst'].status).toBe('error');
+    expect(byLabel['worst'].metrics.restarts.ratio).toBe(1);
+    expect(byLabel['mid'].status).toBe('warning');
+    expect(byLabel['over-floor-low-ratio'].status).toBe('healthy');
+  });
+
+  it('matches the real-world band split: >=0.6 of the worst pod is warning, >=0.9 is error', async () => {
+    (listPods as jest.Mock).mockResolvedValue([
+      makePod({ name: 'worst', restartCount: 157 }), // ratio 1.000 -> error
+      makePod({ name: 'near-worst', restartCount: 149 }), // ratio 0.949 -> error
+      makePod({ name: 'still-high', restartCount: 144 }), // ratio 0.917 -> error
+      makePod({ name: 'elevated', restartCount: 123 }), // ratio 0.783 -> warning
+      makePod({ name: 'borderline', restartCount: 103 }), // ratio 0.656 -> warning
+    ]);
+    (getPodCpuUsage as jest.Mock).mockResolvedValue(new Map());
+    (getPodMemoryUsage as jest.Mock).mockResolvedValue(new Map());
+
+    const result = await buildPodMap('restarts');
+    const byLabel = Object.fromEntries(
+      result.items.map((item) => [item.label, item.status]),
+    );
+
+    expect(byLabel).toEqual({
+      worst: 'error',
+      'near-worst': 'error',
+      'still-high': 'error',
+      elevated: 'warning',
+      borderline: 'warning',
+    });
+  });
+
+  it('uses restarts status for the overall item status when metric="restarts", ignoring cpu', async () => {
+    (listPods as jest.Mock).mockResolvedValue([
+      makePod({
+        name: 'low-restarts-high-cpu',
+        restartCount: 2,
+        cpuLimit: '1',
+      }),
+    ]);
+    // cpu alone would be "error", but metric=restarts should ignore it.
+    (getPodCpuUsage as jest.Mock).mockResolvedValue(
+      new Map([['default/low-restarts-high-cpu', 0.95]]),
+    );
+    (getPodMemoryUsage as jest.Mock).mockResolvedValue(new Map());
+
+    const result = await buildPodMap('restarts');
+
+    expect(result.items[0].metrics.cpu.status).toBe('error');
+    expect(result.items[0].status).toBe('healthy');
+  });
+
   it('returns groups=null when no groupBy is given', async () => {
     (listPods as jest.Mock).mockResolvedValue([makePod({})]);
     (getPodCpuUsage as jest.Mock).mockResolvedValue(new Map());

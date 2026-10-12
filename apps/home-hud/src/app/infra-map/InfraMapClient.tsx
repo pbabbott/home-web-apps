@@ -29,6 +29,7 @@ const METRIC_OPTIONS: { value: MapMetric; label: string }[] = [
   { value: 'cpu', label: 'CPU' },
   { value: 'memory', label: 'Memory' },
   { value: 'both', label: 'CPU || Memory' },
+  { value: 'restarts', label: 'Restarts' },
 ];
 
 const GROUP_BY_OPTIONS: { value: GroupDimension | null; label: string }[] = [
@@ -39,7 +40,7 @@ const GROUP_BY_OPTIONS: { value: GroupDimension | null; label: string }[] = [
 ];
 
 const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
-  healthy: 'secondary',
+  healthy: 'success',
   warning: 'warning',
   error: 'error',
   unknown: 'dark',
@@ -180,11 +181,18 @@ function truncateTileLabel(label: string): string {
 function primaryRatio(item: PodMapItem, metric: MapMetric): number | null {
   if (metric === 'cpu') return item.metrics.cpu.ratio;
   if (metric === 'memory') return item.metrics.memory.ratio;
+  if (metric === 'restarts') return item.metrics.restarts.ratio;
 
   const { cpu, memory } = item.metrics;
   if (cpu.ratio === null) return memory.ratio;
   if (memory.ratio === null) return cpu.ratio;
   return Math.max(cpu.ratio, memory.ratio);
+}
+
+/** Restarts reads better as a raw count than as a percent-of-worst-pod. */
+function formatLowerLabel(item: PodMapItem, metric: MapMetric): string {
+  if (metric === 'restarts') return `${item.metrics.restarts.count}`;
+  return formatPercent(primaryRatio(item, metric));
 }
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
@@ -208,7 +216,7 @@ function itemToTile(
 ): TiledHexagonTile {
   return {
     label: truncateTileLabel(item.workload?.name ?? item.label),
-    lowerLabel: formatPercent(primaryRatio(item, metric)),
+    lowerLabel: formatLowerLabel(item, metric),
     status: item.status,
     active: item.id === selectedId,
     onClick: () => onSelect(item),
@@ -248,7 +256,6 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
           }
         />
         <Field label="Phase" value={item.phase ?? '—'} />
-        <Field label="Restarts" value={item.restarts} />
         <Field label="Age" value={item.age ?? '—'} />
         <Field label="Containers" value={item.containers.join(', ')} />
       </div>
@@ -293,6 +300,21 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
           </Typography>
         </div>
       </div>
+
+      <div className="flex flex-col gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          Restarts
+        </Typography>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge color={STATUS_BADGE_COLOR[item.metrics.restarts.status]}>
+            {item.metrics.restarts.count}
+          </Badge>
+          <Typography variant="caption" className="text-neutral-400">
+            worst pod in this map: {item.metrics.restarts.maxCount} (restarts
+            under 10 are always healthy)
+          </Typography>
+        </div>
+      </div>
     </Panel>
   );
 }
@@ -300,7 +322,7 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Badge color="secondary">Healthy</Badge>
+      <Badge color="success">Healthy</Badge>
       <Badge color="warning">Warning</Badge>
       <Badge color="error">Error</Badge>
       <Badge color="dark">Unknown</Badge>

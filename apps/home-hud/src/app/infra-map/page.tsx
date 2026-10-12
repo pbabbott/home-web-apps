@@ -8,7 +8,7 @@ import {
 
 const DEFAULT_METRIC: MapMetric = 'cpu';
 
-const VALID_METRICS: MapMetric[] = ['cpu', 'memory', 'both'];
+const VALID_METRICS: MapMetric[] = ['cpu', 'memory', 'both', 'restarts'];
 const VALID_GROUP_BY: GroupDimension[] = ['namespace', 'node', 'workload'];
 
 interface InfraMapPageProps {

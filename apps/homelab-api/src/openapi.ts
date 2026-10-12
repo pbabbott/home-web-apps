@@ -31,6 +31,13 @@ const metricStatSchema = z.object({
   status: hexStatusSchema,
 });
 
+const restartStatSchema = z.object({
+  count: z.number(),
+  maxCount: z.number(),
+  ratio: z.number(),
+  status: hexStatusSchema,
+});
+
 const podMapItemSchema = z.object({
   id: z.string().meta({ example: 'blog/blog-7495dbf5ff-znq59' }),
   label: z.string().meta({ example: 'blog-7495dbf5ff-znq59' }),
@@ -42,7 +49,11 @@ const podMapItemSchema = z.object({
   restarts: z.number(),
   containers: z.array(z.string()),
   age: z.string().nullable(),
-  metrics: z.object({ cpu: metricStatSchema, memory: metricStatSchema }),
+  metrics: z.object({
+    cpu: metricStatSchema,
+    memory: metricStatSchema,
+    restarts: restartStatSchema,
+  }),
 });
 
 const podMapGroupSchema = z.object({
@@ -54,7 +65,7 @@ const podMapGroupSchema = z.object({
 
 const mapResponseSchema = z.object({
   mapType: z.literal('pods'),
-  metric: z.enum(['cpu', 'memory', 'both']),
+  metric: z.enum(['cpu', 'memory', 'both', 'restarts']),
   items: z.array(podMapItemSchema),
   groups: z.array(podMapGroupSchema).nullable(),
 });
@@ -93,7 +104,7 @@ export const openApiSpec = createDocument({
       get: {
         summary: 'Fetch a status map for a Kubernetes resource type',
         description:
-          'Today only type=pods is supported. Each item status is driven by the requested metric(s) (usage ÷ limit, falling back to request, then node-relative capacity). Pass groupBy to have items pre-grouped by namespace/node/workload.',
+          'Today only type=pods is supported. Each item status is driven by the requested metric: cpu/memory/both use usage ÷ limit (falling back to request, then node-relative capacity); restarts is relative to the worst pod in this response (fewer than 10 restarts is always healthy). Pass groupBy to have items pre-grouped by namespace/node/workload.',
         requestParams: {
           path: mapTypeParamsSchema,
           query: mapQuerySchema,

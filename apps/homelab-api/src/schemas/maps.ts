@@ -10,7 +10,7 @@ export const mapTypeParamsSchema = z.object({
 export type MapTypeParams = z.infer<typeof mapTypeParamsSchema>;
 
 export const mapQuerySchema = z.object({
-  metric: z.enum(['cpu', 'memory', 'both']).meta({
+  metric: z.enum(['cpu', 'memory', 'both', 'restarts']).meta({
     description: 'Which usage metric(s) drive each item’s status',
     example: 'cpu',
   }),
