@@ -11,11 +11,15 @@ const JOB_STATUSES: readonly VideoJobStatus[] = [
   'failed',
 ];
 
-const pawPatrolTitleCardsJobSchema = z.object({
-  operation: z.literal('paw_patrol_title_cards'),
+const titleCardsJobSchema = z.object({
+  operation: z.literal('title_cards'),
   parameters: z.object({
+    series: z.string().min(1).meta({
+      description: 'Display name of the series to generate title cards for',
+      example: 'Paw Patrol',
+    }),
     seasonNumber: z.number().int().positive().meta({
-      description: 'Paw Patrol season number to generate title cards for',
+      description: 'Season number to generate title cards for',
       example: 3,
     }),
     model: z.string().min(1).optional().meta({
@@ -26,12 +30,16 @@ const pawPatrolTitleCardsJobSchema = z.object({
   }),
 });
 
-const pawPatrolFileSuggestionsJobSchema = z.object({
-  operation: z.literal('paw_patrol_file_suggestions'),
+const fileSuggestionsJobSchema = z.object({
+  operation: z.literal('file_suggestions'),
   parameters: z.object({
-    seasonNumber: z.number().int().positive().meta({
+    series: z.string().min(1).meta({
       description:
-        'Paw Patrol season number to generate file rename suggestions for',
+        'Display name of the series to generate file rename suggestions for',
+      example: 'Paw Patrol',
+    }),
+    seasonNumber: z.number().int().positive().meta({
+      description: 'Season number to generate file rename suggestions for',
       example: 3,
     }),
     model: z.string().min(1).optional().meta({
@@ -42,10 +50,11 @@ const pawPatrolFileSuggestionsJobSchema = z.object({
   }),
 });
 
-const pawPatrolApplyFileRenamesJobSchema = z.object({
-  operation: z.literal('paw_patrol_apply_file_renames'),
-  // No inputs — applies every pending file_renames row, not a season-scoped
-  // subset. .default({}) lets a caller omit `parameters` entirely.
+const applyFileRenamesJobSchema = z.object({
+  operation: z.literal('apply_file_renames'),
+  // No inputs — applies every pending file_renames row across every series,
+  // not a season/series-scoped subset. .default({}) lets a caller omit
+  // `parameters` entirely.
   parameters: z.object({}).default({}),
 });
 
@@ -55,9 +64,9 @@ const pawPatrolApplyFileRenamesJobSchema = z.object({
  * not widening a shared `parameters` bag.
  */
 export const createJobSchema = z.discriminatedUnion('operation', [
-  pawPatrolTitleCardsJobSchema,
-  pawPatrolFileSuggestionsJobSchema,
-  pawPatrolApplyFileRenamesJobSchema,
+  titleCardsJobSchema,
+  fileSuggestionsJobSchema,
+  applyFileRenamesJobSchema,
 ]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;

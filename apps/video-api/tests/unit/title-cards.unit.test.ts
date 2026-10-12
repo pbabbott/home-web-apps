@@ -46,6 +46,7 @@ describe('GET /title-cards', () => {
     expect(videoDb.listTitleCards).toHaveBeenCalledWith(undefined, {
       fileHash: 'hash-1',
       season: undefined,
+      series: undefined,
     });
   });
 
@@ -60,6 +61,22 @@ describe('GET /title-cards', () => {
     expect(videoDb.listTitleCards).toHaveBeenCalledWith(undefined, {
       fileHash: undefined,
       season: 4,
+      series: undefined,
+    });
+  });
+
+  it('passes a valid series through to listTitleCards', async () => {
+    (videoDb.listTitleCards as jest.Mock).mockResolvedValue([]);
+
+    await supertest(createServer())
+      .get('/title-cards')
+      .query({ series: 'Paw Patrol' })
+      .expect(200);
+
+    expect(videoDb.listTitleCards).toHaveBeenCalledWith(undefined, {
+      fileHash: undefined,
+      season: undefined,
+      series: 'Paw Patrol',
     });
   });
 

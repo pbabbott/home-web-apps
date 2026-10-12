@@ -12,6 +12,8 @@ const FILE_RENAME_STATUSES: readonly FileRenameStatus[] = [
 
 export const listFileRenamesQuerySchema = z.object({
   status: z.enum(FILE_RENAME_STATUSES).optional(),
+  /** Series display name, not the directory name. */
+  series: z.string().optional(),
 });
 
 export type ListFileRenamesQuery = z.infer<typeof listFileRenamesQuerySchema>;
