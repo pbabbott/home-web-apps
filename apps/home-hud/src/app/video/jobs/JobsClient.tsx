@@ -243,7 +243,7 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                     <TableRow key={job.id}>
                       <Td>
                         <Link
-                          href={`/jobs/${job.id}`}
+                          href={`/video/jobs/${job.id}`}
                           className="text-primary-400 hover:underline"
                         >
                           {job.id.slice(0, 8)}

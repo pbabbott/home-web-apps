@@ -1,31 +1,51 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { NavBar, NavItem } from '@abbottland/fui-components';
+import { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import {
+  NavBar,
+  NavItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@abbottland/fui-components';
 
-const NAV_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/jobs', label: 'Video Jobs' },
-  { href: '/title-cards', label: 'Title Cards' },
-  { href: '/file-renames', label: 'File Renames' },
+const VIDEO_MENU_ITEMS = [
+  { href: '/video', label: 'Home' },
+  { href: '/video/jobs', label: 'Jobs' },
+  { href: '/video/title-cards', label: 'Title Cards' },
+  { href: '/video/file-renames', label: 'File Renames' },
 ];
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const videoActive = pathname.startsWith('/video');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">
       <NavBar>
-        {NAV_LINKS.map((link) => (
-          <NavItem
-            key={link.href}
-            as="a"
-            href={link.href}
-            active={pathname === link.href}
-          >
-            {link.label}
-          </NavItem>
-        ))}
+        <NavItem as="a" href="/" active={pathname === '/'}>
+          Home
+        </NavItem>
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">
+            <NavItem active={videoActive || open}>Video</NavItem>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent label="Video" align="start">
+            {VIDEO_MENU_ITEMS.map((item) => (
+              <DropdownMenuItem
+                key={item.href}
+                onSelect={() => router.push(item.href)}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </NavBar>
     </div>
   );

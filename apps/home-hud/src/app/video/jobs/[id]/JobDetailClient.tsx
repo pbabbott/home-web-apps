@@ -101,7 +101,7 @@ export function JobDetailClient({
     // Nothing left to watch — a terminal job never changes again.
     if (isTerminal(initialJob.status)) return;
 
-    const source = new EventSource(`/jobs/${initialJob.id}/steps`);
+    const source = new EventSource(`/video/jobs/${initialJob.id}/steps`);
 
     source.onmessage = (event) => {
       const payload: { job: VideoJob; steps: VideoJobStep[] } = JSON.parse(
@@ -125,7 +125,7 @@ export function JobDetailClient({
   return (
     <main className="flex min-h-screen flex-col gap-6 bg-neutral-800 px-8 py-2">
       <div className="flex flex-col gap-4">
-        <Link href="/jobs" className="self-start">
+        <Link href="/video/jobs" className="self-start">
           <OutlinedButton size="small" color="secondary">
             <span className="flex items-center gap-1">
               <Icon

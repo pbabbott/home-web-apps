@@ -78,7 +78,9 @@ export function TitleCardsClient({
 
   function selectSeason(season: number | null) {
     router.push(
-      season === null ? '/title-cards' : `/title-cards?season=${season}`,
+      season === null
+        ? '/video/title-cards'
+        : `/video/title-cards?season=${season}`,
     );
     setPage(1);
   }

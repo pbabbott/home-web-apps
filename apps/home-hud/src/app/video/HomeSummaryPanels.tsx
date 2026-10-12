@@ -7,12 +7,12 @@ import {
   TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
-import type { AiStatus, VideoJob, VideoJobStatus } from '../jobs/lib/video-api';
-import type { TitleCard } from '../title-cards/lib/video-api';
+import type { AiStatus, VideoJob, VideoJobStatus } from './jobs/lib/video-api';
+import type { TitleCard } from './title-cards/lib/video-api';
 import type {
   FileRename,
   FileRenameStatus,
-} from '../file-renames/lib/video-api';
+} from './file-renames/lib/video-api';
 
 const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
   pending: 'warning',
@@ -155,7 +155,7 @@ export function HomeSummaryPanels({
       </TransparentPanel>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Link href="/jobs" className="block">
+        <Link href="/video/jobs" className="block">
           <Panel color="primary" className="flex h-full flex-col gap-4">
             <div className="flex items-center justify-between">
               <Typography variant="h5" component="h2">
@@ -197,7 +197,7 @@ export function HomeSummaryPanels({
           </Panel>
         </Link>
 
-        <Link href="/title-cards" className="block">
+        <Link href="/video/title-cards" className="block">
           <Panel color="secondary" className="flex h-full flex-col gap-4">
             <div className="flex items-center justify-between">
               <Typography variant="h5" component="h2">
@@ -242,7 +242,7 @@ export function HomeSummaryPanels({
           </Panel>
         </Link>
 
-        <Link href="/file-renames" className="block">
+        <Link href="/video/file-renames" className="block">
           <Panel color="accent-falcon" className="flex h-full flex-col gap-4">
             <div className="flex items-center justify-between">
               <Typography variant="h5" component="h2">

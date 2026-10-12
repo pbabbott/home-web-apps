@@ -1,10 +1,10 @@
 'use client';
 
 import { Typography } from '@abbottland/fui-components';
-import type { AiStatus, VideoJob } from '../jobs/lib/video-api';
-import type { TitleCard } from '../title-cards/lib/video-api';
-import type { FileRename } from '../file-renames/lib/video-api';
-import { Footer } from './Footer';
+import type { AiStatus, VideoJob } from './jobs/lib/video-api';
+import type { TitleCard } from './title-cards/lib/video-api';
+import type { FileRename } from './file-renames/lib/video-api';
+import { Footer } from '../components/Footer';
 import { HomeSummaryPanels } from './HomeSummaryPanels';
 
 interface HomeClientProps {
