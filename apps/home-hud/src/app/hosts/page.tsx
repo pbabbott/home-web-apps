@@ -1,3 +1,5 @@
+'use client';
+
 import { Typography } from '@abbottland/fui-components';
 
 export default function HostsPage() {
