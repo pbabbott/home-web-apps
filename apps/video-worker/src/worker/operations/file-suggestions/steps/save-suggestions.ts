@@ -2,8 +2,8 @@ import { upsertFileRename } from '@abbottland/video-db';
 import { db } from '../../../../db';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import { seasonDirectoryRelPath } from '../../paw-patrol-title-cards/lib/paths';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+import { seasonDirectoryRelPath } from '../../title-cards/lib/paths';
+import type { FileSuggestionsContext } from '../context';
 
 /**
  * Saves a file_renames row for every episode suggestFilenames computed a
@@ -11,9 +11,7 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
  * suggestFilenames left without one (no title cards yet, or no confident
  * AI match), are skipped — nothing to write.
  */
-export const saveSuggestions: Step<PawPatrolFileSuggestionsContext> = async (
-  ctx,
-) => {
+export const saveSuggestions: Step<FileSuggestionsContext> = async (ctx) => {
   for (const episode of ctx.episodes) {
     if (episode.existingSuggestion || !episode.suggestedFilePath) {
       continue;
@@ -25,9 +23,10 @@ export const saveSuggestions: Step<PawPatrolFileSuggestionsContext> = async (
       );
     }
 
-    const originalFilePath = `${seasonDirectoryRelPath(ctx.seasonNumber)}/${episode.filename}`;
+    const originalFilePath = `${seasonDirectoryRelPath(ctx.series.directoryName, ctx.seasonNumber)}/${episode.filename}`;
 
     await upsertFileRename(db, {
+      seriesId: ctx.series.id,
       fileHash: episode.hash,
       originalFilePath,
       suggestedFilePath: episode.suggestedFilePath,

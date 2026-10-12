@@ -1,4 +1,4 @@
-export type PawPatrolApplyFileRenamesParameters = Record<string, never>;
+export type ApplyFileRenamesParameters = Record<string, never>;
 
 /**
  * This operation takes no parameters — it processes every pending
@@ -6,7 +6,7 @@ export type PawPatrolApplyFileRenamesParameters = Record<string, never>;
  * `job.parameters` is object-shaped, matching the other operations'
  * front-loaded parameter check even though there's nothing to read out of it.
  */
-export const isPawPatrolApplyFileRenamesParameters = (
+export const isApplyFileRenamesParameters = (
   value: unknown,
-): value is PawPatrolApplyFileRenamesParameters =>
+): value is ApplyFileRenamesParameters =>
   typeof value === 'object' && value !== null;

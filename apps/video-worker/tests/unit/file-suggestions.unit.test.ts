@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { upsertFileRename } from '@abbottland/video-db';
 import type { VideoJob } from '@abbottland/video-db';
-import { runPawPatrolFileSuggestionsOperation } from '../../src/worker/operations/paw-patrol-file-suggestions';
+import { runFileSuggestionsOperation } from '../../src/worker/operations/file-suggestions';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
 
 jest.mock('fs');
@@ -17,6 +17,12 @@ jest.mock('@abbottland/video-db', () => ({
   listFileRenames: jest.fn().mockResolvedValue([]),
   listTitleCards: jest.fn().mockResolvedValue([{ title: 'Pups Save a Blimp' }]),
   upsertFileRename: jest.fn().mockResolvedValue({}),
+  getSeriesByName: jest.fn().mockResolvedValue({
+    id: 'series-1',
+    seriesName: 'Paw Patrol',
+    directoryName: 'Paw Patrol',
+    seasonCount: 13,
+  }),
   createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
   completeVideoJobStep: jest.fn(),
   failVideoJobStep: jest.fn(),
@@ -42,9 +48,9 @@ jest.mock('../../src/api/ai/ai-client', () => ({
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
-    operation: 'paw_patrol_file_suggestions',
+    operation: 'file_suggestions',
     status: 'processing',
-    parameters: { seasonNumber: 3 },
+    parameters: { series: 'Paw Patrol', seasonNumber: 3 },
     workerId: 'worker-1',
     createdAt: new Date(),
     startedAt: new Date(),
@@ -57,7 +63,7 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
 const direntFor = (name: string, isFile: boolean) =>
   ({ name, isFile: () => isFile }) as fs.Dirent;
 
-describe('runPawPatrolFileSuggestionsOperation', () => {
+describe('runFileSuggestionsOperation', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -65,7 +71,7 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
   it('rejects parameters without a numeric seasonNumber', async () => {
     const job = buildJob({ parameters: {} });
 
-    await expect(runPawPatrolFileSuggestionsOperation(job)).rejects.toThrow(
+    await expect(runFileSuggestionsOperation(job)).rejects.toThrow(
       JobProcessingError,
     );
   });
@@ -73,9 +79,11 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
   it('rejects a season that has no matching directory under MEDIA_ROOT', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(false);
 
-    const job = buildJob({ parameters: { seasonNumber: 99 } });
+    const job = buildJob({
+      parameters: { series: 'Paw Patrol', seasonNumber: 99 },
+    });
 
-    await expect(runPawPatrolFileSuggestionsOperation(job)).rejects.toThrow(
+    await expect(runFileSuggestionsOperation(job)).rejects.toThrow(
       JobProcessingError,
     );
   });
@@ -89,7 +97,7 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
 
     const job = buildJob();
 
-    const result = await runPawPatrolFileSuggestionsOperation(job);
+    const result = await runFileSuggestionsOperation(job);
 
     expect(result.message).toBe('');
     expect(upsertFileRename).toHaveBeenCalledWith(
@@ -108,10 +116,14 @@ describe('runPawPatrolFileSuggestionsOperation', () => {
     ]);
 
     const job = buildJob({
-      parameters: { seasonNumber: 3, model: 'custom-model' },
+      parameters: {
+        series: 'Paw Patrol',
+        seasonNumber: 3,
+        model: 'custom-model',
+      },
     });
 
-    await runPawPatrolFileSuggestionsOperation(job);
+    await runFileSuggestionsOperation(job);
 
     const { chatCompletion } = jest.requireMock('../../src/api/ai/ai-client');
     expect(chatCompletion).toHaveBeenCalledWith(

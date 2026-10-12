@@ -5,16 +5,17 @@ import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
 // Reused from the title-cards pipeline: both operations walk the same
-// `<MEDIA_ROOT>/media/tv_shows/Paw Patrol/Season <N>` layout, so the path helpers live in
-// one place rather than being duplicated per pipeline.
-import { seasonDirectoryRelPath } from '../../paw-patrol-title-cards/lib/paths';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+// `<MEDIA_ROOT>/media/tv_shows/<series directory>/Season <N>` layout, so the
+// path helpers live in one place rather than being duplicated per pipeline.
+import { seasonDirectoryRelPath } from '../../title-cards/lib/paths';
+import type { FileSuggestionsContext } from '../context';
 
-/** Lists the episode files in `<MEDIA_ROOT>/media/tv_shows/Paw Patrol/Season <N>`. */
-export const listSeasonFiles: Step<PawPatrolFileSuggestionsContext> = async (
-  ctx,
-) => {
-  const seasonRelPath = seasonDirectoryRelPath(ctx.seasonNumber);
+/** Lists the episode files in `<MEDIA_ROOT>/media/tv_shows/<series directory>/Season <N>`. */
+export const listSeasonFiles: Step<FileSuggestionsContext> = async (ctx) => {
+  const seasonRelPath = seasonDirectoryRelPath(
+    ctx.series.directoryName,
+    ctx.seasonNumber,
+  );
   const seasonAbsPath = resolveWithinRoot(config.mediaRoot, seasonRelPath);
 
   if (!seasonAbsPath) {

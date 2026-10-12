@@ -1,5 +1,5 @@
 import type { NamedStep } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 import { checkTitleCardRecords } from './check-title-card-records';
 import { computeEpisodeRuntime } from './compute-episode-runtime';
 import { detectEpisodeTitleCards } from './detect-episode-title-cards';
@@ -8,8 +8,8 @@ import { hashEpisodeFiles } from './hash-episode-files';
 import { insertEpisodeTitleCards } from './insert-episode-title-cards';
 import { listSeasonFiles } from './list-season-files';
 
-/** Ordered pipeline for the paw_patrol_title_cards operation — one step per file in this directory. */
-export const steps: NamedStep<PawPatrolTitleCardsContext>[] = [
+/** Ordered pipeline for the title_cards operation — one step per file in this directory. */
+export const steps: NamedStep<TitleCardsContext>[] = [
   {
     name: 'list-season-files',
     message: 'Listing season files',

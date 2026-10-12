@@ -7,7 +7,7 @@ import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Episode } from '../episode';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 import { screenshotDirectoryRelPath } from '../lib/paths';
 
 const execFileAsync = promisify(execFile);
@@ -73,6 +73,7 @@ type ScreenshotTask = {
  */
 const planEpisodeScreenshots = (
   episode: Episode,
+  directoryName: string,
   seasonNumber: number,
 ): ScreenshotTask[] => {
   if (!episode.hash) {
@@ -88,6 +89,7 @@ const planEpisodeScreenshots = (
   }
 
   const screenshotDirRelPath = screenshotDirectoryRelPath(
+    directoryName,
     seasonNumber,
     episode.hash,
   );
@@ -121,7 +123,7 @@ const planEpisodeScreenshots = (
 /**
  * For each episode with no title_cards record, generates
  * SCREENSHOT_WIDTHxSCREENSHOT_HEIGHT screenshots at the sample timestamps
- * into `<MEDIA_ROOT>/screenshots/Paw Patrol/Season <N>/<fileHash>/<second>_<dimensions>.jpg`,
+ * into `<MEDIA_ROOT>/screenshots/<series directory>/Season <N>/<fileHash>/<second>_<dimensions>.jpg`,
  * skipping any that already exist. Episodes that already have title_cards
  * records pass through unchanged.
  *
@@ -130,13 +132,17 @@ const planEpisodeScreenshots = (
  * concurrently would contend for the same CPU/disk with no real benefit.
  * Each generation is logged right before it starts.
  */
-export const generateEpisodeScreenshots: Step<
-  PawPatrolTitleCardsContext
-> = async (ctx) => {
+export const generateEpisodeScreenshots: Step<TitleCardsContext> = async (
+  ctx,
+) => {
   const tasksByEpisode = ctx.episodes.map((episode) =>
     episode.titleCards && episode.titleCards.length > 0
       ? []
-      : planEpisodeScreenshots(episode, ctx.seasonNumber),
+      : planEpisodeScreenshots(
+          episode,
+          ctx.series.directoryName,
+          ctx.seasonNumber,
+        ),
   );
 
   for (const tasks of tasksByEpisode) {

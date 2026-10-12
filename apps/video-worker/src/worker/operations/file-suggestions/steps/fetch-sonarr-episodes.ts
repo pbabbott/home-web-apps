@@ -3,8 +3,7 @@ import {
   getSeriesByTitle,
 } from '../../../../api/sonarr/sonarr-client';
 import type { Step } from '../../pipeline';
-import { SHOW_DIRECTORY_NAME } from '../../paw-patrol-title-cards/lib/paths';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+import type { FileSuggestionsContext } from '../context';
 
 /**
  * Fetches the season's official episode list from Sonarr once per job run
@@ -13,9 +12,9 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
  * episode. Skipped entirely if every episode already has a suggestion,
  * since nothing downstream would use the result.
  */
-export const fetchSonarrEpisodes: Step<
-  PawPatrolFileSuggestionsContext
-> = async (ctx) => {
+export const fetchSonarrEpisodes: Step<FileSuggestionsContext> = async (
+  ctx,
+) => {
   const needsSuggestions = ctx.episodes.some(
     (episode) => !episode.existingSuggestion,
   );
@@ -24,8 +23,11 @@ export const fetchSonarrEpisodes: Step<
     return ctx;
   }
 
-  const series = await getSeriesByTitle(SHOW_DIRECTORY_NAME);
-  const sonarrEpisodes = await getSeasonEpisodes(series.id, ctx.seasonNumber);
+  const sonarrSeries = await getSeriesByTitle(ctx.series.seriesName);
+  const sonarrEpisodes = await getSeasonEpisodes(
+    sonarrSeries.id,
+    ctx.seasonNumber,
+  );
 
   return { ...ctx, sonarrEpisodes };
 };

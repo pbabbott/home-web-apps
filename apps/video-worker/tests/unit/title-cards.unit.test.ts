@@ -1,6 +1,6 @@
 import fs from 'fs';
 import type { VideoJob } from '@abbottland/video-db';
-import { runPawPatrolTitleCardsOperation } from '../../src/worker/operations/paw-patrol-title-cards';
+import { runTitleCardsOperation } from '../../src/worker/operations/title-cards';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
 
 jest.mock('fs');
@@ -27,6 +27,12 @@ jest.mock('@abbottland/video-db', () => ({
   getAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertAiResponseCache: jest.fn().mockResolvedValue(undefined),
   upsertTitleCard: jest.fn(),
+  getSeriesByName: jest.fn().mockResolvedValue({
+    id: 'series-1',
+    seriesName: 'Paw Patrol',
+    directoryName: 'Paw Patrol',
+    seasonCount: 13,
+  }),
   createVideoJobStep: jest.fn().mockResolvedValue({ id: 'step-1' }),
   completeVideoJobStep: jest.fn(),
   failVideoJobStep: jest.fn(),
@@ -40,9 +46,9 @@ jest.mock('../../src/api/ai/ai-client', () => ({
 const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
   ({
     id: 'a1b2c3d4-e5f6-4789-a012-3456789abcde',
-    operation: 'paw_patrol_title_cards',
+    operation: 'title_cards',
     status: 'processing',
-    parameters: { seasonNumber: 3 },
+    parameters: { series: 'Paw Patrol', seasonNumber: 3 },
     workerId: 'worker-1',
     createdAt: new Date(),
     startedAt: new Date(),
@@ -55,7 +61,7 @@ const buildJob = (overrides: Partial<VideoJob> = {}): VideoJob =>
 const direntFor = (name: string, isFile: boolean) =>
   ({ name, isFile: () => isFile }) as fs.Dirent;
 
-describe('runPawPatrolTitleCardsOperation', () => {
+describe('runTitleCardsOperation', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -63,7 +69,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
   it('rejects parameters without a numeric seasonNumber', async () => {
     const job = buildJob({ parameters: {} });
 
-    await expect(runPawPatrolTitleCardsOperation(job)).rejects.toThrow(
+    await expect(runTitleCardsOperation(job)).rejects.toThrow(
       JobProcessingError,
     );
   });
@@ -71,9 +77,11 @@ describe('runPawPatrolTitleCardsOperation', () => {
   it('rejects a season that has no matching directory under MEDIA_ROOT', async () => {
     (fs.existsSync as jest.Mock).mockReturnValue(false);
 
-    const job = buildJob({ parameters: { seasonNumber: 99 } });
+    const job = buildJob({
+      parameters: { series: 'Paw Patrol', seasonNumber: 99 },
+    });
 
-    await expect(runPawPatrolTitleCardsOperation(job)).rejects.toThrow(
+    await expect(runTitleCardsOperation(job)).rejects.toThrow(
       JobProcessingError,
     );
   });
@@ -89,7 +97,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
 
     const job = buildJob();
 
-    const result = await runPawPatrolTitleCardsOperation(job);
+    const result = await runTitleCardsOperation(job);
 
     expect(result.message).toBe(
       'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 with no title card detected',
@@ -123,7 +131,7 @@ describe('runPawPatrolTitleCardsOperation', () => {
 
     const job = buildJob();
 
-    const result = await runPawPatrolTitleCardsOperation(job);
+    const result = await runTitleCardsOperation(job);
 
     expect(result.message).toBe(
       'processed 1 episode(s), 15 screenshot(s) generated, 0 title card record(s) written, 1 already had title cards, 1 with no title card detected',

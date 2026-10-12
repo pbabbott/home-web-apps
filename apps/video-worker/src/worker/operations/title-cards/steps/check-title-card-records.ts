@@ -2,7 +2,7 @@ import { listTitleCards } from '@abbottland/video-db';
 import { db } from '../../../../db';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 
 /**
  * Looks up existing title_cards rows for each episode's file hash. An
@@ -11,9 +11,7 @@ import type { PawPatrolTitleCardsContext } from '../context';
  * data generated before a record can be inserted — handled by a later
  * step.
  */
-export const checkTitleCardRecords: Step<PawPatrolTitleCardsContext> = async (
-  ctx,
-) => {
+export const checkTitleCardRecords: Step<TitleCardsContext> = async (ctx) => {
   const episodes = await Promise.all(
     ctx.episodes.map(async (episode) => {
       if (!episode.hash) {

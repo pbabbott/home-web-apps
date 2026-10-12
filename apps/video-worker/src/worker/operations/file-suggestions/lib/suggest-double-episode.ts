@@ -5,7 +5,9 @@ import {
 } from '../../../../api/ai/ai-client';
 import type { SonarrEpisode } from '../../../../api/sonarr/sonarr-client';
 
-const SYSTEM_PROMPT = `You are a TV episode identification specialist for a Paw Patrol media library. Your only job is matching ONE video file that bundles TWO back-to-back episodes — a common release pattern for this show — to its two official episodes from Sonarr.
+const buildSystemPrompt = (
+  seriesName: string,
+): string => `You are a TV episode identification specialist for a ${seriesName} media library. Your only job is matching ONE video file that bundles TWO back-to-back episodes — a common release pattern for this show — to its two official episodes from Sonarr.
 
 You will be given two detected on-screen title cards, in the chronological order they appear in the file (first segment, then second segment). Match each one to its own official episode.
 
@@ -61,11 +63,12 @@ export const suggestDoubleEpisode = async (
   secondTitleCardTitle: string,
   sonarrEpisodes: SonarrEpisode[],
   model: string,
+  seriesName: string,
 ): Promise<DoubleEpisodeMatchResult> => {
   const request: ChatCompletionRequest = {
     model,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: buildSystemPrompt(seriesName) },
       {
         role: 'user',
         content: buildUserPrompt(

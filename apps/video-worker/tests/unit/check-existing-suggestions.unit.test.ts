@@ -1,18 +1,27 @@
 import { listFileRenames } from '@abbottland/video-db';
-import type { FileRename, VideoJob } from '@abbottland/video-db';
-import { checkExistingSuggestions } from '../../src/worker/operations/paw-patrol-file-suggestions/steps/check-existing-suggestions';
+import type { FileRename, Series, VideoJob } from '@abbottland/video-db';
+import { checkExistingSuggestions } from '../../src/worker/operations/file-suggestions/steps/check-existing-suggestions';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolFileSuggestionsContext } from '../../src/worker/operations/paw-patrol-file-suggestions/context';
+import type { FileSuggestionsContext } from '../../src/worker/operations/file-suggestions/context';
 
 jest.mock('@abbottland/video-db', () => ({
   listFileRenames: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolFileSuggestionsContext> = {},
-): PawPatrolFileSuggestionsContext => ({
+  overrides: Partial<FileSuggestionsContext> = {},
+): FileSuggestionsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],

@@ -5,8 +5,8 @@ import { promisify } from 'util';
 import { config } from '../../../../config';
 import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
-import { detectTitleCard } from '../../paw-patrol-title-cards/lib/detect-title-card';
-import { screenshotDirectoryRelPath } from '../../paw-patrol-title-cards/lib/paths';
+import { detectTitleCard } from '../../title-cards/lib/detect-title-card';
+import { screenshotDirectoryRelPath } from '../../title-cards/lib/paths';
 
 const execFileAsync = promisify(execFile);
 
@@ -46,6 +46,8 @@ const round1 = (value: number): number => Math.round(value * 10) / 10;
  * on every call.
  */
 export const refineSplitPoint = async (
+  directoryName: string,
+  seriesName: string,
   seasonNumber: number,
   fileHash: string,
   episodeAbsPath: string,
@@ -53,6 +55,7 @@ export const refineSplitPoint = async (
   model: string,
 ): Promise<number> => {
   const screenshotDirRelPath = screenshotDirectoryRelPath(
+    directoryName,
     seasonNumber,
     fileHash,
   );
@@ -103,6 +106,7 @@ export const refineSplitPoint = async (
       imageBase64,
       SCREENSHOT_MIME_TYPE,
       model,
+      seriesName,
     );
 
     if (!result.found) break;

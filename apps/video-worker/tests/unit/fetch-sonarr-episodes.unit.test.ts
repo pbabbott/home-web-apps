@@ -1,20 +1,29 @@
-import type { FileRename, VideoJob } from '@abbottland/video-db';
+import type { FileRename, Series, VideoJob } from '@abbottland/video-db';
 import {
   getSeasonEpisodes,
   getSeriesByTitle,
 } from '../../src/api/sonarr/sonarr-client';
-import { fetchSonarrEpisodes } from '../../src/worker/operations/paw-patrol-file-suggestions/steps/fetch-sonarr-episodes';
-import type { PawPatrolFileSuggestionsContext } from '../../src/worker/operations/paw-patrol-file-suggestions/context';
+import { fetchSonarrEpisodes } from '../../src/worker/operations/file-suggestions/steps/fetch-sonarr-episodes';
+import type { FileSuggestionsContext } from '../../src/worker/operations/file-suggestions/context';
 
 jest.mock('../../src/api/sonarr/sonarr-client', () => ({
   getSeriesByTitle: jest.fn(),
   getSeasonEpisodes: jest.fn(),
 }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolFileSuggestionsContext> = {},
-): PawPatrolFileSuggestionsContext => ({
+  overrides: Partial<FileSuggestionsContext> = {},
+): FileSuggestionsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],

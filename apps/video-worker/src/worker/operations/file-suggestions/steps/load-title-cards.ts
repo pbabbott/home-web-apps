@@ -2,7 +2,7 @@ import { listTitleCards } from '@abbottland/video-db';
 import { db } from '../../../../db';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+import type { FileSuggestionsContext } from '../context';
 
 /**
  * Loads existing title_cards rows for each episode that still needs a
@@ -10,9 +10,7 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
  * episode list. Episodes with an existingSuggestion are skipped (already
  * done, per checkExistingSuggestions).
  */
-export const loadTitleCards: Step<PawPatrolFileSuggestionsContext> = async (
-  ctx,
-) => {
+export const loadTitleCards: Step<FileSuggestionsContext> = async (ctx) => {
   const episodes = await Promise.all(
     ctx.episodes.map(async (episode) => {
       if (episode.existingSuggestion) {

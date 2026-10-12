@@ -5,7 +5,9 @@ import {
 } from '../../../../api/ai/ai-client';
 import type { SonarrEpisode } from '../../../../api/sonarr/sonarr-client';
 
-const SYSTEM_PROMPT = `You are a TV episode identification specialist for a Paw Patrol media library. Your only job is matching ONE video file — which shows exactly one detected on-screen title card — to its single official episode from Sonarr.
+const buildSystemPrompt = (
+  seriesName: string,
+): string => `You are a TV episode identification specialist for a ${seriesName} media library. Your only job is matching ONE video file — which shows exactly one detected on-screen title card — to its single official episode from Sonarr.
 
 Matching rules:
 - The detected title-card text is OCR'd from a screenshot and may have typos, missing punctuation, extra whitespace, or a slightly different word order than the official title. Match on meaning, not exact string equality.
@@ -51,11 +53,12 @@ export const suggestSingleEpisode = async (
   titleCardTitle: string,
   sonarrEpisodes: SonarrEpisode[],
   model: string,
+  seriesName: string,
 ): Promise<SingleEpisodeMatchResult> => {
   const request: ChatCompletionRequest = {
     model,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: buildSystemPrompt(seriesName) },
       {
         role: 'user',
         content: buildUserPrompt(filename, titleCardTitle, sonarrEpisodes),

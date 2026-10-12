@@ -4,14 +4,15 @@ import { config } from '../../../../config';
 import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 import { seasonDirectoryRelPath } from '../lib/paths';
 
-/** Lists the episode files in `<MEDIA_ROOT>/media/tv_shows/Paw Patrol/Season <N>`. */
-export const listSeasonFiles: Step<PawPatrolTitleCardsContext> = async (
-  ctx,
-) => {
-  const seasonRelPath = seasonDirectoryRelPath(ctx.seasonNumber);
+/** Lists the episode files in `<MEDIA_ROOT>/media/tv_shows/<series directory>/Season <N>`. */
+export const listSeasonFiles: Step<TitleCardsContext> = async (ctx) => {
+  const seasonRelPath = seasonDirectoryRelPath(
+    ctx.series.directoryName,
+    ctx.seasonNumber,
+  );
   const seasonAbsPath = resolveWithinRoot(config.mediaRoot, seasonRelPath);
 
   if (!seasonAbsPath) {

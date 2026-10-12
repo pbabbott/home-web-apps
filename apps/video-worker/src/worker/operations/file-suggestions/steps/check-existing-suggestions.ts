@@ -2,7 +2,7 @@ import { listFileRenames } from '@abbottland/video-db';
 import { db } from '../../../../db';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+import type { FileSuggestionsContext } from '../context';
 
 /**
  * Looks up an existing file_renames row for each episode's file hash. This
@@ -12,9 +12,9 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
  * this job over a season that's already fully suggested does no work
  * beyond this lookup.
  */
-export const checkExistingSuggestions: Step<
-  PawPatrolFileSuggestionsContext
-> = async (ctx) => {
+export const checkExistingSuggestions: Step<FileSuggestionsContext> = async (
+  ctx,
+) => {
   const episodes = await Promise.all(
     ctx.episodes.map(async (episode) => {
       if (!episode.hash) {

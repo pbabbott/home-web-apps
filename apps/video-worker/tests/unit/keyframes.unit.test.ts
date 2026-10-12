@@ -2,7 +2,7 @@ import { execFile } from 'child_process';
 import {
   nearestKeyframe,
   probeKeyframeTimes,
-} from '../../src/worker/operations/paw-patrol-apply-file-renames/lib/keyframes';
+} from '../../src/worker/operations/apply-file-renames/lib/keyframes';
 
 jest.mock('child_process', () => ({
   execFile: jest.fn(

@@ -6,7 +6,7 @@ import { runSteps } from '../pipeline';
 import type { OperationResult } from '../operation-result';
 import type { ApplyContext, SkippedRow } from './context';
 import { normalizeRelPath } from './lib/paths';
-import { isPawPatrolApplyFileRenamesParameters } from './parameters';
+import { isApplyFileRenamesParameters } from './parameters';
 import { applyRow } from './resolve';
 
 const summarizeSkips = (skipped: SkippedRow[]): string => {
@@ -99,10 +99,10 @@ const steps: NamedStep<ApplyContext>[] = [
   },
 ];
 
-export const runPawPatrolApplyFileRenamesOperation = async (
+export const runApplyFileRenamesOperation = async (
   job: VideoJob,
 ): Promise<OperationResult> => {
-  if (!isPawPatrolApplyFileRenamesParameters(job.parameters)) {
+  if (!isApplyFileRenamesParameters(job.parameters)) {
     throw new JobProcessingError('parameters must be an object');
   }
 

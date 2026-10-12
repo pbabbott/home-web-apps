@@ -1,6 +1,6 @@
 import { getRuntimeSeconds } from '../../../../lib/get-runtime';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 
 /**
  * Probes runtime (ffprobe) for episodes that don't already have a
@@ -8,9 +8,7 @@ import type { PawPatrolTitleCardsContext } from '../context';
  * database, so there's nothing to compute. Episodes with existing records
  * pass through unchanged.
  */
-export const computeEpisodeRuntime: Step<PawPatrolTitleCardsContext> = async (
-  ctx,
-) => {
+export const computeEpisodeRuntime: Step<TitleCardsContext> = async (ctx) => {
   const episodes = await Promise.all(
     ctx.episodes.map(async (episode) => {
       if (episode.titleCards && episode.titleCards.length > 0) {

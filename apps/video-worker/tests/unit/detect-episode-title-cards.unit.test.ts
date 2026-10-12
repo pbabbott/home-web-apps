@@ -1,25 +1,34 @@
 import fs from 'fs';
-import type { TitleCard, VideoJob } from '@abbottland/video-db';
-import { detectEpisodeTitleCards } from '../../src/worker/operations/paw-patrol-title-cards/steps/detect-episode-title-cards';
-import { detectTitleCard } from '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card';
+import type { Series, TitleCard, VideoJob } from '@abbottland/video-db';
+import { detectEpisodeTitleCards } from '../../src/worker/operations/title-cards/steps/detect-episode-title-cards';
+import { detectTitleCard } from '../../src/worker/operations/title-cards/lib/detect-title-card';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolTitleCardsContext } from '../../src/worker/operations/paw-patrol-title-cards/context';
+import type { TitleCardsContext } from '../../src/worker/operations/title-cards/context';
 
 jest.mock('fs');
 jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media' },
 }));
 jest.mock(
-  '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card',
+  '../../src/worker/operations/title-cards/lib/detect-title-card',
   () => ({
     detectTitleCard: jest.fn(),
   }),
 );
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolTitleCardsContext> = {},
-): PawPatrolTitleCardsContext => ({
+  overrides: Partial<TitleCardsContext> = {},
+): TitleCardsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
@@ -28,6 +37,7 @@ const buildContext = (
 
 const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   id: 'tc-1',
+  seriesId: 'series-1',
   fileHash: 'hash-1',
   filePath: '/media/e01.mp4',
   timestampSeconds: 30,
@@ -114,6 +124,7 @@ describe('detectEpisodeTitleCards', () => {
       Buffer.from('jpegbytes').toString('base64'),
       'image/jpeg',
       'test-model',
+      'Paw Patrol',
     );
 
     const screenshotBase64 = Buffer.from('jpegbytes').toString('base64');

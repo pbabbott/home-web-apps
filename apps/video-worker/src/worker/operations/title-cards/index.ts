@@ -1,11 +1,12 @@
-import type { VideoJob } from '@abbottland/video-db';
+import { getSeriesByName, type VideoJob } from '@abbottland/video-db';
 import { config } from '../../../config';
+import { db } from '../../../db';
 import { JobProcessingError } from '../../job-processing-error';
 import type { OperationResult } from '../operation-result';
 import { runSteps } from '../pipeline';
-import type { PawPatrolTitleCardsContext } from './context';
+import type { TitleCardsContext } from './context';
 import type { Episode } from './episode';
-import { isPawPatrolTitleCardsParameters } from './parameters';
+import { isTitleCardsParameters } from './parameters';
 import { steps } from './steps';
 
 /**
@@ -19,7 +20,7 @@ import { steps } from './steps';
 const wasProcessedThisRun = (episode: Episode): boolean =>
   episode.titleCardDetections !== undefined;
 
-const summarizeResult = (context: PawPatrolTitleCardsContext): string => {
+const summarizeResult = (context: TitleCardsContext): string => {
   const processed = context.episodes.filter(wasProcessedThisRun);
   const alreadyDone = context.episodes.length - processed.length;
   const titleCardsWritten = processed.reduce(
@@ -52,16 +53,25 @@ const summarizeResult = (context: PawPatrolTitleCardsContext): string => {
   return parts.join(', ');
 };
 
-export const runPawPatrolTitleCardsOperation = async (
+export const runTitleCardsOperation = async (
   job: VideoJob,
 ): Promise<OperationResult> => {
-  if (!isPawPatrolTitleCardsParameters(job.parameters)) {
-    throw new JobProcessingError('parameters.seasonNumber must be a number');
+  if (!isTitleCardsParameters(job.parameters)) {
+    throw new JobProcessingError(
+      'parameters.series must be a string and parameters.seasonNumber must be a number',
+    );
+  }
+
+  const series = await getSeriesByName(db, job.parameters.series);
+
+  if (!series) {
+    throw new JobProcessingError(`no series named "${job.parameters.series}"`);
   }
 
   const context = await runSteps(
     {
       job,
+      series,
       seasonNumber: job.parameters.seasonNumber,
       model: job.parameters.model ?? config.aiModel,
       episodes: [],

@@ -3,7 +3,7 @@ import { config } from '../../../../config';
 import { resolveWithinRoot } from '../../../../lib/safe-path';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 import type { Episode } from '../episode';
 import {
   detectTitleCard,
@@ -22,9 +22,7 @@ const SCREENSHOT_MIME_TYPE = 'image/jpeg';
  * requests shouldn't overlap. Episodes that already have title_cards
  * records pass through unchanged.
  */
-export const detectEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
-  ctx,
-) => {
+export const detectEpisodeTitleCards: Step<TitleCardsContext> = async (ctx) => {
   const episodes: Episode[] = [];
 
   for (const episode of ctx.episodes) {
@@ -59,6 +57,7 @@ export const detectEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
         imageBase64,
         SCREENSHOT_MIME_TYPE,
         ctx.model,
+        ctx.series.seriesName,
       );
 
       titleCardDetections.push({

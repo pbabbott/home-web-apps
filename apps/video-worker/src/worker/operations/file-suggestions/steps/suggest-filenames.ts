@@ -8,7 +8,7 @@ import {
 import { refineSplitPoint } from '../lib/refine-split-point';
 import { suggestDoubleEpisode } from '../lib/suggest-double-episode';
 import { suggestSingleEpisode } from '../lib/suggest-single-episode';
-import type { PawPatrolFileSuggestionsContext } from '../context';
+import type { FileSuggestionsContext } from '../context';
 
 /**
  * Asks the AI to match each remaining episode (no existingSuggestion) to
@@ -31,9 +31,7 @@ import type { PawPatrolFileSuggestionsContext } from '../context';
  * picked up on a future run once evidence exists, rather than saving a
  * guess.
  */
-export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
-  ctx,
-) => {
+export const suggestFilenames: Step<FileSuggestionsContext> = async (ctx) => {
   const episodes = await Promise.all(
     ctx.episodes.map(async (episode) => {
       const titleCards = episode.titleCards;
@@ -51,6 +49,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
           titleCards[0].title ?? '',
           ctx.sonarrEpisodes,
           ctx.model,
+          ctx.series.seriesName,
         );
 
         if (!match.found) {
@@ -60,6 +59,8 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
         return {
           ...episode,
           suggestedFilePath: buildPlexEpisodeRelPath(
+            ctx.series.directoryName,
+            ctx.series.seriesName,
             ctx.seasonNumber,
             match.episodeNumber,
             match.episodeTitle,
@@ -76,6 +77,7 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
         titleCards[1].title ?? '',
         ctx.sonarrEpisodes,
         ctx.model,
+        ctx.series.seriesName,
       );
 
       if (!match.found) {
@@ -91,6 +93,8 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
       const [first, second] = match.episodes;
 
       const splitAtSeconds = await refineSplitPoint(
+        ctx.series.directoryName,
+        ctx.series.seriesName,
         ctx.seasonNumber,
         episode.hash,
         episode.absPath,
@@ -101,6 +105,8 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
       return {
         ...episode,
         suggestedFilePath: buildPlexEpisodeRelPath(
+          ctx.series.directoryName,
+          ctx.series.seriesName,
           ctx.seasonNumber,
           first.episodeNumber,
           first.episodeTitle,
@@ -108,6 +114,8 @@ export const suggestFilenames: Step<PawPatrolFileSuggestionsContext> = async (
           extension,
         ),
         secondSuggestedFilePath: buildPlexEpisodeRelPath(
+          ctx.series.directoryName,
+          ctx.series.seriesName,
           ctx.seasonNumber,
           second.episodeNumber,
           second.episodeTitle,

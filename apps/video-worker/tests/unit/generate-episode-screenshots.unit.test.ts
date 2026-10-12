@@ -1,9 +1,9 @@
 import fs from 'fs';
 import { execFile } from 'child_process';
-import type { TitleCard, VideoJob } from '@abbottland/video-db';
-import { generateEpisodeScreenshots } from '../../src/worker/operations/paw-patrol-title-cards/steps/generate-episode-screenshots';
+import type { Series, TitleCard, VideoJob } from '@abbottland/video-db';
+import { generateEpisodeScreenshots } from '../../src/worker/operations/title-cards/steps/generate-episode-screenshots';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolTitleCardsContext } from '../../src/worker/operations/paw-patrol-title-cards/context';
+import type { TitleCardsContext } from '../../src/worker/operations/title-cards/context';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -19,10 +19,19 @@ jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media', ffmpegPath: 'ffmpeg' },
 }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolTitleCardsContext> = {},
-): PawPatrolTitleCardsContext => ({
+  overrides: Partial<TitleCardsContext> = {},
+): TitleCardsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
@@ -31,6 +40,7 @@ const buildContext = (
 
 const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   id: 'tc-1',
+  seriesId: 'series-1',
   fileHash: 'hash-1',
   filePath: '/media/e01.mp4',
   timestampSeconds: 30,

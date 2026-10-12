@@ -1,5 +1,5 @@
 import { chatCompletion } from '../../src/api/ai/ai-client';
-import { suggestSingleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-single-episode';
+import { suggestSingleEpisode } from '../../src/worker/operations/file-suggestions/lib/suggest-single-episode';
 
 jest.mock('../../src/api/ai/ai-client', () => ({
   ...jest.requireActual('../../src/api/ai/ai-client'),
@@ -19,6 +19,7 @@ describe('suggestSingleEpisode', () => {
       'Pups Save a Blimp',
       [{ seasonNumber: 3, episodeNumber: 1, title: 'Pups Save a Blimp' }],
       'test-model',
+      'Paw Patrol',
     );
 
     const call = (chatCompletion as jest.Mock).mock.calls[0][0];
@@ -37,7 +38,13 @@ describe('suggestSingleEpisode', () => {
     );
 
     await expect(
-      suggestSingleEpisode('e01.mp4', 'Pups Save a Blimp', [], 'test-model'),
+      suggestSingleEpisode(
+        'e01.mp4',
+        'Pups Save a Blimp',
+        [],
+        'test-model',
+        'Paw Patrol',
+      ),
     ).resolves.toEqual({
       found: true,
       episodeNumber: 1,
@@ -49,7 +56,7 @@ describe('suggestSingleEpisode', () => {
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
     await expect(
-      suggestSingleEpisode('e01.mp4', '', [], 'test-model'),
+      suggestSingleEpisode('e01.mp4', '', [], 'test-model', 'Paw Patrol'),
     ).resolves.toEqual({
       found: false,
     });

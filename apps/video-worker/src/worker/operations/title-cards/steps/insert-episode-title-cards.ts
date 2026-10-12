@@ -2,7 +2,7 @@ import { upsertTitleCard, type TitleCard } from '@abbottland/video-db';
 import { db } from '../../../../db';
 import { JobProcessingError } from '../../../job-processing-error';
 import type { Step } from '../../pipeline';
-import type { PawPatrolTitleCardsContext } from '../context';
+import type { TitleCardsContext } from '../context';
 import type { Episode } from '../episode';
 import type { TitleCardDetection } from '../lib/detect-title-card';
 import { seasonDirectoryRelPath } from '../lib/paths';
@@ -41,9 +41,7 @@ const dedupeByTitle = (detections: TitleCardDetection[]): FoundDetection[] => {
  * entirely if none did). Episodes that already have title_cards records
  * pass through unchanged.
  */
-export const insertEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
-  ctx,
-) => {
+export const insertEpisodeTitleCards: Step<TitleCardsContext> = async (ctx) => {
   const episodes: Episode[] = [];
 
   for (const episode of ctx.episodes) {
@@ -70,12 +68,13 @@ export const insertEpisodeTitleCards: Step<PawPatrolTitleCardsContext> = async (
       );
     }
 
-    const filePath = `${seasonDirectoryRelPath(ctx.seasonNumber)}/${episode.filename}`;
+    const filePath = `${seasonDirectoryRelPath(ctx.series.directoryName, ctx.seasonNumber)}/${episode.filename}`;
     const titleCards: TitleCard[] = [];
 
     for (const detection of dedupeByTitle(episode.titleCardDetections)) {
       titleCards.push(
         await upsertTitleCard(db, {
+          seriesId: ctx.series.id,
           fileHash: episode.hash,
           filePath,
           timestampSeconds: detection.timestampSeconds,

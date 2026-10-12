@@ -2,6 +2,7 @@ import { execFile } from 'child_process';
 import {
   claimNextVideoJob,
   createVideoJob,
+  deleteVideoJobById,
   getVideoJobById,
 } from '@abbottland/video-db';
 import { db } from '../../src/db';
@@ -38,17 +39,29 @@ jest.mock('child_process', () => ({
 }));
 
 describe('worker job processing', () => {
-  afterEach(() => {
+  // These tests run against the real local dev Postgres (no isolated test
+  // database), so every job created here must be deleted again — otherwise
+  // each run leaves junk rows (e.g. a growing pile of "transcode" jobs) that
+  // show up in home-hud's job list.
+  let createdJobId: string | undefined;
+
+  afterEach(async () => {
     jest.clearAllMocks();
+
+    if (createdJobId) {
+      await deleteVideoJobById(db, createdJobId);
+      createdJobId = undefined;
+    }
   });
 
   // 15 screenshots at the AI client's real 1 req/s throttle (3 concurrent)
   // take a few seconds by design, well past Jest's 5s default.
-  it('completes a paw_patrol_title_cards job and records the handler message', async () => {
+  it('completes a title_cards job and records the handler message', async () => {
     const created = await createVideoJob(db, {
-      operation: 'paw_patrol_title_cards',
-      parameters: { seasonNumber: 3 },
+      operation: 'title_cards',
+      parameters: { series: 'Paw Patrol', seasonNumber: 3 },
     });
+    createdJobId = created.id;
 
     const claimed = await claimNextVideoJob(db, 'test-worker');
     expect(claimed?.id).toBe(created.id);
@@ -67,6 +80,7 @@ describe('worker job processing', () => {
       operation: 'transcode',
       parameters: {},
     });
+    createdJobId = created.id;
 
     const claimed = await claimNextVideoJob(db, 'test-worker');
     expect(claimed?.id).toBe(created.id);

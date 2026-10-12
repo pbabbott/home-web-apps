@@ -1,18 +1,27 @@
 import { upsertFileRename } from '@abbottland/video-db';
-import type { FileRename, VideoJob } from '@abbottland/video-db';
-import { saveSuggestions } from '../../src/worker/operations/paw-patrol-file-suggestions/steps/save-suggestions';
+import type { FileRename, Series, VideoJob } from '@abbottland/video-db';
+import { saveSuggestions } from '../../src/worker/operations/file-suggestions/steps/save-suggestions';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolFileSuggestionsContext } from '../../src/worker/operations/paw-patrol-file-suggestions/context';
+import type { FileSuggestionsContext } from '../../src/worker/operations/file-suggestions/context';
 
 jest.mock('@abbottland/video-db', () => ({
   upsertFileRename: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolFileSuggestionsContext> = {},
-): PawPatrolFileSuggestionsContext => ({
+  overrides: Partial<FileSuggestionsContext> = {},
+): FileSuggestionsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
@@ -91,6 +100,7 @@ describe('saveSuggestions', () => {
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},
       {
+        seriesId: 'series-1',
         fileHash: 'hash-1',
         originalFilePath: 'media/tv_shows/Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:
@@ -130,6 +140,7 @@ describe('saveSuggestions', () => {
     expect(upsertFileRename).toHaveBeenCalledWith(
       {},
       {
+        seriesId: 'series-1',
         fileHash: 'hash-1',
         originalFilePath: 'media/tv_shows/Paw Patrol/Season 3/random-name.mp4',
         suggestedFilePath:

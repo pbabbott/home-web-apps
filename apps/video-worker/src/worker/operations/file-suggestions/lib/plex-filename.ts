@@ -1,7 +1,4 @@
-import {
-  seasonDirectoryRelPath,
-  SHOW_DIRECTORY_NAME,
-} from '../../paw-patrol-title-cards/lib/paths';
+import { seasonDirectoryRelPath } from '../../title-cards/lib/paths';
 
 /** Strips characters Plex/most filesystems don't allow in a filename. */
 const sanitizeFilenameSegment = (value: string): string =>
@@ -27,11 +24,14 @@ const qualitySuffix = (qualityTag: string | null): string =>
 /**
  * Builds a Plex-standard TV episode filename:
  * `<Series> - S<season>E<episode> - <Episode Title> [<Quality>].<ext>`, e.g.
- * `Paw Patrol - S03E01 - Pups Save a Blimp [WEBDL-1080p].mp4`. The bracketed
- * quality tag is omitted when the original filename had none.
+ * `Paw Patrol - S03E01 - Pups Save a Blimp [WEBDL-1080p].mp4`. `seriesName`
+ * is the series' display name (series.seriesName) — Plex/Sonarr expect this,
+ * not the on-disk directory name, which may differ. The bracketed quality
+ * tag is omitted when the original filename had none.
  * https://support.plex.tv/articles/naming-and-organizing-your-tv-show-files/
  */
 export const buildPlexEpisodeFilename = (
+  seriesName: string,
   seasonNumber: number,
   episodeNumber: number,
   episodeTitle: string,
@@ -42,18 +42,21 @@ export const buildPlexEpisodeFilename = (
   const episode = String(episodeNumber).padStart(2, '0');
   const title = sanitizeFilenameSegment(episodeTitle);
 
-  return `${SHOW_DIRECTORY_NAME} - S${season}E${episode} - ${title}${qualitySuffix(qualityTag)}${extension}`;
+  return `${seriesName} - S${season}E${episode} - ${title}${qualitySuffix(qualityTag)}${extension}`;
 };
 
-/** MEDIA_ROOT-relative destination path for a suggested Plex-named episode file. */
+/** MEDIA_ROOT-relative destination path for a suggested Plex-named episode file. directoryName is the on-disk folder (series.directoryName); seriesName is the display name baked into the filename itself. */
 export const buildPlexEpisodeRelPath = (
+  directoryName: string,
+  seriesName: string,
   seasonNumber: number,
   episodeNumber: number,
   episodeTitle: string,
   qualityTag: string | null,
   extension: string,
 ): string =>
-  `${seasonDirectoryRelPath(seasonNumber)}/${buildPlexEpisodeFilename(
+  `${seasonDirectoryRelPath(directoryName, seasonNumber)}/${buildPlexEpisodeFilename(
+    seriesName,
     seasonNumber,
     episodeNumber,
     episodeTitle,
