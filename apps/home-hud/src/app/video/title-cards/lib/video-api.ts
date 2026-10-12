@@ -12,10 +12,16 @@ export interface TitleCard {
   createdAt: string;
 }
 
-export async function getTitleCards(season?: number): Promise<TitleCard[]> {
+export async function getTitleCards(
+  season?: number,
+  series?: string,
+): Promise<TitleCard[]> {
   const url = new URL(`${VIDEO_API_URL}/title-cards`);
   if (season !== undefined) {
     url.searchParams.set('season', String(season));
+  }
+  if (series !== undefined) {
+    url.searchParams.set('series', series);
   }
 
   const res = await fetch(url, {

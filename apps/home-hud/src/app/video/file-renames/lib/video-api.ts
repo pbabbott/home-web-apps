@@ -15,8 +15,13 @@ export interface FileRename {
   appliedAt: string | null;
 }
 
-export async function getFileRenames(): Promise<FileRename[]> {
-  const res = await fetch(`${VIDEO_API_URL}/file-renames`, {
+export async function getFileRenames(series?: string): Promise<FileRename[]> {
+  const url = new URL(`${VIDEO_API_URL}/file-renames`);
+  if (series !== undefined) {
+    url.searchParams.set('series', series);
+  }
+
+  const res = await fetch(url, {
     cache: 'no-store',
   });
 

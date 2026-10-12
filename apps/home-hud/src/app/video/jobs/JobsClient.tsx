@@ -24,6 +24,7 @@ import {
 } from '@abbottland/fui-components';
 import { createJob, type JobOperation } from './lib/actions';
 import type { AiStatus, VideoJob, VideoJobStatus } from './lib/video-api';
+import type { Series } from '../series/lib/video-api';
 
 const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
   pending: 'warning',
@@ -35,35 +36,35 @@ const jobStatusColor: Record<VideoJobStatus, BadgeColor> = {
 const PAGE_SIZE = 10;
 
 const FIRST_SEASON = 1;
-const LAST_SEASON = 13;
-const SEASON_OPTIONS = Array.from(
-  { length: LAST_SEASON - FIRST_SEASON + 1 },
-  (_, i) => FIRST_SEASON + i,
-);
 
 const OPERATION_OPTIONS: JobOperation[] = [
-  'paw_patrol_title_cards',
-  'paw_patrol_file_suggestions',
-  'paw_patrol_apply_file_renames',
+  'title_cards',
+  'file_suggestions',
+  'apply_file_renames',
 ];
 
 const operationLabels: Record<JobOperation, string> = {
-  paw_patrol_title_cards: 'Title Cards',
-  paw_patrol_file_suggestions: 'File Suggestions',
-  paw_patrol_apply_file_renames: 'Apply Renames',
+  title_cards: 'Title Cards',
+  file_suggestions: 'File Suggestions',
+  apply_file_renames: 'Apply Renames',
 };
 
-// Only paw_patrol_apply_file_renames processes every pending file_renames
-// row regardless of season — every other operation is season-scoped.
+// Only apply_file_renames processes every pending file_renames row
+// regardless of season — every other operation is season-scoped.
 const operationNeedsSeason = (operation: JobOperation): boolean =>
-  operation !== 'paw_patrol_apply_file_renames';
+  operation !== 'apply_file_renames';
 
 // file_suggestions (episode-matching) and title_cards (title-card detection)
 // both call out to the AI in a way where swapping models job-to-job is
 // useful — apply_file_renames doesn't take a model input at all.
 const operationSupportsModelOverride = (operation: JobOperation): boolean =>
-  operation === 'paw_patrol_file_suggestions' ||
-  operation === 'paw_patrol_title_cards';
+  operation === 'file_suggestions' || operation === 'title_cards';
+
+// apply_file_renames is global (not season-scoped), so it has no series
+// input either — every other operation needs a series to resolve its
+// on-disk directory.
+const operationNeedsSeries = (operation: JobOperation): boolean =>
+  operation !== 'apply_file_renames';
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -81,20 +82,31 @@ function formatDate(iso: string): string {
 interface JobsClientProps {
   jobs: VideoJob[] | null;
   aiStatus: AiStatus | null;
+  series: Series[];
 }
 
-export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
+export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [operation, setOperation] = useState<JobOperation>(
     OPERATION_OPTIONS[0],
   );
+  const [selectedSeries, setSelectedSeries] = useState<Series | undefined>(
+    series[0],
+  );
   const [season, setSeason] = useState(FIRST_SEASON);
   const [model, setModel] = useState('');
   const [operationMenuOpen, setOperationMenuOpen] = useState(false);
+  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const lastSeason = selectedSeries?.seasonCount ?? FIRST_SEASON;
+  const seasonOptions = Array.from(
+    { length: Math.max(1, lastSeason - FIRST_SEASON + 1) },
+    (_, i) => FIRST_SEASON + i,
+  );
 
   const totalPages = jobs ? Math.max(1, Math.ceil(jobs.length / PAGE_SIZE)) : 1;
   const pageJobs = jobs?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -106,6 +118,9 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
     try {
       await createJob(
         operation,
+        operationNeedsSeries(operation)
+          ? selectedSeries?.seriesName
+          : undefined,
         operationNeedsSeason(operation) ? season : undefined,
         operationSupportsModelOverride(operation) ? model.trim() : undefined,
       );
@@ -172,6 +187,29 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {operationNeedsSeries(operation) && (
+            <DropdownMenu
+              open={seriesMenuOpen}
+              onOpenChange={setSeriesMenuOpen}
+            >
+              <DropdownMenuTrigger asChild>
+                <OutlinedButton size="small">
+                  Series: {selectedSeries?.seriesName ?? 'None'}
+                </OutlinedButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent label="Choose Series">
+                {series.map((s) => (
+                  <DropdownMenuItem
+                    key={s.id}
+                    onSelect={() => setSelectedSeries(s)}
+                  >
+                    {s.seriesName}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {operationNeedsSeason(operation) && (
             <DropdownMenu
               open={seasonMenuOpen}
@@ -181,7 +219,7 @@ export function JobsClient({ jobs, aiStatus }: JobsClientProps) {
                 <OutlinedButton size="small">Season: {season}</OutlinedButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent label="Choose Season">
-                {SEASON_OPTIONS.map((s) => (
+                {seasonOptions.map((s) => (
                   <DropdownMenuItem key={s} onSelect={() => setSeason(s)}>
                     Season {s}
                   </DropdownMenuItem>

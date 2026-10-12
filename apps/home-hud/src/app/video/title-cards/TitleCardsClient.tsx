@@ -25,15 +25,12 @@ import {
 } from '@abbottland/fui-components';
 import { deleteTitleCard } from './lib/actions';
 import type { TitleCard } from './lib/video-api';
+import type { Series } from '../series/lib/video-api';
 
 const PAGE_SIZE = 10;
 
 const FIRST_SEASON = 1;
-const LAST_SEASON = 13;
-const SEASON_OPTIONS = Array.from(
-  { length: LAST_SEASON - FIRST_SEASON + 1 },
-  (_, i) => FIRST_SEASON + i,
-);
+const DEFAULT_LAST_SEASON = 13;
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -51,18 +48,30 @@ function formatDate(iso: string): string {
 interface TitleCardsClientProps {
   titleCards: TitleCard[] | null;
   selectedSeason: number | null;
+  selectedSeries: string | null;
+  series: Series[];
 }
 
 export function TitleCardsClient({
   titleCards,
   selectedSeason,
+  selectedSeries,
+  series,
 }: TitleCardsClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const selectedSeriesRow = series.find((s) => s.seriesName === selectedSeries);
+  const lastSeason = selectedSeriesRow?.seasonCount ?? DEFAULT_LAST_SEASON;
+  const seasonOptions = Array.from(
+    { length: Math.max(1, lastSeason - FIRST_SEASON + 1) },
+    (_, i) => FIRST_SEASON + i,
+  );
 
   const sortedTitleCards = titleCards
     ?.slice()
@@ -76,12 +85,28 @@ export function TitleCardsClient({
     page * PAGE_SIZE,
   );
 
+  // Both filters live in the URL together — build it from URLSearchParams
+  // rather than a hardcoded single-param string, so changing one filter
+  // never drops the other.
+  function buildFilterUrl(
+    season: number | null,
+    seriesName: string | null,
+  ): string {
+    const params = new URLSearchParams();
+    if (season !== null) params.set('season', String(season));
+    if (seriesName !== null) params.set('series', seriesName);
+
+    const query = params.toString();
+    return query ? `/video/title-cards?${query}` : '/video/title-cards';
+  }
+
   function selectSeason(season: number | null) {
-    router.push(
-      season === null
-        ? '/video/title-cards'
-        : `/video/title-cards?season=${season}`,
-    );
+    router.push(buildFilterUrl(season, selectedSeries));
+    setPage(1);
+  }
+
+  function selectSeries(seriesName: string | null) {
+    router.push(buildFilterUrl(selectedSeason, seriesName));
     setPage(1);
   }
 
@@ -108,7 +133,28 @@ export function TitleCardsClient({
         Title Cards
       </Typography>
 
-      <div className="self-start">
+      <div className="flex items-center gap-3 self-start">
+        <DropdownMenu open={seriesMenuOpen} onOpenChange={setSeriesMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <OutlinedButton size="small">
+              Series: {selectedSeries ?? 'All'}
+            </OutlinedButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent label="Filter by Series">
+            <DropdownMenuItem onSelect={() => selectSeries(null)}>
+              All Series
+            </DropdownMenuItem>
+            {series.map((s) => (
+              <DropdownMenuItem
+                key={s.id}
+                onSelect={() => selectSeries(s.seriesName)}
+              >
+                {s.seriesName}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
           <DropdownMenuTrigger asChild>
             <OutlinedButton size="small">
@@ -119,7 +165,7 @@ export function TitleCardsClient({
             <DropdownMenuItem onSelect={() => selectSeason(null)}>
               All Seasons
             </DropdownMenuItem>
-            {SEASON_OPTIONS.map((season) => (
+            {seasonOptions.map((season) => (
               <DropdownMenuItem
                 key={season}
                 onSelect={() => selectSeason(season)}

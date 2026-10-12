@@ -3,16 +3,18 @@
 const VIDEO_API_URL = process.env.VIDEO_API_URL ?? 'http://localhost:4002';
 
 export type JobOperation =
-  | 'paw_patrol_title_cards'
-  | 'paw_patrol_file_suggestions'
-  | 'paw_patrol_apply_file_renames';
+  | 'title_cards'
+  | 'file_suggestions'
+  | 'apply_file_renames';
 
 export async function createJob(
   operation: JobOperation,
+  series?: string,
   seasonNumber?: number,
   model?: string,
 ): Promise<void> {
   const parameters = {
+    ...(series && { series }),
     ...(seasonNumber !== undefined && { seasonNumber }),
     ...(model && { model }),
   };

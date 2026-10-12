@@ -27,6 +27,7 @@ import {
 } from '@abbottland/fui-components';
 import { deleteFileRename, deleteFileRenamesForSeason } from './lib/actions';
 import type { FileRename, FileRenameStatus } from './lib/video-api';
+import type { Series } from '../series/lib/video-api';
 
 const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
   pending: 'warning',
@@ -78,13 +79,20 @@ function formatSplitAt(seconds: number): string {
 
 interface FileRenamesClientProps {
   fileRenames: FileRename[] | null;
+  selectedSeries: string | null;
+  series: Series[];
 }
 
-export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
+export function FileRenamesClient({
+  fileRenames,
+  selectedSeries,
+  series,
+}: FileRenamesClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
+  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<FileRenameStatus | null>(
     null,
   );
@@ -121,6 +129,19 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
 
   function selectStatus(status: FileRenameStatus | null) {
     setSelectedStatus(status);
+    setPage(1);
+  }
+
+  // Unlike season/status (filtered client-side against the already-fetched
+  // list), series is filtered server-side via the ?series= query param —
+  // the API already supports it, and re-fetching keeps this page from
+  // pulling every series' renames just to filter most of them out locally.
+  function selectSeries(seriesName: string | null) {
+    router.push(
+      seriesName === null
+        ? '/video/file-renames'
+        : `/video/file-renames?series=${encodeURIComponent(seriesName)}`,
+    );
     setPage(1);
   }
 
@@ -168,6 +189,27 @@ export function FileRenamesClient({ fileRenames }: FileRenamesClientProps) {
 
       <div className="flex flex-col gap-2 self-start">
         <div className="flex items-center gap-4">
+          <DropdownMenu open={seriesMenuOpen} onOpenChange={setSeriesMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <OutlinedButton size="small">
+                Series: {selectedSeries ?? 'All'}
+              </OutlinedButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent label="Filter by Series">
+              <DropdownMenuItem onSelect={() => selectSeries(null)}>
+                All Series
+              </DropdownMenuItem>
+              {series.map((s) => (
+                <DropdownMenuItem
+                  key={s.id}
+                  onSelect={() => selectSeries(s.seriesName)}
+                >
+                  {s.seriesName}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
             <DropdownMenuTrigger asChild>
               <OutlinedButton size="small">

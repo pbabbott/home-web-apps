@@ -4,14 +4,17 @@ import { Typography } from '@abbottland/fui-components';
 import type { AiStatus, VideoJob } from './jobs/lib/video-api';
 import type { TitleCard } from './title-cards/lib/video-api';
 import type { FileRename } from './file-renames/lib/video-api';
+import type { Series } from './series/lib/video-api';
 import { Footer } from '../components/Footer';
 import { HomeSummaryPanels } from './HomeSummaryPanels';
+import { SeriesList } from './SeriesList';
 
 interface HomeClientProps {
   jobs: VideoJob[] | null;
   aiStatus: AiStatus | null;
   titleCards: TitleCard[] | null;
   fileRenames: FileRename[] | null;
+  series: Series[];
 }
 
 export function HomeClient({
@@ -19,6 +22,7 @@ export function HomeClient({
   aiStatus,
   titleCards,
   fileRenames,
+  series,
 }: HomeClientProps) {
   return (
     <main className="flex min-h-screen flex-col bg-neutral-800">
@@ -38,6 +42,8 @@ export function HomeClient({
           titleCards={titleCards}
           fileRenames={fileRenames}
         />
+
+        <SeriesList series={series} />
       </div>
       <Footer />
     </main>

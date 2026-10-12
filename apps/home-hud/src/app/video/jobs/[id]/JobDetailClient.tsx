@@ -150,6 +150,14 @@ export function JobDetailClient({
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
           <Field label="Id" value={job.id} />
           <Field label="Operation" value={job.operation} />
+          <Field
+            label="Series"
+            value={
+              typeof job.parameters.series === 'string'
+                ? job.parameters.series
+                : '—'
+            }
+          />
           <Field label="Worker" value={job.workerId ?? '—'} />
           <Field label="Created" value={formatDate(job.createdAt)} />
           <Field label="Started" value={formatDate(job.startedAt)} />

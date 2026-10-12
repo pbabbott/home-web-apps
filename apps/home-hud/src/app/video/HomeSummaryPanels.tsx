@@ -29,9 +29,9 @@ const JOB_STATUSES: VideoJobStatus[] = [
 ];
 
 const operationLabels: Record<string, string> = {
-  paw_patrol_title_cards: 'Title Cards',
-  paw_patrol_file_suggestions: 'File Suggestions',
-  paw_patrol_apply_file_renames: 'Apply Renames',
+  title_cards: 'Title Cards',
+  file_suggestions: 'File Suggestions',
+  apply_file_renames: 'Apply Renames',
 };
 
 const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
