@@ -1,5 +1,6 @@
 import {
   primary,
+  secondary,
   success,
   warning,
   error,
@@ -56,9 +57,9 @@ export const STATUS_COLORS: Record<
   { fill: string; border: string; glowStroke: string }
 > = {
   healthy: {
-    fill: withOpacity(success[900], 0.72),
-    border: success[500],
-    glowStroke: withOpacity(success[500], 0.25),
+    fill: withOpacity(secondary[900], 0.72),
+    border: secondary[500],
+    glowStroke: withOpacity(secondary[500], 0.25),
   },
   warning: {
     fill: withOpacity(warning[900], 0.75),

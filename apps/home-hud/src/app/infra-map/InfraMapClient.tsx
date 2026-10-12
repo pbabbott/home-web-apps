@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   Badge,
@@ -12,8 +12,10 @@ import {
   DropdownMenuTrigger,
   OutlinedButton,
   Panel,
+  Scrollbar,
   TiledHexagons,
   type TiledHexagonTile,
+  TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
 import type {
@@ -26,7 +28,7 @@ import type {
 const METRIC_OPTIONS: { value: MapMetric; label: string }[] = [
   { value: 'cpu', label: 'CPU' },
   { value: 'memory', label: 'Memory' },
-  { value: 'both', label: 'Both' },
+  { value: 'both', label: 'CPU || Memory' },
 ];
 
 const GROUP_BY_OPTIONS: { value: GroupDimension | null; label: string }[] = [
@@ -37,7 +39,7 @@ const GROUP_BY_OPTIONS: { value: GroupDimension | null; label: string }[] = [
 ];
 
 const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
-  healthy: 'success',
+  healthy: 'secondary',
   warning: 'warning',
   error: 'error',
   unknown: 'dark',
@@ -45,6 +47,121 @@ const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
 
 const MAX_HORIZONTAL_UNGROUPED = 12;
 const MAX_HORIZONTAL_GROUPED = 8;
+
+const MIN_HEX_PANEL_HEIGHT = 320;
+// TransparentPanel's own py-2 (0.5rem top + bottom) — subtracted so the
+// content pane fits flush inside the padded box instead of overflowing it.
+const PANEL_VERTICAL_PADDING = 16;
+// main's own p-8 (2rem) bottom padding, left below the row so it doesn't
+// get clipped by the row's measured height.
+const MAIN_BOTTOM_PADDING = 32;
+
+// Browser-default scrollbar hidden on the content pane so only the fui
+// Scrollbar (synced to the same scroll state below) is visible.
+const HIDE_NATIVE_SCROLLBAR = `
+.infra-map-hex-scroll::-webkit-scrollbar { display: none; }
+`;
+
+/** Dark panel for the hex grid that fills whatever height its flex row gives it (full remaining viewport height) — content scrolls internally using the fui Scrollbar in place of the native one. */
+function ScrollableHexPanel({
+  children,
+  resetKey,
+}: {
+  children: ReactNode;
+  resetKey: string;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [panelHeight, setPanelHeight] = useState(MIN_HEX_PANEL_HEIGHT);
+  const [thumbPosition, setThumbPosition] = useState(0);
+  const [thumbSize, setThumbSize] = useState(1);
+
+  const syncThumb = () => {
+    const el = contentRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const size =
+      clientHeight > 0 ? Math.min(clientHeight / scrollHeight, 1) : 1;
+    const scrollable = scrollHeight - clientHeight;
+    const position = scrollable > 0 ? scrollTop / scrollable : 0;
+    setThumbSize(size);
+    setThumbPosition(position * (1 - size));
+  };
+
+  // The panel's actual height comes from its flex row (fills remaining
+  // viewport height), so measure it live rather than assuming a fixed
+  // value — a window resize or sidebar reflow changes it too.
+  useEffect(() => {
+    const panelEl = panelRef.current;
+    if (!panelEl) return;
+
+    const observer = new ResizeObserver((entries) => {
+      const height = entries[0]?.contentRect.height;
+      if (height) setPanelHeight(Math.max(height, MIN_HEX_PANEL_HEIGHT));
+    });
+    observer.observe(panelEl);
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Content height changes whenever the metric/groupBy selection (or the
+  // data itself) changes, so re-measure instead of trusting stale state.
+  // Deferred a frame so layout has settled before measuring (and so the
+  // setState call isn't synchronous within the effect body).
+  useEffect(() => {
+    const raf = requestAnimationFrame(syncThumb);
+    return () => cancelAnimationFrame(raf);
+  }, [resetKey, panelHeight]);
+
+  function handleThumbPositionChange(nextPosition: number) {
+    const el = contentRef.current;
+    if (!el) return;
+    const scrollable = el.scrollHeight - el.clientHeight;
+    if (scrollable <= 0) return;
+
+    const scrollRatio = thumbSize < 1 ? nextPosition / (1 - thumbSize) : 0;
+    el.scrollTop = scrollRatio * scrollable;
+    syncThumb();
+  }
+
+  function handlePageStep(direction: 'up' | 'down') {
+    const el = contentRef.current;
+    if (!el) return;
+    el.scrollTop += direction === 'down' ? el.clientHeight : -el.clientHeight;
+    syncThumb();
+  }
+
+  const contentHeight = Math.max(
+    panelHeight - PANEL_VERTICAL_PADDING,
+    MIN_HEX_PANEL_HEIGHT - PANEL_VERTICAL_PADDING,
+  );
+
+  return (
+    <div ref={panelRef} className="flex min-h-0 min-w-0 flex-1 self-stretch">
+      <TransparentPanel
+        color="dark"
+        className="flex h-full min-h-0 min-w-0 flex-1 flex-row gap-2"
+      >
+        <style>{HIDE_NATIVE_SCROLLBAR}</style>
+        <div
+          ref={contentRef}
+          onScroll={syncThumb}
+          className="infra-map-hex-scroll min-w-0 flex-1 overflow-auto"
+          style={{ height: contentHeight, scrollbarWidth: 'none' }}
+        >
+          {children}
+        </div>
+        <Scrollbar
+          height={contentHeight}
+          thumbPosition={thumbPosition}
+          thumbSize={thumbSize}
+          onThumbPositionChange={handleThumbPositionChange}
+          onPageStep={handlePageStep}
+        />
+      </TransparentPanel>
+    </div>
+  );
+}
 
 function formatPercent(ratio: number | null): string {
   return ratio === null ? 'n/a' : `${Math.round(ratio * 100)}%`;
@@ -183,7 +300,7 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <Badge color="success">Healthy</Badge>
+      <Badge color="secondary">Healthy</Badge>
       <Badge color="warning">Warning</Badge>
       <Badge color="error">Error</Badge>
       <Badge color="dark">Unknown</Badge>
@@ -206,6 +323,30 @@ export function InfraMapClient({
   const [metricMenuOpen, setMetricMenuOpen] = useState(false);
   const [groupMenuOpen, setGroupMenuOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [rowHeight, setRowHeight] = useState<number | null>(null);
+
+  // The row below the filter controls is the one area that should fill the
+  // rest of the viewport — measured directly off its own top offset so it's
+  // correct regardless of the nav bar's height, instead of layering
+  // min-h-screen/flex-1 guesses that leave a few stray px (and a second,
+  // page-level scrollbar) above the hex panel's own scrollbar.
+  useEffect(() => {
+    function updateRowHeight() {
+      const top = rowRef.current?.getBoundingClientRect().top;
+      if (top === undefined) return;
+      setRowHeight(
+        Math.max(
+          window.innerHeight - top - MAIN_BOTTOM_PADDING,
+          MIN_HEX_PANEL_HEIGHT,
+        ),
+      );
+    }
+
+    updateRowHeight();
+    window.addEventListener('resize', updateRowHeight);
+    return () => window.removeEventListener('resize', updateRowHeight);
+  }, []);
 
   function buildFilterUrl(
     nextMetric: MapMetric,
@@ -233,7 +374,7 @@ export function InfraMapClient({
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-6 bg-neutral-800 p-8">
+    <main className="flex flex-col gap-6 bg-neutral-800 p-8">
       <div className="flex items-center justify-between gap-4">
         <Typography variant="h1" component="h1">
           Infra Map
@@ -287,37 +428,45 @@ export function InfraMapClient({
       ) : items.length === 0 ? (
         <Typography variant="body1">No pods found.</Typography>
       ) : (
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <div className="flex min-w-0 flex-1 flex-col gap-8 overflow-x-auto">
-            {podMap.groups ? (
-              podMap.groups.map((group) => (
-                <div key={group.key} className="flex flex-col gap-3">
-                  <Typography variant="h5" component="h2">
-                    {group.label}{' '}
-                    <span className="text-neutral-400">
-                      ({group.itemIds.length})
-                    </span>
-                  </Typography>
-                  <TiledHexagons
-                    maxHorizontal={MAX_HORIZONTAL_GROUPED}
-                    tiles={group.itemIds
-                      .map((id) => itemsById.get(id))
-                      .filter((item): item is PodMapItem => item !== undefined)
-                      .map((item) =>
-                        itemToTile(item, metric, selectedId, handleSelect),
-                      )}
-                  />
-                </div>
-              ))
-            ) : (
-              <TiledHexagons
-                maxHorizontal={MAX_HORIZONTAL_UNGROUPED}
-                tiles={items.map((item) =>
-                  itemToTile(item, metric, selectedId, handleSelect),
-                )}
-              />
-            )}
-          </div>
+        <div
+          ref={rowRef}
+          className="flex min-h-0 flex-col gap-6 lg:flex-row lg:items-stretch"
+          style={rowHeight !== null ? { height: rowHeight } : undefined}
+        >
+          <ScrollableHexPanel resetKey={`${metric}:${groupBy ?? ''}`}>
+            <div className="flex flex-col gap-8">
+              {podMap.groups ? (
+                podMap.groups.map((group) => (
+                  <div key={group.key} className="flex flex-col gap-3">
+                    <Typography variant="h5" component="h2">
+                      {group.label}{' '}
+                      <span className="text-neutral-400">
+                        ({group.itemIds.length})
+                      </span>
+                    </Typography>
+                    <TiledHexagons
+                      maxHorizontal={MAX_HORIZONTAL_GROUPED}
+                      tiles={group.itemIds
+                        .map((id) => itemsById.get(id))
+                        .filter(
+                          (item): item is PodMapItem => item !== undefined,
+                        )
+                        .map((item) =>
+                          itemToTile(item, metric, selectedId, handleSelect),
+                        )}
+                    />
+                  </div>
+                ))
+              ) : (
+                <TiledHexagons
+                  maxHorizontal={MAX_HORIZONTAL_UNGROUPED}
+                  tiles={items.map((item) =>
+                    itemToTile(item, metric, selectedId, handleSelect),
+                  )}
+                />
+              )}
+            </div>
+          </ScrollableHexPanel>
 
           <div className="w-full shrink-0 lg:w-96">
             <DetailPanel item={selectedItem} />
