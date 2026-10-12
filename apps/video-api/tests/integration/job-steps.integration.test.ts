@@ -95,9 +95,22 @@ describe('job-steps LISTEN/NOTIFY', () => {
 
     await completeVideoJobStep(db, step.id, 'Listing season files — done');
 
-    await waitFor(() => res.writes.length > 0);
+    // createVideoJobStep's own notification can arrive after subscribe (it
+    // races the dedicated LISTEN connection), pushing a stale "in_progress"
+    // snapshot ahead of the "completed" one — so wait for the frame that
+    // actually reflects completion rather than assuming it's the first.
+    const parseWrite = (write: string) =>
+      JSON.parse(write.replace(/^data: /, ''));
 
-    const payload = JSON.parse(res.writes[0].replace(/^data: /, ''));
+    await waitFor(() =>
+      res.writes.some(
+        (write) => parseWrite(write).steps[0]?.status === 'completed',
+      ),
+    );
+
+    const payload = res.writes
+      .map(parseWrite)
+      .find((p) => p.steps[0]?.status === 'completed');
     expect(payload.job.id).toBe(job.id);
     expect(payload.steps).toHaveLength(1);
     expect(payload.steps[0].status).toBe('completed');

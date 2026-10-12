@@ -41,7 +41,7 @@ export function TitleCardMosaic({
               variant="small"
               className="absolute left-1 top-1 z-10 bg-neutral-900/80 px-1 text-neutral-300"
             >
-              ×{group.length} dup
+              ×{group.length} same ep
             </Typography>
             {group.map((titleCard) => (
               <TitleCardTile key={titleCard.id} titleCard={titleCard} />
