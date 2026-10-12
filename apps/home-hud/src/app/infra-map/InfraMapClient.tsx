@@ -12,12 +12,11 @@ import {
   DropdownMenuTrigger,
   OutlinedButton,
   Panel,
-  Scrollbar,
   TiledHexagons,
   type TiledHexagonTile,
-  TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
+import { PanZoomCanvas } from './PanZoomCanvas';
 import type {
   GroupDimension,
   MapMetric,
@@ -49,120 +48,12 @@ const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
 const MAX_HORIZONTAL_UNGROUPED = 12;
 const MAX_HORIZONTAL_GROUPED = 8;
 
-const MIN_HEX_PANEL_HEIGHT = 320;
-// TransparentPanel's own py-2 (0.5rem top + bottom) — subtracted so the
-// content pane fits flush inside the padded box instead of overflowing it.
-const PANEL_VERTICAL_PADDING = 16;
+// Floor for the hex canvas's measured height — keeps it from collapsing to a
+// squished sliver on narrow/short mobile viewports.
+const MIN_HEX_PANEL_HEIGHT = 480;
 // main's own p-8 (2rem) bottom padding, left below the row so it doesn't
 // get clipped by the row's measured height.
 const MAIN_BOTTOM_PADDING = 32;
-
-// Browser-default scrollbar hidden on the content pane so only the fui
-// Scrollbar (synced to the same scroll state below) is visible.
-const HIDE_NATIVE_SCROLLBAR = `
-.infra-map-hex-scroll::-webkit-scrollbar { display: none; }
-`;
-
-/** Dark panel for the hex grid that fills whatever height its flex row gives it (full remaining viewport height) — content scrolls internally using the fui Scrollbar in place of the native one. */
-function ScrollableHexPanel({
-  children,
-  resetKey,
-}: {
-  children: ReactNode;
-  resetKey: string;
-}) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [panelHeight, setPanelHeight] = useState(MIN_HEX_PANEL_HEIGHT);
-  const [thumbPosition, setThumbPosition] = useState(0);
-  const [thumbSize, setThumbSize] = useState(1);
-
-  const syncThumb = () => {
-    const el = contentRef.current;
-    if (!el) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const size =
-      clientHeight > 0 ? Math.min(clientHeight / scrollHeight, 1) : 1;
-    const scrollable = scrollHeight - clientHeight;
-    const position = scrollable > 0 ? scrollTop / scrollable : 0;
-    setThumbSize(size);
-    setThumbPosition(position * (1 - size));
-  };
-
-  // The panel's actual height comes from its flex row (fills remaining
-  // viewport height), so measure it live rather than assuming a fixed
-  // value — a window resize or sidebar reflow changes it too.
-  useEffect(() => {
-    const panelEl = panelRef.current;
-    if (!panelEl) return;
-
-    const observer = new ResizeObserver((entries) => {
-      const height = entries[0]?.contentRect.height;
-      if (height) setPanelHeight(Math.max(height, MIN_HEX_PANEL_HEIGHT));
-    });
-    observer.observe(panelEl);
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Content height changes whenever the metric/groupBy selection (or the
-  // data itself) changes, so re-measure instead of trusting stale state.
-  // Deferred a frame so layout has settled before measuring (and so the
-  // setState call isn't synchronous within the effect body).
-  useEffect(() => {
-    const raf = requestAnimationFrame(syncThumb);
-    return () => cancelAnimationFrame(raf);
-  }, [resetKey, panelHeight]);
-
-  function handleThumbPositionChange(nextPosition: number) {
-    const el = contentRef.current;
-    if (!el) return;
-    const scrollable = el.scrollHeight - el.clientHeight;
-    if (scrollable <= 0) return;
-
-    const scrollRatio = thumbSize < 1 ? nextPosition / (1 - thumbSize) : 0;
-    el.scrollTop = scrollRatio * scrollable;
-    syncThumb();
-  }
-
-  function handlePageStep(direction: 'up' | 'down') {
-    const el = contentRef.current;
-    if (!el) return;
-    el.scrollTop += direction === 'down' ? el.clientHeight : -el.clientHeight;
-    syncThumb();
-  }
-
-  const contentHeight = Math.max(
-    panelHeight - PANEL_VERTICAL_PADDING,
-    MIN_HEX_PANEL_HEIGHT - PANEL_VERTICAL_PADDING,
-  );
-
-  return (
-    <div ref={panelRef} className="flex min-h-0 min-w-0 flex-1 self-stretch">
-      <TransparentPanel
-        color="dark"
-        className="flex h-full min-h-0 min-w-0 flex-1 flex-row gap-2"
-      >
-        <style>{HIDE_NATIVE_SCROLLBAR}</style>
-        <div
-          ref={contentRef}
-          onScroll={syncThumb}
-          className="infra-map-hex-scroll min-w-0 flex-1 overflow-auto"
-          style={{ height: contentHeight, scrollbarWidth: 'none' }}
-        >
-          {children}
-        </div>
-        <Scrollbar
-          height={contentHeight}
-          thumbPosition={thumbPosition}
-          thumbSize={thumbSize}
-          onThumbPositionChange={handleThumbPositionChange}
-          onPageStep={handlePageStep}
-        />
-      </TransparentPanel>
-    </div>
-  );
-}
 
 function formatPercent(ratio: number | null): string {
   return ratio === null ? 'n/a' : `${Math.round(ratio * 100)}%`;
@@ -455,10 +346,10 @@ export function InfraMapClient({
           className="flex min-h-0 flex-col gap-6 lg:flex-row lg:items-stretch"
           style={rowHeight !== null ? { height: rowHeight } : undefined}
         >
-          <ScrollableHexPanel resetKey={`${metric}:${groupBy ?? ''}`}>
-            <div className="flex flex-col gap-8">
-              {podMap.groups ? (
-                podMap.groups.map((group) => (
+          <PanZoomCanvas resetKey={`${metric}:${groupBy ?? ''}`}>
+            {podMap.groups ? (
+              <div className="flex flex-wrap items-start gap-8 p-4">
+                {podMap.groups.map((group) => (
                   <div key={group.key} className="flex flex-col gap-3">
                     <Typography variant="h5" component="h2">
                       {group.label}{' '}
@@ -478,17 +369,19 @@ export function InfraMapClient({
                         )}
                     />
                   </div>
-                ))
-              ) : (
+                ))}
+              </div>
+            ) : (
+              <div className="p-4">
                 <TiledHexagons
                   maxHorizontal={MAX_HORIZONTAL_UNGROUPED}
                   tiles={items.map((item) =>
                     itemToTile(item, metric, selectedId, handleSelect),
                   )}
                 />
-              )}
-            </div>
-          </ScrollableHexPanel>
+              </div>
+            )}
+          </PanZoomCanvas>
 
           <div className="w-full shrink-0 lg:w-96">
             <DetailPanel item={selectedItem} />
