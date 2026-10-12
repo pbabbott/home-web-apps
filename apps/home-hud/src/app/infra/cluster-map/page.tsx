@@ -6,7 +6,8 @@ import {
   type PodMapResult,
 } from './lib/homelab-api';
 
-const DEFAULT_METRIC: MapMetric = 'cpu';
+const DEFAULT_METRIC: MapMetric = 'both';
+const DEFAULT_GROUP_BY: GroupDimension = 'node';
 
 const VALID_METRICS: MapMetric[] = ['cpu', 'memory', 'both', 'restarts'];
 const VALID_GROUP_BY: GroupDimension[] = ['namespace', 'node', 'workload'];
@@ -23,11 +24,12 @@ export default async function InfraMapPage({
   const metric: MapMetric = VALID_METRICS.includes(metricParam as MapMetric)
     ? (metricParam as MapMetric)
     : DEFAULT_METRIC;
-  const groupBy: GroupDimension | undefined = VALID_GROUP_BY.includes(
-    groupByParam as GroupDimension,
-  )
-    ? (groupByParam as GroupDimension)
-    : undefined;
+  const groupBy: GroupDimension | undefined =
+    groupByParam === 'none'
+      ? undefined
+      : VALID_GROUP_BY.includes(groupByParam as GroupDimension)
+        ? (groupByParam as GroupDimension)
+        : DEFAULT_GROUP_BY;
 
   let podMap: PodMapResult | null = null;
 

@@ -45,7 +45,6 @@ const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
   unknown: 'dark',
 };
 
-const MAX_HORIZONTAL_UNGROUPED = 12;
 const MAX_HORIZONTAL_GROUPED = 8;
 
 // Floor for the hex canvas's measured height — keeps it from collapsing to a
@@ -160,9 +159,9 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
             {formatPercent(item.metrics.cpu.ratio)}
           </Badge>
           <Typography variant="caption" className="text-neutral-400">
-            usage {item.metrics.cpu.usage?.toFixed(3) ?? '—'} · request{' '}
-            {item.metrics.cpu.request?.toFixed(2) ?? '—'} · limit{' '}
-            {item.metrics.cpu.limit?.toFixed(2) ?? '—'}
+            usage {item.metrics.cpu.usage?.toFixed(3) ?? '-'} · request{' '}
+            {item.metrics.cpu.request?.toFixed(2) ?? '-'} · limit{' '}
+            {item.metrics.cpu.limit?.toFixed(2) ?? '-'}
           </Typography>
         </div>
       </div>
@@ -179,15 +178,15 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
             usage{' '}
             {item.metrics.memory.usage
               ? `${Math.round(item.metrics.memory.usage / 1024 / 1024)}Mi`
-              : '—'}{' '}
+              : '-'}{' '}
             · request{' '}
             {item.metrics.memory.request
               ? `${Math.round(item.metrics.memory.request / 1024 / 1024)}Mi`
-              : '—'}{' '}
+              : '-'}{' '}
             · limit{' '}
             {item.metrics.memory.limit
               ? `${Math.round(item.metrics.memory.limit / 1024 / 1024)}Mi`
-              : '—'}
+              : '-'}
           </Typography>
         </div>
       </div>
@@ -207,17 +206,6 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
         </div>
       </div>
     </Panel>
-  );
-}
-
-function Legend() {
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Badge color="success">Healthy</Badge>
-      <Badge color="warning">Warning</Badge>
-      <Badge color="error">Error</Badge>
-      <Badge color="dark">Unknown</Badge>
-    </div>
   );
 }
 
@@ -265,9 +253,11 @@ export function InfraMapClient({
     nextMetric: MapMetric,
     nextGroupBy: GroupDimension | null,
   ): string {
-    const params = new URLSearchParams({ metric: nextMetric });
-    if (nextGroupBy) params.set('groupBy', nextGroupBy);
-    return `/infra-map?${params}`;
+    const params = new URLSearchParams({
+      metric: nextMetric,
+      groupBy: nextGroupBy ?? 'none',
+    });
+    return `/infra/cluster-map?${params}`;
   }
 
   function selectMetric(nextMetric: MapMetric) {
@@ -288,32 +278,11 @@ export function InfraMapClient({
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
-      <div className="flex items-center justify-between gap-4">
-        <Typography variant="h1" component="h1">
-          Infra Map
-        </Typography>
-        <Legend />
-      </div>
+      <Typography variant="h1" component="h1">
+        Infra Map
+      </Typography>
 
       <div className="flex items-center gap-3 self-start">
-        <DropdownMenu open={metricMenuOpen} onOpenChange={setMetricMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <OutlinedButton size="small">
-              Metric: {METRIC_OPTIONS.find((o) => o.value === metric)?.label}
-            </OutlinedButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent label="Color by">
-            {METRIC_OPTIONS.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                onSelect={() => selectMetric(option.value)}
-              >
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
         <DropdownMenu open={groupMenuOpen} onOpenChange={setGroupMenuOpen}>
           <DropdownMenuTrigger asChild>
             <OutlinedButton size="small">
@@ -326,6 +295,24 @@ export function InfraMapClient({
               <DropdownMenuItem
                 key={option.label}
                 onSelect={() => selectGroupBy(option.value)}
+              >
+                {option.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu open={metricMenuOpen} onOpenChange={setMetricMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <OutlinedButton size="small">
+              Metric: {METRIC_OPTIONS.find((o) => o.value === metric)?.label}
+            </OutlinedButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent label="Color by">
+            {METRIC_OPTIONS.map((option) => (
+              <DropdownMenuItem
+                key={option.value}
+                onSelect={() => selectMetric(option.value)}
               >
                 {option.label}
               </DropdownMenuItem>
@@ -372,13 +359,19 @@ export function InfraMapClient({
                 ))}
               </div>
             ) : (
-              <div className="p-4">
-                <TiledHexagons
-                  maxHorizontal={MAX_HORIZONTAL_UNGROUPED}
-                  tiles={items.map((item) =>
-                    itemToTile(item, metric, selectedId, handleSelect),
-                  )}
-                />
+              <div className="flex flex-wrap items-start gap-8 p-4">
+                <div className="flex flex-col gap-3">
+                  <Typography variant="h5" component="h2">
+                    Cluster{' '}
+                    <span className="text-neutral-400">({items.length})</span>
+                  </Typography>
+                  <TiledHexagons
+                    maxHorizontal={MAX_HORIZONTAL_GROUPED}
+                    tiles={items.map((item) =>
+                      itemToTile(item, metric, selectedId, handleSelect),
+                    )}
+                  />
+                </div>
               </div>
             )}
           </PanZoomCanvas>

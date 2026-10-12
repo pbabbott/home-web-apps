@@ -18,13 +18,16 @@ const VIDEO_MENU_ITEMS = [
   { href: '/video/file-renames', label: 'File Renames' },
 ];
 
+const INFRA_MENU_ITEMS = [{ href: '/infra/cluster-map', label: 'Cluster Map' }];
+
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [infraOpen, setInfraOpen] = useState(false);
 
   const videoActive = pathname.startsWith('/video');
-  const infraMapActive = pathname.startsWith('/infra-map');
+  const infraActive = pathname.startsWith('/infra');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">
@@ -32,12 +35,24 @@ export function Nav() {
         <NavItem as="a" href="/" active={pathname === '/'}>
           Home
         </NavItem>
-        <NavItem as="a" href="/infra-map" active={infraMapActive}>
-          Infra Map
-        </NavItem>
-        <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenu open={infraOpen} onOpenChange={setInfraOpen}>
           <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">
-            <NavItem active={videoActive || open}>Video</NavItem>
+            <NavItem active={infraActive || infraOpen}>Infra</NavItem>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent label="Infra" align="start">
+            {INFRA_MENU_ITEMS.map((item) => (
+              <DropdownMenuItem
+                key={item.href}
+                onSelect={() => router.push(item.href)}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu open={videoOpen} onOpenChange={setVideoOpen}>
+          <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">
+            <NavItem active={videoActive || videoOpen}>Video</NavItem>
           </DropdownMenuTrigger>
           <DropdownMenuContent label="Video" align="start">
             {VIDEO_MENU_ITEMS.map((item) => (
