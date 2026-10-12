@@ -1,18 +1,27 @@
 import fs from 'fs';
-import type { VideoJob } from '@abbottland/video-db';
-import { listSeasonFiles } from '../../src/worker/operations/paw-patrol-title-cards/steps/list-season-files';
+import type { Series, VideoJob } from '@abbottland/video-db';
+import { listSeasonFiles } from '../../src/worker/operations/title-cards/steps/list-season-files';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolTitleCardsContext } from '../../src/worker/operations/paw-patrol-title-cards/context';
+import type { TitleCardsContext } from '../../src/worker/operations/title-cards/context';
 
 jest.mock('fs');
 jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media' },
 }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolTitleCardsContext> = {},
-): PawPatrolTitleCardsContext => ({
+  overrides: Partial<TitleCardsContext> = {},
+): TitleCardsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],

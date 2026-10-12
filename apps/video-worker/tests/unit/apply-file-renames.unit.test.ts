@@ -6,7 +6,7 @@ import {
   listPendingFileRenames,
   updateFileRenameStatus,
 } from '@abbottland/video-db';
-import { runPawPatrolApplyFileRenamesOperation } from '../../src/worker/operations/paw-patrol-apply-file-renames';
+import { runApplyFileRenamesOperation } from '../../src/worker/operations/apply-file-renames';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -38,6 +38,7 @@ const absPath = (relPath: string): string => `${MEDIA_ROOT}/${relPath}`;
 let nextId = 0;
 const buildFileRename = (overrides: Partial<FileRename> = {}): FileRename => ({
   id: `id-${nextId++}`,
+  seriesId: 'series-1',
   fileHash: 'hash-default',
   originalFilePath: 'Paw Patrol/Season 3/orig.mp4',
   suggestedFilePath: 'Paw Patrol/Season 3/suggested.mp4',
@@ -55,7 +56,7 @@ const buildFileRename = (overrides: Partial<FileRename> = {}): FileRename => ({
 // outputs, which don't exist until ffmpeg "writes" them).
 let existingPaths: Set<string>;
 
-describe('runPawPatrolApplyFileRenamesOperation', () => {
+describe('runApplyFileRenamesOperation', () => {
   beforeEach(() => {
     existingPaths = new Set();
     (fs.existsSync as jest.Mock).mockImplementation((p: string) =>
@@ -99,7 +100,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
     existingPaths.add(absPath(row.originalFilePath));
     mockHash(absPath(row.originalFilePath), 'hash-1');
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -131,7 +132,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       [absPath(rowB.originalFilePath)]: 'hash-b',
     });
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -169,7 +170,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       [absPath(rowC.originalFilePath)]: 'hash-c',
     });
 
-    await runPawPatrolApplyFileRenamesOperation({ parameters: {} } as VideoJob);
+    await runApplyFileRenamesOperation({ parameters: {} } as VideoJob);
 
     expect((fs.renameSync as jest.Mock).mock.calls).toEqual([
       [absPath(rowC.originalFilePath), absPath(rowC.suggestedFilePath)],
@@ -215,7 +216,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       },
     );
 
-    await runPawPatrolApplyFileRenamesOperation({
+    await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -287,7 +288,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       },
     );
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -321,7 +322,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       [absPath(healthy.originalFilePath)]: 'hash-healthy',
     });
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -364,7 +365,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       [absPath(rowB.originalFilePath)]: 'hash-b',
     });
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -385,7 +386,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
     existingPaths.add(absPath(row.suggestedFilePath));
     mockHash(absPath(row.suggestedFilePath), 'hash-1');
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -405,7 +406,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
     existingPaths.add(absPath(row.originalFilePath));
     mockHash(absPath(row.originalFilePath), 'hash-different');
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -440,7 +441,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
       throw new Error(`unexpected hashFile path: ${p}`);
     });
 
-    const result = await runPawPatrolApplyFileRenamesOperation({
+    const result = await runApplyFileRenamesOperation({
       parameters: {},
     } as VideoJob);
 
@@ -478,7 +479,7 @@ describe('runPawPatrolApplyFileRenamesOperation', () => {
     });
 
     await expect(
-      runPawPatrolApplyFileRenamesOperation({ parameters: {} } as VideoJob),
+      runApplyFileRenamesOperation({ parameters: {} } as VideoJob),
     ).rejects.toThrow(/all 2 row\(s\) errored, 0 applied/);
 
     expect(updateFileRenameStatus).not.toHaveBeenCalled();

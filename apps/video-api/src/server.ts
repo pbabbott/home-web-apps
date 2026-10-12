@@ -19,6 +19,7 @@ import {
 import { getJobSteps, streamJobSteps } from './controllers/job-steps';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
+import { listSeries } from './controllers/series';
 import { deleteTitleCard, listTitleCards } from './controllers/title-cards';
 import { openApiSpec } from './openapi';
 import {
@@ -83,7 +84,8 @@ export const createServer = (): Express => {
       '/file-renames/:id',
       validateParams(fileRenameIdParamsSchema),
       deleteFileRename,
-    );
+    )
+    .get('/series', listSeries);
 
   configureErrorHandler(app);
 

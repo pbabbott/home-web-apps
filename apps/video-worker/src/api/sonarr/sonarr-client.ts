@@ -3,6 +3,8 @@ import { config } from '../../config';
 export type SonarrSeries = {
   id: number;
   title: string;
+  /** Sonarr excludes season 0 (specials) from this count — matches how this codebase numbers seasons. */
+  statistics?: { seasonCount?: number };
 };
 
 export type SonarrEpisode = {
@@ -47,6 +49,18 @@ export const getSeriesByTitle = async (
   }
 
   return match;
+};
+
+/**
+ * Looks up a series by title and returns how many seasons Sonarr has for
+ * it. Standalone (not just getSeriesByTitle().statistics) so a future
+ * series-creation tool can seed series.seasonCount from Sonarr with a
+ * single call rather than reaching into the raw series shape itself.
+ */
+export const getSeasonCount = async (title: string): Promise<number> => {
+  const series = await getSeriesByTitle(title);
+
+  return series.statistics?.seasonCount ?? 0;
 };
 
 /** Full episode list (number + official title) for one season of a series. */

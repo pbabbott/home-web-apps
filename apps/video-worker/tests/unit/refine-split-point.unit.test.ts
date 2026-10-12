@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { execFile } from 'child_process';
-import { refineSplitPoint } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/refine-split-point';
-import { detectTitleCard } from '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card';
+import { refineSplitPoint } from '../../src/worker/operations/file-suggestions/lib/refine-split-point';
+import { detectTitleCard } from '../../src/worker/operations/title-cards/lib/detect-title-card';
 
 jest.mock('fs');
 jest.mock('child_process', () => ({
@@ -17,7 +17,7 @@ jest.mock('../../src/config', () => ({
   config: { mediaRoot: '/media', ffmpegPath: 'ffmpeg' },
 }));
 jest.mock(
-  '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card',
+  '../../src/worker/operations/title-cards/lib/detect-title-card',
   () => ({
     detectTitleCard: jest.fn(),
   }),
@@ -41,6 +41,8 @@ describe('refineSplitPoint', () => {
       .mockResolvedValueOnce({ found: false }); // 44.7
 
     const result = await refineSplitPoint(
+      'Paw Patrol',
+      'Paw Patrol',
       3,
       'hash-1',
       '/media/e18-19.mp4',
@@ -62,6 +64,7 @@ describe('refineSplitPoint', () => {
       'aW1n',
       'image/jpeg',
       'test-model',
+      'Paw Patrol',
     );
   });
 
@@ -69,6 +72,8 @@ describe('refineSplitPoint', () => {
     (detectTitleCard as jest.Mock).mockResolvedValue({ found: false });
 
     const result = await refineSplitPoint(
+      'Paw Patrol',
+      'Paw Patrol',
       3,
       'hash-1',
       '/media/e18-19.mp4',
@@ -87,6 +92,8 @@ describe('refineSplitPoint', () => {
     });
 
     const result = await refineSplitPoint(
+      'Paw Patrol',
+      'Paw Patrol',
       3,
       'hash-1',
       '/media/e18-19.mp4',
@@ -102,7 +109,15 @@ describe('refineSplitPoint', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true);
     (detectTitleCard as jest.Mock).mockResolvedValueOnce({ found: false });
 
-    await refineSplitPoint(3, 'hash-1', '/media/e18-19.mp4', 45, 'test-model');
+    await refineSplitPoint(
+      'Paw Patrol',
+      'Paw Patrol',
+      3,
+      'hash-1',
+      '/media/e18-19.mp4',
+      45,
+      'test-model',
+    );
 
     expect(execFile).not.toHaveBeenCalled();
   });
@@ -114,6 +129,8 @@ describe('refineSplitPoint', () => {
     });
 
     const result = await refineSplitPoint(
+      'Paw Patrol',
+      'Paw Patrol',
       3,
       'hash-1',
       '/media/e18-19.mp4',

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { moveToDiscarded } from '../../src/worker/operations/paw-patrol-apply-file-renames/lib/discard';
+import { moveToDiscarded } from '../../src/worker/operations/apply-file-renames/lib/discard';
 
 jest.mock('fs');
 jest.mock('../../src/config', () => ({

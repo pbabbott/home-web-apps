@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const listTitleCardsQuerySchema = z.object({
   fileHash: z.string().optional(),
   season: z.coerce.number().int().positive().optional(),
+  /** Series display name, not the directory name. */
+  series: z.string().optional(),
 });
 
 export type ListTitleCardsQuery = z.infer<typeof listTitleCardsQuerySchema>;

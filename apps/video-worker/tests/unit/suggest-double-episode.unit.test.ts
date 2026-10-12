@@ -1,5 +1,5 @@
 import { chatCompletion } from '../../src/api/ai/ai-client';
-import { suggestDoubleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-double-episode';
+import { suggestDoubleEpisode } from '../../src/worker/operations/file-suggestions/lib/suggest-double-episode';
 
 jest.mock('../../src/api/ai/ai-client', () => ({
   ...jest.requireActual('../../src/api/ai/ai-client'),
@@ -27,6 +27,7 @@ describe('suggestDoubleEpisode', () => {
         },
       ],
       'test-model',
+      'Paw Patrol',
     );
 
     const call = (chatCompletion as jest.Mock).mock.calls[0][0];
@@ -47,7 +48,14 @@ describe('suggestDoubleEpisode', () => {
     );
 
     await expect(
-      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', [], 'test-model'),
+      suggestDoubleEpisode(
+        'e18-19.mp4',
+        'a',
+        'b',
+        [],
+        'test-model',
+        'Paw Patrol',
+      ),
     ).resolves.toEqual({
       found: true,
       episodes: [
@@ -61,7 +69,14 @@ describe('suggestDoubleEpisode', () => {
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
     await expect(
-      suggestDoubleEpisode('e18-19.mp4', 'a', 'b', [], 'test-model'),
+      suggestDoubleEpisode(
+        'e18-19.mp4',
+        'a',
+        'b',
+        [],
+        'test-model',
+        'Paw Patrol',
+      ),
     ).resolves.toEqual({ found: false });
   });
 });

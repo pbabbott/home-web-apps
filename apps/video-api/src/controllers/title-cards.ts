@@ -8,10 +8,14 @@ import type { ListTitleCardsQuery } from '../schemas/title-cards';
 
 export const listTitleCards = async (req: Request, res: Response) => {
   // req.query is already validated/typed by the validateQuery(listTitleCardsQuerySchema) middleware.
-  const { fileHash, season } = req.query as ListTitleCardsQuery;
+  const { fileHash, season, series } = req.query as ListTitleCardsQuery;
 
   try {
-    const titleCards = await listTitleCardsQuery(db, { fileHash, season });
+    const titleCards = await listTitleCardsQuery(db, {
+      fileHash,
+      season,
+      series,
+    });
 
     res.status(200).json({ titleCards });
   } catch (err) {

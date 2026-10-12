@@ -58,6 +58,21 @@ describe('GET /file-renames', () => {
 
     expect(videoDb.listFileRenames).toHaveBeenCalledWith(undefined, {
       status: 'applied',
+      series: undefined,
+    });
+  });
+
+  it('passes a valid series through to listFileRenames', async () => {
+    (videoDb.listFileRenames as jest.Mock).mockResolvedValue([]);
+
+    await supertest(createServer())
+      .get('/file-renames')
+      .query({ series: 'Paw Patrol' })
+      .expect(200);
+
+    expect(videoDb.listFileRenames).toHaveBeenCalledWith(undefined, {
+      status: undefined,
+      series: 'Paw Patrol',
     });
   });
 

@@ -12,10 +12,10 @@ import type {
 
 export const listFileRenames = async (req: Request, res: Response) => {
   // req.query is already validated/typed by the validateQuery(listFileRenamesQuerySchema) middleware.
-  const { status } = req.query as ListFileRenamesQuery;
+  const { status, series } = req.query as ListFileRenamesQuery;
 
   try {
-    const fileRenames = await listFileRenamesQuery(db, { status });
+    const fileRenames = await listFileRenamesQuery(db, { status, series });
 
     res.status(200).json({ fileRenames });
   } catch (err) {

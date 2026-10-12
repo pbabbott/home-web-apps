@@ -31,8 +31,8 @@ describe('POST /jobs error handling', () => {
     const res = await supertest(createServer())
       .post('/jobs')
       .send({
-        operation: 'paw_patrol_title_cards',
-        parameters: { seasonNumber: 3 },
+        operation: 'title_cards',
+        parameters: { series: 'Paw Patrol', seasonNumber: 3 },
       })
       .expect(500);
 

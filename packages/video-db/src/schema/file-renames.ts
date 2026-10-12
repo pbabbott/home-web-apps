@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+import { series } from './series';
 
 export const fileRenameStatusEnum = pgEnum('file_rename_status', [
   'pending',
@@ -30,6 +31,10 @@ export const fileRenameStatusEnum = pgEnum('file_rename_status', [
  */
 export const fileRenames = pgTable('file_renames', {
   id: uuid('id').primaryKey().defaultRandom(),
+  /** Show this suggestion belongs to. */
+  seriesId: uuid('series_id')
+    .notNull()
+    .references(() => series.id),
   fileHash: text('file_hash').notNull().unique(),
   /** Path the hash was computed from at suggestion time, relative to MEDIA_ROOT. */
   originalFilePath: text('original_file_path').notNull(),

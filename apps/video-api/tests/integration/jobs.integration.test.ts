@@ -1,16 +1,31 @@
+import { deleteVideoJobById } from '@abbottland/video-db';
+import { db } from '../../src/db';
 import { getRequest } from '../jest.integration.setup';
+
+// These tests run against the real local dev Postgres (no isolated test
+// database), so every job created via POST /jobs must be deleted again —
+// otherwise every test run leaves more junk rows in the same table
+// home-hud's job list reads from. Tests that only assert against the
+// response body (not re-fetching the job) push their own id here.
+const createdJobIds: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(createdJobIds.map((id) => deleteVideoJobById(db, id)));
+  createdJobIds.length = 0;
+});
 
 describe('jobs', () => {
   describe('POST /jobs', () => {
-    it('creates a pending paw_patrol_title_cards job', async () => {
+    it('creates a pending title_cards job', async () => {
       await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 3 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 3 },
         })
         .expect(201)
         .then((res) => {
+          createdJobIds.push(res.body.jobId);
           expect(res.body.jobId).toBeTruthy();
           expect(res.body.status).toBe('pending');
         });
@@ -36,12 +51,29 @@ describe('jobs', () => {
     it('rejects a missing seasonNumber', async () => {
       await getRequest()
         .post('/jobs')
-        .send({ operation: 'paw_patrol_title_cards', parameters: {} })
+        .send({
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol' },
+        })
         .expect(400)
         .then((res) => {
           expect(res.body.errors).toEqual(
             expect.arrayContaining([
               expect.objectContaining({ field: 'parameters.seasonNumber' }),
+            ]),
+          );
+        });
+    });
+
+    it('rejects a missing series', async () => {
+      await getRequest()
+        .post('/jobs')
+        .send({ operation: 'title_cards', parameters: { seasonNumber: 3 } })
+        .expect(400)
+        .then((res) => {
+          expect(res.body.errors).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({ field: 'parameters.series' }),
             ]),
           );
         });
@@ -53,16 +85,20 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 3 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 3 },
         });
+      createdJobIds.push(created.body.jobId);
 
       await getRequest()
         .get(`/jobs/${created.body.jobId}`)
         .expect(200)
         .then((res) => {
           expect(res.body.id).toBe(created.body.jobId);
-          expect(res.body.parameters).toEqual({ seasonNumber: 3 });
+          expect(res.body.parameters).toEqual({
+            series: 'Paw Patrol',
+            seasonNumber: 3,
+          });
           expect(res.body.status).toBe('pending');
         });
     });
@@ -91,9 +127,10 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 1 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 1 },
         });
+      createdJobIds.push(created.body.jobId);
 
       await getRequest()
         .get('/jobs')
@@ -108,9 +145,10 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 2 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 2 },
         });
+      createdJobIds.push(created.body.jobId);
 
       await getRequest()
         .get('/jobs')
@@ -129,9 +167,10 @@ describe('jobs', () => {
       const created = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 4 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 4 },
         });
+      createdJobIds.push(created.body.jobId);
 
       await getRequest()
         .get('/jobs')
@@ -147,15 +186,17 @@ describe('jobs', () => {
       const first = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 5 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 5 },
         });
+      createdJobIds.push(first.body.jobId);
       const second = await getRequest()
         .post('/jobs')
         .send({
-          operation: 'paw_patrol_title_cards',
-          parameters: { seasonNumber: 6 },
+          operation: 'title_cards',
+          parameters: { series: 'Paw Patrol', seasonNumber: 6 },
         });
+      createdJobIds.push(second.body.jobId);
 
       await getRequest()
         .get('/jobs')

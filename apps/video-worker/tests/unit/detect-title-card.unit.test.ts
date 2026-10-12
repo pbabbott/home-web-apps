@@ -3,7 +3,7 @@ import {
   upsertAiResponseCache,
 } from '@abbottland/video-db';
 import { chatCompletion } from '../../src/api/ai/ai-client';
-import { detectTitleCard } from '../../src/worker/operations/paw-patrol-title-cards/lib/detect-title-card';
+import { detectTitleCard } from '../../src/worker/operations/title-cards/lib/detect-title-card';
 
 jest.mock('../../src/api/ai/ai-client', () => ({
   ...jest.requireActual('../../src/api/ai/ai-client'),
@@ -37,6 +37,7 @@ describe('detectTitleCard', () => {
       'BASE64DATA',
       'image/jpeg',
       MODEL,
+      'Paw Patrol',
     );
 
     expect(result).toEqual({ found: true, title: 'Pups Save a Blimp' });
@@ -56,6 +57,7 @@ describe('detectTitleCard', () => {
       'BASE64DATA',
       'image/jpeg',
       MODEL,
+      'Paw Patrol',
     );
 
     expect(result).toEqual({ found: false });
@@ -76,7 +78,13 @@ describe('detectTitleCard', () => {
     (getAiResponseCache as jest.Mock).mockResolvedValue(undefined);
     (chatCompletion as jest.Mock).mockResolvedValue('{"found":false}');
 
-    await detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg', MODEL);
+    await detectTitleCard(
+      SCREENSHOT_PATH,
+      'BASE64DATA',
+      'image/jpeg',
+      MODEL,
+      'Paw Patrol',
+    );
 
     const request = (chatCompletion as jest.Mock).mock.calls[0][0];
     expect(request.messages[0]).toEqual({
@@ -96,7 +104,13 @@ describe('detectTitleCard', () => {
     (chatCompletion as jest.Mock).mockResolvedValue('not json');
 
     await expect(
-      detectTitleCard(SCREENSHOT_PATH, 'BASE64DATA', 'image/jpeg', MODEL),
+      detectTitleCard(
+        SCREENSHOT_PATH,
+        'BASE64DATA',
+        'image/jpeg',
+        MODEL,
+        'Paw Patrol',
+      ),
     ).rejects.toThrow();
     expect(upsertAiResponseCache).not.toHaveBeenCalled();
   });

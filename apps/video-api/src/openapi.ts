@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
 import {
   fileRenameSelectSchema,
+  seriesSelectSchema,
   titleCardSelectSchema,
   videoJobSelectSchema,
 } from '@abbottland/video-db';
@@ -202,6 +203,21 @@ export const openApiSpec = createDocument({
             },
           },
           '400': validationErrorResponse,
+        },
+      },
+    },
+    '/series': {
+      get: {
+        summary: 'List every supported series',
+        responses: {
+          '200': {
+            description: 'Every series, alphabetical by display name',
+            content: {
+              'application/json': {
+                schema: z.object({ series: z.array(seriesSelectSchema) }),
+              },
+            },
+          },
         },
       },
     },

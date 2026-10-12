@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, or } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, like, or } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   fileRenames,
@@ -6,9 +6,11 @@ import {
   type FileRenameStatus,
   type NewFileRename,
 } from '../schema/file-renames';
+import { series } from '../schema/series';
 
 export type UpsertFileRenameInput = Pick<
   NewFileRename,
+  | 'seriesId'
   | 'fileHash'
   | 'originalFilePath'
   | 'suggestedFilePath'
@@ -35,6 +37,7 @@ export const upsertFileRename = async (
     .onConflictDoUpdate({
       target: fileRenames.fileHash,
       set: {
+        seriesId: input.seriesId,
         originalFilePath: input.originalFilePath,
         suggestedFilePath: input.suggestedFilePath,
         secondSuggestedFilePath: input.secondSuggestedFilePath ?? null,
@@ -95,6 +98,8 @@ export const deleteFileRenameById = async (
 export type ListFileRenamesOptions = {
   fileHash?: string;
   status?: FileRenameStatus;
+  /** Series display name (series.seriesName), not the directory name. */
+  series?: string;
 };
 
 const LIST_FILE_RENAMES_LIMIT = 100;
@@ -106,6 +111,15 @@ export const listFileRenames = async (
   const conditions = [
     options.fileHash ? eq(fileRenames.fileHash, options.fileHash) : undefined,
     options.status ? eq(fileRenames.status, options.status) : undefined,
+    options.series
+      ? inArray(
+          fileRenames.seriesId,
+          db
+            .select({ id: series.id })
+            .from(series)
+            .where(eq(series.seriesName, options.series)),
+        )
+      : undefined,
   ].filter((condition) => condition !== undefined);
 
   return db

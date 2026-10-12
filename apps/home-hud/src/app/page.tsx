@@ -1,49 +1,17 @@
-import { HomeClient } from './components/HomeClient';
-import {
-  getAiStatus,
-  getJobs,
-  type AiStatus,
-  type VideoJob,
-} from './jobs/lib/video-api';
-import { getTitleCards, type TitleCard } from './title-cards/lib/video-api';
-import { getFileRenames, type FileRename } from './file-renames/lib/video-api';
+'use client';
 
-export default async function Home() {
-  let jobs: VideoJob[] | null = null;
-  let aiStatus: AiStatus | null = null;
-  let titleCards: TitleCard[] | null = null;
-  let fileRenames: FileRename[] | null = null;
+import { Typography } from '@abbottland/fui-components';
+import { Footer } from './components/Footer';
 
-  try {
-    jobs = await getJobs();
-  } catch (err) {
-    console.error('Failed to load jobs from video-api:', err);
-  }
-
-  try {
-    aiStatus = await getAiStatus();
-  } catch (err) {
-    console.error('Failed to load AI status from video-api:', err);
-  }
-
-  try {
-    titleCards = await getTitleCards();
-  } catch (err) {
-    console.error('Failed to load title cards from video-api:', err);
-  }
-
-  try {
-    fileRenames = await getFileRenames();
-  } catch (err) {
-    console.error('Failed to load file renames from video-api:', err);
-  }
-
+export default function Home() {
   return (
-    <HomeClient
-      jobs={jobs}
-      aiStatus={aiStatus}
-      titleCards={titleCards}
-      fileRenames={fileRenames}
-    />
+    <main className="flex min-h-screen flex-col bg-neutral-800">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <Typography variant="h1" component="h1">
+          Welcome to Home HUD
+        </Typography>
+      </div>
+      <Footer />
+    </main>
   );
 }

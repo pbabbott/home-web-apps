@@ -1,18 +1,27 @@
 import { upsertTitleCard } from '@abbottland/video-db';
-import type { TitleCard, VideoJob } from '@abbottland/video-db';
-import { insertEpisodeTitleCards } from '../../src/worker/operations/paw-patrol-title-cards/steps/insert-episode-title-cards';
+import type { Series, TitleCard, VideoJob } from '@abbottland/video-db';
+import { insertEpisodeTitleCards } from '../../src/worker/operations/title-cards/steps/insert-episode-title-cards';
 import { JobProcessingError } from '../../src/worker/job-processing-error';
-import type { PawPatrolTitleCardsContext } from '../../src/worker/operations/paw-patrol-title-cards/context';
+import type { TitleCardsContext } from '../../src/worker/operations/title-cards/context';
 
 jest.mock('@abbottland/video-db', () => ({
   upsertTitleCard: jest.fn(),
 }));
 jest.mock('../../src/db', () => ({ db: {} }));
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolTitleCardsContext> = {},
-): PawPatrolTitleCardsContext => ({
+  overrides: Partial<TitleCardsContext> = {},
+): TitleCardsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
@@ -21,6 +30,7 @@ const buildContext = (
 
 const buildTitleCard = (overrides: Partial<TitleCard> = {}): TitleCard => ({
   id: 'tc-1',
+  seriesId: 'series-1',
   fileHash: 'hash-1',
   filePath: 'Paw Patrol/Season 3/e01.mp4',
   timestampSeconds: 45,
@@ -147,6 +157,7 @@ describe('insertEpisodeTitleCards', () => {
     expect(upsertTitleCard).toHaveBeenCalledWith(
       {},
       {
+        seriesId: 'series-1',
         fileHash: 'hash-1',
         filePath:
           'media/tv_shows/Paw Patrol/Season 3/Paw Patrol - S03E01 - Pups Save a Blimp.mp4',

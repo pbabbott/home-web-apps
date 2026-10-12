@@ -1,33 +1,47 @@
-import type { FileRename, TitleCard, VideoJob } from '@abbottland/video-db';
-import { suggestFilenames } from '../../src/worker/operations/paw-patrol-file-suggestions/steps/suggest-filenames';
-import { suggestDoubleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-double-episode';
-import { suggestSingleEpisode } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-single-episode';
-import { refineSplitPoint } from '../../src/worker/operations/paw-patrol-file-suggestions/lib/refine-split-point';
-import type { PawPatrolFileSuggestionsContext } from '../../src/worker/operations/paw-patrol-file-suggestions/context';
+import type {
+  FileRename,
+  Series,
+  TitleCard,
+  VideoJob,
+} from '@abbottland/video-db';
+import { suggestFilenames } from '../../src/worker/operations/file-suggestions/steps/suggest-filenames';
+import { suggestDoubleEpisode } from '../../src/worker/operations/file-suggestions/lib/suggest-double-episode';
+import { suggestSingleEpisode } from '../../src/worker/operations/file-suggestions/lib/suggest-single-episode';
+import { refineSplitPoint } from '../../src/worker/operations/file-suggestions/lib/refine-split-point';
+import type { FileSuggestionsContext } from '../../src/worker/operations/file-suggestions/context';
 
 jest.mock(
-  '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-single-episode',
+  '../../src/worker/operations/file-suggestions/lib/suggest-single-episode',
   () => ({
     suggestSingleEpisode: jest.fn(),
   }),
 );
 jest.mock(
-  '../../src/worker/operations/paw-patrol-file-suggestions/lib/suggest-double-episode',
+  '../../src/worker/operations/file-suggestions/lib/suggest-double-episode',
   () => ({
     suggestDoubleEpisode: jest.fn(),
   }),
 );
 jest.mock(
-  '../../src/worker/operations/paw-patrol-file-suggestions/lib/refine-split-point',
+  '../../src/worker/operations/file-suggestions/lib/refine-split-point',
   () => ({
     refineSplitPoint: jest.fn(),
   }),
 );
 
+const testSeries: Series = {
+  id: 'series-1',
+  seriesName: 'Paw Patrol',
+  directoryName: 'Paw Patrol',
+  seasonCount: 13,
+  createdAt: new Date(),
+};
+
 const buildContext = (
-  overrides: Partial<PawPatrolFileSuggestionsContext> = {},
-): PawPatrolFileSuggestionsContext => ({
+  overrides: Partial<FileSuggestionsContext> = {},
+): FileSuggestionsContext => ({
   job: {} as VideoJob,
+  series: testSeries,
   seasonNumber: 3,
   model: 'test-model',
   episodes: [],
@@ -135,6 +149,7 @@ describe('suggestFilenames', () => {
         'Pups Save a Goldrush',
         context.sonarrEpisodes,
         context.model,
+        context.series.seriesName,
       );
       expect(suggestDoubleEpisode).not.toHaveBeenCalled();
     });
@@ -248,8 +263,11 @@ describe('suggestFilenames', () => {
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
         context.model,
+        context.series.seriesName,
       );
       expect(refineSplitPoint).toHaveBeenCalledWith(
+        context.series.directoryName,
+        context.series.seriesName,
         3,
         'hash-1',
         '/media/random-name.mp4',
@@ -301,6 +319,7 @@ describe('suggestFilenames', () => {
         'Pups Save a Space Alien',
         context.sonarrEpisodes,
         context.model,
+        context.series.seriesName,
       );
     });
 

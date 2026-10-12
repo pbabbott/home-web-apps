@@ -3,6 +3,7 @@ import {
   completeVideoJobStep,
   createVideoJob,
   createVideoJobStep,
+  deleteVideoJobById,
   failVideoJob,
 } from '@abbottland/video-db';
 import { config } from '../../src/config';
@@ -56,6 +57,12 @@ const waitFor = async (predicate: () => boolean): Promise<void> => {
 };
 
 describe('job-steps LISTEN/NOTIFY', () => {
+  // These tests run against the real local dev Postgres (no isolated test
+  // database), so every job created here must be deleted again — otherwise
+  // every test run leaves more junk rows in the same table home-hud's job
+  // list reads from. video_job_steps rows cascade-delete with their job.
+  let createdJobId: string | undefined;
+
   beforeAll(async () => {
     await initJobStepsListener(config.postgres);
   });
@@ -64,11 +71,19 @@ describe('job-steps LISTEN/NOTIFY', () => {
     await stopJobStepsListener();
   });
 
+  afterEach(async () => {
+    if (createdJobId) {
+      await deleteVideoJobById(db, createdJobId);
+      createdJobId = undefined;
+    }
+  });
+
   it('pushes an updated snapshot when a step completes', async () => {
     const job = await createVideoJob(db, {
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       parameters: { seasonNumber: 1 },
     });
+    createdJobId = job.id;
     const step = await createVideoJobStep(db, {
       jobId: job.id,
       stepName: 'list-season-files',
@@ -80,9 +95,22 @@ describe('job-steps LISTEN/NOTIFY', () => {
 
     await completeVideoJobStep(db, step.id, 'Listing season files — done');
 
-    await waitFor(() => res.writes.length > 0);
+    // createVideoJobStep's own notification can arrive after subscribe (it
+    // races the dedicated LISTEN connection), pushing a stale "in_progress"
+    // snapshot ahead of the "completed" one — so wait for the frame that
+    // actually reflects completion rather than assuming it's the first.
+    const parseWrite = (write: string) =>
+      JSON.parse(write.replace(/^data: /, ''));
 
-    const payload = JSON.parse(res.writes[0].replace(/^data: /, ''));
+    await waitFor(() =>
+      res.writes.some(
+        (write) => parseWrite(write).steps[0]?.status === 'completed',
+      ),
+    );
+
+    const payload = res.writes
+      .map(parseWrite)
+      .find((p) => p.steps[0]?.status === 'completed');
     expect(payload.job.id).toBe(job.id);
     expect(payload.steps).toHaveLength(1);
     expect(payload.steps[0].status).toBe('completed');
@@ -92,9 +120,10 @@ describe('job-steps LISTEN/NOTIFY', () => {
 
   it('closes the subscriber once the job reaches a terminal state', async () => {
     const job = await createVideoJob(db, {
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       parameters: { seasonNumber: 2 },
     });
+    createdJobId = job.id;
 
     const res = fakeResponse();
     subscribeToJobSteps(job.id, res);
@@ -108,9 +137,10 @@ describe('job-steps LISTEN/NOTIFY', () => {
 
   it('marks a subscriber closed on job failure too', async () => {
     const job = await createVideoJob(db, {
-      operation: 'paw_patrol_title_cards',
+      operation: 'title_cards',
       parameters: { seasonNumber: 3 },
     });
+    createdJobId = job.id;
 
     const res = fakeResponse();
     subscribeToJobSteps(job.id, res);
