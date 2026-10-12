@@ -5,14 +5,12 @@ import {
   type AiStatus,
   type VideoJob,
 } from './jobs/lib/video-api';
-import { getTitleCards, type TitleCard } from './title-cards/lib/video-api';
 import { getFileRenames, type FileRename } from './file-renames/lib/video-api';
 import { getSeries, type Series } from './series/lib/video-api';
 
 export default async function Home() {
   let jobs: VideoJob[] | null = null;
   let aiStatus: AiStatus | null = null;
-  let titleCards: TitleCard[] | null = null;
   let fileRenames: FileRename[] | null = null;
   let series: Series[] = [];
 
@@ -26,12 +24,6 @@ export default async function Home() {
     aiStatus = await getAiStatus();
   } catch (err) {
     console.error('Failed to load AI status from video-api:', err);
-  }
-
-  try {
-    titleCards = await getTitleCards();
-  } catch (err) {
-    console.error('Failed to load title cards from video-api:', err);
   }
 
   try {
@@ -50,7 +42,6 @@ export default async function Home() {
     <HomeClient
       jobs={jobs}
       aiStatus={aiStatus}
-      titleCards={titleCards}
       fileRenames={fileRenames}
       series={series}
     />

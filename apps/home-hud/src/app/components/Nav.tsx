@@ -12,7 +12,7 @@ import {
 } from '@abbottland/fui-components';
 
 const VIDEO_MENU_ITEMS = [
-  { href: '/video', label: 'Home' },
+  { href: '/video', label: 'Dashboard' },
   { href: '/video/jobs', label: 'Jobs' },
   { href: '/video/title-cards', label: 'Title Cards' },
   { href: '/video/file-renames', label: 'File Renames' },

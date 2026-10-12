@@ -70,23 +70,21 @@ export function TitleCardsClient({
   // Both filters live in the URL together — build it from URLSearchParams
   // rather than a hardcoded single-param string, so changing one filter
   // never drops the other.
-  function buildFilterUrl(
-    season: number | null,
-    seriesName: string | null,
-  ): string {
-    const params = new URLSearchParams();
-    if (season !== null) params.set('season', String(season));
-    if (seriesName !== null) params.set('series', seriesName);
-
-    const query = params.toString();
-    return query ? `/video/title-cards?${query}` : '/video/title-cards';
+  function buildFilterUrl(season: number, seriesName: string): string {
+    const params = new URLSearchParams({
+      season: String(season),
+      series: seriesName,
+    });
+    return `/video/title-cards?${params}`;
   }
 
-  function selectSeason(season: number | null) {
+  function selectSeason(season: number) {
+    if (selectedSeries === null) return;
     router.push(buildFilterUrl(season, selectedSeries));
   }
 
-  function selectSeries(seriesName: string | null) {
+  function selectSeries(seriesName: string) {
+    if (selectedSeason === null) return;
     router.push(buildFilterUrl(selectedSeason, seriesName));
   }
 
@@ -106,9 +104,6 @@ export function TitleCardsClient({
             </OutlinedButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent label="Filter by Series">
-            <DropdownMenuItem onSelect={() => selectSeries(null)}>
-              All Series
-            </DropdownMenuItem>
             {series.map((s) => (
               <DropdownMenuItem
                 key={s.id}
@@ -127,9 +122,6 @@ export function TitleCardsClient({
             </OutlinedButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent label="Filter by Season">
-            <DropdownMenuItem onSelect={() => selectSeason(null)}>
-              All Seasons
-            </DropdownMenuItem>
             {seasonOptions.map((season) => (
               <DropdownMenuItem
                 key={season}

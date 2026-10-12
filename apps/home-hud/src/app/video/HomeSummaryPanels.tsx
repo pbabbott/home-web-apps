@@ -3,12 +3,10 @@ import {
   Badge,
   type BadgeColor,
   Panel,
-  SegmentedProgressBar,
   TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
 import type { AiStatus, VideoJob } from './jobs/lib/video-api';
-import type { TitleCard } from './title-cards/lib/video-api';
 import type {
   FileRename,
   FileRenameStatus,
@@ -35,15 +33,6 @@ const FILE_RENAME_STATUSES: FileRenameStatus[] = [
 ];
 
 const RECENT_JOB_SAMPLE_SIZE = 20;
-
-const FIRST_SEASON = 1;
-const LAST_SEASON = 13;
-
-/** Pulls the season number out of a `<Show>/Season <N>/<file>` path. */
-function extractSeasonNumber(filePath: string): number | null {
-  const match = filePath.match(/Season (\d+)/);
-  return match ? Number(match[1]) : null;
-}
 
 // Fixed locale/timeZone so server and client render identical text — a
 // locale-dependent format (e.g. toLocaleString()) mismatches across the
@@ -113,32 +102,17 @@ function recentJobSuccessStatsByOperation(
 interface HomeSummaryPanelsProps {
   jobs: VideoJob[] | null;
   aiStatus: AiStatus | null;
-  titleCards: TitleCard[] | null;
   fileRenames: FileRename[] | null;
 }
 
 export function HomeSummaryPanels({
   jobs,
   aiStatus,
-  titleCards,
   fileRenames,
 }: HomeSummaryPanelsProps) {
   const totalJobs = jobs?.length ?? 0;
   const mostRecentJob = mostRecentBy(jobs);
   const recentStatsByOperation = recentJobSuccessStatsByOperation(jobs);
-
-  const totalTitleCards = titleCards?.length ?? 0;
-  const seasonsCovered = new Set(
-    (titleCards ?? [])
-      .map((titleCard) => extractSeasonNumber(titleCard.filePath))
-      .filter((season): season is number => season !== null),
-  );
-  const highestSeasonCovered = seasonsCovered.size
-    ? Math.max(...seasonsCovered)
-    : 0;
-  const identifiedCount =
-    titleCards?.filter((titleCard) => titleCard.title !== null).length ?? 0;
-  const mostRecentTitleCard = mostRecentBy(titleCards);
 
   const totalFileRenames = fileRenames?.length ?? 0;
   const fileRenameCounts = Object.fromEntries(
@@ -175,7 +149,7 @@ export function HomeSummaryPanels({
         </div>
       </TransparentPanel>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Link href="/video/jobs" className="block">
           <Panel color="primary" className="flex h-full flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -238,51 +212,6 @@ export function HomeSummaryPanels({
               ) : (
                 <Typography variant="body2" className="text-neutral-300">
                   No jobs yet
-                </Typography>
-              )}
-            </div>
-          </Panel>
-        </Link>
-
-        <Link href="/video/title-cards" className="block">
-          <Panel color="secondary" className="flex h-full flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <Typography variant="h5" component="h2">
-                Title Cards
-              </Typography>
-              <Typography variant="h3" component="span">
-                {totalTitleCards}
-              </Typography>
-            </div>
-
-            <Typography variant="caption" className="text-neutral-200">
-              {identifiedCount} of {totalTitleCards} identified
-            </Typography>
-
-            <SegmentedProgressBar
-              totalSegments={LAST_SEASON - FIRST_SEASON + 1}
-              currentIndex={highestSeasonCovered}
-              showLabel
-              labelText="Season Coverage"
-              showIndex
-            />
-
-            <div className="mt-auto flex flex-col gap-1 border-t border-neutral-50/20 pt-3">
-              <Typography variant="small" className="text-neutral-300">
-                Most Recent
-              </Typography>
-              {mostRecentTitleCard ? (
-                <>
-                  <Typography variant="body2">
-                    {mostRecentTitleCard.title ?? 'No title detected'}
-                  </Typography>
-                  <Typography variant="caption" className="text-neutral-300">
-                    {formatDate(mostRecentTitleCard.createdAt)}
-                  </Typography>
-                </>
-              ) : (
-                <Typography variant="body2" className="text-neutral-300">
-                  No title cards yet
                 </Typography>
               )}
             </div>
