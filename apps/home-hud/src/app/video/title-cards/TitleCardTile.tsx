@@ -97,7 +97,7 @@ export function TitleCardTile({ titleCard }: TitleCardTileProps) {
           variant="small"
           className="block tabular-nums text-neutral-400"
         >
-          T+{titleCard.timestampSeconds}s · {titleCard.runTimeSeconds ?? '—'}s
+          {titleCard.timestampSeconds} - {titleCard.runTimeSeconds ?? '—'}
         </Typography>
       </div>
 
@@ -133,7 +133,7 @@ export function TitleCardTile({ titleCard }: TitleCardTileProps) {
             >
               File Path
             </Typography>
-            <Typography variant="body2" component="span" className="truncate">
+            <Typography variant="body2" component="span" className="break-all">
               {titleCard.filePath}
             </Typography>
             <Typography
