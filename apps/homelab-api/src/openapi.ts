@@ -152,6 +152,24 @@ const hostDiskSpaceResponseSchema = z.object({
   mountpoints: z.array(hostDiskMountpointSchema),
 });
 
+const hostTemperatureSeriesSchema = z.object({
+  label: z.string().meta({ example: 'Package id 0' }),
+  chip: z.string().meta({ example: 'platform_coretemp_0' }),
+  sensor: z.string().meta({ example: 'temp1' }),
+  points: z.array(
+    z.object({
+      t: z.number().meta({ description: 'Unix seconds', example: 1700000000 }),
+      value: z.number().meta({ description: 'Degrees Celsius' }),
+    }),
+  ),
+});
+
+const hostTemperatureResponseSchema = z.object({
+  instance: z.string().nullable(),
+  stepSeconds: z.number(),
+  series: z.array(hostTemperatureSeriesSchema),
+});
+
 const notFoundResponse = {
   description: 'No host exists with this id',
   content: {
@@ -353,6 +371,27 @@ export const openApiSpec = createDocument({
             description: 'The disk space snapshot',
             content: {
               'application/json': { schema: hostDiskSpaceResponseSchema },
+            },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+    },
+    '/hosts/{id}/metrics/temperature': {
+      get: {
+        summary: 'Per-sensor temperature history for a single host',
+        description:
+          'Only ever populated for physical hosts — standalone node-exporter targets expose hwmon sensors; in-cluster k8s nodes (VMs) do not. A host with no instance, or no hwmon sensors, returns an empty series rather than 404/500.',
+        requestParams: {
+          path: hostIdParamsSchema,
+          query: hostMetricsRangeQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The temperature history',
+            content: {
+              'application/json': { schema: hostTemperatureResponseSchema },
             },
           },
           '400': validationErrorResponse,

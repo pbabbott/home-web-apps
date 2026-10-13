@@ -5,6 +5,7 @@ import {
   getNodeDiskIoSeries,
   getNodeDiskSpace,
   getNodeMemorySeries,
+  getNodeTemperatureSeries,
 } from '../api/prometheus/prometheus-client';
 
 export interface HostMetricSeriesPoint {
@@ -229,4 +230,67 @@ export async function getHostDiskSpace(
     .sort((a, b) => a.mountpoint.localeCompare(b.mountpoint));
 
   return { instance: host.instance, mountpoints };
+}
+
+export interface HostTemperatureSeries {
+  label: string;
+  chip: string;
+  sensor: string;
+  points: HostMetricSeriesPoint[];
+}
+
+export interface HostTemperatureMetrics {
+  instance: string | null;
+  stepSeconds: number;
+  series: HostTemperatureSeries[];
+}
+
+/**
+ * Per-sensor temperature history (°C) for a single host. Only ever
+ * populated for physical hosts — see `getNodeTemperatureSeries` for why
+ * virtual (k8s-node) hosts have no hwmon data to report. Same best-effort
+ * contract as `getHostCpuSeries` otherwise: no instance (or a host type
+ * whose node-exporter reports no hwmon sensors) means an empty series, not
+ * an error.
+ */
+export async function getHostTemperatureSeries(
+  id: string,
+  { rangeSeconds, stepSeconds }: GetHostMetricsSeriesOptions,
+): Promise<HostTemperatureMetrics | undefined> {
+  const host = await getHostById(db, id);
+  if (!host) return undefined;
+
+  if (!host.instance) {
+    return { instance: null, stepSeconds, series: [] };
+  }
+
+  const endSec = Math.floor(Date.now() / 1000);
+  const startSec = endSec - rangeSeconds;
+
+  const samples = await getNodeTemperatureSeries(
+    host.instance,
+    startSec,
+    endSec,
+    stepSeconds,
+  );
+
+  const series = samples
+    .filter(
+      (
+        sample,
+      ): sample is typeof sample & {
+        metric: { label: string; chip: string; sensor: string };
+      } =>
+        sample.metric.label !== undefined &&
+        sample.metric.chip !== undefined &&
+        sample.metric.sensor !== undefined,
+    )
+    .map((sample) => ({
+      label: sample.metric.label,
+      chip: sample.metric.chip,
+      sensor: sample.metric.sensor,
+      points: sample.values,
+    }));
+
+  return { instance: host.instance, stepSeconds, series };
 }

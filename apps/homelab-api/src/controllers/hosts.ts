@@ -144,6 +144,30 @@ export const getHostDiskSpace = async (req: Request, res: Response) => {
   }
 };
 
+export const getHostTemperatureMetrics = async (
+  req: Request,
+  res: Response,
+) => {
+  const { id } = req.params as HostIdParams;
+  const { rangeSeconds, stepSeconds } =
+    req.query as unknown as HostMetricsRangeQuery;
+
+  try {
+    const metrics = await hostMetricsService.getHostTemperatureSeries(id, {
+      rangeSeconds,
+      stepSeconds,
+    });
+    if (!metrics) {
+      res.status(404).json({ message: 'host not found' });
+      return;
+    }
+    res.status(200).json(metrics);
+  } catch (err) {
+    console.error(`GET /hosts/${id}/metrics/temperature failed:`, err);
+    res.status(500).json({ message: 'internal server error' });
+  }
+};
+
 export const updateHost = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
   const body = req.body as UpdateHostBody;

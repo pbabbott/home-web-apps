@@ -16,6 +16,7 @@ import { DiskIoChart } from './DiskIoChart';
 import { DiskSpaceTable } from './DiskSpaceTable';
 import { EditHostModal } from './EditHostModal';
 import { MemoryChart } from './MemoryChart';
+import { TemperatureChart } from './TemperatureChart';
 import { formatBytes } from './lib/format-bytes';
 import type {
   Host,
@@ -24,6 +25,7 @@ import type {
   HostDiskSpace,
   HostMemoryMetrics,
   HostStatus,
+  HostTemperatureMetrics,
   HostType,
 } from './lib/homelab-api';
 
@@ -91,34 +93,21 @@ function rootDiskUsageRatio(diskSpace: HostDiskSpace | null): number | null {
   return root?.usedRatio ?? null;
 }
 
-interface MetricPanelProps {
-  label: string;
-  value: string;
-  status?: HostStatus;
-  note: string;
-}
+/** Hottest sensor's current reading, the single most relevant number for the header badge. */
+function latestMaxTemperatureLabel(
+  temperatureMetrics: HostTemperatureMetrics | null,
+): string {
+  if (!temperatureMetrics || temperatureMetrics.series.length === 0) {
+    return '—';
+  }
 
-/** Skeleton metric card — real graphs land in a follow-up; for now this just
- * reserves the layout and shows whatever indicator value is already
- * available (today: only CPU, from Prometheus). */
-function MetricPanel({ label, value, status, note }: MetricPanelProps) {
-  return (
-    <Panel color="default" className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <Typography variant="small" className="text-neutral-400">
-          {label}
-        </Typography>
-        <Badge color={status ? STATUS_BADGE_COLOR[status] : 'dark'}>
-          {value}
-        </Badge>
-      </div>
-      <div className="flex h-20 items-center justify-center border border-dashed border-neutral-600 bg-neutral-900/40">
-        <Typography variant="caption" className="text-neutral-500">
-          {note}
-        </Typography>
-      </div>
-    </Panel>
-  );
+  const latestValues = temperatureMetrics.series
+    .map((s) => s.points.at(-1)?.value)
+    .filter((value): value is number => value !== undefined);
+
+  if (latestValues.length === 0) return '—';
+
+  return `${Math.round(Math.max(...latestValues))}°C`;
 }
 
 function CpuMetricPanel({
@@ -203,6 +192,26 @@ function DiskSpaceMetricPanel({
   );
 }
 
+function TemperatureMetricPanel({
+  temperatureMetrics,
+}: {
+  temperatureMetrics: HostTemperatureMetrics | null;
+}) {
+  return (
+    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          Temperature
+        </Typography>
+        <Badge color="dark">
+          {latestMaxTemperatureLabel(temperatureMetrics)}
+        </Badge>
+      </div>
+      <TemperatureChart metrics={temperatureMetrics} />
+    </Panel>
+  );
+}
+
 function HostListItem({
   host,
   active,
@@ -240,6 +249,7 @@ function HostDetail({
   memoryMetrics,
   diskIoMetrics,
   diskSpace,
+  temperatureMetrics,
 }: {
   host: Host;
   onEdit: () => void;
@@ -247,6 +257,7 @@ function HostDetail({
   memoryMetrics: HostMemoryMetrics | null;
   diskIoMetrics: HostDiskIoMetrics | null;
   diskSpace: HostDiskSpace | null;
+  temperatureMetrics: HostTemperatureMetrics | null;
 }) {
   return (
     <Panel color="default" className="flex h-full flex-col gap-6">
@@ -282,7 +293,9 @@ function HostDetail({
         <MemoryMetricPanel memoryMetrics={memoryMetrics} />
         <DiskIoMetricPanel diskIoMetrics={diskIoMetrics} />
         <DiskSpaceMetricPanel diskSpace={diskSpace} />
-        <MetricPanel label="Temperature" value="—" note="not wired up yet" />
+        {host.hostType === 'physical' && (
+          <TemperatureMetricPanel temperatureMetrics={temperatureMetrics} />
+        )}
       </div>
     </Panel>
   );
@@ -296,6 +309,7 @@ interface HostsClientProps {
   memoryMetrics: HostMemoryMetrics | null;
   diskIoMetrics: HostDiskIoMetrics | null;
   diskSpace: HostDiskSpace | null;
+  temperatureMetrics: HostTemperatureMetrics | null;
 }
 
 export function HostsClient({
@@ -306,6 +320,7 @@ export function HostsClient({
   memoryMetrics,
   diskIoMetrics,
   diskSpace,
+  temperatureMetrics,
 }: HostsClientProps) {
   const router = useRouter();
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -385,6 +400,7 @@ export function HostsClient({
               memoryMetrics={memoryMetrics}
               diskIoMetrics={diskIoMetrics}
               diskSpace={diskSpace}
+              temperatureMetrics={temperatureMetrics}
             />
           ) : (
             <Panel color="default" className="flex h-full flex-col gap-2">

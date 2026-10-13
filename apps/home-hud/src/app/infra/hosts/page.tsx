@@ -5,11 +5,13 @@ import {
   getHostDiskSpace,
   getHostMemoryMetrics,
   getHosts,
+  getHostTemperatureMetrics,
   type Host,
   type HostCpuMetrics,
   type HostDiskIoMetrics,
   type HostDiskSpace,
   type HostMemoryMetrics,
+  type HostTemperatureMetrics,
   type HostType,
 } from './lib/homelab-api';
 
@@ -46,20 +48,40 @@ export default async function HostsPage({ searchParams }: HostsPageProps) {
   let memoryMetrics: HostMemoryMetrics | null = null;
   let diskIoMetrics: HostDiskIoMetrics | null = null;
   let diskSpace: HostDiskSpace | null = null;
+  let temperatureMetrics: HostTemperatureMetrics | null = null;
 
   if (selectedHostId) {
-    const [cpuResult, memoryResult, diskIoResult, diskSpaceResult] =
-      await Promise.allSettled([
-        getHostCpuMetrics(selectedHostId),
-        getHostMemoryMetrics(selectedHostId),
-        getHostDiskIoMetrics(selectedHostId),
-        getHostDiskSpace(selectedHostId),
-      ]);
+    // Temperature only exists for physical hosts (no hwmon data inside a
+    // VM) — skip the request entirely for the virtual host list.
+    const metricFetches: [
+      Promise<HostCpuMetrics | null>,
+      Promise<HostMemoryMetrics | null>,
+      Promise<HostDiskIoMetrics | null>,
+      Promise<HostDiskSpace | null>,
+      Promise<HostTemperatureMetrics | null>,
+    ] = [
+      getHostCpuMetrics(selectedHostId),
+      getHostMemoryMetrics(selectedHostId),
+      getHostDiskIoMetrics(selectedHostId),
+      getHostDiskSpace(selectedHostId),
+      hostType === 'physical'
+        ? getHostTemperatureMetrics(selectedHostId)
+        : Promise.resolve(null),
+    ];
+
+    const [
+      cpuResult,
+      memoryResult,
+      diskIoResult,
+      diskSpaceResult,
+      temperatureResult,
+    ] = await Promise.allSettled(metricFetches);
 
     cpuMetrics = unwrap(cpuResult, 'CPU metrics');
     memoryMetrics = unwrap(memoryResult, 'memory metrics');
     diskIoMetrics = unwrap(diskIoResult, 'disk I/O metrics');
     diskSpace = unwrap(diskSpaceResult, 'disk space');
+    temperatureMetrics = unwrap(temperatureResult, 'temperature metrics');
   }
 
   return (
@@ -71,6 +93,7 @@ export default async function HostsPage({ searchParams }: HostsPageProps) {
       memoryMetrics={memoryMetrics}
       diskIoMetrics={diskIoMetrics}
       diskSpace={diskSpace}
+      temperatureMetrics={temperatureMetrics}
     />
   );
 }

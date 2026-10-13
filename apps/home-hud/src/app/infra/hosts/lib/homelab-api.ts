@@ -195,3 +195,42 @@ export async function getHostDiskSpace(
 
   return (await res.json()) as HostDiskSpace;
 }
+
+export interface HostTemperatureSeries {
+  label: string;
+  chip: string;
+  sensor: string;
+  points: HostMetricSeriesPoint[];
+}
+
+export interface HostTemperatureMetrics {
+  instance: string | null;
+  stepSeconds: number;
+  series: HostTemperatureSeries[];
+}
+
+/**
+ * Per-sensor temperature history (°C) for the last hour. Only ever
+ * populated for physical hosts — see the backend's
+ * `getNodeTemperatureSeries` for why virtual hosts have no hwmon data.
+ * Same best-effort contract as `getHostCpuMetrics`.
+ */
+export async function getHostTemperatureMetrics(
+  id: string,
+): Promise<HostTemperatureMetrics | null> {
+  const res = await fetch(
+    `${HOMELAB_API_URL}/hosts/${id}/metrics/temperature`,
+    { cache: 'no-store' },
+  );
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /hosts/${id}/metrics/temperature returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as HostTemperatureMetrics;
+}

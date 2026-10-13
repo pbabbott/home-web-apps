@@ -342,3 +342,30 @@ export async function getNodeDiskSpace(instance: string): Promise<{
 
   return { size, avail };
 }
+
+/**
+ * Per-sensor temperature (°C) for a single node over a time range — only
+ * ever populated for standalone physical hosts (the `node-exporter-physical`
+ * job in `NODE_EXPORTER_JOB_MATCH`): in-cluster k8s nodes expose no hwmon
+ * data in this Prometheus (verified empty for a real `job="node-exporter"`
+ * instance), since the sensors it reads (`/sys/class/hwmon`) don't exist
+ * inside a VM. `node_hwmon_temp_celsius` alone only has `chip`/`sensor`
+ * labels (e.g. "temp1") — joining `node_hwmon_sensor_label` (an info metric,
+ * value always 1) via `group_left(label)` attaches the human name ("Package
+ * id 0", "Core 0", "Composite"). `thermal_zone*` chips are excluded: they
+ * duplicate one of the other sensors (the ACPI thermal zone) without a
+ * `node_hwmon_sensor_label` entry to name it, so they'd show as an
+ * unlabeled extra line.
+ */
+export async function getNodeTemperatureSeries(
+  instance: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const promql = `node_hwmon_temp_celsius{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}", chip!~"thermal_zone.*"}
+* on (chip, sensor) group_left(label)
+node_hwmon_sensor_label{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}"}`;
+
+  return queryRange(promql, startSec, endSec, stepSec);
+}

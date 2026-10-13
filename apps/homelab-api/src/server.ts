@@ -19,6 +19,7 @@ import {
   getHostDiskIoMetrics,
   getHostDiskSpace,
   getHostMemoryMetrics,
+  getHostTemperatureMetrics,
   listHosts,
   updateHost,
 } from './controllers/hosts';
@@ -75,6 +76,12 @@ export const createServer = (): Express => {
     '/hosts/:id/metrics/disk-space',
     validateParams(hostIdParamsSchema),
     getHostDiskSpace,
+  );
+  app.get(
+    '/hosts/:id/metrics/temperature',
+    validateParams(hostIdParamsSchema),
+    validateQuery(hostMetricsRangeQuerySchema),
+    getHostTemperatureMetrics,
   );
   app.patch(
     '/hosts/:id',
