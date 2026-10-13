@@ -2,6 +2,8 @@
 
 When adding navigation, fetch calls, or images, run `/proxy-dev` for the patterns required when developing through the Coder code-server proxy.
 
+- Implementing a new `/infra/hosts` metrics panel (Memory, Disk, Temperature)? See [`docs/home-hud-host-metrics-panels.md`](../../docs/home-hud-host-metrics-panels.md) for the file-by-file touchpoints the CPU panel established.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

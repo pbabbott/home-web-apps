@@ -1,5 +1,11 @@
 import { HostsClient } from './HostsClient';
-import { getHosts, type Host, type HostType } from './lib/homelab-api';
+import {
+  getHostCpuMetrics,
+  getHosts,
+  type Host,
+  type HostCpuMetrics,
+  type HostType,
+} from './lib/homelab-api';
 
 const DEFAULT_HOST_TYPE: HostType = 'physical';
 const VALID_HOST_TYPES: HostType[] = ['physical', 'virtual'];
@@ -23,11 +29,22 @@ export default async function HostsPage({ searchParams }: HostsPageProps) {
     console.error('Failed to load hosts from homelab-api:', err);
   }
 
+  let cpuMetrics: HostCpuMetrics | null = null;
+
+  if (selectedHostId) {
+    try {
+      cpuMetrics = await getHostCpuMetrics(selectedHostId);
+    } catch (err) {
+      console.error('Failed to load CPU metrics from homelab-api:', err);
+    }
+  }
+
   return (
     <HostsClient
       hosts={hosts}
       hostType={hostType}
       selectedHostId={selectedHostId ?? null}
+      cpuMetrics={cpuMetrics}
     />
   );
 }

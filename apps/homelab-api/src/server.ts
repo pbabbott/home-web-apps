@@ -15,6 +15,7 @@ import {
   createHost,
   deleteHost,
   getHost,
+  getHostCpuMetrics,
   listHosts,
   updateHost,
 } from './controllers/hosts';
@@ -22,6 +23,7 @@ import { openApiSpec } from './openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
+  hostCpuQuerySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
   updateHostBodySchema,
@@ -48,6 +50,12 @@ export const createServer = (): Express => {
   app.get('/hosts', validateQuery(hostListQuerySchema), listHosts);
   app.post('/hosts', validateBody(createHostBodySchema), createHost);
   app.get('/hosts/:id', validateParams(hostIdParamsSchema), getHost);
+  app.get(
+    '/hosts/:id/metrics/cpu',
+    validateParams(hostIdParamsSchema),
+    validateQuery(hostCpuQuerySchema),
+    getHostCpuMetrics,
+  );
   app.patch(
     '/hosts/:id',
     validateParams(hostIdParamsSchema),

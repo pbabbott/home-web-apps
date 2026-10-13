@@ -11,8 +11,14 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { AddHostModal } from './AddHostModal';
+import { CpuChart } from './CpuChart';
 import { EditHostModal } from './EditHostModal';
-import type { Host, HostStatus, HostType } from './lib/homelab-api';
+import type {
+  Host,
+  HostCpuMetrics,
+  HostStatus,
+  HostType,
+} from './lib/homelab-api';
 
 const STATUS_BADGE_COLOR: Record<HostStatus, BadgeColor> = {
   online: 'success',
@@ -60,6 +66,30 @@ function MetricPanel({ label, value, status, note }: MetricPanelProps) {
   );
 }
 
+function CpuMetricPanel({
+  value,
+  status,
+  cpuMetrics,
+}: {
+  value: string;
+  status?: HostStatus;
+  cpuMetrics: HostCpuMetrics | null;
+}) {
+  return (
+    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          CPU
+        </Typography>
+        <Badge color={status ? STATUS_BADGE_COLOR[status] : 'dark'}>
+          {value}
+        </Badge>
+      </div>
+      <CpuChart metrics={cpuMetrics} />
+    </Panel>
+  );
+}
+
 function HostListItem({
   host,
   active,
@@ -90,7 +120,15 @@ function HostListItem({
   );
 }
 
-function HostDetail({ host, onEdit }: { host: Host; onEdit: () => void }) {
+function HostDetail({
+  host,
+  onEdit,
+  cpuMetrics,
+}: {
+  host: Host;
+  onEdit: () => void;
+  cpuMetrics: HostCpuMetrics | null;
+}) {
   return (
     <Panel color="default" className="flex h-full flex-col gap-6">
       <div className="flex items-center justify-between gap-2">
@@ -118,10 +156,9 @@ function HostDetail({ host, onEdit }: { host: Host; onEdit: () => void }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <MetricPanel
-          label="CPU"
+        <CpuMetricPanel
           value={formatPercent(host.cpuUsageRatio)}
-          note="graph coming soon"
+          cpuMetrics={cpuMetrics}
         />
         <MetricPanel label="Memory" value="—" note="not wired up yet" />
         <MetricPanel
@@ -139,12 +176,14 @@ interface HostsClientProps {
   hosts: Host[] | null;
   hostType: HostType;
   selectedHostId: string | null;
+  cpuMetrics: HostCpuMetrics | null;
 }
 
 export function HostsClient({
   hosts,
   hostType,
   selectedHostId,
+  cpuMetrics,
 }: HostsClientProps) {
   const router = useRouter();
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -220,6 +259,7 @@ export function HostsClient({
             <HostDetail
               host={selectedHost}
               onEdit={() => setEditModalOpen(true)}
+              cpuMetrics={cpuMetrics}
             />
           ) : (
             <Panel color="default" className="flex h-full flex-col gap-2">

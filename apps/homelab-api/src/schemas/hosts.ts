@@ -44,3 +44,16 @@ export const updateHostBodySchema = z.object({
 });
 
 export type UpdateHostBody = z.infer<typeof updateHostBodySchema>;
+
+export const hostCpuQuerySchema = z.object({
+  rangeSeconds: z.coerce.number().int().positive().default(3600).meta({
+    description: 'How far back (seconds) the CPU history should cover.',
+    example: 3600,
+  }),
+  stepSeconds: z.coerce.number().int().positive().default(30).meta({
+    description: 'Resolution (seconds) between returned data points.',
+    example: 30,
+  }),
+});
+
+export type HostCpuQuery = z.infer<typeof hostCpuQuerySchema>;

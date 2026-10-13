@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import * as hostsService from '../services/hosts';
+import * as hostMetricsService from '../services/host-metrics';
 import type {
   CreateHostBody,
+  HostCpuQuery,
   HostIdParams,
   HostListQuery,
   UpdateHostBody,
@@ -59,6 +61,26 @@ export const deleteHost = async (req: Request, res: Response) => {
     res.status(204).send();
   } catch (err) {
     console.error(`DELETE /hosts/${id} failed:`, err);
+    res.status(500).json({ message: 'internal server error' });
+  }
+};
+
+export const getHostCpuMetrics = async (req: Request, res: Response) => {
+  const { id } = req.params as HostIdParams;
+  const { rangeSeconds, stepSeconds } = req.query as unknown as HostCpuQuery;
+
+  try {
+    const metrics = await hostMetricsService.getHostCpuSeries(id, {
+      rangeSeconds,
+      stepSeconds,
+    });
+    if (!metrics) {
+      res.status(404).json({ message: 'host not found' });
+      return;
+    }
+    res.status(200).json(metrics);
+  } catch (err) {
+    console.error(`GET /hosts/${id}/metrics/cpu failed:`, err);
     res.status(500).json({ message: 'internal server error' });
   }
 };

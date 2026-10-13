@@ -1,6 +1,7 @@
 import { config } from '../../config';
 
 const QUERY_PATH = '/api/v1/query';
+const QUERY_RANGE_PATH = '/api/v1/query_range';
 const REQUEST_TIMEOUT_MS = 5000;
 
 type PrometheusVectorResponse = {
@@ -10,6 +11,17 @@ type PrometheusVectorResponse = {
     result: {
       metric: Record<string, string>;
       value: [number, string];
+    }[];
+  };
+};
+
+type PrometheusMatrixResponse = {
+  status: 'success' | 'error';
+  data: {
+    resultType: 'matrix';
+    result: {
+      metric: Record<string, string>;
+      values: [number, string][];
     }[];
   };
 };
@@ -46,6 +58,56 @@ async function queryInstant(
     }));
   } catch (err) {
     console.warn(`[prometheus] query failed for: ${promql}`, err);
+    return [];
+  }
+}
+
+export type TimeseriesSample = {
+  metric: Record<string, string>;
+  values: { t: number; value: number }[];
+};
+
+/**
+ * Runs a PromQL range query and returns the raw matrix samples. Same
+ * best-effort contract as `queryInstant` — empty array on any failure so
+ * callers can enrich-if-available rather than fail the whole request.
+ */
+async function queryRange(
+  promql: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const params = new URLSearchParams({
+    query: promql,
+    start: String(startSec),
+    end: String(endSec),
+    step: String(stepSec),
+  });
+  const url = `${config.prometheusUrl}${QUERY_RANGE_PATH}?${params}`;
+
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      console.warn(
+        `[prometheus] range query returned ${response.status} for: ${promql}`,
+      );
+      return [];
+    }
+
+    const body = (await response.json()) as PrometheusMatrixResponse;
+
+    if (body.status !== 'success') return [];
+
+    return body.data.result.map((sample) => ({
+      metric: sample.metric,
+      values: sample.values.map(([t, v]) => ({ t, value: Number(v) })),
+    }));
+  } catch (err) {
+    console.warn(`[prometheus] range query failed for: ${promql}`, err);
     return [];
   }
 }
@@ -133,4 +195,33 @@ export async function getNodeCpuUsage(): Promise<Map<string, number>> {
 )`;
 
   return keyByInstance(await queryInstant(promql));
+}
+
+/**
+ * Per-CPU usage ratio (0-1) for a single node over a time range, one series
+ * per `cpu` label (e.g. 4 series for a 4-core host) — unlike
+ * `getNodeCpuUsage` above, `cpu` is deliberately kept rather than dropped.
+ * `sum without (mode)` still collapses idle/iowait/steal *within* each cpu
+ * (same as the instant query) — leaving it out would leave a `mode` label
+ * on the left side that the right side (which has no `mode` label at all)
+ * can never match, and `ignoring(cpu) group_left` would silently join to
+ * nothing. Each core's rate is divided by the node's core count, so the
+ * per-core lines sum to the host's total busy ratio. `instance` is pinned
+ * to a single host (pushed into the query) since this backs a per-host
+ * chart, not a fleet-wide map.
+ */
+export async function getNodeCpuSeries(
+  instance: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const rateWindow = `${Math.max(stepSec * 4, 60)}s`;
+  const promql = `(
+  (1 - sum without (mode) (rate(node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode=~"idle|iowait|steal", instance="${instance}"}[${rateWindow}])))
+  / ignoring(cpu) group_left
+  count without (cpu, mode) (node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode="idle", instance="${instance}"})
+)`;
+
+  return queryRange(promql, startSec, endSec, stepSec);
 }

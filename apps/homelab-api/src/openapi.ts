@@ -3,6 +3,7 @@ import { createDocument } from 'zod-openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
+  hostCpuQuerySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
   updateHostBodySchema,
@@ -85,6 +86,22 @@ const hostResponseSchema = z.object({
   createdAt: z.string().meta({ format: 'date-time' }),
   status: z.enum(['online', 'offline', 'unknown']),
   cpuUsageRatio: z.number().nullable(),
+});
+
+const hostCpuSeriesSchema = z.object({
+  cpu: z.string().meta({ example: '0' }),
+  points: z.array(
+    z.object({
+      t: z.number().meta({ description: 'Unix seconds', example: 1700000000 }),
+      value: z.number().meta({ description: '0-1 busy ratio for this core' }),
+    }),
+  ),
+});
+
+const hostCpuResponseSchema = z.object({
+  instance: z.string().nullable(),
+  stepSeconds: z.number(),
+  series: z.array(hostCpuSeriesSchema),
 });
 
 const notFoundResponse = {
@@ -209,6 +226,27 @@ export const openApiSpec = createDocument({
         requestParams: { path: hostIdParamsSchema },
         responses: {
           '204': { description: 'The host was deleted' },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+    },
+    '/hosts/{id}/metrics/cpu': {
+      get: {
+        summary: 'Per-CPU usage history for a single host',
+        description:
+          'One series per CPU core (e.g. 4 series for a 4-core host), each core’s busy ratio normalized by core count. A host with no instance set returns an empty series rather than 404/500.',
+        requestParams: {
+          path: hostIdParamsSchema,
+          query: hostCpuQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The CPU history',
+            content: {
+              'application/json': { schema: hostCpuResponseSchema },
+            },
+          },
           '400': validationErrorResponse,
           '404': notFoundResponse,
         },
