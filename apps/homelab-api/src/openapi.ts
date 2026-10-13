@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
+import {
+  createHostBodySchema,
+  hostIdParamsSchema,
+  hostListQuerySchema,
+} from './schemas/hosts';
 
 const validationErrorSchema = z.object({
   message: z.string().meta({ example: 'Invalid query parameters' }),
@@ -70,6 +75,28 @@ const mapResponseSchema = z.object({
   groups: z.array(podMapGroupSchema).nullable(),
 });
 
+const hostResponseSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  hostType: z.enum(['physical', 'virtual']),
+  ipAddress: z.string(),
+  instance: z.string().nullable(),
+  createdAt: z.string().meta({ format: 'date-time' }),
+  status: z.enum(['online', 'offline', 'unknown']),
+  cpuUsageRatio: z.number().nullable(),
+});
+
+const notFoundResponse = {
+  description: 'No host exists with this id',
+  content: {
+    'application/json': {
+      schema: z.object({
+        message: z.string().meta({ example: 'host not found' }),
+      }),
+    },
+  },
+};
+
 /**
  * Generated from the Zod schemas that already validate /maps/:type's
  * request (src/schemas/maps.ts) so this can't drift from what the API
@@ -115,6 +142,50 @@ export const openApiSpec = createDocument({
             content: { 'application/json': { schema: mapResponseSchema } },
           },
           '400': validationErrorResponse,
+        },
+      },
+    },
+    '/hosts': {
+      get: {
+        summary: 'List registered hosts, enriched with live Prometheus data',
+        description:
+          'status/cpuUsageRatio are best-effort: a host with no instance, or whose node-exporter data has not reached Prometheus, still returns with status="unknown" rather than failing the request.',
+        requestParams: { query: hostListQuerySchema },
+        responses: {
+          '200': {
+            description: 'The host list',
+            content: {
+              'application/json': { schema: z.array(hostResponseSchema) },
+            },
+          },
+          '400': validationErrorResponse,
+        },
+      },
+      post: {
+        summary: 'Register a new host',
+        requestBody: {
+          content: { 'application/json': { schema: createHostBodySchema } },
+        },
+        responses: {
+          '201': {
+            description: 'The created host',
+            content: { 'application/json': { schema: hostResponseSchema } },
+          },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/hosts/{id}': {
+      get: {
+        summary: 'Fetch a single host, enriched with live Prometheus data',
+        requestParams: { path: hostIdParamsSchema },
+        responses: {
+          '200': {
+            description: 'The host',
+            content: { 'application/json': { schema: hostResponseSchema } },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
         },
       },
     },

@@ -5,13 +5,20 @@ import {
   configureErrorHandler,
   configureHealthRoute,
   configureMetricsRoute,
+  validateBody,
   validateParams,
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
 import { getMap } from './controllers/maps';
+import { createHost, getHost, listHosts } from './controllers/hosts';
 import { openApiSpec } from './openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
+import {
+  createHostBodySchema,
+  hostIdParamsSchema,
+  hostListQuerySchema,
+} from './schemas/hosts';
 
 export const DOCS_ROUTE = '/docs';
 
@@ -30,6 +37,10 @@ export const createServer = (): Express => {
     validateQuery(mapQuerySchema),
     getMap,
   );
+
+  app.get('/hosts', validateQuery(hostListQuerySchema), listHosts);
+  app.post('/hosts', validateBody(createHostBodySchema), createHost);
+  app.get('/hosts/:id', validateParams(hostIdParamsSchema), getHost);
 
   configureErrorHandler(app);
 

@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import {
+  ConfigSection,
   EnvironmentVariable,
   EnvironmentVariableType,
   formatEnvConfigStatus,
@@ -7,6 +8,23 @@ import {
   loadConfig,
 } from '@abbottland/yaml-config';
 import { errorExit } from './process';
+
+export class PostgresConfig {
+  @EnvironmentVariable()
+  host: string = 'localhost';
+
+  @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
+  port: number = 5432;
+
+  @EnvironmentVariable()
+  database: string = '';
+
+  @EnvironmentVariable()
+  user: string = '';
+
+  @EnvironmentVariable()
+  password: string = '';
+}
 
 export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
@@ -19,6 +37,9 @@ export class ApplicationConfig {
   /** Window (seconds) passed to Prometheus `rate()` queries for CPU usage. */
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   prometheusQueryWindowSeconds: number = 300;
+
+  @ConfigSection({ sectionPrefix: 'POSTGRES' })
+  postgres = new PostgresConfig();
 }
 
 export let config: ApplicationConfig;

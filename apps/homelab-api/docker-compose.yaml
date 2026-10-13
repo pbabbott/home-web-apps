@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: homelab-api-postgres
+    ports:
+      - '5433:5432'
+    environment:
+      - POSTGRES_DB=homelab_api
+      - POSTGRES_USER=homelab_api
+      # Default password for local development, see .env overrides.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Password123}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U homelab_api -d homelab_api']
+      interval: 2s
+      timeout: 2s
+      retries: 5
+      start_period: 4s

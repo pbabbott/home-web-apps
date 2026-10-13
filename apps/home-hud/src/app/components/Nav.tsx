@@ -19,7 +19,7 @@ const VIDEO_MENU_ITEMS = [
 ];
 
 const INFRA_MENU_ITEMS = [
-  { href: '/hosts', label: 'Hosts' },
+  { href: '/infra/hosts', label: 'Hosts' },
   { href: '/infra/cluster-map', label: 'Cluster Map' },
 ];
 
@@ -30,8 +30,7 @@ export function Nav() {
   const [infraOpen, setInfraOpen] = useState(false);
 
   const videoActive = pathname.startsWith('/video');
-  const infraActive =
-    pathname.startsWith('/infra') || pathname.startsWith('/hosts');
+  const infraActive = pathname.startsWith('/infra');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">

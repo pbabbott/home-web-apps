@@ -65,6 +65,21 @@ function keyByNamespacedPod(
   return byPod;
 }
 
+function keyByInstance(
+  samples: { metric: Record<string, string>; value: number }[],
+): Map<string, number> {
+  const byInstance = new Map<string, number>();
+
+  for (const sample of samples) {
+    const { instance } = sample.metric;
+    if (!instance) continue;
+
+    byInstance.set(instance, sample.value);
+  }
+
+  return byInstance;
+}
+
 /** CPU usage per pod, in cores, keyed `<namespace>/<pod>`. */
 export async function getPodCpuUsage(): Promise<Map<string, number>> {
   const window = `${config.prometheusQueryWindowSeconds}s`;
@@ -79,4 +94,37 @@ export async function getPodMemoryUsage(): Promise<Map<string, number>> {
     'sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod!=""})';
 
   return keyByNamespacedPod(await queryInstant(promql));
+}
+
+/**
+ * node-exporter's `up` series is keyed by Prometheus's own scrape labels
+ * (job/instance) directly — `instance` is the scrape-target address (e.g.
+ * "192.168.6.24:9100"), the same value homelab-db stores as `hosts.instance`
+ * — so no join against another metric is needed. A host whose node-exporter
+ * target isn't in Prometheus's service discovery at all simply won't appear
+ * in this map (caller should treat "missing" as "unknown", not "online").
+ */
+export async function getNodeUp(): Promise<Map<string, number>> {
+  const promql = 'up{job="node-exporter"}';
+
+  return keyByInstance(await queryInstant(promql));
+}
+
+/**
+ * CPU usage ratio (0-1) per node, keyed by `instance`. Adapted from a
+ * known-good external dashboard query — the "idle|iowait|steal" modes are
+ * excluded from the busy-time sum, and the result is normalized by the
+ * node's CPU count via `count without (cpu, mode) (..., mode="idle")`.
+ * `instance` survives both sides of this query untouched (only `cpu`/`mode`
+ * are ever dropped), so — unlike `up` above — this needs no join either.
+ */
+export async function getNodeCpuUsage(): Promise<Map<string, number>> {
+  const window = `${config.prometheusQueryWindowSeconds}s`;
+  const promql = `(
+  (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal"}[${window}])))
+  / ignoring(cpu) group_left
+  count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"})
+)`;
+
+  return keyByInstance(await queryInstant(promql));
 }
