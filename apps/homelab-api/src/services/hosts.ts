@@ -1,10 +1,13 @@
 import {
   createHost as createHostRow,
+  deleteHost as deleteHostRow,
   getHostById,
   listHosts as listHostRows,
+  updateHost as updateHostRow,
   type CreateHostInput,
   type Host,
   type HostType,
+  type UpdateHostInput,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
 import {
@@ -68,4 +71,19 @@ export async function getHost(
 
 export async function createHost(input: CreateHostInput): Promise<Host> {
   return createHostRow(db, input);
+}
+
+export async function updateHost(
+  id: string,
+  input: UpdateHostInput,
+): Promise<HostWithMetrics | undefined> {
+  const host = await updateHostRow(db, id, input);
+  if (!host) return undefined;
+
+  const [enriched] = await enrichHosts([host]);
+  return enriched;
+}
+
+export async function deleteHost(id: string): Promise<Host | undefined> {
+  return deleteHostRow(db, id);
 }

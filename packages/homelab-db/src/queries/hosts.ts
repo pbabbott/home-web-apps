@@ -40,3 +40,30 @@ export const createHost = async (
 
   return row;
 };
+
+export type UpdateHostInput = Partial<
+  Pick<NewHost, 'name' | 'ipAddress' | 'hostType' | 'instance'>
+>;
+
+export const updateHost = async (
+  db: Database,
+  id: string,
+  input: UpdateHostInput,
+): Promise<Host | undefined> => {
+  const [row] = await db
+    .update(hosts)
+    .set(input)
+    .where(eq(hosts.id, id))
+    .returning();
+
+  return row;
+};
+
+export const deleteHost = async (
+  db: Database,
+  id: string,
+): Promise<Host | undefined> => {
+  const [row] = await db.delete(hosts).where(eq(hosts.id, id)).returning();
+
+  return row;
+};

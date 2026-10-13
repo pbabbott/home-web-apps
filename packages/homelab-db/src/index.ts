@@ -4,8 +4,14 @@ export type { Database, PostgresConnectionOptions } from './client';
 export { hosts, hostTypeEnum, hostSelectSchema } from './schema/hosts';
 export type { Host, NewHost, HostType } from './schema/hosts';
 
-export { listHosts, getHostById, createHost } from './queries/hosts';
-export type { CreateHostInput } from './queries/hosts';
+export {
+  listHosts,
+  getHostById,
+  createHost,
+  updateHost,
+  deleteHost,
+} from './queries/hosts';
+export type { CreateHostInput, UpdateHostInput } from './queries/hosts';
 
 export {
   runMigrations,

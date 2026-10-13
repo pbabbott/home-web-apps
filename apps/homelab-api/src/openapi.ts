@@ -5,6 +5,7 @@ import {
   createHostBodySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
+  updateHostBodySchema,
 } from './schemas/hosts';
 
 const validationErrorSchema = z.object({
@@ -184,6 +185,30 @@ export const openApiSpec = createDocument({
             description: 'The host',
             content: { 'application/json': { schema: hostResponseSchema } },
           },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+      patch: {
+        summary: 'Update a host',
+        requestParams: { path: hostIdParamsSchema },
+        requestBody: {
+          content: { 'application/json': { schema: updateHostBodySchema } },
+        },
+        responses: {
+          '200': {
+            description: 'The updated host',
+            content: { 'application/json': { schema: hostResponseSchema } },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+      delete: {
+        summary: 'Delete a host',
+        requestParams: { path: hostIdParamsSchema },
+        responses: {
+          '204': { description: 'The host was deleted' },
           '400': validationErrorResponse,
           '404': notFoundResponse,
         },

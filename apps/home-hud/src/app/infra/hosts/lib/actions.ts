@@ -25,3 +25,43 @@ export async function createHost(input: CreateHostInput): Promise<Host> {
 
   return (await res.json()) as Host;
 }
+
+export async function deleteHost(id: string): Promise<void> {
+  const res = await fetch(`${HOMELAB_API_URL}/hosts/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api DELETE /hosts/${id} returned ${res.status}: ${body}`,
+    );
+  }
+}
+
+export interface UpdateHostInput {
+  name?: string;
+  ipAddress?: string;
+  hostType?: HostType;
+  instance?: string | null;
+}
+
+export async function updateHost(
+  id: string,
+  input: UpdateHostInput,
+): Promise<Host> {
+  const res = await fetch(`${HOMELAB_API_URL}/hosts/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api PATCH /hosts/${id} returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as Host;
+}

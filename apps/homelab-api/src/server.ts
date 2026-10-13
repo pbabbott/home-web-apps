@@ -11,13 +11,20 @@ import {
 } from '@abbottland/express';
 import { config } from './config';
 import { getMap } from './controllers/maps';
-import { createHost, getHost, listHosts } from './controllers/hosts';
+import {
+  createHost,
+  deleteHost,
+  getHost,
+  listHosts,
+  updateHost,
+} from './controllers/hosts';
 import { openApiSpec } from './openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
+  updateHostBodySchema,
 } from './schemas/hosts';
 
 export const DOCS_ROUTE = '/docs';
@@ -41,6 +48,13 @@ export const createServer = (): Express => {
   app.get('/hosts', validateQuery(hostListQuerySchema), listHosts);
   app.post('/hosts', validateBody(createHostBodySchema), createHost);
   app.get('/hosts/:id', validateParams(hostIdParamsSchema), getHost);
+  app.patch(
+    '/hosts/:id',
+    validateParams(hostIdParamsSchema),
+    validateBody(updateHostBodySchema),
+    updateHost,
+  );
+  app.delete('/hosts/:id', validateParams(hostIdParamsSchema), deleteHost);
 
   configureErrorHandler(app);
 

@@ -33,3 +33,14 @@ export const createHostBodySchema = z.object({
 });
 
 export type CreateHostBody = z.infer<typeof createHostBodySchema>;
+
+export const updateHostBodySchema = z.object({
+  name: z.string().min(1).optional().meta({ example: 'tf-prod-k8s-worker-1' }),
+  ipAddress: z.string().min(1).optional().meta({ example: '10.0.0.11' }),
+  hostType: hostTypeSchema.optional(),
+  instance: z.string().min(1).nullable().optional().meta({
+    example: '192.168.6.24:9100',
+  }),
+});
+
+export type UpdateHostBody = z.infer<typeof updateHostBodySchema>;

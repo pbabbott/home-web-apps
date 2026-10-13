@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { AddHostModal } from './AddHostModal';
+import { EditHostModal } from './EditHostModal';
 import type { Host, HostStatus, HostType } from './lib/homelab-api';
 
 const STATUS_BADGE_COLOR: Record<HostStatus, BadgeColor> = {
@@ -89,14 +90,19 @@ function HostListItem({
   );
 }
 
-function HostDetail({ host }: { host: Host }) {
+function HostDetail({ host, onEdit }: { host: Host; onEdit: () => void }) {
   return (
     <Panel color="default" className="flex h-full flex-col gap-6">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="h5" component="h2" className="break-all">
           {host.name}
         </Typography>
-        <Badge color={STATUS_BADGE_COLOR[host.status]}>{host.status}</Badge>
+        <div className="flex items-center gap-2">
+          <OutlinedButton size="small" onClick={onEdit}>
+            Edit
+          </OutlinedButton>
+          <Badge color={STATUS_BADGE_COLOR[host.status]}>{host.status}</Badge>
+        </div>
       </div>
 
       <Typography variant="body2" className="text-neutral-400">
@@ -142,6 +148,7 @@ export function HostsClient({
 }: HostsClientProps) {
   const router = useRouter();
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const selectedHost =
     hosts?.find((host) => host.id === selectedHostId) ?? null;
@@ -210,7 +217,10 @@ export function HostsClient({
 
         <div className="w-full">
           {selectedHost ? (
-            <HostDetail host={selectedHost} />
+            <HostDetail
+              host={selectedHost}
+              onEdit={() => setEditModalOpen(true)}
+            />
           ) : (
             <Panel color="default" className="flex h-full flex-col gap-2">
               <Typography variant="h5" component="h2">
@@ -230,6 +240,19 @@ export function HostsClient({
         defaultHostType={hostType}
         onCreated={() => router.refresh()}
       />
+
+      {selectedHost && (
+        <EditHostModal
+          host={selectedHost}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onUpdated={() => router.refresh()}
+          onDeleted={() => {
+            router.push(buildUrl(hostType, null));
+            router.refresh();
+          }}
+        />
+      )}
     </main>
   );
 }
