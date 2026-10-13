@@ -96,6 +96,12 @@ export async function getPodMemoryUsage(): Promise<Map<string, number>> {
   return keyByNamespacedPod(await queryInstant(promql));
 }
 
+// Matches both "node-exporter" (in-cluster k8s nodes) and
+// "node-exporter-physical" (standalone homelab hosts scraped directly, not
+// via k8s service discovery) — any future job variant following this
+// naming convention (e.g. a "node-exporter-virtual") is picked up too.
+const NODE_EXPORTER_JOB_MATCH = 'job=~"node-exporter.*"';
+
 /**
  * node-exporter's `up` series is keyed by Prometheus's own scrape labels
  * (job/instance) directly — `instance` is the scrape-target address (e.g.
@@ -105,7 +111,7 @@ export async function getPodMemoryUsage(): Promise<Map<string, number>> {
  * in this map (caller should treat "missing" as "unknown", not "online").
  */
 export async function getNodeUp(): Promise<Map<string, number>> {
-  const promql = 'up{job="node-exporter"}';
+  const promql = `up{${NODE_EXPORTER_JOB_MATCH}}`;
 
   return keyByInstance(await queryInstant(promql));
 }
@@ -121,9 +127,9 @@ export async function getNodeUp(): Promise<Map<string, number>> {
 export async function getNodeCpuUsage(): Promise<Map<string, number>> {
   const window = `${config.prometheusQueryWindowSeconds}s`;
   const promql = `(
-  (1 - sum without (mode) (rate(node_cpu_seconds_total{job="node-exporter", mode=~"idle|iowait|steal"}[${window}])))
+  (1 - sum without (mode) (rate(node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode=~"idle|iowait|steal"}[${window}])))
   / ignoring(cpu) group_left
-  count without (cpu, mode) (node_cpu_seconds_total{job="node-exporter", mode="idle"})
+  count without (cpu, mode) (node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode="idle"})
 )`;
 
   return keyByInstance(await queryInstant(promql));
