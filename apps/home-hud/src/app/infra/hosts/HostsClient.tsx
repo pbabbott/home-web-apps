@@ -12,10 +12,17 @@ import {
 } from '@abbottland/fui-components';
 import { AddHostModal } from './AddHostModal';
 import { CpuChart } from './CpuChart';
+import { DiskIoChart } from './DiskIoChart';
+import { DiskSpaceTable } from './DiskSpaceTable';
 import { EditHostModal } from './EditHostModal';
+import { MemoryChart } from './MemoryChart';
+import { formatBytes } from './lib/format-bytes';
 import type {
   Host,
   HostCpuMetrics,
+  HostDiskIoMetrics,
+  HostDiskSpace,
+  HostMemoryMetrics,
   HostStatus,
   HostType,
 } from './lib/homelab-api';
@@ -34,6 +41,54 @@ function buildUrl(hostType: HostType, hostId: string | null): string {
   const params = new URLSearchParams({ type: hostType });
   if (hostId) params.set('host', hostId);
   return `/infra/hosts?${params}`;
+}
+
+/** Used-ratio from the most recent point of each memory component series. */
+function latestMemoryUsageRatio(
+  memoryMetrics: HostMemoryMetrics | null,
+): number | null {
+  if (!memoryMetrics) return null;
+
+  const latest = (component: string) => {
+    const series = memoryMetrics.series.find((s) => s.component === component);
+    return series?.points.at(-1)?.value;
+  };
+
+  const used = latest('used');
+  const buffers = latest('buffers');
+  const cached = latest('cached');
+  const free = latest('free');
+
+  if (
+    used === undefined ||
+    buffers === undefined ||
+    cached === undefined ||
+    free === undefined
+  ) {
+    return null;
+  }
+
+  const total = used + buffers + cached + free;
+  return total > 0 ? used / total : null;
+}
+
+/** Combined read+written throughput across all devices, from the most recent point of each series. */
+function latestDiskThroughputLabel(
+  diskIoMetrics: HostDiskIoMetrics | null,
+): string {
+  if (!diskIoMetrics || diskIoMetrics.series.length === 0) return '—';
+
+  const total = diskIoMetrics.series
+    .filter((s) => s.component === 'read' || s.component === 'written')
+    .reduce((sum, s) => sum + (s.points.at(-1)?.value ?? 0), 0);
+
+  return `${formatBytes(total)}/s`;
+}
+
+/** Used% of the root ("/") mountpoint, the single most relevant number for the header badge. */
+function rootDiskUsageRatio(diskSpace: HostDiskSpace | null): number | null {
+  const root = diskSpace?.mountpoints.find((mp) => mp.mountpoint === '/');
+  return root?.usedRatio ?? null;
 }
 
 interface MetricPanelProps {
@@ -90,6 +145,64 @@ function CpuMetricPanel({
   );
 }
 
+function MemoryMetricPanel({
+  memoryMetrics,
+}: {
+  memoryMetrics: HostMemoryMetrics | null;
+}) {
+  return (
+    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          Memory
+        </Typography>
+        <Badge color="dark">
+          {formatPercent(latestMemoryUsageRatio(memoryMetrics))}
+        </Badge>
+      </div>
+      <MemoryChart metrics={memoryMetrics} />
+    </Panel>
+  );
+}
+
+function DiskIoMetricPanel({
+  diskIoMetrics,
+}: {
+  diskIoMetrics: HostDiskIoMetrics | null;
+}) {
+  return (
+    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          Disk I/O
+        </Typography>
+        <Badge color="dark">{latestDiskThroughputLabel(diskIoMetrics)}</Badge>
+      </div>
+      <DiskIoChart metrics={diskIoMetrics} />
+    </Panel>
+  );
+}
+
+function DiskSpaceMetricPanel({
+  diskSpace,
+}: {
+  diskSpace: HostDiskSpace | null;
+}) {
+  return (
+    <Panel color="default" className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <Typography variant="small" className="text-neutral-400">
+          Disk Space
+        </Typography>
+        <Badge color="dark">
+          {formatPercent(rootDiskUsageRatio(diskSpace))} used (/)
+        </Badge>
+      </div>
+      <DiskSpaceTable diskSpace={diskSpace} />
+    </Panel>
+  );
+}
+
 function HostListItem({
   host,
   active,
@@ -124,10 +237,16 @@ function HostDetail({
   host,
   onEdit,
   cpuMetrics,
+  memoryMetrics,
+  diskIoMetrics,
+  diskSpace,
 }: {
   host: Host;
   onEdit: () => void;
   cpuMetrics: HostCpuMetrics | null;
+  memoryMetrics: HostMemoryMetrics | null;
+  diskIoMetrics: HostDiskIoMetrics | null;
+  diskSpace: HostDiskSpace | null;
 }) {
   return (
     <Panel color="default" className="flex h-full flex-col gap-6">
@@ -160,12 +279,9 @@ function HostDetail({
           value={formatPercent(host.cpuUsageRatio)}
           cpuMetrics={cpuMetrics}
         />
-        <MetricPanel label="Memory" value="—" note="not wired up yet" />
-        <MetricPanel
-          label="Disk (root fs used)"
-          value="—"
-          note="not wired up yet"
-        />
+        <MemoryMetricPanel memoryMetrics={memoryMetrics} />
+        <DiskIoMetricPanel diskIoMetrics={diskIoMetrics} />
+        <DiskSpaceMetricPanel diskSpace={diskSpace} />
         <MetricPanel label="Temperature" value="—" note="not wired up yet" />
       </div>
     </Panel>
@@ -177,6 +293,9 @@ interface HostsClientProps {
   hostType: HostType;
   selectedHostId: string | null;
   cpuMetrics: HostCpuMetrics | null;
+  memoryMetrics: HostMemoryMetrics | null;
+  diskIoMetrics: HostDiskIoMetrics | null;
+  diskSpace: HostDiskSpace | null;
 }
 
 export function HostsClient({
@@ -184,6 +303,9 @@ export function HostsClient({
   hostType,
   selectedHostId,
   cpuMetrics,
+  memoryMetrics,
+  diskIoMetrics,
+  diskSpace,
 }: HostsClientProps) {
   const router = useRouter();
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -260,6 +382,9 @@ export function HostsClient({
               host={selectedHost}
               onEdit={() => setEditModalOpen(true)}
               cpuMetrics={cpuMetrics}
+              memoryMetrics={memoryMetrics}
+              diskIoMetrics={diskIoMetrics}
+              diskSpace={diskSpace}
             />
           ) : (
             <Panel color="default" className="flex h-full flex-col gap-2">

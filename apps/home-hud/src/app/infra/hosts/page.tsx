@@ -1,9 +1,15 @@
 import { HostsClient } from './HostsClient';
 import {
   getHostCpuMetrics,
+  getHostDiskIoMetrics,
+  getHostDiskSpace,
+  getHostMemoryMetrics,
   getHosts,
   type Host,
   type HostCpuMetrics,
+  type HostDiskIoMetrics,
+  type HostDiskSpace,
+  type HostMemoryMetrics,
   type HostType,
 } from './lib/homelab-api';
 
@@ -12,6 +18,13 @@ const VALID_HOST_TYPES: HostType[] = ['physical', 'virtual'];
 
 interface HostsPageProps {
   searchParams: Promise<{ type?: string; host?: string }>;
+}
+
+function unwrap<T>(result: PromiseSettledResult<T>, label: string): T | null {
+  if (result.status === 'fulfilled') return result.value;
+
+  console.error(`Failed to load ${label} from homelab-api:`, result.reason);
+  return null;
 }
 
 export default async function HostsPage({ searchParams }: HostsPageProps) {
@@ -30,13 +43,23 @@ export default async function HostsPage({ searchParams }: HostsPageProps) {
   }
 
   let cpuMetrics: HostCpuMetrics | null = null;
+  let memoryMetrics: HostMemoryMetrics | null = null;
+  let diskIoMetrics: HostDiskIoMetrics | null = null;
+  let diskSpace: HostDiskSpace | null = null;
 
   if (selectedHostId) {
-    try {
-      cpuMetrics = await getHostCpuMetrics(selectedHostId);
-    } catch (err) {
-      console.error('Failed to load CPU metrics from homelab-api:', err);
-    }
+    const [cpuResult, memoryResult, diskIoResult, diskSpaceResult] =
+      await Promise.allSettled([
+        getHostCpuMetrics(selectedHostId),
+        getHostMemoryMetrics(selectedHostId),
+        getHostDiskIoMetrics(selectedHostId),
+        getHostDiskSpace(selectedHostId),
+      ]);
+
+    cpuMetrics = unwrap(cpuResult, 'CPU metrics');
+    memoryMetrics = unwrap(memoryResult, 'memory metrics');
+    diskIoMetrics = unwrap(diskIoResult, 'disk I/O metrics');
+    diskSpace = unwrap(diskSpaceResult, 'disk space');
   }
 
   return (
@@ -45,6 +68,9 @@ export default async function HostsPage({ searchParams }: HostsPageProps) {
       hostType={hostType}
       selectedHostId={selectedHostId ?? null}
       cpuMetrics={cpuMetrics}
+      memoryMetrics={memoryMetrics}
+      diskIoMetrics={diskIoMetrics}
+      diskSpace={diskSpace}
     />
   );
 }

@@ -16,6 +16,9 @@ import {
   deleteHost,
   getHost,
   getHostCpuMetrics,
+  getHostDiskIoMetrics,
+  getHostDiskSpace,
+  getHostMemoryMetrics,
   listHosts,
   updateHost,
 } from './controllers/hosts';
@@ -23,9 +26,9 @@ import { openApiSpec } from './openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
-  hostCpuQuerySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
+  hostMetricsRangeQuerySchema,
   updateHostBodySchema,
 } from './schemas/hosts';
 
@@ -53,8 +56,25 @@ export const createServer = (): Express => {
   app.get(
     '/hosts/:id/metrics/cpu',
     validateParams(hostIdParamsSchema),
-    validateQuery(hostCpuQuerySchema),
+    validateQuery(hostMetricsRangeQuerySchema),
     getHostCpuMetrics,
+  );
+  app.get(
+    '/hosts/:id/metrics/memory',
+    validateParams(hostIdParamsSchema),
+    validateQuery(hostMetricsRangeQuerySchema),
+    getHostMemoryMetrics,
+  );
+  app.get(
+    '/hosts/:id/metrics/disk-io',
+    validateParams(hostIdParamsSchema),
+    validateQuery(hostMetricsRangeQuerySchema),
+    getHostDiskIoMetrics,
+  );
+  app.get(
+    '/hosts/:id/metrics/disk-space',
+    validateParams(hostIdParamsSchema),
+    getHostDiskSpace,
   );
   app.patch(
     '/hosts/:id',

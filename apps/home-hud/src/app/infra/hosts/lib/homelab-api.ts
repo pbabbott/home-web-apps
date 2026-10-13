@@ -46,14 +46,14 @@ export async function getHost(id: string): Promise<Host | null> {
   return (await res.json()) as Host;
 }
 
-export interface HostCpuSeriesPoint {
+export interface HostMetricSeriesPoint {
   t: number;
   value: number;
 }
 
 export interface HostCpuSeries {
   cpu: string;
-  points: HostCpuSeriesPoint[];
+  points: HostMetricSeriesPoint[];
 }
 
 export interface HostCpuMetrics {
@@ -84,4 +84,114 @@ export async function getHostCpuMetrics(
   }
 
   return (await res.json()) as HostCpuMetrics;
+}
+
+export type MemoryComponent = 'used' | 'buffers' | 'cached' | 'free';
+
+export interface HostMemorySeries {
+  component: MemoryComponent;
+  points: HostMetricSeriesPoint[];
+}
+
+export interface HostMemoryMetrics {
+  instance: string | null;
+  stepSeconds: number;
+  series: HostMemorySeries[];
+}
+
+/**
+ * Memory breakdown (used/buffers/cached/free, bytes) for the last hour.
+ * Same best-effort contract as `getHostCpuMetrics`.
+ */
+export async function getHostMemoryMetrics(
+  id: string,
+): Promise<HostMemoryMetrics | null> {
+  const res = await fetch(`${HOMELAB_API_URL}/hosts/${id}/metrics/memory`, {
+    cache: 'no-store',
+  });
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /hosts/${id}/metrics/memory returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as HostMemoryMetrics;
+}
+
+export type DiskIoComponent = 'read' | 'written' | 'ioTime';
+
+export interface HostDiskIoSeries {
+  device: string;
+  component: DiskIoComponent;
+  points: HostMetricSeriesPoint[];
+}
+
+export interface HostDiskIoMetrics {
+  instance: string | null;
+  stepSeconds: number;
+  series: HostDiskIoSeries[];
+}
+
+/**
+ * Per-device disk I/O history (read/written bytes/sec, io time ratio) for
+ * the last hour. Same best-effort contract as `getHostCpuMetrics`.
+ */
+export async function getHostDiskIoMetrics(
+  id: string,
+): Promise<HostDiskIoMetrics | null> {
+  const res = await fetch(`${HOMELAB_API_URL}/hosts/${id}/metrics/disk-io`, {
+    cache: 'no-store',
+  });
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /hosts/${id}/metrics/disk-io returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as HostDiskIoMetrics;
+}
+
+export interface HostDiskMountpoint {
+  mountpoint: string;
+  sizeBytes: number;
+  availableBytes: number;
+  usedBytes: number;
+  usedRatio: number;
+}
+
+export interface HostDiskSpace {
+  instance: string | null;
+  mountpoints: HostDiskMountpoint[];
+}
+
+/**
+ * Current filesystem usage per mountpoint — an instant snapshot, not a
+ * time range (backs a table, not a chart). Same best-effort contract as
+ * `getHostCpuMetrics`.
+ */
+export async function getHostDiskSpace(
+  id: string,
+): Promise<HostDiskSpace | null> {
+  const res = await fetch(`${HOMELAB_API_URL}/hosts/${id}/metrics/disk-space`, {
+    cache: 'no-store',
+  });
+
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /hosts/${id}/metrics/disk-space returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as HostDiskSpace;
 }

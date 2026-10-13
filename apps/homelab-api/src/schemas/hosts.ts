@@ -45,9 +45,10 @@ export const updateHostBodySchema = z.object({
 
 export type UpdateHostBody = z.infer<typeof updateHostBodySchema>;
 
-export const hostCpuQuerySchema = z.object({
+/** Shared by every /hosts/:id/metrics/<metric> route — the range/step shape doesn't vary per metric. */
+export const hostMetricsRangeQuerySchema = z.object({
   rangeSeconds: z.coerce.number().int().positive().default(3600).meta({
-    description: 'How far back (seconds) the CPU history should cover.',
+    description: 'How far back (seconds) the history should cover.',
     example: 3600,
   }),
   stepSeconds: z.coerce.number().int().positive().default(30).meta({
@@ -56,4 +57,4 @@ export const hostCpuQuerySchema = z.object({
   }),
 });
 
-export type HostCpuQuery = z.infer<typeof hostCpuQuerySchema>;
+export type HostMetricsRangeQuery = z.infer<typeof hostMetricsRangeQuerySchema>;

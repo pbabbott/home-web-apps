@@ -3,9 +3,9 @@ import { createDocument } from 'zod-openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
-  hostCpuQuerySchema,
   hostIdParamsSchema,
   hostListQuerySchema,
+  hostMetricsRangeQuerySchema,
   updateHostBodySchema,
 } from './schemas/hosts';
 
@@ -102,6 +102,54 @@ const hostCpuResponseSchema = z.object({
   instance: z.string().nullable(),
   stepSeconds: z.number(),
   series: z.array(hostCpuSeriesSchema),
+});
+
+const hostMemorySeriesSchema = z.object({
+  component: z.enum(['used', 'buffers', 'cached', 'free']),
+  points: z.array(
+    z.object({
+      t: z.number().meta({ description: 'Unix seconds', example: 1700000000 }),
+      value: z.number().meta({ description: 'Bytes' }),
+    }),
+  ),
+});
+
+const hostMemoryResponseSchema = z.object({
+  instance: z.string().nullable(),
+  stepSeconds: z.number(),
+  series: z.array(hostMemorySeriesSchema),
+});
+
+const hostDiskIoSeriesSchema = z.object({
+  device: z.string().meta({ example: 'sda' }),
+  component: z.enum(['read', 'written', 'ioTime']),
+  points: z.array(
+    z.object({
+      t: z.number().meta({ description: 'Unix seconds', example: 1700000000 }),
+      value: z.number().meta({
+        description: 'Bytes/sec for read/written, 0-1 busy ratio for ioTime',
+      }),
+    }),
+  ),
+});
+
+const hostDiskIoResponseSchema = z.object({
+  instance: z.string().nullable(),
+  stepSeconds: z.number(),
+  series: z.array(hostDiskIoSeriesSchema),
+});
+
+const hostDiskMountpointSchema = z.object({
+  mountpoint: z.string().meta({ example: '/' }),
+  sizeBytes: z.number(),
+  availableBytes: z.number(),
+  usedBytes: z.number(),
+  usedRatio: z.number(),
+});
+
+const hostDiskSpaceResponseSchema = z.object({
+  instance: z.string().nullable(),
+  mountpoints: z.array(hostDiskMountpointSchema),
 });
 
 const notFoundResponse = {
@@ -238,13 +286,73 @@ export const openApiSpec = createDocument({
           'One series per CPU core (e.g. 4 series for a 4-core host), each core’s busy ratio normalized by core count. A host with no instance set returns an empty series rather than 404/500.',
         requestParams: {
           path: hostIdParamsSchema,
-          query: hostCpuQuerySchema,
+          query: hostMetricsRangeQuerySchema,
         },
         responses: {
           '200': {
             description: 'The CPU history',
             content: {
               'application/json': { schema: hostCpuResponseSchema },
+            },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+    },
+    '/hosts/{id}/metrics/memory': {
+      get: {
+        summary: 'Memory breakdown history for a single host',
+        description:
+          'Four series in bytes: used (total − free − buffers − cached), buffers, cached, free. A host with no instance set returns an empty series rather than 404/500.',
+        requestParams: {
+          path: hostIdParamsSchema,
+          query: hostMetricsRangeQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The memory history',
+            content: {
+              'application/json': { schema: hostMemoryResponseSchema },
+            },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+    },
+    '/hosts/{id}/metrics/disk-io': {
+      get: {
+        summary: 'Per-device disk I/O history for a single host',
+        description:
+          'Three series per real block device (excludes loop/partition devices): read bytes/sec, written bytes/sec, io time (0-1 busy ratio). A host with no instance set returns an empty series rather than 404/500.',
+        requestParams: {
+          path: hostIdParamsSchema,
+          query: hostMetricsRangeQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The disk I/O history',
+            content: {
+              'application/json': { schema: hostDiskIoResponseSchema },
+            },
+          },
+          '400': validationErrorResponse,
+          '404': notFoundResponse,
+        },
+      },
+    },
+    '/hosts/{id}/metrics/disk-space': {
+      get: {
+        summary: 'Current filesystem usage per mountpoint for a single host',
+        description:
+          'An instant snapshot (not a time range) of size/used/available per mountpoint. A host with no instance set returns an empty list rather than 404/500.',
+        requestParams: { path: hostIdParamsSchema },
+        responses: {
+          '200': {
+            description: 'The disk space snapshot',
+            content: {
+              'application/json': { schema: hostDiskSpaceResponseSchema },
             },
           },
           '400': validationErrorResponse,

@@ -225,3 +225,120 @@ export async function getNodeCpuSeries(
 
   return queryRange(promql, startSec, endSec, stepSec);
 }
+
+/**
+ * Memory breakdown for a single node over a time range: used/buffers/
+ * cached/free, each a plain node_exporter gauge (no rate(), no join) —
+ * tagged with a synthetic `component` label so the shape matches
+ * `TimeseriesSample` the same way `getNodeCpuSeries`'s `cpu` label does.
+ * `used` is computed the same way the Grafana panel this was transcribed
+ * from does: total minus free minus buffers minus cached.
+ */
+export async function getNodeMemorySeries(
+  instance: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const gauge = (metric: string) =>
+    `node_memory_${metric}{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}"}`;
+
+  const usedPromql = `(
+  ${gauge('MemTotal_bytes')}
+-
+  ${gauge('MemFree_bytes')}
+-
+  ${gauge('Buffers_bytes')}
+-
+  ${gauge('Cached_bytes')}
+)`;
+
+  const tag = (
+    samples: TimeseriesSample[],
+    component: string,
+  ): TimeseriesSample[] =>
+    samples.map((sample) => ({
+      metric: { ...sample.metric, component },
+      values: sample.values,
+    }));
+
+  const [used, buffers, cached, free] = await Promise.all([
+    queryRange(usedPromql, startSec, endSec, stepSec),
+    queryRange(gauge('Buffers_bytes'), startSec, endSec, stepSec),
+    queryRange(gauge('Cached_bytes'), startSec, endSec, stepSec),
+    queryRange(gauge('MemFree_bytes'), startSec, endSec, stepSec),
+  ]);
+
+  return [
+    ...tag(used, 'used'),
+    ...tag(buffers, 'buffers'),
+    ...tag(cached, 'cached'),
+    ...tag(free, 'free'),
+  ];
+}
+
+// Real block devices only — excludes loop devices, device-mapper slaves,
+// and partitions. Same device-name regex node_exporter's own mixin uses.
+const DISK_DEVICE_MATCH =
+  'device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"';
+
+/**
+ * Disk I/O for a single node over a time range: read/written throughput
+ * (bytes/sec) and io time (0-1 busy ratio) per block device — tagged with
+ * a synthetic `component` label the same way `getNodeMemorySeries` tags
+ * used/buffers/cached/free, with the real `device` label left untouched so
+ * a multi-disk host (e.g. 6 devices) still differentiates per-device lines.
+ */
+export async function getNodeDiskIoSeries(
+  instance: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const rateWindow = `${Math.max(stepSec * 4, 60)}s`;
+  const rate = (metric: string) =>
+    `rate(node_disk_${metric}_total{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}", ${DISK_DEVICE_MATCH}}[${rateWindow}])`;
+
+  const tag = (
+    samples: TimeseriesSample[],
+    component: string,
+  ): TimeseriesSample[] =>
+    samples.map((sample) => ({
+      metric: { ...sample.metric, component },
+      values: sample.values,
+    }));
+
+  const [read, written, ioTime] = await Promise.all([
+    queryRange(rate('read_bytes'), startSec, endSec, stepSec),
+    queryRange(rate('written_bytes'), startSec, endSec, stepSec),
+    queryRange(rate('io_time_seconds'), startSec, endSec, stepSec),
+  ]);
+
+  return [
+    ...tag(read, 'read'),
+    ...tag(written, 'written'),
+    ...tag(ioTime, 'ioTime'),
+  ];
+}
+
+/**
+ * Current filesystem size/available (bytes) per mountpoint for a single
+ * node — an instant snapshot, not a time range, since this backs a table
+ * (current usage per mount) rather than a chart. `size`/`avail` are zipped
+ * by `mountpoint` in the service layer since both queries share that label
+ * untouched (no join needed here either).
+ */
+export async function getNodeDiskSpace(instance: string): Promise<{
+  size: { metric: Record<string, string>; value: number }[];
+  avail: { metric: Record<string, string>; value: number }[];
+}> {
+  const gauge = (metric: string) =>
+    `max by (mountpoint) (node_filesystem_${metric}_bytes{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}", fstype!="", mountpoint!=""})`;
+
+  const [size, avail] = await Promise.all([
+    queryInstant(gauge('size')),
+    queryInstant(gauge('avail')),
+  ]);
+
+  return { size, avail };
+}
