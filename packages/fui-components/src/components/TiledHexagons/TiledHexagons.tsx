@@ -1,5 +1,8 @@
 import React from 'react';
 import { HexagonButton } from '../HexagonButton/HexagonButton';
+import type { HexStatus } from '../HexagonButton/constants';
+
+export type { HexStatus };
 
 const TILE_SIZE = 100;
 /** HexagonButton hex dimensions (from R=45, angle -30°): flat-top so width < height */
@@ -13,6 +16,8 @@ export type TiledHexagonTile = {
   text?: string;
   lowerLabel?: string;
   active?: boolean;
+  /** Drives idle fill/border/glow (e.g. a live health check). Hover/active chrome is unaffected. */
+  status?: HexStatus;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
@@ -111,6 +116,7 @@ export function TiledHexagons({
               label={label}
               lowerLabel={tile.lowerLabel}
               active={tile.active}
+              status={tile.status}
               animated={animated}
               onClick={tile.onClick}
             />

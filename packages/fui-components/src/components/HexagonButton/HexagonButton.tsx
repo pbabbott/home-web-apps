@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { KEYFRAMES_STYLES } from './constants';
+import { KEYFRAMES_STYLES, type HexStatus } from './constants';
 import { useHexagonButtonStyles } from './useHexagonButtonStyles';
 import { HexagonButtonDefs } from './HexagonButtonDefs';
 import { HexagonButtonLayers } from './HexagonButtonLayers';
 import { HexagonButtonLabels } from './HexagonButtonLabels';
+
+export type { HexStatus };
 
 export interface HexagonButtonProps {
   label?: string;
@@ -11,6 +13,8 @@ export interface HexagonButtonProps {
   active?: boolean;
   /** false = suppress shimmer sweep and travel-ring spark effects (e.g. reduced-motion mode). Selected styling (color/border/glow) is unaffected. */
   animated?: boolean;
+  /** Drives idle fill/border/glow (e.g. a live health check). Hover/active chrome is unaffected, so "selected" stays visually distinct from "unhealthy". */
+  status?: HexStatus;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
@@ -19,10 +23,11 @@ export function HexagonButton({
   lowerLabel = '',
   active = false,
   animated = true,
+  status,
   onClick,
 }: HexagonButtonProps) {
   const [hovered, setHovered] = useState(false);
-  const styles = useHexagonButtonStyles(active, hovered, animated);
+  const styles = useHexagonButtonStyles(active, hovered, animated, status);
 
   return (
     <>

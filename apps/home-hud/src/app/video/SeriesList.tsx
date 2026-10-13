@@ -8,7 +8,7 @@ interface SeriesListProps {
 /** Read-only list of every series the video pipeline knows about — no CRUD yet, just visibility into the series -> directory mapping. */
 export function SeriesList({ series }: SeriesListProps) {
   return (
-    <TransparentPanel color="dark" className="flex flex-col gap-3">
+    <TransparentPanel color="secondary" className="flex flex-col gap-3">
       <Typography variant="h6" component="h2" className="text-neutral-400">
         Series
       </Typography>

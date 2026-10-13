@@ -67,3 +67,44 @@ export const Active: Story = {
     active: true,
   },
 };
+
+export const StatusHealthy: Story = {
+  args: {
+    label: 'blog',
+    lowerLabel: '12%',
+    status: 'healthy',
+  },
+};
+
+export const StatusWarning: Story = {
+  args: {
+    label: 'video-api',
+    lowerLabel: '78%',
+    status: 'warning',
+  },
+};
+
+export const StatusError: Story = {
+  args: {
+    label: 'home-hud',
+    lowerLabel: '94%',
+    status: 'error',
+  },
+};
+
+export const StatusUnknown: Story = {
+  args: {
+    label: 'gluetun',
+    lowerLabel: 'n/a',
+    status: 'unknown',
+  },
+};
+
+export const StatusErrorSelected: Story = {
+  args: {
+    label: 'home-hud',
+    lowerLabel: '94%',
+    status: 'error',
+    active: true,
+  },
+};

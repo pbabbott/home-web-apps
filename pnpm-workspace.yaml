@@ -35,3 +35,5 @@ catalog:
   eslint: '^9.37.0'
 
   zod: '^4.4.3'
+
+  '@kubernetes/client-node': '^0.22.3'

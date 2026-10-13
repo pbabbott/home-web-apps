@@ -51,3 +51,25 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - [Image Tag Footer Tracing](./docs/image-tag-footer-tracing.md) - How `IMAGE_TAG` flows from source to the live footer value.
 - [Blog Identity](./docs/blog-identity.md) - Analysis of published/draft posts in `apps/blog`.
 - Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
+
+## Model and Subagent Routing
+
+Use the least expensive model capable of completing each task.
+
+- **Haiku / quick-researcher:** file discovery, symbol lookup,
+  simple questions, finding configuration, and summarizing small
+  amounts of code.
+- **Sonnet:** implementation, debugging, test writing, code review,
+  and multi-file changes. (daily driver)
+- **Opus:** difficult architecture decisions, ambiguous bugs,
+  complex tradeoffs, and tasks that have resisted simpler approaches. Only for PLAN mode.
+
+Delegation rules:
+
+- Prefer quick-researcher for read-only investigation.
+- Do not spawn multiple agents for tasks that can be completed
+  sequentially by the current agent.
+- Give subagents narrow, independent deliverables.
+- Ask research agents for concise summaries, not full file dumps.
+- Escalate to a stronger model only when the task warrants it.
+- Do not use Opus merely to locate files or gather facts.

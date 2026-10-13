@@ -4,6 +4,7 @@ import {
   createVideoJob,
   deleteVideoJobById,
   getVideoJobById,
+  listVideoJobs,
 } from '@abbottland/video-db';
 import { db } from '../../src/db';
 import { processJob } from '../../src/worker/job-processor';
@@ -44,6 +45,19 @@ describe('worker job processing', () => {
   // each run leaves junk rows (e.g. a growing pile of "transcode" jobs) that
   // show up in home-hud's job list.
   let createdJobId: string | undefined;
+
+  // claimNextVideoJob claims the globally oldest *pending* row, not one
+  // scoped to this test — a pending job orphaned by an interrupted prior
+  // run gets claimed instead of the row this test just created, failing
+  // assertions non-deterministically. Clearing stale pending jobs before
+  // each test guarantees claimNextVideoJob can only ever see what this
+  // test itself creates.
+  beforeEach(async () => {
+    const stalePending = await listVideoJobs(db, { status: 'pending' });
+    await Promise.all(
+      stalePending.map((job) => deleteVideoJobById(db, job.id)),
+    );
+  });
 
   afterEach(async () => {
     jest.clearAllMocks();
