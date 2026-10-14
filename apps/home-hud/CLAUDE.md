@@ -3,6 +3,7 @@
 When adding navigation, fetch calls, or images, run `/proxy-dev` for the patterns required when developing through the Coder code-server proxy.
 
 - Implementing a new `/infra/hosts` metrics panel (Memory, Disk, Temperature)? See [`docs/home-hud-host-metrics-panels.md`](../../docs/home-hud-host-metrics-panels.md) for the file-by-file touchpoints the CPU panel established.
+- Building a new procedural 3D model for the `/infra/viz` collection (e.g. after the ASUSTOR NAS)? See [`docs/home-hud-3d-model-guide.md`](../../docs/home-hud-3d-model-guide.md) for the directory layout, Tron-style line-art visual rules/palette, reference-photo workflow, and gotchas already hit.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
