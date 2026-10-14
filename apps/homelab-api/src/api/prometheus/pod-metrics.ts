@@ -1,5 +1,5 @@
 import { config } from '../../config';
-import { queryInstant } from './client';
+import { queryInstant, queryRange, type TimeseriesSample } from './client';
 
 function keyByNamespacedPod(
   samples: { metric: Record<string, string>; value: number }[],
@@ -30,4 +30,31 @@ export async function getPodMemoryUsage(): Promise<Map<string, number>> {
     'sum by (namespace, pod) (container_memory_working_set_bytes{container!="", pod!=""})';
 
   return keyByNamespacedPod(await queryInstant(promql));
+}
+
+/** Per-container CPU usage history (cores) for a single pod, one series per container. */
+export async function getPodCpuUsageSeries(
+  namespace: string,
+  pod: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const rateWindow = `${config.prometheusQueryWindowSeconds}s`;
+  const promql = `sum by (container) (rate(container_cpu_usage_seconds_total{namespace="${namespace}", pod="${pod}", container!=""}[${rateWindow}]))`;
+
+  return queryRange(promql, startSec, endSec, stepSec);
+}
+
+/** Per-container memory working-set history (bytes) for a single pod, one series per container. */
+export async function getPodMemoryUsageSeries(
+  namespace: string,
+  pod: string,
+  startSec: number,
+  endSec: number,
+  stepSec: number,
+): Promise<TimeseriesSample[]> {
+  const promql = `sum by (container) (container_memory_working_set_bytes{namespace="${namespace}", pod="${pod}", container!=""})`;
+
+  return queryRange(promql, startSec, endSec, stepSec);
 }

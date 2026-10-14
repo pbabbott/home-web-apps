@@ -17,11 +17,16 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { PanZoomCanvas } from './PanZoomCanvas';
+import { PodCpuChart } from './PodCpuChart';
+import { PodMemoryChart } from './PodMemoryChart';
+import { getPodCpuMetrics, getPodMemoryMetrics } from './lib/actions';
 import type {
   GroupDimension,
   MapMetric,
+  PodCpuMetrics,
   PodMapItem,
   PodMapResult,
+  PodMemoryMetrics,
 } from './lib/homelab-api';
 
 const METRIC_OPTIONS: { value: MapMetric; label: string }[] = [
@@ -113,7 +118,15 @@ function itemToTile(
   };
 }
 
-function DetailPanel({ item }: { item: PodMapItem | null }) {
+function DetailPanel({
+  item,
+  cpuMetrics,
+  memoryMetrics,
+}: {
+  item: PodMapItem | null;
+  cpuMetrics: PodCpuMetrics | null;
+  memoryMetrics: PodMemoryMetrics | null;
+}) {
   if (!item) {
     return (
       <Panel color="default" className="flex h-full flex-col gap-2">
@@ -164,6 +177,7 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
             {item.metrics.cpu.limit?.toFixed(2) ?? '-'}
           </Typography>
         </div>
+        <PodCpuChart metrics={cpuMetrics} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -189,6 +203,7 @@ function DetailPanel({ item }: { item: PodMapItem | null }) {
               : '-'}
           </Typography>
         </div>
+        <PodMemoryChart metrics={memoryMetrics} />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -224,6 +239,15 @@ export function InfraMapClient({
   const [metricMenuOpen, setMetricMenuOpen] = useState(false);
   const [groupMenuOpen, setGroupMenuOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Keyed by pod id rather than a single "current" slot: a stale fetch for
+  // a since-deselected pod just writes into an entry nothing reads anymore,
+  // instead of racing to overwrite whatever's currently displayed.
+  const [cpuMetricsById, setCpuMetricsById] = useState<
+    Record<string, PodCpuMetrics | null>
+  >({});
+  const [memoryMetricsById, setMemoryMetricsById] = useState<
+    Record<string, PodMemoryMetrics | null>
+  >({});
   const rowRef = useRef<HTMLDivElement>(null);
   const [rowHeight, setRowHeight] = useState<number | null>(null);
 
@@ -272,14 +296,40 @@ export function InfraMapClient({
   const itemsById = new Map(items.map((item) => [item.id, item]));
   const selectedItem = selectedId ? (itemsById.get(selectedId) ?? null) : null;
 
+  // Selection lives in local state, not the URL (unlike metric/groupBy), so
+  // the charts are fetched client-side via a server action rather than by
+  // the page itself.
   function handleSelect(item: PodMapItem) {
-    setSelectedId((current) => (current === item.id ? null : item.id));
+    const nextId = selectedId === item.id ? null : item.id;
+    setSelectedId(nextId);
+
+    if (nextId === null) return;
+
+    getPodCpuMetrics(item.namespace, item.label)
+      .catch((err) => {
+        console.error('Failed to load pod CPU metrics from homelab-api:', err);
+        return null;
+      })
+      .then((metrics) => {
+        setCpuMetricsById((prev) => ({ ...prev, [nextId]: metrics }));
+      });
+    getPodMemoryMetrics(item.namespace, item.label)
+      .catch((err) => {
+        console.error(
+          'Failed to load pod memory metrics from homelab-api:',
+          err,
+        );
+        return null;
+      })
+      .then((metrics) => {
+        setMemoryMetricsById((prev) => ({ ...prev, [nextId]: metrics }));
+      });
   }
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
       <Typography variant="h1" component="h1">
-        Infra Map
+        Cluster Map
       </Typography>
 
       <div className="flex items-center gap-3 self-start">
@@ -377,7 +427,25 @@ export function InfraMapClient({
           </PanZoomCanvas>
 
           <div className="w-full shrink-0 lg:w-96">
-            <DetailPanel item={selectedItem} />
+            <DetailPanel
+              // Forces a full unmount/remount per pod instead of an in-place
+              // prop diff — see HostsClient's identical `key` on HostDetail
+              // for why: without it, the two echarts-backed charts below
+              // (each with its own ResizeObserver + canvas) get patched in
+              // place on every pod switch, and fast switching can race their
+              // dispose/init cycles against React's own DOM patching,
+              // surfacing as a stray "Failed to execute 'removeChild'"
+              // crash. Keying by pod id makes cleanup (disconnect +
+              // dispose) run to completion before the next mount starts.
+              key={selectedItem?.id ?? 'none'}
+              item={selectedItem}
+              cpuMetrics={
+                selectedId ? (cpuMetricsById[selectedId] ?? null) : null
+              }
+              memoryMetrics={
+                selectedId ? (memoryMetricsById[selectedId] ?? null) : null
+              }
+            />
           </div>
         </div>
       )}

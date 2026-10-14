@@ -99,7 +99,7 @@ function worstStatus(statuses: HexStatus[]): HexStatus {
   );
 }
 
-function sumContainerQuantities(
+export function sumContainerQuantities(
   pod: V1Pod,
   field: 'requests' | 'limits',
   resource: 'cpu' | 'memory',

@@ -47,6 +47,30 @@ export interface PodMapResult {
   groups: PodMapGroup[] | null;
 }
 
+export interface PodMetricSeriesPoint {
+  t: number;
+  value: number;
+}
+
+export interface PodContainerSeries {
+  container: string;
+  points: PodMetricSeriesPoint[];
+}
+
+export interface PodCpuMetrics {
+  stepSeconds: number;
+  series: PodContainerSeries[];
+  requestCores: number | null;
+  limitCores: number | null;
+}
+
+export interface PodMemoryMetrics {
+  stepSeconds: number;
+  series: PodContainerSeries[];
+  requestBytes: number | null;
+  limitBytes: number | null;
+}
+
 export async function getPodMap(
   metric: MapMetric,
   groupBy?: GroupDimension,
