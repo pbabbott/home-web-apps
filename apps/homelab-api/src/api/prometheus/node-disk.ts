@@ -6,14 +6,19 @@ import {
   type TimeseriesSample,
 } from './client';
 
-// Real physical disks only — excludes loop devices and partitions, same as
-// node_exporter's own mixin, but *also* dm-/md-/rbd- (LVM/RAID/Ceph logical
-// devices): on a hypervisor host (e.g. Proxmox), each VM/container disk is
-// its own dm- device, so an unfiltered host can report 50+ of them — noise
-// that also double-counts I/O already attributed to the physical disk
-// underneath.
+// Real physical disks only, one line per disk — excludes:
+// - partitions (mmcblk0p1, mmcblk0boot0): same physical card as the
+//   whole-disk mmcblk0 series, just split up, so matches the bare
+//   "mmcblkN" form rather than node_exporter mixin's own partition-level
+//   "mmcblk.p.+" (sd*/nvme*/vd* don't expose partition-level stats
+//   separately on hosts seen so far, so no equivalent narrowing needed
+//   there).
+// - dm-/md-/rbd- (LVM/RAID/Ceph logical devices): on a hypervisor host
+//   (e.g. Proxmox), each VM/container disk is its own dm- device, so an
+//   unfiltered host can report 50+ of them — noise that also
+//   double-counts I/O already attributed to the physical disk underneath.
 const DISK_DEVICE_MATCH =
-  'device=~"(/dev/)?(mmcblk.p.+|nvme.+|sd.+|vd.+|xvd.+|dasd.+)"';
+  'device=~"(/dev/)?(mmcblk[0-9]+|nvme.+|sd.+|vd.+|xvd.+|dasd.+)"';
 
 /**
  * Disk I/O for a single node over a time range: read/written throughput
