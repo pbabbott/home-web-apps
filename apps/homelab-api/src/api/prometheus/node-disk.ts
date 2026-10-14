@@ -6,10 +6,14 @@ import {
   type TimeseriesSample,
 } from './client';
 
-// Real block devices only — excludes loop devices, device-mapper slaves,
-// and partitions. Same device-name regex node_exporter's own mixin uses.
+// Real physical disks only — excludes loop devices and partitions, same as
+// node_exporter's own mixin, but *also* dm-/md-/rbd- (LVM/RAID/Ceph logical
+// devices): on a hypervisor host (e.g. Proxmox), each VM/container disk is
+// its own dm- device, so an unfiltered host can report 50+ of them — noise
+// that also double-counts I/O already attributed to the physical disk
+// underneath.
 const DISK_DEVICE_MATCH =
-  'device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"';
+  'device=~"(/dev/)?(mmcblk.p.+|nvme.+|sd.+|vd.+|xvd.+|dasd.+)"';
 
 /**
  * Disk I/O for a single node over a time range: read/written throughput
