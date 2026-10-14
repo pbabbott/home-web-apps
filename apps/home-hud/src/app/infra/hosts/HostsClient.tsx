@@ -394,6 +394,17 @@ export function HostsClient({
         <div className="w-full">
           {selectedHost ? (
             <HostDetail
+              // Forces a full unmount/remount per host instead of an
+              // in-place prop diff: without this, the 4 echarts-backed
+              // panels below (each with its own ResizeObserver + canvas)
+              // get patched in place on every host switch, and fast
+              // switching can race their dispose/init cycles against
+              // React's own DOM patching, surfacing as a stray "Failed to
+              // execute 'removeChild'" crash. Keying by host id makes
+              // cleanup (disconnect + dispose) run to completion before
+              // the next mount starts, so there's no shared DOM node left
+              // for the two to race over.
+              key={selectedHost.id}
               host={selectedHost}
               onEdit={() => setEditModalOpen(true)}
               cpuMetrics={cpuMetrics}
