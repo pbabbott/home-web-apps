@@ -47,7 +47,7 @@ export const getHostByIpAddress = async (
 
 export type CreateHostInput = Pick<
   NewHost,
-  'name' | 'ipAddress' | 'hostType' | 'instance'
+  'name' | 'ipAddress' | 'hostType' | 'instance' | 'model3d'
 >;
 
 export const createHost = async (
@@ -60,7 +60,7 @@ export const createHost = async (
 };
 
 export type UpdateHostInput = Partial<
-  Pick<NewHost, 'name' | 'ipAddress' | 'hostType' | 'instance'>
+  Pick<NewHost, 'name' | 'ipAddress' | 'hostType' | 'instance' | 'model3d'>
 >;
 
 export const updateHost = async (

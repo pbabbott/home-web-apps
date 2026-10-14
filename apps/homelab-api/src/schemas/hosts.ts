@@ -30,6 +30,15 @@ export const createHostBodySchema = z.object({
   instance: z.string().min(1).optional().meta({
     example: '192.168.6.24:9100',
   }),
+  /**
+   * Slug of a procedural 3D model (home-hud's /infra/viz/models/<slug>/)
+   * to render in this host's detail panel. Free text, not an enum — the
+   * valid-slug set is a frontend concern (the UI only offers real slugs
+   * in its picker), not something this API validates against.
+   */
+  model3d: z.string().min(1).optional().meta({
+    example: 'nas',
+  }),
 });
 
 export type CreateHostBody = z.infer<typeof createHostBodySchema>;
@@ -40,6 +49,9 @@ export const updateHostBodySchema = z.object({
   hostType: hostTypeSchema.optional(),
   instance: z.string().min(1).nullable().optional().meta({
     example: '192.168.6.24:9100',
+  }),
+  model3d: z.string().min(1).nullable().optional().meta({
+    example: 'nas',
   }),
 });
 

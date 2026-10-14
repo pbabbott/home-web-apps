@@ -15,6 +15,7 @@ import { CpuChart } from './CpuChart';
 import { DiskIoChart } from './DiskIoChart';
 import { DiskSpaceTable } from './DiskSpaceTable';
 import { EditHostModal } from './EditHostModal';
+import { Host3DModel } from './Host3DModel';
 import { MemoryChart } from './MemoryChart';
 import { TemperatureChart } from './TemperatureChart';
 import { formatBytes } from './lib/format-bytes';
@@ -28,6 +29,7 @@ import type {
   HostTemperatureMetrics,
   HostType,
 } from './lib/homelab-api';
+import { isKnownModelSlug } from '../viz/models/registry';
 
 const STATUS_BADGE_COLOR: Record<HostStatus, BadgeColor> = {
   online: 'success',
@@ -278,12 +280,15 @@ function HostDetail({
         {host.instance ? ` · ${host.instance}` : ''}
       </Typography>
 
-      {/* Placeholder for a real host image/photo, addressed in a follow-up. */}
-      <div className="flex h-56 w-full items-center justify-center border border-neutral-700 bg-gradient-to-br from-neutral-900 to-neutral-700">
-        <Typography variant="body2" className="text-neutral-500">
-          No image yet
-        </Typography>
-      </div>
+      {isKnownModelSlug(host.model3d) ? (
+        <Host3DModel modelSlug={host.model3d as string} hostName={host.name} />
+      ) : (
+        <div className="flex h-56 w-full items-center justify-center border border-neutral-700 bg-gradient-to-br from-neutral-900 to-neutral-700">
+          <Typography variant="body2" className="text-neutral-500">
+            No image yet
+          </Typography>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <CpuMetricPanel

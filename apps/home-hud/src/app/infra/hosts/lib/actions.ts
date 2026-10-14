@@ -9,6 +9,7 @@ export interface CreateHostInput {
   ipAddress: string;
   hostType: HostType;
   instance?: string;
+  model3d?: string;
 }
 
 export async function createHost(input: CreateHostInput): Promise<Host> {
@@ -44,6 +45,7 @@ export interface UpdateHostInput {
   ipAddress?: string;
   hostType?: HostType;
   instance?: string | null;
+  model3d?: string | null;
 }
 
 export async function updateHost(

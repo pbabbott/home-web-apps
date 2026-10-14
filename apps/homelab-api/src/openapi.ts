@@ -87,6 +87,7 @@ const hostResponseSchema = z.object({
   hostType: z.enum(['physical', 'virtual']),
   ipAddress: z.string(),
   instance: z.string().nullable(),
+  model3d: z.string().nullable(),
   createdAt: z.string().meta({ format: 'date-time' }),
   status: z.enum(['online', 'offline', 'unknown']),
   cpuUsageRatio: z.number().nullable(),

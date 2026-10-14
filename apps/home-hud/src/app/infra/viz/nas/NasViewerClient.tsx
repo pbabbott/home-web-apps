@@ -6,27 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import { OutlinedButton, Panel, Typography } from '@abbottland/fui-components';
 import { isCameraAngle, type CameraAngle } from '../components/camera-angles';
 import type { ModelViewerHandle } from '../components/ModelViewer';
+import { MOCK_NAS_BAYS } from '../models/nas/mock-bays';
 import { BAY_STATUS_COLOR } from '../models/nas/status-colors';
-import type { BayState } from '../models/nas/types';
 
 const NasScene = dynamic(() => import('./NasScene'), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-neutral-950" aria-hidden />,
 });
-
-/**
- * Mock drive-bay data for this dev viewer — not real NAS telemetry. Once
- * this viewer is wired into a real data source, a caller supplies `bays`
- * instead of this constant (see models/nas/types.ts NasModelProps).
- */
-const MOCK_BAYS: BayState[] = [
-  { id: 'bay-1', label: 'Bay 1', status: 'active', capacityRatio: 0.72 },
-  { id: 'bay-2', label: 'Bay 2', status: 'active', capacityRatio: 0.68 },
-  { id: 'bay-3', label: 'Bay 3', status: 'active', capacityRatio: 0.81 },
-  { id: 'bay-4', label: 'Bay 4', status: 'idle', capacityRatio: 0.1 },
-  { id: 'bay-5', label: 'Bay 5', status: 'empty' },
-  { id: 'bay-6', label: 'Bay 6', status: 'empty' },
-];
 
 export function NasViewerClient() {
   const searchParams = useSearchParams();
@@ -48,7 +34,7 @@ export function NasViewerClient() {
     : null;
 
   const selectedBay = useMemo(
-    () => MOCK_BAYS.find((bay) => bay.id === selectedBayId) ?? null,
+    () => MOCK_NAS_BAYS.find((bay) => bay.id === selectedBayId) ?? null,
     [selectedBayId],
   );
 
@@ -64,7 +50,7 @@ export function NasViewerClient() {
           <NasScene
             deviceName="Room of Requirement (mock)"
             health="healthy"
-            bays={MOCK_BAYS}
+            bays={MOCK_NAS_BAYS}
             selectedBayId={selectedBayId}
             hoveredBayId={hoveredBayId}
             onSelectBay={handleSelectBay}
@@ -90,7 +76,7 @@ export function NasViewerClient() {
           </Typography>
 
           <div className="flex flex-col gap-2">
-            {MOCK_BAYS.map((bay) => (
+            {MOCK_NAS_BAYS.map((bay) => (
               <OutlinedButton
                 key={bay.id}
                 size="small"
