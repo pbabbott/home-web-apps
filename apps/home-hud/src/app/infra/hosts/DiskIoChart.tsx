@@ -15,6 +15,7 @@ import {
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
   DISK_DEVICE_PALETTE,
+  scrollableLegend,
 } from './lib/echarts-theme';
 import { formatBytes } from './lib/format-bytes';
 
@@ -51,19 +52,9 @@ function buildOption(metrics: HostDiskIoMetrics): echarts.EChartsOption {
     color: devices.map((d) => deviceColor(devices, d)),
     grid: { left: 56, right: 48, top: 56, bottom: 24 },
     textStyle: { color: CHART_TEXT_COLOR, fontSize: 11 },
-    legend: {
-      type: 'scroll',
-      top: 0,
-      itemWidth: 14,
-      itemHeight: 8,
-      itemGap: 10,
-      pageIconColor: CHART_AXIS_COLOR,
-      pageTextStyle: { color: CHART_AXIS_COLOR },
-      textStyle: { color: CHART_TEXT_COLOR, fontSize: 10 },
-      data: metrics.series.map(
-        (s) => `${s.device} ${COMPONENT_LABEL[s.component]}`,
-      ),
-    },
+    legend: scrollableLegend(
+      metrics.series.map((s) => `${s.device} ${COMPONENT_LABEL[s.component]}`),
+    ),
     tooltip: {
       trigger: 'axis',
       backgroundColor: CHART_TOOLTIP_BG,

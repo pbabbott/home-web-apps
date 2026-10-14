@@ -10,6 +10,7 @@ import {
   CHART_TEXT_COLOR,
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
+  scrollableLegend,
   TEMPERATURE_CRITICAL_CELSIUS,
   TEMPERATURE_CRITICAL_COLOR,
   TEMPERATURE_LINE_PALETTE,
@@ -55,11 +56,7 @@ function buildOption(metrics: HostTemperatureMetrics): echarts.EChartsOption {
     color: TEMPERATURE_LINE_PALETTE,
     grid: { left: 40, right: 12, top: 28, bottom: 24 },
     textStyle: { color: CHART_TEXT_COLOR, fontSize: 11 },
-    legend: {
-      top: 0,
-      textStyle: { color: CHART_TEXT_COLOR, fontSize: 11 },
-      data: metrics.series.map((s) => s.label),
-    },
+    legend: scrollableLegend(metrics.series.map((s) => s.label)),
     tooltip: {
       trigger: 'axis',
       backgroundColor: CHART_TOOLTIP_BG,
