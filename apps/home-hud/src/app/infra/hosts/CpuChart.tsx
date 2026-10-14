@@ -11,6 +11,7 @@ import {
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
   CPU_LINE_PALETTE,
+  formatTimeTick,
 } from './lib/echarts-theme';
 
 function buildOption(metrics: HostCpuMetrics): echarts.EChartsOption {
@@ -33,7 +34,8 @@ function buildOption(metrics: HostCpuMetrics): echarts.EChartsOption {
     xAxis: {
       type: 'time',
       axisLine: { lineStyle: { color: CHART_AXIS_COLOR } },
-      axisLabel: { color: CHART_AXIS_COLOR },
+      axisLabel: { color: CHART_AXIS_COLOR, formatter: formatTimeTick },
+      splitNumber: 4,
       splitLine: { show: false },
     },
     yAxis: {

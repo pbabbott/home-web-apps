@@ -92,6 +92,16 @@ export const CHART_TOOLTIP_BG = neutral[950];
 export const CHART_TOOLTIP_BORDER = neutral[700];
 export const CHART_TEXT_COLOR = neutral[300];
 
+/** 12-hour `8:30pm` ticks for a time x-axis, instead of echarts' default 24-hour `20:30`. */
+export function formatTimeTick(value: number): string {
+  const date = new Date(value);
+  const minutes = date.getMinutes();
+  const period = date.getHours() >= 12 ? 'pm' : 'am';
+  const hours = date.getHours() % 12 || 12;
+
+  return `${hours}:${minutes.toString().padStart(2, '0')}${period}`;
+}
+
 /**
  * Paginated legend for charts whose series count can outgrow the available
  * width (per-sensor temperature lines, per-device disk I/O lines) — without

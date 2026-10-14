@@ -15,6 +15,7 @@ import {
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
   DISK_DEVICE_PALETTE,
+  formatTimeTick,
   scrollableLegend,
 } from './lib/echarts-theme';
 import { formatBytes } from './lib/format-bytes';
@@ -65,7 +66,8 @@ function buildOption(metrics: HostDiskIoMetrics): echarts.EChartsOption {
     xAxis: {
       type: 'time',
       axisLine: { lineStyle: { color: CHART_AXIS_COLOR } },
-      axisLabel: { color: CHART_AXIS_COLOR },
+      axisLabel: { color: CHART_AXIS_COLOR, formatter: formatTimeTick },
+      splitNumber: 4,
       splitLine: { show: false },
     },
     yAxis: [

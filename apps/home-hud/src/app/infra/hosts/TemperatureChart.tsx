@@ -10,6 +10,7 @@ import {
   CHART_TEXT_COLOR,
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
+  formatTimeTick,
   scrollableLegend,
   TEMPERATURE_CRITICAL_CELSIUS,
   TEMPERATURE_CRITICAL_COLOR,
@@ -67,7 +68,8 @@ function buildOption(metrics: HostTemperatureMetrics): echarts.EChartsOption {
     xAxis: {
       type: 'time',
       axisLine: { lineStyle: { color: CHART_AXIS_COLOR } },
-      axisLabel: { color: CHART_AXIS_COLOR },
+      axisLabel: { color: CHART_AXIS_COLOR, formatter: formatTimeTick },
+      splitNumber: 4,
       splitLine: { show: false },
     },
     yAxis: {

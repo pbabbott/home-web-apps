@@ -10,6 +10,7 @@ import {
   CHART_TEXT_COLOR,
   CHART_TOOLTIP_BG,
   CHART_TOOLTIP_BORDER,
+  formatTimeTick,
   MEMORY_STACK_PALETTE,
 } from './lib/echarts-theme';
 import { formatBytes } from './lib/format-bytes';
@@ -55,7 +56,8 @@ function buildOption(metrics: HostMemoryMetrics): echarts.EChartsOption {
     xAxis: {
       type: 'time',
       axisLine: { lineStyle: { color: CHART_AXIS_COLOR } },
-      axisLabel: { color: CHART_AXIS_COLOR },
+      axisLabel: { color: CHART_AXIS_COLOR, formatter: formatTimeTick },
+      splitNumber: 4,
       splitLine: { show: false },
     },
     yAxis: {
