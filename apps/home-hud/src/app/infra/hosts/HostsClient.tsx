@@ -178,7 +178,7 @@ function DiskSpaceMetricPanel({
   diskSpace: HostDiskSpace | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3">
+    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           Disk Space
