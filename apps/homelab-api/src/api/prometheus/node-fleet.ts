@@ -16,18 +16,15 @@ export async function getNodeUp(): Promise<Map<string, number>> {
 }
 
 /**
- * CPU usage ratio (0-1) per node, keyed by `instance`. Adapted from a
- * known-good external dashboard query: excludes idle/iowait/steal from the
- * busy-time sum, normalized by core count via
- * `count without (cpu, mode) (..., mode="idle")`.
+ * CPU usage ratio (0-1) per node, keyed by `instance`. `sum without (mode)`
+ * collapses idle/iowait/steal within each cpu (one value per core, as in
+ * node-cpu.ts), then `avg without (cpu)` averages across cores down to a
+ * single node-wide value — `keyByInstance` needs exactly one series per
+ * instance, not one per core.
  */
 export async function getNodeCpuUsage(): Promise<Map<string, number>> {
   const window = `${config.prometheusQueryWindowSeconds}s`;
-  const promql = `(
-  (1 - sum without (mode) (rate(node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode=~"idle|iowait|steal"}[${window}])))
-  / ignoring(cpu) group_left
-  count without (cpu, mode) (node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode="idle"})
-)`;
+  const promql = `1 - avg without (cpu) (sum without (mode) (rate(node_cpu_seconds_total{${NODE_EXPORTER_JOB_MATCH}, mode=~"idle|iowait|steal"}[${window}])))`;
 
   return keyByInstance(await queryInstant(promql));
 }
