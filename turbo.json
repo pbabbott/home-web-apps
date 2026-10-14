@@ -143,6 +143,10 @@
       "cache": false,
       "env": ["DATABASE_URL"]
     },
+    "seed:remote": {
+      "cache": false,
+      "env": ["REMOTE_HOMELAB_API_URL"]
+    },
     "smoke:deps": {
       "cache": false
     },

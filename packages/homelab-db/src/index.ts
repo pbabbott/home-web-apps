@@ -7,6 +7,7 @@ export type { Host, NewHost, HostType } from './schema/hosts';
 export {
   listHosts,
   getHostById,
+  getHostByIpAddress,
   createHost,
   updateHost,
   deleteHost,
