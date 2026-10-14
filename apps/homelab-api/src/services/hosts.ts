@@ -10,10 +10,7 @@ import {
   type UpdateHostInput,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
-import {
-  getNodeCpuUsage,
-  getNodeUp,
-} from '../api/prometheus/prometheus-client';
+import { getNodeCpuUsage, getNodeUp } from '../api/prometheus';
 
 export type HostStatus = 'online' | 'offline' | 'unknown';
 

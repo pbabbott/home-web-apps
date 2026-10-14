@@ -6,7 +6,7 @@ import {
   getNodeDiskSpace,
   getNodeMemorySeries,
   getNodeTemperatureSeries,
-} from '../api/prometheus/prometheus-client';
+} from '../api/prometheus';
 
 export interface HostMetricSeriesPoint {
   t: number;

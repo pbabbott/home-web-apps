@@ -3,10 +3,7 @@ import {
   listNodes,
   listPods,
 } from '../../src/api/kubernetes/kubernetes-client';
-import {
-  getPodCpuUsage,
-  getPodMemoryUsage,
-} from '../../src/api/prometheus/prometheus-client';
+import { getPodCpuUsage, getPodMemoryUsage } from '../../src/api/prometheus';
 import { buildPodMap } from '../../src/services/pod-map';
 
 jest.mock('../../src/api/kubernetes/kubernetes-client', () => ({
@@ -14,7 +11,7 @@ jest.mock('../../src/api/kubernetes/kubernetes-client', () => ({
   listNodes: jest.fn(),
 }));
 
-jest.mock('../../src/api/prometheus/prometheus-client', () => ({
+jest.mock('../../src/api/prometheus', () => ({
   getPodCpuUsage: jest.fn(),
   getPodMemoryUsage: jest.fn(),
 }));

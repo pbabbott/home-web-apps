@@ -1,9 +1,6 @@
 import type { V1Pod } from '@kubernetes/client-node';
 import { listNodes, listPods } from '../api/kubernetes/kubernetes-client';
-import {
-  getPodCpuUsage,
-  getPodMemoryUsage,
-} from '../api/prometheus/prometheus-client';
+import { getPodCpuUsage, getPodMemoryUsage } from '../api/prometheus';
 import { parseCpuQuantity, parseMemoryQuantity } from '../lib/k8s-quantity';
 
 export type HexStatus = 'healthy' | 'warning' | 'error' | 'unknown';
