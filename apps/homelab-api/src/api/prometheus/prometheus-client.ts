@@ -352,10 +352,18 @@ export async function getNodeDiskSpace(instance: string): Promise<{
  * inside a VM. `node_hwmon_temp_celsius` alone only has `chip`/`sensor`
  * labels (e.g. "temp1") — joining `node_hwmon_sensor_label` (an info metric,
  * value always 1) via `group_left(label)` attaches the human name ("Package
- * id 0", "Core 0", "Composite"). `thermal_zone*` chips are excluded: they
- * duplicate one of the other sensors (the ACPI thermal zone) without a
- * `node_hwmon_sensor_label` entry to name it, so they'd show as an
- * unlabeled extra line.
+ * id 0", "Core 0", "Composite"). `thermal_zone*` chips are excluded: on x86
+ * hosts they duplicate one of the other sensors (the ACPI thermal zone)
+ * without a `node_hwmon_sensor_label` entry to name it, so they'd show as
+ * an unlabeled extra line.
+ *
+ * Some boards (e.g. ARM SBCs) publish temps *only* via a `thermal_zone*`
+ * chip and never emit a `node_hwmon_sensor_label` series for it at all —
+ * the join above is an inner join (`*` requires a match on both sides), so
+ * those readings would vanish entirely rather than just lose their label.
+ * The trailing `or` falls back to the raw, unlabeled series whenever no
+ * label match exists, so real readings still surface (named by chip/sensor
+ * in the service layer) instead of being silently dropped.
  */
 export async function getNodeTemperatureSeries(
   instance: string,
@@ -363,9 +371,14 @@ export async function getNodeTemperatureSeries(
   endSec: number,
   stepSec: number,
 ): Promise<TimeseriesSample[]> {
-  const promql = `node_hwmon_temp_celsius{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}", chip!~"thermal_zone.*"}
-* on (chip, sensor) group_left(label)
-node_hwmon_sensor_label{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}"}`;
+  const base = `node_hwmon_temp_celsius{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}", chip!~"thermal_zone.*"}`;
+  const promql = `(
+  ${base}
+  * on (chip, sensor) group_left(label)
+  node_hwmon_sensor_label{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}"}
+)
+or
+${base}`;
 
   return queryRange(promql, startSec, endSec, stepSec);
 }
