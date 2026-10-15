@@ -1,20 +1,24 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Panel, Typography } from '@abbottland/fui-components';
+import { OutlinedButton, Panel, Typography } from '@abbottland/fui-components';
 import { isCameraAngle, type CameraAngle } from '../components/camera-angles';
 import type { ModelViewerHandle } from '../components/ModelViewer';
+import { PIRONMAN4_CONFIG } from '../models/pironman4/config';
 
 const Pironman4Scene = dynamic(() => import('./Pironman4Scene'), {
   ssr: false,
   loading: () => <div className="h-full w-full bg-neutral-950" aria-hidden />,
 });
 
+const DEFAULT_EDGE_COLOR = PIRONMAN4_CONFIG.materials.edgeHighlight;
+
 export function Pironman4ViewerClient() {
   const searchParams = useSearchParams();
   const viewerRef = useRef<ModelViewerHandle>(null);
+  const [edgeColor, setEdgeColor] = useState<string | undefined>(undefined);
 
   const angleParam = searchParams.get('angle');
   const initialAngle: CameraAngle | undefined =
@@ -32,16 +36,49 @@ export function Pironman4ViewerClient() {
   return (
     <main className="flex flex-col gap-4 p-6">
       <Typography variant="h1">Pironman4 3D Viewer</Typography>
-      <Panel color="default" className="relative h-[70vh] w-full">
-        <Pironman4Scene initialAngle={initialAngle} viewerRef={viewerRef} />
-        {referenceImageSrc && (
-          <img
-            src={referenceImageSrc}
-            alt={`${referenceAngle} reference`}
-            className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-40"
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <Panel color="default" className="relative h-[70vh] flex-1">
+          <Pironman4Scene
+            initialAngle={initialAngle}
+            viewerRef={viewerRef}
+            edgeColor={edgeColor}
           />
-        )}
-      </Panel>
+          {referenceImageSrc && (
+            <img
+              src={referenceImageSrc}
+              alt={`${referenceAngle} reference`}
+              className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-40"
+            />
+          )}
+        </Panel>
+
+        <Panel color="default" className="flex w-full flex-col gap-4 lg:w-80">
+          <Typography variant="h5" component="h2">
+            Appearance
+          </Typography>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={edgeColor ?? DEFAULT_EDGE_COLOR}
+              onChange={(event) => setEdgeColor(event.target.value)}
+              className="h-9 w-9 cursor-pointer rounded border border-neutral-700 bg-transparent p-0"
+              aria-label="Border and glow color"
+            />
+            <Typography variant="caption" className="text-neutral-400">
+              {(edgeColor ?? DEFAULT_EDGE_COLOR).toUpperCase()}
+            </Typography>
+          </div>
+
+          <OutlinedButton
+            size="small"
+            disabled={edgeColor === undefined}
+            onClick={() => setEdgeColor(undefined)}
+          >
+            Reset to default
+          </OutlinedButton>
+        </Panel>
+      </div>
     </main>
   );
 }

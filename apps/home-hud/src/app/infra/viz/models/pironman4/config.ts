@@ -10,9 +10,8 @@
  *
  * Shape confirmed only from 3/4-angle marketing photos (see
  * REFERENCES.md) — no orthographic front/rear/top shots exist yet, so
- * several faces are best-effort. The rear face in particular has NO
- * reference photo at all and is deliberately left blank per explicit
- * instruction, not guessed.
+ * several faces are best-effort. The rear face now has a real close-up
+ * reference (`back-ports.jpg`) and is laid out from it — see REFERENCES.md.
  *
  * Rendering style is the same Tron-style line art as every model in this
  * collection — see docs/home-hud-3d-model-guide.md before changing
@@ -83,6 +82,7 @@ export interface PortSpec {
   position: [number, number];
   width: number;
   height: number;
+  /** USB-C ports (ssd/power) are rendered as a plain small rect — no distinct capsule shape. */
   shape?: 'rect' | 'circle';
 }
 
@@ -142,36 +142,61 @@ export const PIRONMAN4_CONFIG: Pironman4Config = {
     screwSpacingY: 36,
     screwSpacingX: 28,
   },
+  // Laid out from back-ports.jpg (a real close-up of the rear face). The
+  // photo itself is landscape; the model's rear (-Z) face is portrait
+  // (width 65 x height 125), so the photo is mapped on 90deg clockwise:
+  // photo-right -> model-bottom, photo-top -> model-right, photo-left ->
+  // model-top. See REFERENCES.md for the full reasoning.
   ports: [
-    { id: 'camera', label: 'Camera', position: [26, 10], width: 4, height: 16 },
+    {
+      id: 'camera',
+      label: 'Camera',
+      position: [15, 15],
+      width: 17,
+      height: 1.5,
+    },
+    { id: 'lan', label: 'LAN', position: [-15, -2.5], width: 13, height: 13 },
     {
       id: 'usb3-1',
       label: 'USB 3.0',
-      position: [12, -8],
-      width: 8,
-      height: 12,
+      position: [1.5, 3.5],
+      width: 11,
+      height: 7.5,
     },
-    { id: 'usb3-2', label: 'USB 3.0', position: [12, 8], width: 8, height: 12 },
-    { id: 'usb2', label: 'USB 2.0', position: [-3, 5], width: 8, height: 12 },
+    {
+      id: 'usb3-2',
+      label: 'USB 3.0',
+      position: [1.5, -8],
+      width: 11,
+      height: 7.5,
+    },
+    {
+      id: 'usb2-1',
+      label: 'USB 2.0',
+      position: [17.5, 3.5],
+      width: 11,
+      height: 7.5,
+    },
+    {
+      id: 'usb2-2',
+      label: 'USB 2.0',
+      position: [17.5, -8],
+      width: 11,
+      height: 7.5,
+    },
     {
       id: 'microsd',
       label: 'Micro SD',
-      position: [-22, -10],
-      width: 3,
-      height: 10,
+      position: [-13.5, -34],
+      width: 12.5,
+      height: 2.5,
     },
-    {
-      id: 'power',
-      label: 'Power',
-      position: [-22, 10],
-      width: 6,
-      height: 6,
-      shape: 'circle',
-    },
+    { id: 'ssd', label: 'SSD', position: [2, -32], width: 8, height: 5 },
+    { id: 'power', label: 'Power', position: [16.5, -32], width: 8, height: 5 },
   ],
   materials: {
     void: '#05070A',
     edgeHighlight: '#02FBFF',
-    ledActivity: '#4FA884',
+    ledActivity: '#03BEFF',
   },
 };

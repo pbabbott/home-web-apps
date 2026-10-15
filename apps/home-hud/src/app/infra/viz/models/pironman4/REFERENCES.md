@@ -18,6 +18,7 @@ on the listing is a 3/4 hero angle or a detail crop. Saved files:
 | `cooler-airflow.jpg`       | Same hero angle, airflow arrows overlaid (intake top, exhaust sides) — confirms vent direction, not new geometry info.                                                                                                                                                                                                 |
 | `ssd-detail.jpg`           | Internal M.2 SSD closeup — no exterior geometry value.                                                                                                                                                                                                                                                                 |
 | `exploded-parts.png`       | Full 27-part exploded diagram (aluminum case, tower cooler, acrylic plates, RGB LED strip, OLED, power switch, GPIO bridge, standoffs/screws). Confirms what's structurally real; not a usable photo angle.                                                                                                            |
+| `back-ports.jpg`           | **Real close-up of the rear face** (user-captured, not a listing photo) — dead-on, labeled: Camera, LAN, USB (x2 blue, USB 3.0), USB (x2 black, USB 2.0), micro SD, SSD, Power. Landscape orientation. The only rear reference; replaced the earlier reinterpreted-from-a-side-photo guess.                            |
 
 ## Corrections
 
@@ -43,11 +44,25 @@ re-litigated:
   centered within that bezel band. The real tower cooler's intake is
   visible through clear panels spanning top and side in the photos; side
   placement (both sides, not just one) is what was asked for here.
-- **Ports panel moved from the +X side face to the rear (-Z) face.** The
-  only port-layout photo (`side-ports-labeled.jpg`) actually shows a side
-  panel, but the real unit has these ports on the rear — the photo's
-  port grouping/spacing was kept, just reinterpreted onto the rear
-  face's axes.
+- **Ports panel moved from the +X side face to the rear (-Z) face**, then
+  **rebuilt from a real rear-face close-up (`back-ports.jpg`)**, replacing
+  the earlier reinterpreted-from-a-side-photo guess entirely. The photo is
+  landscape; the model's rear face is portrait (width 65 x height 125), so
+  the layout is mapped on **90deg clockwise**: photo-right -> model-bottom,
+  photo-top -> model-right, photo-left -> model-top. That puts the photo's
+  side-by-side USB pairs stacked vertically on the model, and its vertical
+  micro SD/SSD/Power column running left-to-right along the model's bottom
+  edge. 9 ports total: Camera (thin slot, upper-left, directly on the flat
+  aluminum), LAN, 2x USB 3.0, 2x USB 2.0 (center column), micro SD/SSD/Power
+  (bottom row, USB-C ports rendered as plain rects — no distinct capsule
+  shape). The camera slot is a thin horizontal strip (it's vertical in the
+  source photo — the 90deg remap rotates its long axis too). No bounding
+  plaque around the port cluster for the photo's sunken dark I/O shield:
+  tried one, but the chassis is a closed opaque box, so a plane standing in
+  for a recess can only ever sit PROUD of the rear face (a plane placed
+  behind it is occluded by the nearer, opaque chassis surface and never
+  renders) — proud, it just read as a floating box rather than a recess, so
+  it was dropped. Just the bare port cutouts now.
 - **Front panel bezel plate is its own small chamfered-octagon box**
   (`createChamferedPanelGeometry`, chamfer on the plate's own front/back
   faces), not a flat plane — it has real depth and sits proud of the
@@ -75,14 +90,15 @@ re-litigated:
 - **All dimensions** (`config.ts` `chassis.dimensions`, `chamfer`,
   `frontPanel.*`, `fanGrille.*`) are tuned by eye against the 3/4-angle
   photos and iterative screenshot review, not measured.
-- **Ports panel position/spacing** is a best guess reinterpreted from a
-  side-angle photo showing the wrong face (see Corrections above) —
-  doubly approximate.
-- **Power button glow color**: used the collection's secondary accent
-  (green, `materials.ledActivity`) rather than matching the photo's blue
-  glow, to stay within the Tron style's "one dominant + one accent color"
-  rule (see docs/home-hud-3d-model-guide.md) — not a fidelity gap, a
-  deliberate style choice.
+- **Ports panel position/spacing** is now sourced from a real rear-face
+  photo (`back-ports.jpg`), but exact mm positions/sizes are still eyeballed
+  from that photo via the 90deg orientation remap (see Corrections above),
+  not measured. USB-C ports (SSD/Power) are modeled as plain rects, not a
+  distinct rounded capsule shape.
+- **Power button glow color** (`materials.ledActivity`) uses the fui-components
+  brand secondary (`#03BEFF`) — happens to land close to the photo's blue
+  glow too, so no tradeoff here between the Tron style's "one dominant + one
+  accent color" rule and photo fidelity.
 - **IR receiver position** is a visual-balance guess (mirrored off the
   button) — no photo shows where it actually sits on the front panel.
 - No brushed-metal/acrylic-transparency simulation — like every model in
@@ -91,8 +107,9 @@ re-litigated:
 
 ## Still to do
 
-- The rear (-Z) face has no reference photo at all — only the
-  reinterpreted ports panel lives there; everything else on that face is
-  unmodeled.
+- Rear (-Z) face now has a real reference (`back-ports.jpg`) and a full
+  9-port layout — fine-tune exact mm positions against a render once the
+  dev server is up (eyeballed, not measured). No recessed I/O panel — see
+  Corrections above for why it doesn't work in this closed-box style.
 - Possibly add a top vent too (or adjust the side split) once a photo
   clarifies the real top/side ratio.

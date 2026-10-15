@@ -6,4 +6,11 @@
  */
 export interface Pironman4ModelProps {
   deviceName?: string;
+  /**
+   * Overrides every border/line/glow color (`materials.edgeHighlight`) with
+   * this hex value — borders, edge outlines, and the dense-grille "active
+   * void" tint all derive from it. Leave unset to use the model's own
+   * default (`config.materials.edgeHighlight`, `#02FBFF`).
+   */
+  edgeColor?: string;
 }
