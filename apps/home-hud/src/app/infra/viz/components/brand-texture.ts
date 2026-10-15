@@ -22,9 +22,9 @@ function createBrandTexture(text: string): THREE.CanvasTexture {
     ctx.strokeStyle = '#02FBFF';
     ctx.lineWidth = 9;
     ctx.font = '400 72px system-ui, sans-serif';
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.strokeText(text, 8, canvas.height / 2);
+    ctx.strokeText(text, canvas.width / 2, canvas.height / 2);
   }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

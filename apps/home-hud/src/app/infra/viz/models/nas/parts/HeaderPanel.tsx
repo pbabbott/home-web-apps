@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { useBrandTexture } from '../brand-texture';
+import { useBrandTexture } from '../../../components/brand-texture';
 import { EdgedMesh } from '../../../components/EdgedMesh';
 import {
   computeButtonPitch,

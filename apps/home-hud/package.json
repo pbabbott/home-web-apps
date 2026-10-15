@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test:unit": "jest --config jest.config.ts --selectProjects unit",
     "capture:nas": "tsx scripts/capture-nas.mts",
+    "capture:pironman4": "tsx scripts/capture-pironman4.mts",
     "docker:build:base": "abctl docker build -c abctl.base.yml",
     "docker:build": "abctl docker build",
     "docker:publish:base": "abctl docker publish -c abctl.base.yml",

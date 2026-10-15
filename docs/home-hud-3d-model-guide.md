@@ -41,6 +41,8 @@ directory.
 | `useWebGLAvailable.ts`       | One-time WebGL probe via a lazy `useState` initializer, not a `useEffect`. Since this tree only ever mounts client-side (behind `next/dynamic(..., { ssr: false })`), the probe can run during the initial render instead of needing a post-mount effect + a transient "unknown" loading state — simpler, and avoids React's `react-hooks/set-state-in-effect` lint rule (calling `setState` synchronously inside an effect body is flagged; a lazy initializer sidesteps it entirely). |
 | `usePrefersReducedMotion.ts` | Live `matchMedia` tracking.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `viewer-theme.ts`            | The _only_ place a viewer file reaches into `@abbottland/fui-components` design tokens (`neutral`, `secondary`, `accentPurple`, etc.) for the viewer chrome (background, lights). Models take plain hex strings in their own config instead — see Color Palette below.                                                                                                                                                                                                                  |
+| `chamfered-box.ts`           | Builds a `THREE.ExtrudeGeometry` box with cut/beveled corners (an octagonal cross-section) instead of a plain `BoxGeometry` — reusable for any enclosure with chamfered edges (e.g. the Pironman4 case), not just plain rectangular boxes.                                                                                                                                                                                                                                              |
+| `brand-texture.ts`           | Canvas-texture helper for rendering a wordmark as stroked (not filled) text — promoted here from `models/nas/` once a second model needed the same technique. Generic: any model with front-panel branding uses this, not a NAS-specific one.                                                                                                                                                                                                                                           |
 
 ### `models/<slug>/` — one model, following the NAS layout
 
@@ -54,9 +56,6 @@ models/nas/
                       future real-data caller would supply.
   status-colors.ts    Small status→color lookup (if the model has
                       selectable sub-components with state).
-  brand-texture.ts     Canvas-texture helper for rendering a wordmark as
-                      stroked (not filled) text — reusable technique for
-                      any model with front-panel branding.
   REFERENCES.md        Reference-photo checklist + running log of what's
                       confirmed vs. approximated vs. corrected. See below.
   <Model>.tsx          The assembly component (e.g. AsustorNas.tsx) — the

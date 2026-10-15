@@ -12,6 +12,7 @@ export interface ModelRegistryEntry {
 
 export const MODEL_REGISTRY: ModelRegistryEntry[] = [
   { slug: 'nas', label: 'ASUSTOR NAS' },
+  { slug: 'pironman4', label: 'Pironman4 Case' },
 ];
 
 export function isKnownModelSlug(slug: string | null | undefined): boolean {
