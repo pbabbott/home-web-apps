@@ -1,10 +1,17 @@
 # home-hud 3D Model Guide
 
-How the procedural ASUSTOR NAS viewer at `/infra/viz/nas` was built, and how
-to repeat the process for the next model in the homelab 3D viz collection
-(~5 more planned as of this writing). Read this _before_ starting a new
-model — it exists so a fresh Claude Code session with no memory of this
-conversation can pick up the pattern without re-deriving it.
+How the procedural ASUSTOR NAS viewer (one tab of the shared
+`/infra/viz?model=nas` 3D model viewer) was built, and how to repeat the
+process for the next model in the homelab 3D viz collection (~5 more
+planned as of this writing). Read this _before_ starting a new model — it
+exists so a fresh Claude Code session with no memory of this conversation
+can pick up the pattern without re-deriving it.
+
+**All models now share one route.** `/infra/viz` is a single page with a
+`Tabs` control (`@abbottland/fui-components`, built on
+`@radix-ui/react-tabs`) switching between models via `?model=<slug>` —
+there is no longer a `page.tsx` per model. See "`<slug>/` — the shared
+route" below before assuming a new model needs its own route file.
 
 The NAS model is the reference implementation. When this guide says "copy
 the pattern," it means copy from `src/app/infra/viz/models/nas/`.
@@ -17,18 +24,22 @@ src/app/infra/viz/
                    hooks. A new model should rarely need to touch this dir.
   models/<slug>/   ONE model's geometry/materials/config. Nothing here
                    should leak into components/.
-  <slug>/          The Next.js ROUTE for that model (page.tsx + *Client.tsx
-                   + a Scene.tsx). Confusingly similar name to
-                   models/<slug>/ but a different directory — see below.
+  <slug>/          Scene.tsx + <Model>Panel.tsx for that model. NOT a
+                   Next.js route on its own anymore (no page.tsx here) —
+                   see below. Confusingly similar name to models/<slug>/
+                   but a different directory — see below.
+  page.tsx         The ONE shared route (`/infra/viz`) + VizViewerClient.tsx
+                   — owns the tab row, renders whichever model's Panel is
+                   active. See "`<slug>/` — the shared route" below.
 ```
 
 **Naming collision to watch for**: the NAS model lives at
-`models/nas/` (the model) and `src/app/infra/viz/nas/` (the route) —
-two different directories both named `nas`, one nested under `models/`,
-one not. This is deliberate (route slugs mirror model slugs) but easy to
-open the wrong one. If the next model is e.g. a Raspberry Pi cluster,
-expect `models/pi-cluster/` and `viz/pi-cluster/` as siblings, not one
-directory.
+`models/nas/` (the model) and `src/app/infra/viz/nas/` (its `Scene.tsx` +
+`NasPanel.tsx`) — two different directories both named `nas`, one nested
+under `models/`, one not. This is deliberate (slugs mirror each other)
+but easy to open the wrong one. If the next model is e.g. a Raspberry Pi
+cluster, expect `models/pi-cluster/` and `viz/pi-cluster/` as siblings,
+not one directory.
 
 ### `components/` — the reusable viewer (don't touch per-model)
 
@@ -67,25 +78,47 @@ models/nas/
                       materials via props, renders via EdgedMesh.
 ```
 
-### `<slug>/` — the Next.js route (sibling to `viz/`, not inside `models/`)
+### `<slug>/` — the shared route (sibling to `viz/`, not inside `models/`)
+
+A **single** route serves every model — `viz/page.tsx` +
+`viz/VizViewerClient.tsx` (not duplicated per model):
 
 ```
-viz/nas/
-  page.tsx            Server Component. Thin wrapper: Suspense + the
-                      Client component. NO fui-components import here —
-                      see "Server/Client split" gotcha below.
-  NasViewerClient.tsx  'use client'. Owns mock/real data + selection
-                      state, reads ?angle=/?ref= query params, renders
-                      fui-components chrome (Panel, Typography, side
-                      stats list) AND dynamic-imports the Scene.
-  NasScene.tsx          'use client'. The browser-only half: wires
-                      ModelViewer to the model component, computes
-                      cameraRadius/min/maxDistance from the model's
-                      bounding diagonal. Exists as its OWN file purely so
-                      NasViewerClient can `next/dynamic(() => import(...),
-                      { ssr: false })` it — R3F's <Canvas> cannot run
-                      server-side.
+viz/
+  page.tsx              Server Component. Thin wrapper: Suspense + the
+                        Client component. NO fui-components import here —
+                        see "Server/Client split" gotcha below.
+  VizViewerClient.tsx    'use client'. Reads ?model=<slug> (falls back to
+                        MODEL_REGISTRY[0]), renders the H1 + a
+                        Tabs/TabsList/TabsTrigger/TabsContent row (from
+                        @abbottland/fui-components, built on
+                        @radix-ui/react-tabs) driven by MODEL_REGISTRY,
+                        and a per-slug conditional picking which model's
+                        <Model>Panel.tsx renders inside the active
+                        TabsContent. Switching tabs does a router.push
+                        that preserves any existing ?angle=/?ref=.
+  nas/NasPanel.tsx       'use client'. ONE model's inner content — owns
+                        mock/real data + selection state, reads its OWN
+                        ?angle=/?ref= query params, renders fui-components
+                        chrome (Panel, Typography, side stats list) AND
+                        dynamic-imports its Scene. No outer <main>/H1 —
+                        VizViewerClient owns those. Every model gets one
+                        of these (viz/<slug>/<Model>Panel.tsx).
+  nas/NasScene.tsx       'use client'. The browser-only half: wires
+                        ModelViewer to the model component, computes
+                        cameraRadius/min/maxDistance from the model's
+                        bounding diagonal. Exists as its OWN file purely
+                        so <Model>Panel.tsx can
+                        `next/dynamic(() => import(...), { ssr: false })`
+                        it — R3F's <Canvas> cannot run server-side. Also
+                        imported directly by hosts/Host3DModel.tsx for the
+                        host-detail inline embed — don't move this file.
 ```
+
+Adding a new model does **not** add a new route file — just a new
+`viz/<slug>/Scene.tsx` + `viz/<slug>/<Model>Panel.tsx`, a
+`MODEL_REGISTRY` entry, and a one-line conditional in
+`VizViewerClient.tsx`'s per-slug `TabsContent` block.
 
 ## Visual style: Tron-style line art (the house look)
 
@@ -210,7 +243,9 @@ A running log, per model, of:
 
 ### Camera angle + overlay query params
 
-`NasViewerClient.tsx` reads two search params on `/infra/viz/<slug>`:
+The route is `/infra/viz?model=<slug>` (`?model=` picks the tab —
+`VizViewerClient.tsx`'s concern). Each `<Model>Panel.tsx` independently
+reads two more search params:
 
 - `?angle=<name>` — sets a fixed starting camera position (one of the
   7 named angles from `camera-angles.ts`) and **disables idle
@@ -218,6 +253,8 @@ A running log, per model, of:
   shot).
 - `?ref=<name>` — overlays the matching `public/<slug>/photos/<name>.jpg`
   semi-transparently over the canvas, for eyeballing alignment.
+
+e.g. `/infra/viz?model=nas&angle=front&ref=front`.
 
 ### Capture script
 
@@ -229,8 +266,8 @@ overkill for a one-off capture tool) that:
 1. Requires the dev server already running on `localhost:4022` (does not
    start it).
 2. For each of the 7 standard angles, navigates to
-   `/infra/viz/<slug>?angle=<angle>`, waits for the canvas, screenshots
-   just the canvas element.
+   `/infra/viz?model=<slug>&angle=<angle>`, waits for the canvas,
+   screenshots just the canvas element.
 3. Writes PNGs to `<slug>-renders/` at the app root (gitignored — add the
    line to `apps/home-hud/.gitignore`).
 
@@ -249,8 +286,8 @@ Add a `"capture:<slug>": "tsx scripts/capture-<slug>.mts"` script to
    build hit two of them).
 2. **Get dependencies installed and the dev-route reachable before
    worrying about geometry.** `pnpm --filter @abbottland/home-hud dev`,
-   confirm `http://localhost:4022/infra/viz/<slug>` 200s and shows a
-   canvas before iterating further.
+   confirm `http://localhost:4022/infra/viz?model=<slug>` 200s and shows
+   a canvas before iterating further.
 3. **Build structure from general knowledge, flag every guess.** Before
    photos exist, build a plausible generic version of "what this kind of
    device looks like" (right ballpark part count/layout) — but write every
@@ -303,7 +340,7 @@ import { chromium } from '@playwright/test';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
 page.on('pageerror', (err) => console.log('PAGEERROR:', err.message));
-await page.goto('http://localhost:4022/infra/viz/<slug>', {
+await page.goto('http://localhost:4022/infra/viz?model=<slug>', {
   waitUntil: 'load',
   timeout: 45000,
 });
@@ -411,10 +448,14 @@ started running after you're done.
    different "family," and say so explicitly, don't default to it).
 3. Write one `parts/Chassis.tsx` (literally copy `nas/parts/Chassis.tsx`,
    it's generic), wire it through a new `<Model>.tsx` assembly component.
-4. `mkdir -p src/app/infra/viz/<slug>`, copy `page.tsx`/`*Client.tsx`/
-   `Scene.tsx` from `viz/nas/`, rename, swap the imported model.
-5. Confirm it renders (`pnpm dev`, visit the route, screenshot) before
-   adding more parts.
+4. `mkdir -p src/app/infra/viz/<slug>`, copy `Scene.tsx` and
+   `NasPanel.tsx` from `viz/nas/` (rename to `<Model>Scene.tsx` /
+   `<Model>Panel.tsx`, swap the imported model) — **no `page.tsx`**, the
+   route is shared. Add a `MODEL_REGISTRY` entry
+   (`models/registry.ts`) and a one-line conditional in
+   `viz/VizViewerClient.tsx`'s per-slug `TabsContent` block.
+5. Confirm it renders (`pnpm dev`, visit
+   `/infra/viz?model=<slug>`, screenshot) before adding more parts.
 6. `mkdir -p public/<slug>/photos`, add a `.gitkeep`, write
    `models/<slug>/REFERENCES.md` with the 7-row checklist (all unchecked).
 7. Ask the user for photos; once they exist, do the structural-correctness

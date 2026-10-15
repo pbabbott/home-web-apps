@@ -34,7 +34,7 @@ async function main() {
   });
 
   for (const angle of STANDARD_ANGLES) {
-    const url = `${DEV_SERVER_URL}/infra/viz/pironman4?angle=${angle}`;
+    const url = `${DEV_SERVER_URL}/infra/viz?model=pironman4&angle=${angle}`;
     console.log(`Capturing ${angle} -> ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle' });

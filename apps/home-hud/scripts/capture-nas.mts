@@ -41,7 +41,7 @@ async function main() {
   });
 
   for (const angle of STANDARD_ANGLES) {
-    const url = `${DEV_SERVER_URL}/infra/viz/nas?angle=${angle}`;
+    const url = `${DEV_SERVER_URL}/infra/viz?model=nas&angle=${angle}`;
     console.log(`Capturing ${angle} -> ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle' });

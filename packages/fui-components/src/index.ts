@@ -221,6 +221,18 @@ export {
 // Switch
 export { Switch, type SwitchProps } from './components/Switch/Switch';
 
+// Tabs
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  type TabsProps,
+  type TabsListProps,
+  type TabsTriggerProps,
+  type TabsContentProps,
+} from './components/Tabs/Tabs';
+
 // Typography
 export {
   Typography,

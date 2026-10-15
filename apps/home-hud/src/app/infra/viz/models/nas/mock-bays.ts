@@ -1,9 +1,9 @@
 import type { BayState } from './types';
 
 /**
- * Mock drive-bay data — not real NAS telemetry. Shared by the standalone
- * /infra/viz/nas dev viewer and the /infra/hosts detail-panel embed so
- * both show the same bays instead of two independently-maintained lists.
+ * Mock drive-bay data — not real NAS telemetry. Shared by the NAS tab of
+ * /infra/viz (?model=nas) and the /infra/hosts detail-panel embed so both
+ * show the same bays instead of two independently-maintained lists.
  * Once a real data source exists, a caller supplies `bays` instead (see
  * NasModelProps in types.ts).
  */

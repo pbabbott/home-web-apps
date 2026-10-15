@@ -38,7 +38,7 @@ async function main() {
   });
 
   for (const angle of STANDARD_ANGLES) {
-    const url = `${DEV_SERVER_URL}/infra/viz/beelink-ser5?angle=${angle}`;
+    const url = `${DEV_SERVER_URL}/infra/viz?model=beelink-ser5&angle=${angle}`;
     console.log(`Capturing ${angle} -> ${url}`);
 
     await page.goto(url, { waitUntil: 'networkidle' });
