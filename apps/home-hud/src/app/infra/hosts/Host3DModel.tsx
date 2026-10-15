@@ -21,6 +21,16 @@ const Pironman4Scene = dynamic(
   },
 );
 
+const BeelinkSer5Scene = dynamic(
+  () => import('../viz/beelink-ser5/BeelinkSer5Scene'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[32rem] w-full bg-neutral-950" aria-hidden />
+    ),
+  },
+);
+
 interface Host3DModelProps {
   modelSlug: string;
   hostName: string;
@@ -58,6 +68,14 @@ export function Host3DModel({ modelSlug, hostName }: Host3DModelProps) {
     return (
       <div className="h-[32rem] w-full border border-neutral-700">
         <Pironman4Scene deviceName={hostName} />
+      </div>
+    );
+  }
+
+  if (modelSlug === 'beelink-ser5') {
+    return (
+      <div className="h-[32rem] w-full border border-neutral-700">
+        <BeelinkSer5Scene deviceName={hostName} />
       </div>
     );
   }
