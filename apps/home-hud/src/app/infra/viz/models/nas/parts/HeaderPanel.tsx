@@ -120,7 +120,7 @@ export function HeaderPanel({ config, materials }: HeaderPanelProps) {
       <mesh
         geometry={brandGeometry}
         material={brandMaterial}
-        position={[leftStripX, height / 2 - 18, frontZ + 0.1]}
+        position={[leftStripX, height / 2 - 14, frontZ + 0.1]}
       />
       <mesh
         geometry={ledBarGeometry}
