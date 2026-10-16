@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { resolveMaterialColors } from '../../components/resolve-material-colors';
 import {
   ASUSTOR_NAS_CONFIG,
   computeBayPositionsX,
@@ -32,8 +34,14 @@ export function AsustorNas({
   hoveredBayId,
   onSelectBay,
   onHoverBay,
+  edgeColor,
+  status = 'online',
 }: AsustorNasProps) {
-  const materials = useNasMaterials(config.materials);
+  const materialColors = useMemo(
+    () => resolveMaterialColors(config.materials, { edgeColor, status }),
+    [config.materials, edgeColor, status],
+  );
+  const materials = useNasMaterials(materialColors);
   const bayPositionsX = computeBayPositionsX(config);
   const bayRowY = computeBayRowY(config);
   const bayWidth = computeBayWidth(config);

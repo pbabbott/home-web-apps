@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { resolveMaterialColors } from '../../components/resolve-material-colors';
 import { BEELINK_SER5_CONFIG, type BeelinkSer5Config } from './config';
 import { useBeelinkSer5Materials } from './materials';
 import { Chassis } from './parts/Chassis';
@@ -22,13 +23,11 @@ interface BeelinkSer5Props extends BeelinkSer5ModelProps {
 export function BeelinkSer5({
   config = BEELINK_SER5_CONFIG,
   edgeColor,
+  status = 'online',
 }: BeelinkSer5Props) {
   const materialColors = useMemo(
-    () =>
-      edgeColor
-        ? { ...config.materials, edgeHighlight: edgeColor }
-        : config.materials,
-    [config.materials, edgeColor],
+    () => resolveMaterialColors(config.materials, { edgeColor, status }),
+    [config.materials, edgeColor, status],
   );
   const materials = useBeelinkSer5Materials(materialColors);
 

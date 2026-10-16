@@ -3,9 +3,11 @@
 import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { OutlinedButton, Panel, Typography } from '@abbottland/fui-components';
+import { Panel } from '@abbottland/fui-components';
+import { AppearancePanel } from '../components/AppearancePanel';
 import { isCameraAngle, type CameraAngle } from '../components/camera-angles';
 import type { ModelViewerHandle } from '../components/ModelViewer';
+import type { ModelStatus } from '../components/resolve-material-colors';
 import { BEELINK_SER5_CONFIG } from '../models/beelink-ser5/config';
 
 const BeelinkSer5Scene = dynamic(() => import('./BeelinkSer5Scene'), {
@@ -26,6 +28,7 @@ export function BeelinkSer5Panel() {
   const searchParams = useSearchParams();
   const viewerRef = useRef<ModelViewerHandle>(null);
   const [edgeColor, setEdgeColor] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<ModelStatus>('online');
 
   const angleParam = searchParams.get('angle');
   const initialAngle: CameraAngle | undefined =
@@ -47,6 +50,7 @@ export function BeelinkSer5Panel() {
           initialAngle={initialAngle}
           viewerRef={viewerRef}
           edgeColor={edgeColor}
+          status={status}
         />
         {referenceImageSrc && (
           <img
@@ -57,32 +61,13 @@ export function BeelinkSer5Panel() {
         )}
       </Panel>
 
-      <Panel color="default" className="flex w-full flex-col gap-4 lg:w-80">
-        <Typography variant="h5" component="h2">
-          Appearance
-        </Typography>
-
-        <div className="flex items-center gap-3">
-          <input
-            type="color"
-            value={edgeColor ?? DEFAULT_EDGE_COLOR}
-            onChange={(event) => setEdgeColor(event.target.value)}
-            className="h-9 w-9 cursor-pointer rounded border border-neutral-700 bg-transparent p-0"
-            aria-label="Border and glow color"
-          />
-          <Typography variant="caption" className="text-neutral-400">
-            {(edgeColor ?? DEFAULT_EDGE_COLOR).toUpperCase()}
-          </Typography>
-        </div>
-
-        <OutlinedButton
-          size="small"
-          disabled={edgeColor === undefined}
-          onClick={() => setEdgeColor(undefined)}
-        >
-          Reset to default
-        </OutlinedButton>
-      </Panel>
+      <AppearancePanel
+        edgeColor={edgeColor}
+        onEdgeColorChange={setEdgeColor}
+        defaultColor={DEFAULT_EDGE_COLOR}
+        status={status}
+        onStatusChange={setStatus}
+      />
     </div>
   );
 }

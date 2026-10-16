@@ -281,7 +281,11 @@ function HostDetail({
       </Typography>
 
       {isKnownModelSlug(host.model3d) ? (
-        <Host3DModel modelSlug={host.model3d as string} hostName={host.name} />
+        <Host3DModel
+          modelSlug={host.model3d as string}
+          hostName={host.name}
+          status={host.status}
+        />
       ) : (
         <div className="flex h-[32rem] w-full items-center justify-center border border-neutral-700 bg-gradient-to-br from-neutral-900 to-neutral-700">
           <Typography variant="body2" className="text-neutral-500">

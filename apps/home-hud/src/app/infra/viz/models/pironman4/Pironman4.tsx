@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { resolveMaterialColors } from '../../components/resolve-material-colors';
 import { PIRONMAN4_CONFIG, type Pironman4Config } from './config';
 import { usePironman4Materials } from './materials';
 import { Chassis } from './parts/Chassis';
@@ -21,13 +22,11 @@ interface Pironman4Props extends Pironman4ModelProps {
 export function Pironman4({
   config = PIRONMAN4_CONFIG,
   edgeColor,
+  status = 'online',
 }: Pironman4Props) {
   const materialColors = useMemo(
-    () =>
-      edgeColor
-        ? { ...config.materials, edgeHighlight: edgeColor }
-        : config.materials,
-    [config.materials, edgeColor],
+    () => resolveMaterialColors(config.materials, { edgeColor, status }),
+    [config.materials, edgeColor, status],
   );
   const materials = usePironman4Materials(materialColors);
 

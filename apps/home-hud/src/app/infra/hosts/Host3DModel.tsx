@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
+import type { ModelStatus } from '../viz/components/resolve-material-colors';
 import { MOCK_NAS_BAYS } from '../viz/models/nas/mock-bays';
 
 const NasScene = dynamic(() => import('../viz/nas/NasScene'), {
@@ -34,6 +35,8 @@ const BeelinkSer5Scene = dynamic(
 interface Host3DModelProps {
   modelSlug: string;
   hostName: string;
+  /** Mirrors the host's real `HostStatus` — grays/recolors the model to match its 2D status badge instead of always rendering "online". Defaults to `'online'` for any caller that doesn't have a status yet. */
+  status?: ModelStatus;
 }
 
 /**
@@ -42,7 +45,11 @@ interface Host3DModelProps {
  * ../viz/models/registry.ts — add a case here (and a registry entry) when
  * a new model becomes host-attachable.
  */
-export function Host3DModel({ modelSlug, hostName }: Host3DModelProps) {
+export function Host3DModel({
+  modelSlug,
+  hostName,
+  status = 'online',
+}: Host3DModelProps) {
   const [selectedBayId, setSelectedBayId] = useState<string | null>(null);
   const [hoveredBayId, setHoveredBayId] = useState<string | null>(null);
 
@@ -59,6 +66,7 @@ export function Host3DModel({ modelSlug, hostName }: Host3DModelProps) {
             setSelectedBayId((current) => (current === bayId ? null : bayId))
           }
           onHoverBay={setHoveredBayId}
+          status={status}
         />
       </div>
     );
@@ -67,7 +75,7 @@ export function Host3DModel({ modelSlug, hostName }: Host3DModelProps) {
   if (modelSlug === 'pironman4') {
     return (
       <div className="h-[32rem] w-full border border-neutral-700">
-        <Pironman4Scene deviceName={hostName} />
+        <Pironman4Scene deviceName={hostName} status={status} />
       </div>
     );
   }
@@ -75,7 +83,7 @@ export function Host3DModel({ modelSlug, hostName }: Host3DModelProps) {
   if (modelSlug === 'beelink-ser5') {
     return (
       <div className="h-[32rem] w-full border border-neutral-700">
-        <BeelinkSer5Scene deviceName={hostName} />
+        <BeelinkSer5Scene deviceName={hostName} status={status} />
       </div>
     );
   }
