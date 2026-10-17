@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const hostTypeSchema = z.enum(['physical', 'virtual']);
 
+export const exporterTypeSchema = z.enum(['node_exporter', 'windows_exporter']);
+
 export const hostListQuerySchema = z.object({
   type: hostTypeSchema.optional().meta({
     description: 'Filter to just physical or virtual hosts. Omit for both.',
@@ -21,8 +23,12 @@ export const createHostBodySchema = z.object({
   name: z.string().min(1).meta({ example: 'tf-prod-k8s-worker-1' }),
   ipAddress: z.string().min(1).meta({ example: '10.0.0.11' }),
   hostType: hostTypeSchema.default('physical'),
+  exporterType: exporterTypeSchema.default('node_exporter').meta({
+    description:
+      'Which Prometheus exporter scrapes this host; decides the metric names queried.',
+  }),
   /**
-   * Matches the `instance` label Prometheus stamps on node-exporter metrics
+   * Matches the `instance` label Prometheus stamps on exporter metrics
    * (scrape-target address:port) so this host's uptime/cpu can be enriched.
    * Optional — a host can be registered before (or without) node-exporter
    * scraping it.
@@ -47,6 +53,7 @@ export const updateHostBodySchema = z.object({
   name: z.string().min(1).optional().meta({ example: 'tf-prod-k8s-worker-1' }),
   ipAddress: z.string().min(1).optional().meta({ example: '10.0.0.11' }),
   hostType: hostTypeSchema.optional(),
+  exporterType: exporterTypeSchema.optional(),
   instance: z.string().min(1).nullable().optional().meta({
     example: '192.168.6.24:9100',
   }),

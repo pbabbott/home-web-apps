@@ -85,6 +85,24 @@ snippet above before coding, the same way the CPU query needed a fix.
 | `src/app/infra/hosts/page.tsx`             | Server-fetches `cpuMetrics` when `selectedHostId` is set, try/catch → null (best-effort, matches `getHosts`'s error handling)                                                                                                           | One more `await getHost<Metric>Metrics(...)` block, one more prop into `HostsClient`.                                                                                                                                                                                                                             |
 | `src/app/infra/hosts/HostsClient.tsx`      | `CpuMetricPanel` component (label + status badge header, chart body, `sm:col-span-2` to span both grid columns) replacing the old generic `MetricPanel` CPU card; `cpuMetrics` threaded `HostsClient` → `HostDetail` → `CpuMetricPanel` | Either add a `<Metric>MetricPanel` per metric, or — once 2+ panels are real — consider collapsing them into one parameterized component. The remaining `MetricPanel` (dashed-box placeholder) is still used for whichever of Memory/Disk/Temperature aren't done yet; remove it only once all three are replaced. |
 
+## Exporter types (node_exporter / windows_exporter)
+
+Each host has an `exporterType` (set in the Add/Edit host modal) that picks
+which exporter's metric names are queried. homelab-api dispatches through the
+`EXPORTERS` registry (`api/prometheus/exporters.ts`); `node-*.ts` and
+`windows-exporter.ts` implement the same `ExporterQueries` shape and return
+the **same label names** (`cpu`, `device`, `mountpoint`, `component`,
+`chip`/`sensor`/`label`) so `services/host-metrics.ts` and the charts never
+branch on type.
+
+- **New metric panel:** add the query to `ExporterQueries` and implement it
+  for every exporter (the `Record<ExporterType, …>` type enforces this).
+- **New exporter:** add the value to `exporterTypeEnum` (+ migration), a
+  `<name>-exporter.ts` of queries, an `EXPORTERS` entry, and an option in
+  `ExporterSelectField.tsx`.
+- windows_exporter has no buffers/cached memory split and thermalzone is
+  opt-in, so those panels render partial/empty for Windows hosts by design.
+
 ## Known gap, not addressed by CPU work
 
 The host **list** CPU badge (`HostListItem`, left sidebar) is still driven

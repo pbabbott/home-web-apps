@@ -1,0 +1,2 @@
+CREATE TYPE "public"."exporter_type" AS ENUM('node_exporter', 'windows_exporter');--> statement-breakpoint
+ALTER TABLE "hosts" ADD COLUMN "exporter_type" "exporter_type" DEFAULT 'node_exporter' NOT NULL;

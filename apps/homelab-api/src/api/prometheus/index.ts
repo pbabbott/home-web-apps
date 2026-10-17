@@ -10,3 +10,4 @@ export { getNodeCpuSeries } from './node-cpu';
 export { getNodeMemorySeries } from './node-memory';
 export { getNodeDiskIoSeries, getNodeDiskSpace } from './node-disk';
 export { getNodeTemperatureSeries } from './node-temperature';
+export { EXPORTERS, type ExporterQueries } from './exporters';

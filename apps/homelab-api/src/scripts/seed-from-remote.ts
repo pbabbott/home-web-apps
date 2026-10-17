@@ -5,6 +5,7 @@ import {
   createHost,
   getHostByIpAddress,
   updateHost,
+  type ExporterType,
   type HostType,
 } from '@abbottland/homelab-db';
 import { initConfig } from '../config';
@@ -13,6 +14,8 @@ import { initDb, db } from '../db';
 interface RemoteHost {
   name: string;
   hostType: HostType;
+  /** Absent when the remote predates the exporterType column. */
+  exporterType?: ExporterType;
   ipAddress: string;
   instance: string | null;
 }
@@ -66,6 +69,7 @@ async function run() {
         name: remoteHost.name,
         ipAddress: remoteHost.ipAddress,
         hostType: remoteHost.hostType,
+        exporterType: remoteHost.exporterType,
         instance: remoteHost.instance,
       });
       created += 1;
@@ -76,6 +80,7 @@ async function run() {
     await updateHost(db, existing.id, {
       name: remoteHost.name,
       hostType: remoteHost.hostType,
+      exporterType: remoteHost.exporterType,
       instance: remoteHost.instance,
     });
     updated += 1;
