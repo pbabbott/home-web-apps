@@ -37,3 +37,12 @@ catalog:
   zod: '^4.4.3'
 
   '@kubernetes/client-node': '^0.22.3'
+
+  three: '^0.186.1'
+  '@types/three': '^0.186.0'
+  '@react-three/fiber': '^9.8.1'
+  '@react-three/drei': '^10.7.9'
+  '@react-three/postprocessing': '^3.2.0'
+  postprocessing: '^6.39.5'
+
+  '@playwright/test': '^1.57.0'

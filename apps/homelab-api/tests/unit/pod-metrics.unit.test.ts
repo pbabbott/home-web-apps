@@ -1,7 +1,7 @@
 import {
   getPodCpuUsage,
   getPodMemoryUsage,
-} from '../../src/api/prometheus/prometheus-client';
+} from '../../src/api/prometheus/pod-metrics';
 
 jest.mock('../../src/config', () => ({
   config: {

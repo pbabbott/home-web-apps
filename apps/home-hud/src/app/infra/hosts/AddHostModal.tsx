@@ -14,6 +14,7 @@ import {
 } from '@abbottland/fui-components';
 import { createHost } from './lib/actions';
 import type { HostType } from './lib/homelab-api';
+import { ModelSelectField } from './ModelSelectField';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -43,6 +44,7 @@ export function AddHostModal({
   const [ipAddress, setIpAddress] = useState('');
   const [instance, setInstance] = useState('');
   const [hostType, setHostType] = useState<HostType>(defaultHostType);
+  const [model3d, setModel3d] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,7 @@ export function AddHostModal({
     setIpAddress('');
     setInstance('');
     setHostType(defaultHostType);
+    setModel3d('');
     setError(null);
   }
 
@@ -65,6 +68,7 @@ export function AddHostModal({
         ipAddress,
         hostType,
         instance: instance.trim() ? instance.trim() : undefined,
+        model3d: model3d ? model3d : undefined,
       });
       resetForm();
       onOpenChange(false);
@@ -132,6 +136,10 @@ export function AddHostModal({
               Virtual
             </Typography>
           </div>
+
+          <Field label="3D Model (optional)">
+            <ModelSelectField value={model3d} onChange={setModel3d} />
+          </Field>
 
           {error && (
             <Typography variant="body2" className="text-error-400">

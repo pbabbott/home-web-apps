@@ -18,6 +18,15 @@ export const hosts = pgTable('hosts', {
   hostType: hostTypeEnum('host_type').notNull().default('physical'),
   ipAddress: text('ip_address').notNull(),
   instance: text('instance').unique(),
+  /**
+   * Slug of a procedural 3D model (apps/home-hud/src/app/infra/viz/models/
+   * <slug>/) to render in this host's detail panel, in place of the
+   * placeholder — null means no model. Free text, not a pgEnum: new models
+   * get added to the viz collection without a DB migration (see
+   * docs/home-hud-3d-model-guide.md), so the valid-slug set is enforced at
+   * the API/UI layer, not the column type.
+   */
+  model3d: text('model3d'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

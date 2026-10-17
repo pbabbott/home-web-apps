@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Panel } from '@abbottland/fui-components';
+import { Button, HexagonalBackground, Panel } from '@abbottland/fui-components';
 import {
   useCallback,
   useEffect,
@@ -17,9 +17,6 @@ const ZOOM_BUTTON_STEP = 1.2;
 const WHEEL_ZOOM_SENSITIVITY = 0.0015;
 /** Pointer must move this many px before a press counts as a drag (vs. a click on a hex). */
 const DRAG_THRESHOLD_PX = 4;
-const DOT_GAP = 20;
-const DOT_COLOR = '#2E373B';
-const DOT_RADIUS = 1.5;
 
 type Point = { x: number; y: number };
 
@@ -78,6 +75,14 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const dragRef = useRef<DragState | null>(null);
+  // Tracks every currently-down touch pointer's last known position, keyed
+  // by pointerId — lets a second finger landing mid single-finger-pan
+  // upgrade the gesture to a pinch, using the distance between these two
+  // points rather than reconstructing multi-touch from scratch.
+  const activeTouchPointersRef = useRef<Map<number, Point>>(new Map());
+  const pinchRef = useRef<{ startDistance: number; startZoom: number } | null>(
+    null,
+  );
 
   const recenter = useCallback(() => {
     setPan({ x: 0, y: 0 });
@@ -145,11 +150,31 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
   // of this) still gets first look at the click to swallow it if it was a
   // drag.
   function handlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    // Primary (left) or auxiliary (middle) button starts a pan. Middle-click
-    // normally triggers the browser's autoscroll cursor — prevent that so it
-    // reads as a pan instead.
-    if (e.button !== 0 && e.button !== 1) return;
+    const isTouch = e.pointerType === 'touch';
+
+    if (isTouch) {
+      activeTouchPointersRef.current.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+      });
+      if (activeTouchPointersRef.current.size >= 2) {
+        const [a, b] = [...activeTouchPointersRef.current.values()];
+        pinchRef.current = {
+          startDistance: Math.max(Math.hypot(b.x - a.x, b.y - a.y), 1),
+          startZoom: zoom,
+        };
+        // The second finger landing cancels any single-finger pan already
+        // in progress (from the first finger) — pinch takes over.
+        dragRef.current = null;
+      }
+    } else if (e.button !== 0 && e.button !== 1) {
+      // Primary (left) or auxiliary (middle) button starts a pan.
+      return;
+    }
+    // Middle-click normally triggers the browser's autoscroll cursor —
+    // prevent that so it reads as a pan instead.
     if (e.button === 1) e.preventDefault();
+
     const drag: DragState = {
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -158,9 +183,36 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
       panStartY: pan.y,
       moved: false,
     };
-    dragRef.current = drag;
+    // Only the first finger (or a mouse) drives single-pointer pan — a
+    // second finger's `drag` stays local to its own closure below, used
+    // only to satisfy the `pointerId` check once pinch tracking ends.
+    if (!isTouch || activeTouchPointersRef.current.size === 1) {
+      dragRef.current = drag;
+    }
 
     function onMove(ev: PointerEvent) {
+      if (isTouch && activeTouchPointersRef.current.has(ev.pointerId)) {
+        activeTouchPointersRef.current.set(ev.pointerId, {
+          x: ev.clientX,
+          y: ev.clientY,
+        });
+      }
+
+      if (pinchRef.current && activeTouchPointersRef.current.size >= 2) {
+        const [a, b] = [...activeTouchPointersRef.current.values()];
+        const distance = Math.max(Math.hypot(b.x - a.x, b.y - a.y), 1);
+        const rect = viewportRef.current?.getBoundingClientRect();
+        const origin = rect
+          ? { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }
+          : { x: 0, y: 0 };
+        zoomAround(
+          pinchRef.current.startZoom *
+            (distance / pinchRef.current.startDistance),
+          origin,
+        );
+        return;
+      }
+
       if (ev.pointerId !== drag.pointerId) return;
       const dx = ev.clientX - drag.startX;
       const dy = ev.clientY - drag.startY;
@@ -173,6 +225,12 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
     }
 
     function onUp(ev: PointerEvent) {
+      if (isTouch) {
+        activeTouchPointersRef.current.delete(ev.pointerId);
+        if (activeTouchPointersRef.current.size < 2) {
+          pinchRef.current = null;
+        }
+      }
       if (ev.pointerId !== drag.pointerId) return;
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
@@ -198,22 +256,20 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
     dragRef.current = null;
   }
 
-  const dotSize = DOT_GAP * zoom;
-
   return (
     <Panel
       color="default"
-      className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden border-neutral-700 bg-neutral-700 p-0"
+      // Below `lg`, the row (InfraMapClient) switches from flex-row to
+      // flex-col, stacking this canvas above the detail panel — whose own
+      // content (shrink-0, sized to fit two chart canvases) can demand more
+      // height than the row has. Without a floor here, this flex-1
+      // min-h-0 item just gets squeezed to 0 to make room, i.e. the whole
+      // map disappears. `lg:min-h-0` restores the old behavior once the row
+      // is flex-row, where cross-axis `items-stretch` sizing (not this
+      // item's own content demand) decides its height.
+      className="relative h-full min-h-72 min-w-0 flex-1 overflow-hidden border-neutral-700 bg-neutral-700 p-0 lg:min-h-0"
     >
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(circle, ${DOT_COLOR} ${DOT_RADIUS}px, transparent ${DOT_RADIUS}px)`,
-          backgroundSize: `${dotSize}px ${dotSize}px`,
-          backgroundPosition: `${pan.x}px ${pan.y}px`,
-        }}
-      />
+      <HexagonalBackground className="absolute inset-0" sparksEnabled={false} />
 
       <div
         ref={viewportRef}

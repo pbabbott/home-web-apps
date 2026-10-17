@@ -6,7 +6,7 @@ import {
   getNodeDiskSpace,
   getNodeMemorySeries,
   getNodeTemperatureSeries,
-} from '../api/prometheus/prometheus-client';
+} from '../api/prometheus';
 
 export interface HostMetricSeriesPoint {
   t: number;
@@ -279,14 +279,16 @@ export async function getHostTemperatureSeries(
       (
         sample,
       ): sample is typeof sample & {
-        metric: { label: string; chip: string; sensor: string };
+        metric: { label?: string; chip: string; sensor: string };
       } =>
-        sample.metric.label !== undefined &&
-        sample.metric.chip !== undefined &&
-        sample.metric.sensor !== undefined,
+        sample.metric.chip !== undefined && sample.metric.sensor !== undefined,
     )
     .map((sample) => ({
-      label: sample.metric.label,
+      // No `node_hwmon_sensor_label` match (e.g. ARM boards that only
+      // expose an unlabeled thermal_zone chip) — fall back to chip/sensor
+      // so the reading still surfaces instead of being dropped.
+      label:
+        sample.metric.label ?? `${sample.metric.chip} ${sample.metric.sensor}`,
       chip: sample.metric.chip,
       sensor: sample.metric.sensor,
       points: sample.values,

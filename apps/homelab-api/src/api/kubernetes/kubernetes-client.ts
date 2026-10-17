@@ -40,6 +40,23 @@ export async function listPods(): Promise<V1Pod[]> {
   }
 }
 
+/** Single pod lookup, used to read a specific pod's container resource requests/limits. Returns `null` on a missing client or a missing/unreadable pod. */
+export async function getPod(
+  namespace: string,
+  name: string,
+): Promise<V1Pod | null> {
+  const client = getCoreApi();
+  if (!client) return null;
+
+  try {
+    const res = await client.readNamespacedPod(name, namespace);
+    return res.body;
+  } catch (err) {
+    console.warn(`[k8s] Failed to read pod ${namespace}/${name}:`, err);
+    return null;
+  }
+}
+
 /** Used as a node-relative fallback when a pod has neither a resource limit nor a request. */
 export async function listNodes(): Promise<V1Node[]> {
   const client = getCoreApi();

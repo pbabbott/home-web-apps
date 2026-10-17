@@ -27,9 +27,27 @@ export const getHostById = async (
   return row;
 };
 
+/**
+ * Lookup by `ipAddress` rather than `id` — used to match hosts across
+ * environments (e.g. seeding local from remote), where `id` is a
+ * per-environment UUID but `ipAddress` is the same physical/virtual host.
+ * Not unique-constrained at the DB level, so this returns the first match.
+ */
+export const getHostByIpAddress = async (
+  db: Database,
+  ipAddress: string,
+): Promise<Host | undefined> => {
+  const [row] = await db
+    .select()
+    .from(hosts)
+    .where(eq(hosts.ipAddress, ipAddress));
+
+  return row;
+};
+
 export type CreateHostInput = Pick<
   NewHost,
-  'name' | 'ipAddress' | 'hostType' | 'instance'
+  'name' | 'ipAddress' | 'hostType' | 'instance' | 'model3d'
 >;
 
 export const createHost = async (
@@ -42,7 +60,7 @@ export const createHost = async (
 };
 
 export type UpdateHostInput = Partial<
-  Pick<NewHost, 'name' | 'ipAddress' | 'hostType' | 'instance'>
+  Pick<NewHost, 'name' | 'ipAddress' | 'hostType' | 'instance' | 'model3d'>
 >;
 
 export const updateHost = async (

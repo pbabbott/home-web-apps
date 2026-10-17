@@ -1,3 +1,4 @@
+import type * as echarts from 'echarts';
 import {
   accentFalcon,
   accentPurple,
@@ -90,3 +91,36 @@ export const CHART_SPLIT_LINE_COLOR = neutral[700];
 export const CHART_TOOLTIP_BG = neutral[950];
 export const CHART_TOOLTIP_BORDER = neutral[700];
 export const CHART_TEXT_COLOR = neutral[300];
+
+/** 12-hour `8:30pm` ticks for a time x-axis, instead of echarts' default 24-hour `20:30`. */
+export function formatTimeTick(value: number): string {
+  const date = new Date(value);
+  const minutes = date.getMinutes();
+  const period = date.getHours() >= 12 ? 'pm' : 'am';
+  const hours = date.getHours() % 12 || 12;
+
+  return `${hours}:${minutes.toString().padStart(2, '0')}${period}`;
+}
+
+/**
+ * Paginated legend for charts whose series count can outgrow the available
+ * width (per-sensor temperature lines, per-device disk I/O lines) — without
+ * `type: 'scroll'` echarts shrinks/wraps entries until they're illegible
+ * instead of paging. Use for any chart legend where the series list is
+ * data-driven rather than a small fixed set.
+ */
+export function scrollableLegend(
+  data: string[],
+): echarts.LegendComponentOption {
+  return {
+    type: 'scroll',
+    top: 0,
+    itemWidth: 14,
+    itemHeight: 8,
+    itemGap: 10,
+    pageIconColor: CHART_AXIS_COLOR,
+    pageTextStyle: { color: CHART_AXIS_COLOR },
+    textStyle: { color: CHART_TEXT_COLOR, fontSize: 10 },
+    data,
+  };
+}

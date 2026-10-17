@@ -23,6 +23,10 @@ import {
   listHosts,
   updateHost,
 } from './controllers/hosts';
+import {
+  getPodCpuMetrics,
+  getPodMemoryMetrics,
+} from './controllers/pod-metrics';
 import { openApiSpec } from './openapi';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
@@ -32,6 +36,10 @@ import {
   hostMetricsRangeQuerySchema,
   updateHostBodySchema,
 } from './schemas/hosts';
+import {
+  podMetricsParamsSchema,
+  podMetricsRangeQuerySchema,
+} from './schemas/pods';
 
 export const DOCS_ROUTE = '/docs';
 
@@ -82,6 +90,18 @@ export const createServer = (): Express => {
     validateParams(hostIdParamsSchema),
     validateQuery(hostMetricsRangeQuerySchema),
     getHostTemperatureMetrics,
+  );
+  app.get(
+    '/pods/:namespace/:pod/metrics/cpu',
+    validateParams(podMetricsParamsSchema),
+    validateQuery(podMetricsRangeQuerySchema),
+    getPodCpuMetrics,
+  );
+  app.get(
+    '/pods/:namespace/:pod/metrics/memory',
+    validateParams(podMetricsParamsSchema),
+    validateQuery(podMetricsRangeQuerySchema),
+    getPodMemoryMetrics,
   );
   app.patch(
     '/hosts/:id',

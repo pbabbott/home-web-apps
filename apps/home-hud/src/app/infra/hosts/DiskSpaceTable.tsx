@@ -34,9 +34,9 @@ export function DiskSpaceTable({
   }
 
   return (
-    <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">
+    <div className="flex flex-col gap-1.5">
       {diskSpace.mountpoints.map((mp) => (
-        <div key={mp.mountpoint} className="flex flex-col gap-1">
+        <div key={mp.mountpoint} className="flex flex-col gap-0.5">
           <div className="flex items-center justify-between gap-2">
             <Typography variant="caption" className="truncate text-neutral-300">
               {mp.mountpoint}

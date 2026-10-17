@@ -9,6 +9,8 @@ export interface Host {
   hostType: HostType;
   ipAddress: string;
   instance: string | null;
+  /** Slug of a procedural 3D model (../viz/models/<slug>/) to render in place of this host's detail-panel placeholder, or null. */
+  model3d: string | null;
   createdAt: string;
   status: HostStatus;
   cpuUsageRatio: number | null;

@@ -14,6 +14,7 @@
     "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
     "env:generate": "abctl secrets generate-env",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
+    "seed:remote": "ts-node -P tsconfig.build.json src/scripts/seed-from-remote.ts",
     "start": "node ./dist/index.js",
     "test": "pnpm run test:unit",
     "test:unit": "jest --config jest.config.ts --selectProjects unit"

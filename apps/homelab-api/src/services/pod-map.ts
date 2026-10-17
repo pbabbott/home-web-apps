@@ -1,9 +1,6 @@
 import type { V1Pod } from '@kubernetes/client-node';
 import { listNodes, listPods } from '../api/kubernetes/kubernetes-client';
-import {
-  getPodCpuUsage,
-  getPodMemoryUsage,
-} from '../api/prometheus/prometheus-client';
+import { getPodCpuUsage, getPodMemoryUsage } from '../api/prometheus';
 import { parseCpuQuantity, parseMemoryQuantity } from '../lib/k8s-quantity';
 
 export type HexStatus = 'healthy' | 'warning' | 'error' | 'unknown';
@@ -102,7 +99,7 @@ function worstStatus(statuses: HexStatus[]): HexStatus {
   );
 }
 
-function sumContainerQuantities(
+export function sumContainerQuantities(
   pod: V1Pod,
   field: 'requests' | 'limits',
   resource: 'cpu' | 'memory',

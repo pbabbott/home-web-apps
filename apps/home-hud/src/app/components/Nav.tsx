@@ -21,6 +21,7 @@ const VIDEO_MENU_ITEMS = [
 const INFRA_MENU_ITEMS = [
   { href: '/infra/hosts', label: 'Hosts' },
   { href: '/infra/cluster-map', label: 'Cluster Map' },
+  { href: '/infra/viz', label: '3D Model Viewer' },
 ];
 
 export function Nav() {

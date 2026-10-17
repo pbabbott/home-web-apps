@@ -8,6 +8,10 @@ import {
   hostMetricsRangeQuerySchema,
   updateHostBodySchema,
 } from './schemas/hosts';
+import {
+  podMetricsParamsSchema,
+  podMetricsRangeQuerySchema,
+} from './schemas/pods';
 
 const validationErrorSchema = z.object({
   message: z.string().meta({ example: 'Invalid query parameters' }),
@@ -83,6 +87,7 @@ const hostResponseSchema = z.object({
   hostType: z.enum(['physical', 'virtual']),
   ipAddress: z.string(),
   instance: z.string().nullable(),
+  model3d: z.string().nullable(),
   createdAt: z.string().meta({ format: 'date-time' }),
   status: z.enum(['online', 'offline', 'unknown']),
   cpuUsageRatio: z.number().nullable(),
@@ -181,6 +186,45 @@ const notFoundResponse = {
   },
 };
 
+const podNotFoundResponse = {
+  description: 'No pod exists with this namespace/name',
+  content: {
+    'application/json': {
+      schema: z.object({
+        message: z.string().meta({ example: 'pod not found' }),
+      }),
+    },
+  },
+};
+
+const podContainerSeriesSchema = z.object({
+  container: z.string().meta({ example: 'blog' }),
+  points: z.array(
+    z.object({
+      t: z.number().meta({ description: 'Unix seconds', example: 1700000000 }),
+      value: z.number(),
+    }),
+  ),
+});
+
+const podCpuResponseSchema = z.object({
+  stepSeconds: z.number(),
+  series: z.array(podContainerSeriesSchema).meta({
+    description: 'Per-container CPU usage history, in cores.',
+  }),
+  requestCores: z.number().nullable(),
+  limitCores: z.number().nullable(),
+});
+
+const podMemoryResponseSchema = z.object({
+  stepSeconds: z.number(),
+  series: z.array(podContainerSeriesSchema).meta({
+    description: 'Per-container working-set memory history, in bytes.',
+  }),
+  requestBytes: z.number().nullable(),
+  limitBytes: z.number().nullable(),
+});
+
 /**
  * Generated from the Zod schemas that already validate /maps/:type's
  * request (src/schemas/maps.ts) so this can't drift from what the API
@@ -226,6 +270,47 @@ export const openApiSpec = createDocument({
             content: { 'application/json': { schema: mapResponseSchema } },
           },
           '400': validationErrorResponse,
+        },
+      },
+    },
+    '/pods/{namespace}/{pod}/metrics/cpu': {
+      get: {
+        summary: 'Per-container CPU usage history for a single pod',
+        description:
+          'One series per container, in cores, plus the pod’s declared requestCores/limitCores (summed across containers) for drawing reference lines. 404 if the pod does not exist.',
+        requestParams: {
+          path: podMetricsParamsSchema,
+          query: podMetricsRangeQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The CPU history',
+            content: { 'application/json': { schema: podCpuResponseSchema } },
+          },
+          '400': validationErrorResponse,
+          '404': podNotFoundResponse,
+        },
+      },
+    },
+    '/pods/{namespace}/{pod}/metrics/memory': {
+      get: {
+        summary:
+          'Per-container working-set memory usage history for a single pod',
+        description:
+          'One series per container, in bytes, plus the pod’s declared requestBytes/limitBytes (summed across containers) for drawing reference lines. 404 if the pod does not exist.',
+        requestParams: {
+          path: podMetricsParamsSchema,
+          query: podMetricsRangeQuerySchema,
+        },
+        responses: {
+          '200': {
+            description: 'The memory history',
+            content: {
+              'application/json': { schema: podMemoryResponseSchema },
+            },
+          },
+          '400': validationErrorResponse,
+          '404': podNotFoundResponse,
         },
       },
     },
