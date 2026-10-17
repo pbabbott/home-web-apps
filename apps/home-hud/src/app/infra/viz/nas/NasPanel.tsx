@@ -2,10 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { OutlinedButton, Panel, Typography } from '@abbottland/fui-components';
 import { AppearancePanel } from '../components/AppearancePanel';
-import { isCameraAngle, type CameraAngle } from '../components/camera-angles';
+import { useModelViewerParams } from '../components/useModelViewerParams';
 import type { ModelViewerHandle } from '../components/ModelViewer';
 import {
   OFFLINE_ACCENT_COLOR,
@@ -30,25 +29,14 @@ const NasScene = dynamic(() => import('./NasScene'), {
  * `../VizViewerClient.tsx`, which owns the shared `<main>`/H1/tab row.
  */
 export function NasPanel() {
-  const searchParams = useSearchParams();
   const [selectedBayId, setSelectedBayId] = useState<string | null>(null);
   const [hoveredBayId, setHoveredBayId] = useState<string | null>(null);
   const [edgeColor, setEdgeColor] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<ModelStatus>('online');
   const viewerRef = useRef<ModelViewerHandle>(null);
 
-  const angleParam = searchParams.get('angle');
-  const initialAngle: CameraAngle | undefined =
-    angleParam && isCameraAngle(angleParam) ? angleParam : undefined;
-
-  const refParam = searchParams.get('ref');
-  const referenceAngle: CameraAngle | null =
-    refParam && isCameraAngle(refParam) ? refParam : null;
-
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
-  const referenceImageSrc = referenceAngle
-    ? `${basePath}/nas-asustor/photos/${referenceAngle}.jpg`
-    : null;
+  const { initialAngle, referenceAngle, referenceImageSrc } =
+    useModelViewerParams('nas-asustor');
 
   const selectedBay = useMemo(
     () => MOCK_NAS_BAYS.find((bay) => bay.id === selectedBayId) ?? null,
