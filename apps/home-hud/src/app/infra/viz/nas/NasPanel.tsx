@@ -64,7 +64,6 @@ export function NasPanel() {
       <Panel color="default" className="relative h-[70vh] flex-1">
         <NasScene
           deviceName="Room of Requirement (mock)"
-          health="healthy"
           bays={MOCK_NAS_BAYS}
           selectedBayId={selectedBayId}
           hoveredBayId={hoveredBayId}

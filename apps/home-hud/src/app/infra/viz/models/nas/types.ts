@@ -16,11 +16,8 @@ export interface BayState {
   capacityRatio?: number;
 }
 
-export type DeviceHealth = 'healthy' | 'degraded' | 'unknown';
-
 export interface NasModelProps {
   deviceName: string;
-  health: DeviceHealth;
   bays: BayState[];
   selectedBayId: string | null;
   hoveredBayId: string | null;

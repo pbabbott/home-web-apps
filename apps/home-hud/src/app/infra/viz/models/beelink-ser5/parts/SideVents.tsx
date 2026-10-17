@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { EdgedMesh } from '../../../components/EdgedMesh';
 import type { BeelinkSer5Config } from '../config';
 import type { BeelinkSer5Materials } from '../materials';
+import { ventGridPositions } from './vent-grid';
 
 interface SideVentsProps {
   config: BeelinkSer5Config;
@@ -54,22 +55,12 @@ export function SideVents({ config, materials }: SideVentsProps) {
   // Local a = depth axis, b = height axis (matches the border's own
   // depth x height profile before the group rotation below).
   const positions = useMemo(() => {
-    const result: [number, number][] = [];
-    const marginA = panelDepth * 0.12;
-    const marginB = panelHeight * 0.18;
-    const usableDepth = panelDepth - marginA * 2;
-    const usableHeight = panelHeight - marginB * 2;
-    const stepA = usableDepth / cols;
-    const stepB = usableHeight / rows;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        result.push([
-          -usableDepth / 2 + stepA * (col + 0.5),
-          -usableHeight / 2 + stepB * (row + 0.5),
-        ]);
-      }
-    }
-    return result;
+    return ventGridPositions(
+      panelDepth * (1 - 0.12 * 2),
+      panelHeight * (1 - 0.18 * 2),
+      cols,
+      rows,
+    );
   }, [panelDepth, panelHeight, rows, cols]);
 
   const halfWidth = width / 2;

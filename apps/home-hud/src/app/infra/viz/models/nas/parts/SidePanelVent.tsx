@@ -3,6 +3,7 @@ import { Instance, Instances } from '@react-three/drei';
 import * as THREE from 'three';
 import type { NasConfig } from '../config';
 import type { NasMaterials } from '../materials';
+import { ventGridPositions } from './vent-grid';
 
 interface SidePanelVentProps {
   config: NasConfig;
@@ -38,18 +39,10 @@ export function SidePanelVent({ config, materials }: SidePanelVentProps) {
     // the patch's front edge sits frontOffsetFraction*depth back from the
     // chassis' own front face, then spans patchDepth toward the rear.
     const patchFrontZ = depth / 2 - depth * frontOffsetFraction;
-    const stepY = usableHeight / rows;
-    const stepZ = patchDepth / cols;
-    const result: [number, number][] = [];
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        result.push([
-          -usableHeight / 2 + stepY * (row + 0.5),
-          patchFrontZ - stepZ * (col + 0.5),
-        ]);
-      }
-    }
-    return result;
+    const patchCenterZ = patchFrontZ - patchDepth / 2;
+    return ventGridPositions(patchDepth, usableHeight, cols, rows).map(
+      ([a, b]): [number, number] => [b, patchCenterZ - a],
+    );
   }, [
     height,
     depth,

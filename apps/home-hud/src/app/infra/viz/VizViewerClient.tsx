@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, type ComponentType } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Tabs,
@@ -12,6 +13,13 @@ import { BeelinkSer5Panel } from './beelink-ser5/BeelinkSer5Panel';
 import { MODEL_REGISTRY, isKnownModelSlug } from './models/registry';
 import { NasPanel } from './nas/NasPanel';
 import { Pironman4Panel } from './pironman4/Pironman4Panel';
+
+/** Panel per `MODEL_REGISTRY` slug — add an entry here alongside the registry entry. */
+const PANELS: Record<string, ComponentType> = {
+  nas: NasPanel,
+  pironman4: Pironman4Panel,
+  'beelink-ser5': BeelinkSer5Panel,
+};
 
 /**
  * Owns the shared `<main>`/H1/tab row for every model in `MODEL_REGISTRY`
@@ -36,6 +44,10 @@ export function VizViewerClient() {
     MODEL_REGISTRY.find((entry) => entry.slug === activeSlug) ??
     MODEL_REGISTRY[0];
 
+  useEffect(() => {
+    document.title = `${activeEntry.label} 3D Viewer | Home HUD`;
+  }, [activeEntry.label]);
+
   function handleModelChange(slug: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('model', slug);
@@ -55,9 +67,10 @@ export function VizViewerClient() {
         </TabsList>
         {MODEL_REGISTRY.map((entry) => (
           <TabsContent key={entry.slug} value={entry.slug} className="pt-4">
-            {entry.slug === 'nas' && <NasPanel />}
-            {entry.slug === 'pironman4' && <Pironman4Panel />}
-            {entry.slug === 'beelink-ser5' && <BeelinkSer5Panel />}
+            {(() => {
+              const ModelPanel = PANELS[entry.slug];
+              return ModelPanel ? <ModelPanel /> : null;
+            })()}
           </TabsContent>
         ))}
       </Tabs>

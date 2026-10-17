@@ -58,7 +58,6 @@ export function Host3DModel({
       <div className="h-[32rem] w-full border border-neutral-700">
         <NasScene
           deviceName={hostName}
-          health="healthy"
           bays={MOCK_NAS_BAYS}
           selectedBayId={selectedBayId}
           hoveredBayId={hoveredBayId}

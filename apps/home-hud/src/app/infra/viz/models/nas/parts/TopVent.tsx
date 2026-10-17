@@ -3,6 +3,7 @@ import { Instance, Instances } from '@react-three/drei';
 import * as THREE from 'three';
 import type { NasConfig } from '../config';
 import type { NasMaterials } from '../materials';
+import { ventGridPositions } from './vent-grid';
 
 interface TopVentProps {
   config: NasConfig;
@@ -31,20 +32,8 @@ export function TopVent({ config, materials }: TopVentProps) {
   const ventCenterZ = -depth / 2 + ventDepth / 2;
 
   const positions = useMemo(() => {
-    const result: [number, number][] = [];
-    const marginX = width * 0.08;
-    const usableWidth = width - marginX * 2;
-    const stepX = usableWidth / cols;
-    const stepZ = ventDepth / rows;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        result.push([
-          -usableWidth / 2 + stepX * (col + 0.5),
-          -ventDepth / 2 + stepZ * (row + 0.5),
-        ]);
-      }
-    }
-    return result;
+    const usableWidth = width * (1 - 0.08 * 2);
+    return ventGridPositions(usableWidth, ventDepth, cols, rows);
   }, [width, ventDepth, rows, cols]);
 
   return (

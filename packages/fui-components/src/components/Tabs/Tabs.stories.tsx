@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Typography } from '../Typography/Typography';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 
 const meta = {
@@ -20,9 +21,15 @@ export const Default: Story = {
         <TabsTrigger value="two">Two</TabsTrigger>
         <TabsTrigger value="three">Three</TabsTrigger>
       </TabsList>
-      <TabsContent value="one">Content for tab one.</TabsContent>
-      <TabsContent value="two">Content for tab two.</TabsContent>
-      <TabsContent value="three">Content for tab three.</TabsContent>
+      <TabsContent value="one">
+        <Typography variant="body1">Content for tab one.</Typography>
+      </TabsContent>
+      <TabsContent value="two">
+        <Typography variant="body1">Content for tab two.</Typography>
+      </TabsContent>
+      <TabsContent value="three">
+        <Typography variant="body1">Content for tab three.</Typography>
+      </TabsContent>
     </Tabs>
   ),
 };
@@ -38,9 +45,15 @@ export const WithDisabledTrigger: Story = {
         </TabsTrigger>
         <TabsTrigger value="three">Three</TabsTrigger>
       </TabsList>
-      <TabsContent value="one">Content for tab one.</TabsContent>
-      <TabsContent value="two">Content for tab two.</TabsContent>
-      <TabsContent value="three">Content for tab three.</TabsContent>
+      <TabsContent value="one">
+        <Typography variant="body1">Content for tab one.</Typography>
+      </TabsContent>
+      <TabsContent value="two">
+        <Typography variant="body1">Content for tab two.</Typography>
+      </TabsContent>
+      <TabsContent value="three">
+        <Typography variant="body1">Content for tab three.</Typography>
+      </TabsContent>
     </Tabs>
   ),
 };

@@ -40,7 +40,7 @@ export async function getPodCpuUsageSeries(
   endSec: number,
   stepSec: number,
 ): Promise<TimeseriesSample[]> {
-  const rateWindow = `${config.prometheusQueryWindowSeconds}s`;
+  const rateWindow = `${Math.max(stepSec * 4, config.prometheusQueryWindowSeconds)}s`;
   const promql = `sum by (container) (rate(container_cpu_usage_seconds_total{namespace="${namespace}", pod="${pod}", container!=""}[${rateWindow}]))`;
 
   return queryRange(promql, startSec, endSec, stepSec);

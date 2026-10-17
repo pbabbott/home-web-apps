@@ -5,6 +5,7 @@ import { createOctagonBorderGeometry } from '../../../components/chamfered-box';
 import { EdgedMesh } from '../../../components/EdgedMesh';
 import type { BeelinkSer5Config } from '../config';
 import type { BeelinkSer5Materials } from '../materials';
+import { ventGridPositions } from './vent-grid';
 
 interface TopVentProps {
   config: BeelinkSer5Config;
@@ -40,22 +41,7 @@ export function TopVent({ config, materials }: TopVentProps) {
   );
 
   const positions = useMemo(() => {
-    const result: [number, number][] = [];
-    const marginX = width * 0.1;
-    const marginZ = depth * 0.1;
-    const usableWidth = width - marginX * 2;
-    const usableDepth = depth - marginZ * 2;
-    const stepX = usableWidth / cols;
-    const stepZ = usableDepth / rows;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        result.push([
-          -usableWidth / 2 + stepX * (col + 0.5),
-          -usableDepth / 2 + stepZ * (row + 0.5),
-        ]);
-      }
-    }
-    return result;
+    return ventGridPositions(width * 0.8, depth * 0.8, cols, rows);
   }, [width, depth, rows, cols]);
 
   return (

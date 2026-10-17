@@ -18,8 +18,10 @@ import {
  * Some boards (ARM SBCs) publish temps *only* via a `thermal_zone*` chip
  * and never emit a `node_hwmon_sensor_label` series at all — since the join
  * is an inner join, those readings would otherwise vanish entirely instead
- * of just losing their label. The trailing `or` falls back to the raw,
- * unlabeled series whenever no label match exists (named by chip/sensor in
+ * of just losing their label. The trailing `or on (chip, sensor)` falls back to the
+ * raw, unlabeled series only for chip/sensor pairs with no label match (a
+ * plain `or` would also keep the unlabeled twin of every labeled series,
+ * since the joined side's extra `label` makes the two sides differ) (named by chip/sensor in
  * the service layer instead).
  */
 export async function getNodeTemperatureSeries(
@@ -34,7 +36,7 @@ export async function getNodeTemperatureSeries(
   * on (chip, sensor) group_left(label)
   node_hwmon_sensor_label{${NODE_EXPORTER_JOB_MATCH}, instance="${instance}"}
 )
-or
+or on (chip, sensor)
 ${base}`;
 
   return queryRange(promql, startSec, endSec, stepSec);
