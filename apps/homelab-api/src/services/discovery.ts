@@ -13,6 +13,7 @@ import {
   getQueueItemById,
   heartbeatQueueItem,
   listBackupSources as listBackupSourceRows,
+  listAllDiscoveryJobs as listAllDiscoveryJobRows,
   listDiscoveryJobs as listDiscoveryJobRows,
   listQueueItems as listQueueItemRows,
   retryQueueItem,
@@ -21,6 +22,7 @@ import {
   type BackupSource,
   type CreateBackupSourceInput,
   type DiscoveryJob,
+  type DiscoveryJobWithSource,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
   type QueueCounts,
@@ -90,6 +92,11 @@ export async function createDiscoveryJob(
 
   return withCounts(job);
 }
+
+export const listAllJobs = (
+  sourceId?: string,
+): Promise<DiscoveryJobWithSource[]> =>
+  listAllDiscoveryJobRows(db, { sourceId });
 
 export async function listSourceJobs(
   sourceId: string,

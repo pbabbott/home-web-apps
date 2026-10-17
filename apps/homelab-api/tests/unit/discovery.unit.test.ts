@@ -18,6 +18,7 @@ jest.mock('../../src/services/discovery', () => {
     claimQueueItem: jest.fn(),
     listSourceQueueItems: jest.fn(),
     listSourceJobs: jest.fn(),
+    listAllJobs: jest.fn(),
     heartbeat: jest.fn(),
     completeItem: jest.fn(),
     failItem: jest.fn(),
@@ -306,6 +307,39 @@ describe('discovery routes', () => {
       await supertest(createServer())
         .post(`/queue-items/${ID}/retry`)
         .expect(409);
+    });
+  });
+
+  describe('GET /discovery-jobs', () => {
+    it('lists all jobs when no source is given', async () => {
+      mocked.listAllJobs.mockResolvedValue([{ id: TOKEN }] as never);
+
+      const res = await supertest(createServer())
+        .get('/discovery-jobs')
+        .expect(200);
+
+      expect(res.body).toEqual([{ id: TOKEN }]);
+      expect(mocked.listAllJobs).toHaveBeenCalledWith(undefined);
+    });
+
+    it('passes the source filter through', async () => {
+      mocked.listAllJobs.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get('/discovery-jobs')
+        .query({ sourceId: ID })
+        .expect(200);
+
+      expect(mocked.listAllJobs).toHaveBeenCalledWith(ID);
+    });
+
+    it('rejects a non-uuid sourceId', async () => {
+      await supertest(createServer())
+        .get('/discovery-jobs')
+        .query({ sourceId: 'win11-desktop' })
+        .expect(400);
+
+      expect(mocked.listAllJobs).not.toHaveBeenCalled();
     });
   });
 

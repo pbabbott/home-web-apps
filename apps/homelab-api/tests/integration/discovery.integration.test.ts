@@ -227,6 +227,44 @@ describe('Example 1: start a discovery job', () => {
       .expect(404);
   });
 
+  it('lists jobs across sources and filters by source', async () => {
+    const hostA = await createHost();
+    const hostB = await createHost();
+    const makeSource = async (name: string, hostId: string) => {
+      const res = await getRequest()
+        .post('/backup-sources')
+        .send({ name, hostId })
+        .expect(201);
+      createdSourceIds.push(res.body.id);
+
+      return res.body.id as string;
+    };
+    const sourceA = await makeSource('exodus-test-list-a', hostA);
+    const sourceB = await makeSource('exodus-test-list-b', hostB);
+    const oldJobA = await startJob(sourceA);
+    await getRequest().post(`/discovery-jobs/${oldJobA.id}/cancel`).expect(200);
+    const jobA = await startJob(sourceA);
+    const jobB = await startJob(sourceB);
+
+    const all = await getRequest().get('/discovery-jobs').expect(200);
+    const ids = all.body.map((j: { id: string }) => j.id);
+    expect(ids).toEqual(expect.arrayContaining([jobA.id, jobB.id]));
+    expect(ids.indexOf(jobB.id)).toBeLessThan(ids.indexOf(jobA.id));
+
+    const filtered = await getRequest()
+      .get('/discovery-jobs')
+      .query({ sourceId: sourceA })
+      .expect(200);
+    expect(filtered.body).toEqual([
+      expect.objectContaining({
+        id: jobA.id,
+        sourceName: 'exodus-test-list-a',
+        hostId: hostA,
+      }),
+      expect.objectContaining({ id: oldJobA.id }),
+    ]);
+  });
+
   it('allows only one active job per source', async () => {
     const sourceId = await createSource();
     await startJob(sourceId);

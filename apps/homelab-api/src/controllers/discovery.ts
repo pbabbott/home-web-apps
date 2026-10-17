@@ -10,6 +10,7 @@ import type {
   FailQueueItemBody,
   HeartbeatQueueItemBody,
   JobIdParams,
+  JobListQuery,
   QueueItemIdParams,
   QueueItemListQuery,
   SkipQueueItemBody,
@@ -85,6 +86,14 @@ export const listSourceQueueItems = handle(
     res
       .status(200)
       .json(await discoveryService.listSourceQueueItems(id, filters));
+  },
+);
+
+export const listDiscoveryJobs = handle(
+  'GET /discovery-jobs',
+  async (req, res) => {
+    const { sourceId } = req.query as JobListQuery;
+    res.status(200).json(await discoveryService.listAllJobs(sourceId));
   },
 );
 

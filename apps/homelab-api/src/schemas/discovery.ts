@@ -77,6 +77,13 @@ export const claimQueueItemBodySchema = z.object({
 });
 export type ClaimQueueItemBody = z.infer<typeof claimQueueItemBodySchema>;
 
+export const jobListQuerySchema = z.object({
+  sourceId: z.uuid().optional().meta({
+    description: 'Only this backup source’s jobs. Omit for all jobs.',
+  }),
+});
+export type JobListQuery = z.infer<typeof jobListQuerySchema>;
+
 export const queueItemListQuerySchema = z.object({
   status: z
     .enum(['queued', 'in_progress', 'completed', 'failed', 'skipped'])

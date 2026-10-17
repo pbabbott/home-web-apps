@@ -15,6 +15,7 @@ import {
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
+  jobListQuerySchema,
   queueItemIdParamsSchema,
   queueItemListQuerySchema,
   skipQueueItemBodySchema,
@@ -295,6 +296,13 @@ const completedQueueItemSchema = discoveryQueueItemSelectSchema.extend({
   children: z.array(queueItemWithCreatedSchema),
 });
 
+const discoveryJobWithSourceSchema = discoveryJobSelectSchema.extend({
+  sourceName: z.string(),
+  hostId: z.uuid().nullable().meta({
+    description: 'The host the job’s source is linked to, if any.',
+  }),
+});
+
 const discoveryPaths = {
   '/backup-sources': {
     get: {
@@ -387,6 +395,25 @@ const discoveryPaths = {
         },
         '400': validationErrorResponse,
         '404': discoveryNotFoundResponse('backup source'),
+      },
+    },
+  },
+  '/discovery-jobs': {
+    get: {
+      summary: 'List discovery jobs across all sources, newest first',
+      description:
+        'At most 100, each with its source’s name and host. Filter with sourceId to see only one source’s jobs. queueCounts is omitted — it is source-wide, so fetch it via GET /discovery-jobs/{id}.',
+      requestParams: { query: jobListQuerySchema },
+      responses: {
+        '200': {
+          description: 'The jobs',
+          content: {
+            'application/json': {
+              schema: z.array(discoveryJobWithSourceSchema),
+            },
+          },
+        },
+        '400': validationErrorResponse,
       },
     },
   },

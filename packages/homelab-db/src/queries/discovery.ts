@@ -285,6 +285,46 @@ export const listDiscoveryJobs = async (
     .orderBy(desc(discoveryJobs.createdAt))
     .limit(LIST_DISCOVERY_JOBS_LIMIT);
 
+export type ListAllDiscoveryJobsOptions = {
+  /** Only this source's jobs. */
+  sourceId?: string;
+};
+
+export type DiscoveryJobWithSource = DiscoveryJob & {
+  sourceName: string;
+  hostId: string | null;
+};
+
+const LIST_ALL_DISCOVERY_JOBS_LIMIT = 100;
+
+/** Jobs across every source, newest first, each with its source's name and host. */
+export const listAllDiscoveryJobs = async (
+  db: Database,
+  options: ListAllDiscoveryJobsOptions = {},
+): Promise<DiscoveryJobWithSource[]> => {
+  const rows = await db
+    .select({
+      job: discoveryJobs,
+      sourceName: backupSources.name,
+      hostId: backupSources.hostId,
+    })
+    .from(discoveryJobs)
+    .innerJoin(backupSources, eq(backupSources.id, discoveryJobs.sourceId))
+    .where(
+      options.sourceId
+        ? eq(discoveryJobs.sourceId, options.sourceId)
+        : undefined,
+    )
+    .orderBy(desc(discoveryJobs.createdAt))
+    .limit(LIST_ALL_DISCOVERY_JOBS_LIMIT);
+
+  return rows.map(({ job, sourceName, hostId }) => ({
+    ...job,
+    sourceName,
+    hostId,
+  }));
+};
+
 const ACTIVE_JOB_STATUSES: DiscoveryJobStatus[] = ['pending', 'running'];
 
 /**

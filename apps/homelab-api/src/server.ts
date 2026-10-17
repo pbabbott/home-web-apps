@@ -24,6 +24,7 @@ import {
   getDiscoveryJob,
   heartbeatQueueItem,
   listBackupSources,
+  listDiscoveryJobs,
   listSourceJobs,
   listSourceQueueItems,
   retryQueueItem,
@@ -56,6 +57,7 @@ import {
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
+  jobListQuerySchema,
   queueItemIdParamsSchema,
   queueItemListQuerySchema,
   skipQueueItemBodySchema,
@@ -166,6 +168,11 @@ export const createServer = (): Express => {
     validateParams(sourceIdParamsSchema),
     validateQuery(queueItemListQuerySchema),
     listSourceQueueItems,
+  );
+  app.get(
+    '/discovery-jobs',
+    validateQuery(jobListQuerySchema),
+    listDiscoveryJobs,
   );
   app.get(
     '/discovery-jobs/:id',
