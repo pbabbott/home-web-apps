@@ -57,7 +57,7 @@ pnpm test:int   # needs `pnpm dev:deps`; runs against the real local Postgres
 
 ## Exodus discovery queue
 
-Exodus is the one-time migration of files from Windows machines to the NAS. An agent explores each machine directory by directory, possibly across many cron runs that start with no memory of the last, so the queue in Postgres is the only state: whatever is not written there is lost.
+Exodus is the one-time migration of files from Windows machines to the NAS (full write-up, including design decisions and what is not built yet: [`docs/exodus.md`](../../docs/exodus.md)). An agent explores each machine directory by directory, possibly across many cron runs that start with no memory of the last, so the queue in Postgres is the only state: whatever is not written there is lost.
 
 Three tables (`packages/homelab-db/src/schema/discovery.ts`):
 
