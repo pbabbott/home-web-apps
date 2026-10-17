@@ -1,5 +1,25 @@
 import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
+import {
+  backupSourceSelectSchema,
+  discoveryJobSelectSchema,
+  discoveryQueueItemSelectSchema,
+} from '@abbottland/homelab-db';
+import {
+  claimQueueItemBodySchema,
+  completeQueueItemBodySchema,
+  createBackupSourceBodySchema,
+  createDiscoveryJobBodySchema,
+  enqueueQueueItemsBodySchema,
+  failDiscoveryJobBodySchema,
+  failQueueItemBodySchema,
+  heartbeatQueueItemBodySchema,
+  jobIdParamsSchema,
+  queueItemIdParamsSchema,
+  queueItemListQuerySchema,
+  skipQueueItemBodySchema,
+  sourceIdParamsSchema,
+} from './schemas/discovery';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
@@ -226,6 +246,399 @@ const podMemoryResponseSchema = z.object({
   limitBytes: z.number().nullable(),
 });
 
+const conflictSchema = z.object({
+  message: z
+    .string()
+    .meta({ example: 'job still has queued or in-progress work' }),
+});
+
+const conflictResponse = (description: string) => ({
+  description,
+  content: { 'application/json': { schema: conflictSchema } },
+});
+
+const discoveryNotFoundResponse = (what: string) => ({
+  description: `No ${what} exists with this id`,
+  content: {
+    'application/json': {
+      schema: z.object({
+        message: z.string().meta({ example: `${what} not found` }),
+      }),
+    },
+  },
+});
+
+const queueCountsSchema = z
+  .object({
+    queued: z.number(),
+    in_progress: z.number(),
+    completed: z.number(),
+    failed: z.number(),
+    skipped: z.number(),
+  })
+  .meta({
+    description:
+      'Source-wide item counts by status. failed > 0 on a completed job means it finished with failures.',
+  });
+
+const discoveryJobResponseSchema = discoveryJobSelectSchema.extend({
+  queueCounts: queueCountsSchema,
+});
+
+const queueItemWithCreatedSchema = discoveryQueueItemSelectSchema.extend({
+  created: z.boolean().meta({
+    description: 'false if this path was already queued for the source.',
+  }),
+});
+
+const completedQueueItemSchema = discoveryQueueItemSelectSchema.extend({
+  children: z.array(queueItemWithCreatedSchema),
+});
+
+const discoveryPaths = {
+  '/backup-sources': {
+    get: {
+      summary: 'List backup sources',
+      responses: {
+        '200': {
+          description: 'The backup sources',
+          content: {
+            'application/json': { schema: z.array(backupSourceSelectSchema) },
+          },
+        },
+      },
+    },
+    post: {
+      summary: 'Register a backup source (a machine to inventory)',
+      requestBody: {
+        content: {
+          'application/json': { schema: createBackupSourceBodySchema },
+        },
+      },
+      responses: {
+        '201': {
+          description: 'The created source',
+          content: {
+            'application/json': { schema: backupSourceSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '409': conflictResponse('A source with this name already exists'),
+      },
+    },
+  },
+  '/backup-sources/{id}/discovery-jobs': {
+    get: {
+      summary: 'List a source’s discovery jobs, newest first',
+      description:
+        'At most 50. queueCounts is omitted here — it is source-wide, so fetch it once via GET /discovery-jobs/{id}.',
+      requestParams: { path: sourceIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The jobs',
+          content: {
+            'application/json': { schema: z.array(discoveryJobSelectSchema) },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('backup source'),
+      },
+    },
+    post: {
+      summary: 'Start a discovery job for a source',
+      description:
+        'Creates a pending job and queues rootPath as its first directory. A source can have only one pending/running job at a time. The job moves to running when its first item is claimed.',
+      requestParams: { path: sourceIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: createDiscoveryJobBodySchema },
+        },
+      },
+      responses: {
+        '201': {
+          description: 'The pending job',
+          content: {
+            'application/json': { schema: discoveryJobResponseSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('backup source'),
+        '409': conflictResponse('The source already has an active job'),
+      },
+    },
+  },
+  '/backup-sources/{id}/queue-items': {
+    get: {
+      summary: 'List a source’s queue items',
+      description:
+        'Newest 500 at most, oldest first. Filter by status=failed to inspect permanent failures.',
+      requestParams: {
+        path: sourceIdParamsSchema,
+        query: queueItemListQuerySchema,
+      },
+      responses: {
+        '200': {
+          description: 'The queue items',
+          content: {
+            'application/json': {
+              schema: z.array(discoveryQueueItemSelectSchema),
+            },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('backup source'),
+      },
+    },
+  },
+  '/discovery-jobs/{id}': {
+    get: {
+      summary: 'Fetch a discovery job with its queue counts',
+      requestParams: { path: jobIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The job',
+          content: {
+            'application/json': { schema: discoveryJobResponseSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/complete': {
+    post: {
+      summary: 'Mark a job completed',
+      description:
+        'Allowed once no item is queued or in progress (expired leases are reclaimed first; an item waiting out a retry backoff still counts as queued). Permanently failed items do not block completion — they are reported in queueCounts.failed. 409 returns the blocking queueCounts.',
+      requestParams: { path: jobIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The completed job',
+          content: {
+            'application/json': { schema: discoveryJobResponseSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse('Work remains, or the job is already finished'),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/cancel': {
+    post: {
+      summary: 'Cancel a pending or running job',
+      requestParams: { path: jobIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The cancelled job',
+          content: {
+            'application/json': { schema: discoveryJobResponseSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse('The job is already finished'),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/fail': {
+    post: {
+      summary: 'Mark a pending or running job failed',
+      requestParams: { path: jobIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: failDiscoveryJobBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The failed job',
+          content: {
+            'application/json': { schema: discoveryJobResponseSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse('The job is already finished'),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/queue-items': {
+    post: {
+      summary: 'Enqueue directories for a job',
+      description:
+        'Paths are normalized (slashes, case, trailing separators) and deduplicated per source; already-queued paths are returned with created=false. Every path must be inside the job’s root.',
+      requestParams: { path: jobIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: enqueueQueueItemsBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'One entry per distinct requested path',
+          content: {
+            'application/json': {
+              schema: z.array(queueItemWithCreatedSchema),
+            },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse(
+          'The job is finished, or a path is outside the job root',
+        ),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/queue-items/claim': {
+    post: {
+      summary: 'Claim the next directory to inspect',
+      description:
+        'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first. Keep the returned claimToken: every later call on the item needs it. 204 means nothing is claimable right now (queue empty, or only retries still in backoff).',
+      requestParams: { path: jobIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: claimQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The claimed item',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '204': { description: 'Nothing to claim' },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse('The job is finished'),
+      },
+    },
+  },
+  '/queue-items/{id}/heartbeat': {
+    post: {
+      summary: 'Extend a claim’s lease',
+      requestParams: { path: queueItemIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: heartbeatQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The item with its new lease',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'Wrong token, lease expired, or not in progress',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/complete': {
+    post: {
+      summary:
+        'Complete a claimed directory and enqueue the children found in it',
+      description:
+        'The completion and the discoveredPaths enqueue happen in one transaction, so subdirectories are never lost to a crash in between.',
+      requestParams: { path: queueItemIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: completeQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The completed item and its enqueued children',
+          content: {
+            'application/json': { schema: completedQueueItemSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'Lost claim, or a discovered path is outside the job root',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/fail': {
+    post: {
+      summary: 'Record a failure for a claimed directory',
+      description:
+        'A retryable failure with attempts left returns the item to queued behind an exponential backoff (30s, 60s, … capped at 1h). Otherwise it becomes failed and stays visible until a human retries it. lastError is always recorded.',
+      requestParams: { path: queueItemIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: failQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The item (queued again, or failed)',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'Wrong token, lease expired, or not in progress',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/skip': {
+    post: {
+      summary: 'Skip a claimed directory',
+      requestParams: { path: queueItemIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: skipQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The skipped item',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'Wrong token, lease expired, or not in progress',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/retry': {
+    post: {
+      summary: 'Retry a failed item (human)',
+      description:
+        'Requeues a failed item for exactly one more attempt; attemptCount and lastError are kept.',
+      requestParams: { path: queueItemIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The requeued item',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse('Only failed items can be retried'),
+      },
+    },
+  },
+};
+
 /**
  * Generated from the Zod schemas that already validate /maps/:type's
  * request (src/schemas/maps.ts) so this can't drift from what the API
@@ -315,6 +728,7 @@ export const openApiSpec = createDocument({
         },
       },
     },
+    ...discoveryPaths,
     '/hosts': {
       get: {
         summary: 'List registered hosts, enriched with live Prometheus data',
@@ -380,6 +794,9 @@ export const openApiSpec = createDocument({
           '204': { description: 'The host was deleted' },
           '400': validationErrorResponse,
           '404': notFoundResponse,
+          '409': conflictResponse(
+            'The host is still referenced by a backup source',
+          ),
         },
       },
     },

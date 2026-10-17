@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { HostInUseError } from '@abbottland/homelab-db';
 import * as hostsService from '../services/hosts';
 import * as hostMetricsService from '../services/host-metrics';
 import type {
@@ -60,6 +61,13 @@ export const deleteHost = async (req: Request, res: Response) => {
     }
     res.status(204).send();
   } catch (err) {
+    if (err instanceof HostInUseError) {
+      res.status(409).json({
+        message:
+          'host is in use (e.g. by a backup source) and cannot be deleted',
+      });
+      return;
+    }
     console.error(`DELETE /hosts/${id} failed:`, err);
     res.status(500).json({ message: 'internal server error' });
   }

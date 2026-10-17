@@ -1,0 +1,1 @@
+ALTER TABLE "backup_sources" ALTER COLUMN "host_id" DROP NOT NULL;
