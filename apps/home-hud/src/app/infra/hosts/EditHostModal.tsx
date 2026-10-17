@@ -14,7 +14,8 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { deleteHost, updateHost } from './lib/actions';
-import type { Host, HostType } from './lib/homelab-api';
+import type { ExporterType, Host, HostType } from './lib/homelab-api';
+import { ExporterSelectField } from './ExporterSelectField';
 import { ModelSelectField } from './ModelSelectField';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -47,6 +48,9 @@ export function EditHostModal({
   const [ipAddress, setIpAddress] = useState(host.ipAddress);
   const [instance, setInstance] = useState(host.instance ?? '');
   const [hostType, setHostType] = useState<HostType>(host.hostType);
+  const [exporterType, setExporterType] = useState<ExporterType>(
+    host.exporterType,
+  );
   const [model3d, setModel3d] = useState(host.model3d ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +64,7 @@ export function EditHostModal({
     setIpAddress(host.ipAddress);
     setInstance(host.instance ?? '');
     setHostType(host.hostType);
+    setExporterType(host.exporterType);
     setModel3d(host.model3d ?? '');
     setError(null);
     setConfirmDeleteOpen(false);
@@ -76,6 +81,7 @@ export function EditHostModal({
         name,
         ipAddress,
         hostType,
+        exporterType,
         instance: instance.trim() ? instance.trim() : null,
         model3d: model3d ? model3d : null,
       });
@@ -112,7 +118,7 @@ export function EditHostModal({
         <ModalTitle>Edit Host</ModalTitle>
         <ModalDescription>
           Update this host&apos;s details. Set instance to match it against
-          Prometheus node-exporter data.
+          Prometheus exporter data.
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -139,6 +145,13 @@ export function EditHostModal({
               value={instance}
               onChange={(e) => setInstance(e.target.value)}
               placeholder="192.168.6.24:9100"
+            />
+          </Field>
+
+          <Field label="Metrics Exporter">
+            <ExporterSelectField
+              value={exporterType}
+              onChange={setExporterType}
             />
           </Field>
 

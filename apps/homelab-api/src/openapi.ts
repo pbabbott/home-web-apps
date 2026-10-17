@@ -85,6 +85,7 @@ const hostResponseSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   hostType: z.enum(['physical', 'virtual']),
+  exporterType: z.enum(['node_exporter', 'windows_exporter']),
   ipAddress: z.string(),
   instance: z.string().nullable(),
   model3d: z.string().nullable(),

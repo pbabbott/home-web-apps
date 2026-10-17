@@ -1,8 +1,13 @@
 export { createDb, closeDb, pingDb } from './client';
 export type { Database, PostgresConnectionOptions } from './client';
 
-export { hosts, hostTypeEnum, hostSelectSchema } from './schema/hosts';
-export type { Host, NewHost, HostType } from './schema/hosts';
+export {
+  hosts,
+  hostTypeEnum,
+  exporterTypeEnum,
+  hostSelectSchema,
+} from './schema/hosts';
+export type { Host, NewHost, HostType, ExporterType } from './schema/hosts';
 
 export {
   listHosts,
