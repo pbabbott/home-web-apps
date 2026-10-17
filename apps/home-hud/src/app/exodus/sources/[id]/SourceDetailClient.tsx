@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   Badge,
-  type BadgeColor,
   Button,
   Modal,
   ModalContent,
@@ -23,6 +22,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import type { Host } from '../../../infra/hosts/lib/homelab-api';
+import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
   completeDiscoveryJob,
@@ -32,20 +32,11 @@ import {
   isActiveJob,
   type BackupSource,
   type DiscoveryJob,
-  type DiscoveryJobStatus,
   type DiscoveryJobWithCounts,
   type QueueItem,
   type QueueItemStatus,
 } from '../lib/homelab-api';
 import { StartJobModal } from './StartJobModal';
-
-const JOB_STATUS_COLOR: Record<DiscoveryJobStatus, BadgeColor> = {
-  pending: 'warning',
-  running: 'secondary',
-  completed: 'success',
-  failed: 'error',
-  cancelled: 'dark',
-};
 
 const COUNT_TILES: { status: QueueItemStatus; label: string }[] = [
   { status: 'queued', label: 'Queued' },
@@ -57,15 +48,6 @@ const COUNT_TILES: { status: QueueItemStatus; label: string }[] = [
 
 /** While a job is active the page re-fetches this often, so progress shows without a manual reload. */
 const ACTIVE_REFRESH_MS = 5000;
-
-/**
- * Date and time in UTC (column headers say so), formatted by hand so server
- * and client renders match. No trailing "Z": the pixel font draws it like a
- * digit.
- */
-function formatDateTime(iso: string | null): string {
-  return iso ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : '—';
-}
 
 function CountTile({ label, value }: { label: string; value: number }) {
   return (

@@ -131,3 +131,29 @@ export async function getQueueItems(
 
   return (await res.json()) as QueueItem[];
 }
+
+export interface DiscoveryJobWithSource extends DiscoveryJob {
+  sourceName: string;
+  /** The host the job's source is linked to, if any. */
+  hostId: string | null;
+}
+
+/** Jobs across every source, newest first; optionally only those of `sourceId`. */
+export async function getAllDiscoveryJobs(
+  sourceId?: string,
+): Promise<DiscoveryJobWithSource[]> {
+  const params = new URLSearchParams(sourceId ? { sourceId } : {});
+
+  const res = await fetch(`${HOMELAB_API_URL}/discovery-jobs?${params}`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /discovery-jobs returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as DiscoveryJobWithSource[];
+}

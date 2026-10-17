@@ -18,7 +18,10 @@ const VIDEO_MENU_ITEMS = [
   { href: '/video/file-renames', label: 'File Renames' },
 ];
 
-const EXODUS_MENU_ITEMS = [{ href: '/exodus/sources', label: 'Sources' }];
+const EXODUS_MENU_ITEMS = [
+  { href: '/exodus/sources', label: 'Sources' },
+  { href: '/exodus/jobs', label: 'Jobs' },
+];
 
 const INFRA_MENU_ITEMS = [
   { href: '/infra/hosts', label: 'Hosts' },
