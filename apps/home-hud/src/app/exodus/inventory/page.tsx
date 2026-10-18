@@ -1,4 +1,8 @@
-import { tidyPath, type InventoryTypeFilter } from '../lib/inventory-display';
+import {
+  parseReview,
+  tidyPath,
+  type InventoryTypeFilter,
+} from '../lib/inventory-display';
 import {
   getSources,
   getDiscoveryJobs,
@@ -14,6 +18,7 @@ type PageProps = {
     path?: string;
     recursive?: string;
     type?: string;
+    review?: string;
     after?: string;
   }>;
 };
@@ -57,6 +62,7 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
   const currentPath = requestedPath ? tidyPath(requestedPath) : rootPath;
   const recursive = query.recursive === '1';
   const type = parseType(query.type);
+  const review = parseReview(query.review);
   const after = query.after || undefined;
 
   let items: InventoryItem[] | null = null;
@@ -69,6 +75,7 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
           ? { pathPrefix: currentPath }
           : { parentPath: currentPath }),
         itemType: type,
+        reviewDisposition: review,
         after,
         limit: PAGE_SIZE,
       });
@@ -97,6 +104,7 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
       currentPath={currentPath}
       recursive={recursive}
       type={type}
+      review={review}
       isFirstPage={!after}
       items={items}
       nextCursor={nextCursor}

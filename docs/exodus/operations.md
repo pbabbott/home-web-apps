@@ -22,7 +22,7 @@ After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` load
 Not started, and not decided:
 
 - The OpenClaw agent: how it authenticates to the API and MCP endpoint, what it inspects in each directory, and the cron cadence.
-- Exclusion rules: paths or patterns the walk should skip.
+- Pattern-based exclusion (globs such as `node_modules`); rules are exact paths today.
 - Detecting inventory items that disappeared between scans (`last_seen_at` makes this possible).
-- Review actions on the inventory page (mark not needed, select for copy), name search, and a per-job filter.
+- Home-hud review actions on the inventory page (the API exists), name search, and a per-job filter.
 - Review and copy: the human review step and copying approved files to the NAS.

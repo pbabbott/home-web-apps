@@ -12,10 +12,21 @@ export async function errorMessage(res: Response): Promise<string> {
   const body = await res.text();
 
   try {
-    const { message, queueCounts } = JSON.parse(body) as {
+    const { message, queueCounts, blocked, missingIds } = JSON.parse(body) as {
       message?: string;
       queueCounts?: Record<string, number>;
+      blocked?: unknown[];
+      missingIds?: unknown[];
     };
+
+    // A bulk review refused because of some of its items.
+    if (message && blocked?.length) {
+      return `${message} (${blocked.length} of the selected items)`;
+    }
+
+    if (message && missingIds?.length) {
+      return `${message} (${missingIds.length} no longer exist; refresh the page)`;
+    }
 
     if (message) {
       const pending = queueCounts

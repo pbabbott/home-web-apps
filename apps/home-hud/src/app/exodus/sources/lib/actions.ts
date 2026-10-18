@@ -1,7 +1,13 @@
 'use server';
 
 import { errorMessage } from './errors';
-import type { Source, DiscoveryJob } from './homelab-api';
+import type {
+  DiscoveryJob,
+  ExclusionRule,
+  ExclusionRuleScope,
+  ReviewDisposition,
+  Source,
+} from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
@@ -14,22 +20,31 @@ export type ActionResult<T = undefined> =
   | { ok: true; data: T }
   | { ok: false; error: string };
 
-async function post<T>(path: string, body?: unknown): Promise<ActionResult<T>> {
+async function send<T>(
+  method: 'POST' | 'DELETE',
+  path: string,
+  body?: unknown,
+): Promise<ActionResult<T>> {
   try {
     const res = await fetch(`${HOMELAB_API_URL}${path}`, {
-      method: 'POST',
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 
     if (!res.ok) return { ok: false, error: await errorMessage(res) };
 
+    // 204: nothing to parse.
+    if (res.status === 204) return { ok: true, data: undefined as T };
+
     return { ok: true, data: (await res.json()) as T };
   } catch (err) {
-    console.error(`POST ${path} failed:`, err);
+    console.error(`${method} ${path} failed:`, err);
     return { ok: false, error: 'Could not reach homelab-api' };
   }
 }
+
+const post = <T>(path: string, body?: unknown) => send<T>('POST', path, body);
 
 export interface CreateSourceInput {
   name: string;
@@ -66,4 +81,35 @@ export async function cancelDiscoveryJob(
 
 export async function retryQueueItem(itemId: string): Promise<ActionResult> {
   return post(`/queue-items/${itemId}/retry`);
+}
+
+export interface CreateExclusionRuleInput {
+  /** Omit for a global rule, which applies to every source. */
+  sourceId?: string;
+  path: string;
+  scope: ExclusionRuleScope;
+  reason?: string;
+}
+
+export async function createExclusionRule(
+  input: CreateExclusionRuleInput,
+): Promise<ActionResult<ExclusionRule>> {
+  return post<ExclusionRule>('/exclusion-rules', input);
+}
+
+export async function deleteExclusionRule(id: string): Promise<ActionResult> {
+  return send('DELETE', `/exclusion-rules/${id}`);
+}
+
+export interface ReviewResult {
+  changedCount: number;
+  unchangedCount: number;
+}
+
+/** One decision for several inventory items, all or nothing. */
+export async function reviewInventoryItems(
+  ids: string[],
+  disposition: ReviewDisposition,
+): Promise<ActionResult<ReviewResult>> {
+  return post<ReviewResult>('/inventory-items/review', { ids, disposition });
 }

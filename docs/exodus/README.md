@@ -10,19 +10,20 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 
 ## Status
 
-| Built                                                           | Not built                                       |
-| --------------------------------------------------------------- | ----------------------------------------------- |
-| Sources, discovery jobs, directory queue (database + API)       | The OpenClaw agent itself                       |
-| Lease-based claiming, retries, resumability                     | Filesystem scanning                             |
-| Windows path normalization                                      | Exclusion rules                                 |
-| Inventory items: files and directories found (database + API)   | Review UI, file copying to the NAS              |
-| home-hud pages: sources, source detail, jobs, inventory browser | Authentication on the API (none, like the rest) |
-| MCP tools for the agent's work loop (`POST /mcp`)               |                                                 |
-| Unit and integration tests                                      |                                                 |
+| Built                                                            | Not built                                       |
+| ---------------------------------------------------------------- | ----------------------------------------------- |
+| Sources, discovery jobs, directory queue (database + API)        | The OpenClaw agent itself                       |
+| Lease-based claiming, retries, resumability                      | Filesystem scanning                             |
+| Windows path normalization                                       | Review UI, file copying to the NAS              |
+| Inventory items: files and directories found (database + API)    | Authentication on the API (none, like the rest) |
+| Exclusion rules, review dispositions, audit log (database + API) |                                                 |
+| home-hud pages: sources, source detail, jobs, inventory browser  |                                                 |
+| MCP tools for the agent's work loop (`POST /mcp`)                |                                                 |
+| Unit and integration tests                                       |                                                 |
 
 ## Where things live
 
-- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery/`, migrations `0003`–`0008`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
+- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery/`, migrations `0003`–`0009`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
 - **API** — `apps/homelab-api` (`controllers/discovery/` split by domain, `services/discovery/`, `schemas/discovery/`, `routes/`, `openapi/`, `lib/windows-path.ts`, `mcp.ts`). Interactive docs at `/docs`. The README has the agent workflow and the rules in short form.
 - **UI** — `apps/home-hud/src/app/exodus/`, under the Exodus menu in the nav.
 
@@ -31,6 +32,7 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [Data Model](./data-model.md) - the four tables, state checks, migration history.
 - [How Processing Works](./processing.md) - claiming and leases, incremental exploration, inventory recording, failures and retries, finishing a job, paths.
 - [API and MCP](./api.md) - REST routes and the agent's MCP tools.
+- [Exclusion Rules, Review and Audit](./exclusion-review-audit.md) - rules, review dispositions, and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
 - [Running, Testing and Next Steps](./operations.md) - how to run and test, and what is left.
