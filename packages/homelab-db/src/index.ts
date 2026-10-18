@@ -21,33 +21,39 @@ export {
 export type { CreateHostInput, UpdateHostInput } from './queries/hosts';
 
 export {
-  backupSources,
+  sources,
   discoveryJobs,
   discoveryQueueItems,
-  backupSourceTypeEnum,
+  inventoryItems,
+  inventoryItemTypeEnum,
+  sourceTypeEnum,
   discoveryJobStatusEnum,
   discoveryQueueItemStatusEnum,
-  backupSourceSelectSchema,
+  sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
+  inventoryItemSelectSchema,
 } from './schema/discovery';
 export type {
-  BackupSource,
-  NewBackupSource,
-  BackupSourceType,
+  Source,
+  NewSource,
+  SourceType,
   DiscoveryJob,
   NewDiscoveryJob,
   DiscoveryJobStatus,
   DiscoveryQueueItem,
   NewDiscoveryQueueItem,
   DiscoveryQueueItemStatus,
+  InventoryItem,
+  NewInventoryItem,
+  InventoryItemType,
 } from './schema/discovery';
 
 export {
   DiscoveryError,
-  createBackupSource,
-  listBackupSources,
-  getBackupSourceById,
+  createSource,
+  listSources,
+  getSourceById,
   getQueueCounts,
   createDiscoveryJob,
   getDiscoveryJobById,
@@ -65,9 +71,11 @@ export {
   skipQueueItem,
   retryQueueItem,
   retryDelaySeconds,
+  recordInventoryItems,
+  listInventoryItems,
 } from './queries/discovery';
 export type {
-  CreateBackupSourceInput,
+  CreateSourceInput,
   QueuePath,
   QueueCounts,
   CreateDiscoveryJobInput,
@@ -76,8 +84,13 @@ export type {
   ListQueueItemsOptions,
   EnqueueQueueItemsInput,
   ClaimQueueItemInput,
+  ClaimQueueItemResult,
+  ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,
+  InventoryPath,
+  RecordInventoryItemsInput,
+  ListInventoryItemsOptions,
 } from './queries/discovery';
 
 export {

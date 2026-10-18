@@ -43,6 +43,27 @@
       "when": 1792278834003,
       "tag": "0005_fuzzy_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792280844659,
+      "tag": "0006_job_scoped_queue_inventory",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792331079549,
+      "tag": "0007_state_checks",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792336263533,
+      "tag": "0008_rename_backup_sources_to_sources",
+      "breakpoints": true
     }
   ]
 }

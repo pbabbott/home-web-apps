@@ -1,4 +1,5 @@
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import swaggerUi from 'swagger-ui-express';
 import {
   configureBaseServerMiddleware,
@@ -11,25 +12,31 @@ import {
 } from '@abbottland/express';
 import { config } from './config';
 import { getMap } from './controllers/maps';
+import { createSource, listSources } from './controllers/discovery/sources';
 import {
   cancelDiscoveryJob,
-  claimQueueItem,
   completeDiscoveryJob,
-  completeQueueItem,
-  createBackupSource,
   createDiscoveryJob,
-  enqueueQueueItems,
   failDiscoveryJob,
-  failQueueItem,
   getDiscoveryJob,
-  heartbeatQueueItem,
-  listBackupSources,
   listDiscoveryJobs,
   listSourceJobs,
+} from './controllers/discovery/discovery-jobs';
+import {
+  claimQueueItem,
+  completeQueueItem,
+  enqueueQueueItems,
+  failQueueItem,
+  heartbeatQueueItem,
+  listJobQueueItems,
   listSourceQueueItems,
   retryQueueItem,
   skipQueueItem,
-} from './controllers/discovery';
+} from './controllers/discovery/queue-items';
+import {
+  listSourceInventoryItems,
+  recordInventoryItems,
+} from './controllers/discovery/inventory-items';
 import {
   createHost,
   deleteHost,
@@ -46,20 +53,24 @@ import {
   getPodCpuMetrics,
   getPodMemoryMetrics,
 } from './controllers/pod-metrics';
+import { createMcpServer } from './mcp';
 import { openApiSpec } from './openapi';
 import {
   claimQueueItemBodySchema,
   completeQueueItemBodySchema,
-  createBackupSourceBodySchema,
+  createSourceBodySchema,
   createDiscoveryJobBodySchema,
   enqueueQueueItemsBodySchema,
   failDiscoveryJobBodySchema,
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
+  inventoryItemListQuerySchema,
   jobIdParamsSchema,
   jobListQuerySchema,
+  jobQueueItemListQuerySchema,
   queueItemIdParamsSchema,
   queueItemListQuerySchema,
+  recordInventoryItemsBodySchema,
   skipQueueItemBodySchema,
   sourceIdParamsSchema,
 } from './schemas/discovery';
@@ -77,6 +88,36 @@ import {
 } from './schemas/pods';
 
 export const DOCS_ROUTE = '/docs';
+export const MCP_ROUTE = '/mcp';
+
+// Mirrors the JSON-RPC error shape the MCP SDK itself returns for
+// unsupported methods (see StreamableHTTPServerTransport#handleUnsupportedRequest).
+const methodNotAllowed = (_req: Request, res: Response) => {
+  res.set('Allow', 'POST');
+  res.status(405).json({
+    jsonrpc: '2.0',
+    error: { code: -32000, message: 'Method not allowed.' },
+    id: null,
+  });
+};
+
+// Stateless MCP handler: a fresh McpServer + transport per request, no session
+// store, so it works across replicas without sticky sessions. GET/DELETE are
+// rejected since there is no session to stream to or close.
+const handleMcpRequest = async (req: Request, res: Response) => {
+  const server = createMcpServer();
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: undefined,
+  });
+
+  res.on('close', () => {
+    transport.close();
+    server.close();
+  });
+
+  await server.connect(transport);
+  await transport.handleRequest(req, res, req.body);
+};
 
 export const createServer = (): Express => {
   const app = express();
@@ -146,28 +187,36 @@ export const createServer = (): Express => {
   );
   app.delete('/hosts/:id', validateParams(hostIdParamsSchema), deleteHost);
 
-  app.get('/backup-sources', listBackupSources);
+  app.get('/sources', listSources);
+  app.post('/sources', validateBody(createSourceBodySchema), createSource);
   app.post(
-    '/backup-sources',
-    validateBody(createBackupSourceBodySchema),
-    createBackupSource,
-  );
-  app.post(
-    '/backup-sources/:id/discovery-jobs',
+    '/sources/:id/discovery-jobs',
     validateParams(sourceIdParamsSchema),
     validateBody(createDiscoveryJobBodySchema),
     createDiscoveryJob,
   );
   app.get(
-    '/backup-sources/:id/discovery-jobs',
+    '/sources/:id/discovery-jobs',
     validateParams(sourceIdParamsSchema),
     listSourceJobs,
   );
   app.get(
-    '/backup-sources/:id/queue-items',
+    '/sources/:id/queue-items',
     validateParams(sourceIdParamsSchema),
     validateQuery(queueItemListQuerySchema),
     listSourceQueueItems,
+  );
+  app.get(
+    '/sources/:id/inventory-items',
+    validateParams(sourceIdParamsSchema),
+    validateQuery(inventoryItemListQuerySchema),
+    listSourceInventoryItems,
+  );
+  app.get(
+    '/discovery-jobs/:id/queue-items',
+    validateParams(jobIdParamsSchema),
+    validateQuery(jobQueueItemListQuerySchema),
+    listJobQueueItems,
   );
   app.get(
     '/discovery-jobs',
@@ -214,6 +263,12 @@ export const createServer = (): Express => {
     heartbeatQueueItem,
   );
   app.post(
+    '/queue-items/:id/inventory-items',
+    validateParams(queueItemIdParamsSchema),
+    validateBody(recordInventoryItemsBodySchema),
+    recordInventoryItems,
+  );
+  app.post(
     '/queue-items/:id/complete',
     validateParams(queueItemIdParamsSchema),
     validateBody(completeQueueItemBodySchema),
@@ -237,6 +292,11 @@ export const createServer = (): Express => {
     retryQueueItem,
   );
 
+  app
+    .post(MCP_ROUTE, handleMcpRequest)
+    .get(MCP_ROUTE, methodNotAllowed)
+    .delete(MCP_ROUTE, methodNotAllowed);
+
   configureErrorHandler(app);
 
   return app;
@@ -250,5 +310,6 @@ export const startServer = () => {
   server.listen(port, () => {
     console.log(`homelab-api running on ${port}`);
     console.log(`📚 Swagger docs: http://localhost:${port}${DOCS_ROUTE}`);
+    console.log(`🔌 MCP endpoint: http://localhost:${port}${MCP_ROUTE}`);
   });
 };

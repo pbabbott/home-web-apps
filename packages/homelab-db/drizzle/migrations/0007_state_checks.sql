@@ -1,0 +1,3 @@
+ALTER TABLE "discovery_queue_items" ADD CONSTRAINT "discovery_queue_items_attempts_check" CHECK ("discovery_queue_items"."attempt_count" >= 0 and "discovery_queue_items"."attempt_count" <= "discovery_queue_items"."max_attempts");--> statement-breakpoint
+ALTER TABLE "discovery_queue_items" ADD CONSTRAINT "discovery_queue_items_lease_check" CHECK ("discovery_queue_items"."status" <> 'in_progress' or ("discovery_queue_items"."claimed_by" is not null and "discovery_queue_items"."claim_token" is not null and "discovery_queue_items"."lease_expires_at" is not null));--> statement-breakpoint
+ALTER TABLE "inventory_items" ADD CONSTRAINT "inventory_items_size_check" CHECK ("inventory_items"."size_bytes" is null or "inventory_items"."size_bytes" >= 0);

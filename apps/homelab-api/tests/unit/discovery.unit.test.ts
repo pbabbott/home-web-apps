@@ -7,8 +7,8 @@ jest.mock('../../src/services/discovery', () => {
 
   return {
     DiscoveryError: actual.DiscoveryError,
-    createBackupSource: jest.fn(),
-    listBackupSources: jest.fn(),
+    createSource: jest.fn(),
+    listSources: jest.fn(),
     createDiscoveryJob: jest.fn(),
     getDiscoveryJob: jest.fn(),
     completeJob: jest.fn(),
@@ -17,6 +17,9 @@ jest.mock('../../src/services/discovery', () => {
     enqueuePaths: jest.fn(),
     claimQueueItem: jest.fn(),
     listSourceQueueItems: jest.fn(),
+    listJobQueueItems: jest.fn(),
+    recordInventory: jest.fn(),
+    listSourceInventory: jest.fn(),
     listSourceJobs: jest.fn(),
     listAllJobs: jest.fn(),
     heartbeat: jest.fn(),
@@ -44,16 +47,16 @@ describe('discovery routes', () => {
     jest.resetAllMocks();
   });
 
-  describe('POST /backup-sources', () => {
+  describe('POST /sources', () => {
     it('defaults sourceType to windows', async () => {
-      mocked.createBackupSource.mockResolvedValue({ id: ID } as never);
+      mocked.createSource.mockResolvedValue({ id: ID } as never);
 
       await supertest(createServer())
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name: 'win11-desktop', hostId: HOST_ID })
         .expect(201);
 
-      expect(mocked.createBackupSource).toHaveBeenCalledWith({
+      expect(mocked.createSource).toHaveBeenCalledWith({
         name: 'win11-desktop',
         hostId: HOST_ID,
         sourceType: 'windows',
@@ -61,14 +64,14 @@ describe('discovery routes', () => {
     });
 
     it('accepts a missing hostId', async () => {
-      mocked.createBackupSource.mockResolvedValue({ id: ID } as never);
+      mocked.createSource.mockResolvedValue({ id: ID } as never);
 
       await supertest(createServer())
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name: 'win11-desktop' })
         .expect(201);
 
-      expect(mocked.createBackupSource).toHaveBeenCalledWith({
+      expect(mocked.createSource).toHaveBeenCalledWith({
         name: 'win11-desktop',
         sourceType: 'windows',
       });
@@ -76,29 +79,29 @@ describe('discovery routes', () => {
 
     it('rejects a non-uuid hostId', async () => {
       await supertest(createServer())
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name: 'win11-desktop', hostId: 'ELDERWAND' })
         .expect(400);
     });
 
     it('maps an unknown host to 404', async () => {
-      mocked.createBackupSource.mockRejectedValue(
+      mocked.createSource.mockRejectedValue(
         new service.DiscoveryError('not_found', 'host not found'),
       );
 
       await supertest(createServer())
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name: 'win11-desktop', hostId: HOST_ID })
         .expect(404);
     });
 
     it('maps a duplicate name to 409', async () => {
-      mocked.createBackupSource.mockRejectedValue(
+      mocked.createSource.mockRejectedValue(
         new service.DiscoveryError('conflict', 'name already exists'),
       );
 
       const res = await supertest(createServer())
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name: 'win11-desktop', hostId: HOST_ID })
         .expect(409);
 
@@ -106,14 +109,14 @@ describe('discovery routes', () => {
     });
   });
 
-  describe('POST /backup-sources/:id/discovery-jobs', () => {
+  describe('POST /sources/:id/discovery-jobs', () => {
     it.each([
       ['a relative path', 'Users\\You'],
       ['a path with ..', 'C:\\Users\\..\\Windows'],
       ['an empty path', ''],
     ])('rejects %s', async (_label, rootPath) => {
       const res = await supertest(createServer())
-        .post(`/backup-sources/${ID}/discovery-jobs`)
+        .post(`/sources/${ID}/discovery-jobs`)
         .send({ rootPath })
         .expect(400);
 
@@ -123,7 +126,7 @@ describe('discovery routes', () => {
 
     it('rejects a non-uuid source id', async () => {
       await supertest(createServer())
-        .post('/backup-sources/nope/discovery-jobs')
+        .post('/sources/nope/discovery-jobs')
         .send({ rootPath: 'C:\\Users\\You' })
         .expect(400);
     });
@@ -132,7 +135,7 @@ describe('discovery routes', () => {
       mocked.createDiscoveryJob.mockResolvedValue({ id: ID } as never);
 
       await supertest(createServer())
-        .post(`/backup-sources/${ID}/discovery-jobs`)
+        .post(`/sources/${ID}/discovery-jobs`)
         .send({ rootPath: 'C:\\Users\\You' })
         .expect(201);
 
@@ -144,11 +147,11 @@ describe('discovery routes', () => {
 
     it('maps an unknown source to 404', async () => {
       mocked.createDiscoveryJob.mockRejectedValue(
-        new service.DiscoveryError('not_found', 'backup source not found'),
+        new service.DiscoveryError('not_found', 'source not found'),
       );
 
       await supertest(createServer())
-        .post(`/backup-sources/${ID}/discovery-jobs`)
+        .post(`/sources/${ID}/discovery-jobs`)
         .send({ rootPath: 'C:\\Users\\You' })
         .expect(404);
     });
@@ -203,26 +206,35 @@ describe('discovery routes', () => {
   });
 
   describe('POST /discovery-jobs/:id/queue-items/claim', () => {
-    it('returns 204 when nothing is claimable', async () => {
-      mocked.claimQueueItem.mockResolvedValue(undefined);
+    it('answers 200 with the reason when nothing is claimable', async () => {
+      const idle = {
+        item: null,
+        reason: 'retry_backoff',
+        retryAt: '2026-10-18T12:00:00.000Z',
+        queueCounts: { queued: 1 },
+      };
+      mocked.claimQueueItem.mockResolvedValue(idle as never);
 
-      await supertest(createServer())
+      const res = await supertest(createServer())
         .post(`/discovery-jobs/${ID}/queue-items/claim`)
         .send({ workerId: 'w1' })
-        .expect(204);
+        .expect(200);
 
+      expect(res.body).toEqual(idle);
       expect(mocked.claimQueueItem).toHaveBeenCalledWith(ID, 'w1', 300);
     });
 
     it('returns the claimed item', async () => {
-      mocked.claimQueueItem.mockResolvedValue({ id: TOKEN } as never);
+      mocked.claimQueueItem.mockResolvedValue({
+        item: { id: TOKEN },
+      } as never);
 
       const res = await supertest(createServer())
         .post(`/discovery-jobs/${ID}/queue-items/claim`)
         .send({ workerId: 'w1', leaseSeconds: 60 })
         .expect(200);
 
-      expect(res.body.id).toBe(TOKEN);
+      expect(res.body.item.id).toBe(TOKEN);
     });
 
     it('rejects a lease over an hour', async () => {
@@ -343,12 +355,12 @@ describe('discovery routes', () => {
     });
   });
 
-  describe('GET /backup-sources/:id/discovery-jobs', () => {
+  describe('GET /sources/:id/discovery-jobs', () => {
     it('returns the jobs', async () => {
       mocked.listSourceJobs.mockResolvedValue([{ id: TOKEN }] as never);
 
       const res = await supertest(createServer())
-        .get(`/backup-sources/${ID}/discovery-jobs`)
+        .get(`/sources/${ID}/discovery-jobs`)
         .expect(200);
 
       expect(res.body).toEqual([{ id: TOKEN }]);
@@ -357,19 +369,19 @@ describe('discovery routes', () => {
 
     it('maps an unknown source to 404', async () => {
       mocked.listSourceJobs.mockRejectedValue(
-        new service.DiscoveryError('not_found', 'backup source not found'),
+        new service.DiscoveryError('not_found', 'source not found'),
       );
 
       await supertest(createServer())
-        .get(`/backup-sources/${ID}/discovery-jobs`)
+        .get(`/sources/${ID}/discovery-jobs`)
         .expect(404);
     });
   });
 
-  describe('GET /backup-sources/:id/queue-items', () => {
+  describe('GET /sources/:id/queue-items', () => {
     it('rejects an unknown status filter', async () => {
       await supertest(createServer())
-        .get(`/backup-sources/${ID}/queue-items`)
+        .get(`/sources/${ID}/queue-items`)
         .query({ status: 'bogus' })
         .expect(400);
     });
@@ -378,7 +390,7 @@ describe('discovery routes', () => {
       mocked.listSourceQueueItems.mockResolvedValue([]);
 
       await supertest(createServer())
-        .get(`/backup-sources/${ID}/queue-items`)
+        .get(`/sources/${ID}/queue-items`)
         .query({ status: 'failed' })
         .expect(200);
 
@@ -388,18 +400,196 @@ describe('discovery routes', () => {
     });
   });
 
+  describe('GET /discovery-jobs/:id/queue-items', () => {
+    it('rejects an unknown status filter', async () => {
+      await supertest(createServer())
+        .get(`/discovery-jobs/${ID}/queue-items`)
+        .query({ status: 'bogus' })
+        .expect(400);
+    });
+
+    it('passes the status filter to the service', async () => {
+      mocked.listJobQueueItems.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get(`/discovery-jobs/${ID}/queue-items`)
+        .query({ status: 'queued' })
+        .expect(200);
+
+      expect(mocked.listJobQueueItems).toHaveBeenCalledWith(ID, {
+        status: 'queued',
+      });
+    });
+
+    it('maps a missing job to 404', async () => {
+      mocked.listJobQueueItems.mockRejectedValue(
+        new service.DiscoveryError('not_found', 'discovery job not found'),
+      );
+
+      await supertest(createServer())
+        .get(`/discovery-jobs/${ID}/queue-items`)
+        .expect(404);
+    });
+  });
+
+  describe('POST /queue-items/:id/inventory-items', () => {
+    const file = {
+      path: 'C:\\Users\\You\\report.pdf',
+      itemType: 'file',
+      sizeBytes: 1024,
+      modifiedAt: '2026-10-17T12:00:00Z',
+    };
+
+    it('passes validated items to the service and flags created', async () => {
+      mocked.recordInventory.mockResolvedValue([
+        { item: { id: ID }, created: true },
+      ] as never);
+
+      const res = await supertest(createServer())
+        .post(`/queue-items/${ID}/inventory-items`)
+        .send({ claimToken: TOKEN, items: [file] })
+        .expect(200);
+
+      expect(mocked.recordInventory).toHaveBeenCalledWith(ID, TOKEN, [file]);
+      expect(res.body).toEqual([{ id: ID, created: true }]);
+    });
+
+    it.each([
+      ['missing claimToken', { items: [file] }],
+      ['empty items', { claimToken: TOKEN, items: [] }],
+      ['too many items', { claimToken: TOKEN, items: Array(201).fill(file) }],
+      [
+        'relative path',
+        { claimToken: TOKEN, items: [{ ...file, path: 'docs\\a.txt' }] },
+      ],
+      [
+        'unknown itemType',
+        { claimToken: TOKEN, items: [{ ...file, itemType: 'symlink' }] },
+      ],
+      [
+        'negative size',
+        { claimToken: TOKEN, items: [{ ...file, sizeBytes: -1 }] },
+      ],
+      [
+        'fractional size',
+        { claimToken: TOKEN, items: [{ ...file, sizeBytes: 1.5 }] },
+      ],
+      [
+        'bad modifiedAt',
+        { claimToken: TOKEN, items: [{ ...file, modifiedAt: 'yesterday' }] },
+      ],
+    ])('rejects %s', async (_label, body) => {
+      await supertest(createServer())
+        .post(`/queue-items/${ID}/inventory-items`)
+        .send(body)
+        .expect(400);
+
+      expect(mocked.recordInventory).not.toHaveBeenCalled();
+    });
+
+    it('accepts items without size or modifiedAt', async () => {
+      mocked.recordInventory.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .post(`/queue-items/${ID}/inventory-items`)
+        .send({
+          claimToken: TOKEN,
+          items: [{ path: 'C:\\Users\\You\\Docs', itemType: 'directory' }],
+        })
+        .expect(200);
+    });
+
+    it('maps a lost claim to 409 and an unknown item to 404', async () => {
+      mocked.recordInventory.mockRejectedValueOnce(
+        new service.DiscoveryError('conflict', 'claim is no longer valid'),
+      );
+      mocked.recordInventory.mockRejectedValueOnce(
+        new service.DiscoveryError('not_found', 'queue item not found'),
+      );
+
+      const send = () =>
+        supertest(createServer())
+          .post(`/queue-items/${ID}/inventory-items`)
+          .send({ claimToken: TOKEN, items: [file] });
+
+      await send().expect(409);
+      await send().expect(404);
+    });
+
+    it('returns the offending paths when outside the claimed directory', async () => {
+      mocked.recordInventory.mockRejectedValue(
+        new service.DiscoveryError('conflict', 'paths are not inside', {
+          paths: ['D:\\x'],
+        }),
+      );
+
+      const res = await supertest(createServer())
+        .post(`/queue-items/${ID}/inventory-items`)
+        .send({ claimToken: TOKEN, items: [file] })
+        .expect(409);
+
+      expect(res.body.paths).toEqual(['D:\\x']);
+    });
+  });
+
+  describe('GET /sources/:id/inventory-items', () => {
+    it('defaults limit and passes filters through', async () => {
+      mocked.listSourceInventory.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get(`/sources/${ID}/inventory-items`)
+        .query({
+          jobId: TOKEN,
+          itemType: 'file',
+          parentPath: 'C:\\Users\\You',
+          pathPrefix: 'C:\\Users',
+        })
+        .expect(200);
+
+      expect(mocked.listSourceInventory).toHaveBeenCalledWith(ID, {
+        jobId: TOKEN,
+        itemType: 'file',
+        parentPath: 'C:\\Users\\You',
+        pathPrefix: 'C:\\Users',
+        limit: 500,
+      });
+    });
+
+    it('coerces limit from the query string', async () => {
+      mocked.listSourceInventory.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get(`/sources/${ID}/inventory-items`)
+        .query({ limit: '25', after: 'c:\\a' })
+        .expect(200);
+
+      expect(mocked.listSourceInventory).toHaveBeenCalledWith(ID, {
+        after: 'c:\\a',
+        limit: 25,
+      });
+    });
+
+    it.each([
+      ['itemType', { itemType: 'symlink' }],
+      ['jobId', { jobId: 'nope' }],
+      ['parentPath', { parentPath: 'relative\\dir' }],
+      ['limit above max', { limit: '1001' }],
+      ['limit zero', { limit: '0' }],
+    ])('rejects a bad %s', async (_label, query) => {
+      await supertest(createServer())
+        .get(`/sources/${ID}/inventory-items`)
+        .query(query)
+        .expect(400);
+    });
+  });
+
   it('logs and returns a generic message on an unexpected error', async () => {
     const err = new Error('connection reset');
-    mocked.listBackupSources.mockRejectedValue(err);
+    mocked.listSources.mockRejectedValue(err);
 
-    const res = await supertest(createServer())
-      .get('/backup-sources')
-      .expect(500);
+    const res = await supertest(createServer()).get('/sources').expect(500);
 
     expect(res.body).toEqual({ message: 'internal server error' });
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'GET /backup-sources failed:',
-      err,
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('GET /sources failed:', err);
   });
 });

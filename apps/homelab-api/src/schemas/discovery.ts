@@ -29,7 +29,7 @@ export type JobIdParams = z.infer<typeof jobIdParamsSchema>;
 export const queueItemIdParamsSchema = z.object({ id: z.uuid() });
 export type QueueItemIdParams = z.infer<typeof queueItemIdParamsSchema>;
 
-export const createBackupSourceBodySchema = z.object({
+export const createSourceBodySchema = z.object({
   name: z.string().min(1).meta({ example: 'win11-desktop' }),
   hostId: z.uuid().optional().meta({
     description:
@@ -37,9 +37,7 @@ export const createBackupSourceBodySchema = z.object({
   }),
   sourceType: z.enum(['windows']).default('windows'),
 });
-export type CreateBackupSourceBody = z.infer<
-  typeof createBackupSourceBodySchema
->;
+export type CreateSourceBody = z.infer<typeof createSourceBodySchema>;
 
 export const createDiscoveryJobBodySchema = z.object({
   rootPath: windowsPathSchema.meta({
@@ -79,7 +77,7 @@ export type ClaimQueueItemBody = z.infer<typeof claimQueueItemBodySchema>;
 
 export const jobListQuerySchema = z.object({
   sourceId: z.uuid().optional().meta({
-    description: 'Only this backup source’s jobs. Omit for all jobs.',
+    description: 'Only this source’s jobs. Omit for all jobs.',
   }),
 });
 export type JobListQuery = z.infer<typeof jobListQuerySchema>;
@@ -132,3 +130,61 @@ export const skipQueueItemBodySchema = z.object({
   reason: z.string().min(1).meta({ example: 'system directory' }),
 });
 export type SkipQueueItemBody = z.infer<typeof skipQueueItemBodySchema>;
+
+export const jobQueueItemListQuerySchema = z.object({
+  status: queueItemListQuerySchema.shape.status,
+});
+export type JobQueueItemListQuery = z.infer<typeof jobQueueItemListQuerySchema>;
+
+// Kept small so a worst-case batch (260-char paths) stays under the shared
+// Express json() body limit of 100kb.
+export const MAX_INVENTORY_ITEMS_PER_REQUEST = 200;
+
+export const recordInventoryItemsBodySchema = z.object({
+  claimToken: claimTokenSchema,
+  items: z
+    .array(
+      z.object({
+        path: windowsPathSchema.meta({
+          description:
+            'Absolute path of a file or directory inside the claimed directory.',
+        }),
+        itemType: z.enum(['file', 'directory']),
+        sizeBytes: z
+          .number()
+          .int()
+          .min(0)
+          .max(Number.MAX_SAFE_INTEGER)
+          .optional(),
+        modifiedAt: z.iso.datetime({ offset: true }).optional().meta({
+          description: 'Last-modified time on the source machine.',
+        }),
+      }),
+    )
+    .min(1)
+    .max(MAX_INVENTORY_ITEMS_PER_REQUEST),
+});
+export type RecordInventoryItemsBody = z.infer<
+  typeof recordInventoryItemsBodySchema
+>;
+
+export const inventoryItemListQuerySchema = z.object({
+  jobId: z.uuid().optional().meta({
+    description: 'Only items last seen by this job.',
+  }),
+  itemType: z.enum(['file', 'directory']).optional(),
+  parentPath: windowsPathSchema.optional().meta({
+    description: 'Only direct children of this directory.',
+  }),
+  pathPrefix: windowsPathSchema.optional().meta({
+    description: 'Only items at or beneath this path prefix.',
+  }),
+  after: z.string().min(1).optional().meta({
+    description:
+      'Cursor: the normalizedPath of the last item of the previous page.',
+  }),
+  limit: z.coerce.number().int().min(1).max(1000).default(500),
+});
+export type InventoryItemListQuery = z.infer<
+  typeof inventoryItemListQuerySchema
+>;

@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
+  bigint,
+  check,
   index,
   integer,
   pgEnum,
@@ -13,7 +15,7 @@ import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { hosts } from './hosts';
 
-export const backupSourceTypeEnum = pgEnum('backup_source_type', ['windows']);
+export const sourceTypeEnum = pgEnum('source_type', ['windows']);
 
 export const discoveryJobStatusEnum = pgEnum('discovery_job_status', [
   'pending',
@@ -28,17 +30,22 @@ export const discoveryQueueItemStatusEnum = pgEnum(
   ['queued', 'in_progress', 'completed', 'failed', 'skipped'],
 );
 
+export const inventoryItemTypeEnum = pgEnum('inventory_item_type', [
+  'file',
+  'directory',
+]);
+
 /**
  * A machine/filesystem being inventoried for the exodus file migration.
  * hostId optionally ties it to a registered host (join on hosts.id for
  * name/IP); null for a machine that isn't registered. RESTRICT so deleting a
  * host can't silently wipe its discovery history.
  */
-export const backupSources = pgTable('backup_sources', {
+export const sources = pgTable('sources', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull().unique(),
   hostId: uuid('host_id').references(() => hosts.id, { onDelete: 'restrict' }),
-  sourceType: backupSourceTypeEnum('source_type').notNull().default('windows'),
+  sourceType: sourceTypeEnum('source_type').notNull().default('windows'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -59,7 +66,7 @@ export const discoveryJobs = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     sourceId: uuid('source_id')
       .notNull()
-      .references(() => backupSources.id, { onDelete: 'cascade' }),
+      .references(() => sources.id, { onDelete: 'cascade' }),
     rootPath: text('root_path').notNull(),
     normalizedRootPath: text('normalized_root_path').notNull(),
     status: discoveryJobStatusEnum('status').notNull().default('pending'),
@@ -81,21 +88,20 @@ export const discoveryJobs = pgTable(
 );
 
 /**
- * A directory awaiting inspection. `path` keeps the display form (original
- * case); `normalizedPath` is the lowercased canonical form used for dedupe.
- * An item is leased to a worker while `in_progress`: `claimToken` identifies
- * the current claim and `leaseExpiresAt` lets abandoned work be reclaimed.
+ * One directory to explore within a discovery job. The job owns the
+ * lifecycle; the item tracks only its own unit of work. `path` keeps the
+ * display form (original case); `normalizedPath` is the lowercased canonical
+ * form, unique per job. An item is leased to a worker while `in_progress`:
+ * `claimToken` identifies the current claim and `leaseExpiresAt` lets
+ * abandoned work be reclaimed. The source is reached through the job.
  */
 export const discoveryQueueItems = pgTable(
   'discovery_queue_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    sourceId: uuid('source_id')
+    jobId: uuid('job_id')
       .notNull()
-      .references(() => backupSources.id, { onDelete: 'cascade' }),
-    jobId: uuid('job_id').references(() => discoveryJobs.id, {
-      onDelete: 'set null',
-    }),
+      .references(() => discoveryJobs.id, { onDelete: 'cascade' }),
     path: text('path').notNull(),
     normalizedPath: text('normalized_path').notNull(),
     status: discoveryQueueItemStatusEnum('status').notNull().default('queued'),
@@ -118,22 +124,91 @@ export const discoveryQueueItems = pgTable(
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('discovery_queue_items_source_path_unique').on(
-      table.sourceId,
+    uniqueIndex('discovery_queue_items_job_path_unique').on(
+      table.jobId,
       table.normalizedPath,
     ),
     index('discovery_queue_items_claim_idx').on(
-      table.sourceId,
+      table.jobId,
       table.status,
       table.priority.desc(),
       table.availableAt,
     ),
+    // Legal states, enforced by the database as well as the queries.
+    check(
+      'discovery_queue_items_attempts_check',
+      sql`${table.attemptCount} >= 0 and ${table.attemptCount} <= ${table.maxAttempts}`,
+    ),
+    check(
+      'discovery_queue_items_lease_check',
+      sql`${table.status} <> 'in_progress' or (${table.claimedBy} is not null and ${table.claimToken} is not null and ${table.leaseExpiresAt} is not null)`,
+    ),
   ],
 );
 
-export type BackupSource = typeof backupSources.$inferSelect;
-export type NewBackupSource = typeof backupSources.$inferInsert;
-export type BackupSourceType = (typeof backupSourceTypeEnum.enumValues)[number];
+/**
+ * A file or directory found while exploring a source. Identity is the
+ * source + normalized (lowercased) path, so rediscovery by any job updates
+ * the same row. Only filesystem facts are overwritten on rediscovery; any
+ * review/copy state added later lives in other columns and is left alone.
+ * `firstJobId`/`lastJobId` record which runs found it.
+ */
+export const inventoryItems = pgTable(
+  'inventory_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => sources.id, { onDelete: 'cascade' }),
+    firstJobId: uuid('first_job_id').references(() => discoveryJobs.id, {
+      onDelete: 'set null',
+    }),
+    lastJobId: uuid('last_job_id').references(() => discoveryJobs.id, {
+      onDelete: 'set null',
+    }),
+    itemType: inventoryItemTypeEnum('item_type').notNull(),
+    path: text('path').notNull(),
+    normalizedPath: text('normalized_path').notNull(),
+    parentPath: text('parent_path'),
+    normalizedParentPath: text('normalized_parent_path'),
+    name: text('name').notNull(),
+    extension: text('extension'),
+    sizeBytes: bigint('size_bytes', { mode: 'number' }),
+    modifiedAt: timestamp('modified_at', { withTimezone: true }),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('inventory_items_source_path_unique').on(
+      table.sourceId,
+      table.normalizedPath,
+    ),
+    index('inventory_items_parent_idx').on(
+      table.sourceId,
+      table.normalizedParentPath,
+    ),
+    index('inventory_items_last_job_idx').on(table.lastJobId),
+    index('inventory_items_type_idx').on(table.sourceId, table.itemType),
+    check(
+      'inventory_items_size_check',
+      sql`${table.sizeBytes} is null or ${table.sizeBytes} >= 0`,
+    ),
+  ],
+);
+
+export type Source = typeof sources.$inferSelect;
+export type NewSource = typeof sources.$inferInsert;
+export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
 
 export type DiscoveryJob = typeof discoveryJobs.$inferSelect;
 export type NewDiscoveryJob = typeof discoveryJobs.$inferInsert;
@@ -145,9 +220,14 @@ export type NewDiscoveryQueueItem = typeof discoveryQueueItems.$inferInsert;
 export type DiscoveryQueueItemStatus =
   (typeof discoveryQueueItemStatusEnum.enumValues)[number];
 
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+export type NewInventoryItem = typeof inventoryItems.$inferInsert;
+export type InventoryItemType =
+  (typeof inventoryItemTypeEnum.enumValues)[number];
+
 const dateTime = (schema: z.ZodDate) => schema.meta({ format: 'date-time' });
 
-export const backupSourceSelectSchema = createSelectSchema(backupSources, {
+export const sourceSelectSchema = createSelectSchema(sources, {
   createdAt: dateTime,
   updatedAt: dateTime,
 });
@@ -169,3 +249,11 @@ export const discoveryQueueItemSelectSchema = createSelectSchema(
     completedAt: dateTime,
   },
 );
+
+export const inventoryItemSelectSchema = createSelectSchema(inventoryItems, {
+  modifiedAt: dateTime,
+  firstSeenAt: dateTime,
+  lastSeenAt: dateTime,
+  createdAt: dateTime,
+  updatedAt: dateTime,
+});

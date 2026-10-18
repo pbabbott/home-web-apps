@@ -8,7 +8,7 @@ const createdSourceIds: string[] = [];
 const createdHostIds: string[] = [];
 
 afterEach(async () => {
-  await db.$client.query('delete from backup_sources where id = any($1)', [
+  await db.$client.query('delete from sources where id = any($1)', [
     createdSourceIds,
   ]);
   await db.$client.query('delete from hosts where id = any($1)', [
@@ -47,7 +47,7 @@ type Item = {
 
 const createSource = async (): Promise<string> => {
   const res = await getRequest()
-    .post('/backup-sources')
+    .post('/sources')
     .send({
       name: `exodus-test-${Math.random().toString(36).slice(2)}`,
       hostId: await createHost(),
@@ -60,7 +60,7 @@ const createSource = async (): Promise<string> => {
 
 const startJob = async (sourceId: string, rootPath = ROOT) => {
   const res = await getRequest()
-    .post(`/backup-sources/${sourceId}/discovery-jobs`)
+    .post(`/sources/${sourceId}/discovery-jobs`)
     .send({ rootPath })
     .expect(201);
 
@@ -74,8 +74,21 @@ const claim = (jobId: string, workerId = 'worker-a', leaseSeconds = 300) =>
 
 const claimOk = async (jobId: string, workerId?: string): Promise<Item> => {
   const res = await claim(jobId, workerId).expect(200);
+  expect(res.body.item).not.toBeNull();
 
-  return res.body;
+  return res.body.item;
+};
+
+/** A claim that finds nothing still answers 200, with the reason. */
+const claimIdle = async (jobId: string, workerId?: string) => {
+  const res = await claim(jobId, workerId).expect(200);
+  expect(res.body.item).toBeNull();
+
+  return res.body as {
+    reason: 'queue_empty' | 'retry_backoff' | 'in_progress';
+    retryAt: string | null;
+    queueCounts: Record<string, number>;
+  };
 };
 
 const complete = (item: Item, discoveredPaths: string[] = []) =>
@@ -94,8 +107,16 @@ const getJob = async (jobId: string) =>
 const listItems = async (sourceId: string, query: object = {}) =>
   (
     await getRequest()
-      .get(`/backup-sources/${sourceId}/queue-items`)
+      .get(`/sources/${sourceId}/queue-items`)
       .query(query)
+      .expect(200)
+  ).body as Item[];
+
+const jobItems = async (jobId: string, status?: string) =>
+  (
+    await getRequest()
+      .get(`/discovery-jobs/${jobId}/queue-items`)
+      .query(status ? { status } : {})
       .expect(200)
   ).body as Item[];
 
@@ -111,11 +132,11 @@ const skipBackoff = (itemId: string) =>
     [itemId],
   );
 
-describe('backup sources', () => {
+describe('sources', () => {
   it('creates and lists sources', async () => {
     const id = await createSource();
 
-    const res = await getRequest().get('/backup-sources').expect(200);
+    const res = await getRequest().get('/sources').expect(200);
 
     expect(res.body.map((s: { id: string }) => s.id)).toContain(id);
   });
@@ -123,20 +144,20 @@ describe('backup sources', () => {
   it('rejects a duplicate name', async () => {
     const hostId = await createHost();
     const res = await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({ name: 'exodus-test-dupe', hostId })
       .expect(201);
     createdSourceIds.push(res.body.id);
 
     await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({ name: 'exodus-test-dupe', hostId })
       .expect(409);
   });
 
   it('creates a source without a host', async () => {
     const res = await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({ name: 'exodus-test-nohostid' })
       .expect(201);
     createdSourceIds.push(res.body.id);
@@ -146,7 +167,7 @@ describe('backup sources', () => {
 
   it('rejects a host that does not exist', async () => {
     const res = await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({
         name: 'exodus-test-nohost',
         hostId: '123e4567-e89b-12d3-a456-426614174000',
@@ -159,13 +180,13 @@ describe('backup sources', () => {
   it('is joinable to hosts', async () => {
     const hostId = await createHost();
     const res = await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({ name: 'exodus-test-join', hostId })
       .expect(201);
     createdSourceIds.push(res.body.id);
 
     const { rows } = await db.$client.query(
-      'select h.id, h.ip_address from backup_sources s join hosts h on h.id = s.host_id where s.id = $1',
+      'select h.id, h.ip_address from sources s join hosts h on h.id = s.host_id where s.id = $1',
       [res.body.id],
     );
 
@@ -175,7 +196,7 @@ describe('backup sources', () => {
   it('blocks deleting a host that still has a source', async () => {
     const hostId = await createHost();
     const res = await getRequest()
-      .post('/backup-sources')
+      .post('/sources')
       .send({ name: 'exodus-test-inuse', hostId })
       .expect(201);
     createdSourceIds.push(res.body.id);
@@ -213,7 +234,7 @@ describe('Example 1: start a discovery job', () => {
     const second = await startJob(sourceId, 'D:\\Data');
 
     const res = await getRequest()
-      .get(`/backup-sources/${sourceId}/discovery-jobs`)
+      .get(`/sources/${sourceId}/discovery-jobs`)
       .expect(200);
 
     expect(res.body.map((j: { id: string }) => j.id)).toEqual([
@@ -221,9 +242,7 @@ describe('Example 1: start a discovery job', () => {
       first.id,
     ]);
     await getRequest()
-      .get(
-        '/backup-sources/123e4567-e89b-12d3-a456-426614174000/discovery-jobs',
-      )
+      .get('/sources/123e4567-e89b-12d3-a456-426614174000/discovery-jobs')
       .expect(404);
   });
 
@@ -232,7 +251,7 @@ describe('Example 1: start a discovery job', () => {
     const hostB = await createHost();
     const makeSource = async (name: string, hostId: string) => {
       const res = await getRequest()
-        .post('/backup-sources')
+        .post('/sources')
         .send({ name, hostId })
         .expect(201);
       createdSourceIds.push(res.body.id);
@@ -270,7 +289,7 @@ describe('Example 1: start a discovery job', () => {
     await startJob(sourceId);
 
     await getRequest()
-      .post(`/backup-sources/${sourceId}/discovery-jobs`)
+      .post(`/sources/${sourceId}/discovery-jobs`)
       .send({ rootPath: 'D:\\Data' })
       .expect(409);
   });
@@ -286,15 +305,13 @@ describe('Example 1: start a discovery job', () => {
 
   it('404s for an unknown source and rejects invalid roots', async () => {
     await getRequest()
-      .post(
-        '/backup-sources/123e4567-e89b-12d3-a456-426614174000/discovery-jobs',
-      )
+      .post('/sources/123e4567-e89b-12d3-a456-426614174000/discovery-jobs')
       .send({ rootPath: ROOT })
       .expect(404);
 
     const sourceId = await createSource();
     await getRequest()
-      .post(`/backup-sources/${sourceId}/discovery-jobs`)
+      .post(`/sources/${sourceId}/discovery-jobs`)
       .send({ rootPath: 'relative\\path' })
       .expect(400);
   });
@@ -429,9 +446,9 @@ describe('concurrent claims', () => {
       Array.from({ length: 10 }, (_, i) => claim(job.id, `worker-${i}`)),
     );
 
-    const statuses = responses.map((r) => r.status).sort();
-    expect(statuses.filter((s) => s === 200)).toHaveLength(1);
-    expect(statuses.filter((s) => s === 204)).toHaveLength(9);
+    responses.forEach((r) => expect(r.status).toBe(200));
+    expect(responses.filter((r) => r.body.item)).toHaveLength(1);
+    expect(responses.filter((r) => !r.body.item)).toHaveLength(9);
   });
 
   it('never hands the same item to two workers when several are queued', async () => {
@@ -448,8 +465,8 @@ describe('concurrent claims', () => {
     );
 
     const claimedIds = responses
-      .filter((r) => r.status === 200)
-      .map((r) => r.body.id);
+      .filter((r) => r.body.item)
+      .map((r) => r.body.item.id);
     expect(claimedIds).toHaveLength(3);
     expect(new Set(claimedIds).size).toBe(3);
   });
@@ -462,7 +479,9 @@ describe('Example 3: recover abandoned work', () => {
     const abandoned = await claimOk(job.id, 'crashed-worker');
 
     // Still leased: nobody else can take it.
-    await claim(job.id, 'worker-b').expect(204);
+    expect(await claimIdle(job.id, 'worker-b')).toMatchObject({
+      reason: 'in_progress',
+    });
 
     await expireLease(abandoned.id);
 
@@ -525,7 +544,7 @@ describe('Example 3: recover abandoned work', () => {
     );
     await expireLease(item.id);
 
-    await claim(job.id, 'worker-b').expect(204);
+    expect((await claimIdle(job.id, 'worker-b')).reason).toBe('queue_empty');
 
     const [failed] = await listItems(sourceId, { status: 'failed' });
     expect(failed).toMatchObject({
@@ -552,7 +571,9 @@ describe('Example 4: retry failures', () => {
       Date.now(),
     );
 
-    await claim(job.id, 'worker-b').expect(204);
+    const waiting = await claimIdle(job.id, 'worker-b');
+    expect(waiting.reason).toBe('retry_backoff');
+    expect(Date.parse(waiting.retryAt as string)).toBeGreaterThan(Date.now());
 
     await skipBackoff(item.id);
     expect(await claimOk(job.id, 'worker-b')).toMatchObject({
@@ -570,7 +591,7 @@ describe('Example 4: retry failures', () => {
     const res = await fail(item, 'access denied', false).expect(200);
 
     expect(res.body.status).toBe('failed');
-    await claim(job.id).expect(204);
+    expect((await claimIdle(job.id)).reason).toBe('queue_empty');
   });
 
   it('stops retrying after max attempts', async () => {
@@ -584,7 +605,7 @@ describe('Example 4: retry failures', () => {
       await skipBackoff(item.id);
     }
 
-    await claim(job.id).expect(204);
+    expect((await claimIdle(job.id)).reason).toBe('queue_empty');
     expect(await listItems(sourceId, { status: 'failed' })).toHaveLength(1);
   });
 
@@ -725,17 +746,849 @@ describe('Example 5: finish a job', () => {
       error: 'agent lost the share',
     });
   });
+});
 
-  it('lets a later job pick up work left behind by a cancelled one', async () => {
+describe('queue items belong to their job', () => {
+  it('queues the same path independently in two jobs of one source', async () => {
+    const sourceId = await createSource();
+    const first = await startJob(sourceId);
+    await complete(await claimOk(first.id), [`${ROOT}\\Docs`]).expect(200);
+    await getRequest().post(`/discovery-jobs/${first.id}/cancel`).expect(200);
+
+    const second = await startJob(sourceId);
+
+    const firstItems = await jobItems(first.id);
+    const secondItems = await jobItems(second.id);
+
+    expect(firstItems.map((i) => i.path).sort()).toEqual([
+      ROOT,
+      `${ROOT}\\Docs`,
+    ]);
+    // The new job starts from its own root; it does not inherit the old queue.
+    expect(secondItems.map((i) => i.path)).toEqual([ROOT]);
+    expect(secondItems[0].id).not.toBe(firstItems[0].id);
+  });
+
+  it('never claims, counts or completes against another job’s items', async () => {
     const sourceId = await createSource();
     const first = await startJob(sourceId);
     await complete(await claimOk(first.id), [`${ROOT}\\Leftover`]).expect(200);
     await getRequest().post(`/discovery-jobs/${first.id}/cancel`).expect(200);
 
     const second = await startJob(sourceId);
-    const item = await claimOk(second.id);
 
-    expect(item.path).toBe(`${ROOT}\\Leftover`);
-    expect((await getJob(second.id)).status).toBe('running');
+    expect((await getJob(second.id)).queueCounts).toMatchObject({
+      queued: 1,
+      completed: 0,
+    });
+
+    const item = await claimOk(second.id);
+    expect(item.path).toBe(ROOT);
+    expect((await claimIdle(second.id)).reason).toBe('in_progress');
+
+    // The cancelled job's Leftover item is still queued, but not ours.
+    const leftover = await jobItems(first.id, 'queued');
+    expect(leftover.map((i) => i.path)).toEqual([`${ROOT}\\Leftover`]);
+
+    await complete(item).expect(200);
+    await getRequest()
+      .post(`/discovery-jobs/${second.id}/complete`)
+      .expect(200);
+  });
+
+  it('dedupes within a job but not across jobs', async () => {
+    const sourceId = await createSource();
+    const first = await startJob(sourceId);
+    const res = await getRequest()
+      .post(`/discovery-jobs/${first.id}/queue-items`)
+      .send({ paths: [ROOT.toLowerCase(), `${ROOT}/`] })
+      .expect(200);
+
+    expect(res.body.map((i: { created: boolean }) => i.created)).toEqual([
+      false,
+    ]);
+    expect(await jobItems(first.id)).toHaveLength(1);
+  });
+
+  it('lists a job’s items and 404s for an unknown job', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+
+    expect(await jobItems(job.id, 'queued')).toHaveLength(1);
+    expect(await jobItems(job.id, 'failed')).toHaveLength(0);
+
+    await getRequest()
+      .get('/discovery-jobs/00000000-0000-4000-8000-000000000000/queue-items')
+      .expect(404);
+  });
+
+  it('deletes a job’s items with the source', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+
+    await db.$client.query('delete from sources where id = $1', [sourceId]);
+
+    const { rows } = await db.$client.query(
+      'select 1 from discovery_queue_items where job_id = $1',
+      [job.id],
+    );
+    expect(rows).toHaveLength(0);
+  });
+});
+
+type Inventory = {
+  id: string;
+  itemType: 'file' | 'directory';
+  path: string;
+  normalizedPath: string;
+  parentPath: string | null;
+  name: string;
+  extension: string | null;
+  sizeBytes: number | null;
+  modifiedAt: string | null;
+  firstJobId: string | null;
+  lastJobId: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  createdAt: string;
+  created?: boolean;
+};
+
+const record = (
+  item: Item,
+  items: object[],
+  claimToken: string | null = item.claimToken,
+) =>
+  getRequest()
+    .post(`/queue-items/${item.id}/inventory-items`)
+    .send({ claimToken, items });
+
+const file = (name: string, extra: object = {}) => ({
+  path: `${ROOT}\\${name}`,
+  itemType: 'file',
+  ...extra,
+});
+
+const listInventory = async (sourceId: string, query: object = {}) =>
+  (
+    await getRequest()
+      .get(`/sources/${sourceId}/inventory-items`)
+      .query(query)
+      .expect(200)
+  ).body as Inventory[];
+
+/** The job root is seeded as a directory; most tests care about what lies below it. */
+const belowRoot = (items: Inventory[]) =>
+  items.filter((i) => i.normalizedPath !== ROOT.toLowerCase());
+
+describe('inventory items', () => {
+  it('seeds the job root as an inventory directory', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+
+    const [root] = await listInventory(sourceId);
+
+    expect(root).toMatchObject({
+      itemType: 'directory',
+      path: ROOT,
+      name: 'You',
+      parentPath: 'C:\\Users',
+      firstJobId: job.id,
+      lastJobId: job.id,
+    });
+
+    // A later job over the same root reuses the row instead of duplicating it.
+    await getRequest().post(`/discovery-jobs/${job.id}/cancel`).expect(200);
+    const second = await startJob(sourceId);
+    const rows = await listInventory(sourceId);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: root.id,
+      firstJobId: job.id,
+      lastJobId: second.id,
+    });
+  });
+
+  it('seeds a drive root with no parent', async () => {
+    const sourceId = await createSource();
+    await startJob(sourceId, 'D:\\');
+
+    const [root] = await listInventory(sourceId);
+
+    expect(root).toMatchObject({
+      path: 'D:\\',
+      name: 'D:',
+      parentPath: null,
+    });
+  });
+
+  it('records the children of a claimed directory with derived fields', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const root = await claimOk(job.id);
+
+    const res = await record(root, [
+      file('Report.PDF', {
+        sizeBytes: 5_000_000_000,
+        modifiedAt: '2026-01-02T03:04:05Z',
+      }),
+      { path: `${ROOT}\\Documents`, itemType: 'directory' },
+      file('.gitignore'),
+    ]).expect(200);
+
+    const [report, docs, dotfile] = res.body as Inventory[];
+
+    expect(report).toMatchObject({
+      created: true,
+      itemType: 'file',
+      path: `${ROOT}\\Report.PDF`,
+      normalizedPath: `${ROOT}\\report.pdf`.toLowerCase(),
+      parentPath: ROOT,
+      name: 'Report.PDF',
+      extension: 'pdf',
+      sizeBytes: 5_000_000_000,
+      modifiedAt: '2026-01-02T03:04:05.000Z',
+      firstJobId: job.id,
+      lastJobId: job.id,
+    });
+    expect(docs).toMatchObject({
+      itemType: 'directory',
+      name: 'Documents',
+      extension: null,
+      sizeBytes: null,
+    });
+    expect(dotfile.extension).toBeNull();
+  });
+
+  it('dedupes case-insensitively and across slash styles', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const root = await claimOk(job.id);
+
+    const first = await record(root, [file('Report.pdf')]).expect(200);
+    const second = await record(root, [
+      { path: 'c:/users/you/REPORT.PDF', itemType: 'file' },
+    ]).expect(200);
+
+    expect(second.body[0].id).toBe(first.body[0].id);
+    expect(second.body[0].created).toBe(false);
+    // Latest spelling is displayed; identity is unchanged.
+    expect(second.body[0].path).toBe('C:\\users\\you\\REPORT.PDF');
+    expect(belowRoot(await listInventory(sourceId))).toHaveLength(1);
+  });
+
+  it('collapses duplicates within one batch', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+
+    const res = await record(root, [
+      file('a.txt', { sizeBytes: 1 }),
+      file('A.TXT', { sizeBytes: 2 }),
+    ]).expect(200);
+
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].sizeBytes).toBe(2);
+  });
+
+  it('keeps one row when workers record the same path concurrently', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () => record(root, [file('same.txt')])),
+    );
+
+    results.forEach((r) => expect(r.status).toBe(200));
+    expect(new Set(results.map((r) => r.body[0].id)).size).toBe(1);
+    expect(belowRoot(await listInventory(sourceId))).toHaveLength(1);
+  });
+
+  it('updates filesystem metadata on rediscovery without losing identity', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const root = await claimOk(job.id);
+
+    const [before] = (
+      await record(root, [
+        file('a.txt', { sizeBytes: 10, modifiedAt: '2026-01-01T00:00:00Z' }),
+      ]).expect(200)
+    ).body as Inventory[];
+
+    const [after] = (
+      await record(root, [
+        file('a.txt', { sizeBytes: 99, modifiedAt: '2026-02-01T00:00:00Z' }),
+      ]).expect(200)
+    ).body as Inventory[];
+
+    expect(after).toMatchObject({
+      id: before.id,
+      created: false,
+      sizeBytes: 99,
+      modifiedAt: '2026-02-01T00:00:00.000Z',
+      firstSeenAt: before.firstSeenAt,
+      createdAt: before.createdAt,
+    });
+    expect(Date.parse(after.lastSeenAt)).toBeGreaterThan(
+      Date.parse(before.lastSeenAt),
+    );
+  });
+
+  it('keeps the stored size and mtime when rediscovery omits them', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+
+    await record(root, [
+      file('a.txt', { sizeBytes: 10, modifiedAt: '2026-01-01T00:00:00Z' }),
+    ]).expect(200);
+    const [again] = (await record(root, [file('a.txt')]).expect(200))
+      .body as Inventory[];
+
+    expect(again.sizeBytes).toBe(10);
+    expect(again.modifiedAt).toBe('2026-01-01T00:00:00.000Z');
+  });
+
+  it('does not reset first-seen data on rediscovery', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+    const [item] = (await record(root, [file('a.txt')]).expect(200))
+      .body as Inventory[];
+
+    // Backdate so a reset to now() would be visible.
+    await db.$client.query(
+      "update inventory_items set created_at = created_at - interval '1 day', first_seen_at = first_seen_at - interval '1 day' where id = $1",
+      [item.id],
+    );
+    const [{ first_seen_at: seededFirstSeen }] = (
+      await db.$client.query(
+        'select first_seen_at from inventory_items where id = $1',
+        [item.id],
+      )
+    ).rows;
+
+    await record(root, [file('a.txt', { sizeBytes: 1 })]).expect(200);
+
+    const [{ first_seen_at: afterFirstSeen }] = (
+      await db.$client.query(
+        'select first_seen_at from inventory_items where id = $1',
+        [item.id],
+      )
+    ).rows;
+    expect(afterFirstSeen).toEqual(seededFirstSeen);
+  });
+
+  it('tracks first and last job when a later job rediscovers a path', async () => {
+    const sourceId = await createSource();
+    const first = await startJob(sourceId);
+    const firstRoot = await claimOk(first.id);
+    const [original] = (
+      await record(firstRoot, [file('a.txt', { sizeBytes: 1 })]).expect(200)
+    ).body as Inventory[];
+    await complete(firstRoot).expect(200);
+    await getRequest().post(`/discovery-jobs/${first.id}/complete`).expect(200);
+
+    const second = await startJob(sourceId);
+    const secondRoot = await claimOk(second.id);
+    const [again] = (
+      await record(secondRoot, [file('a.txt', { sizeBytes: 2 })]).expect(200)
+    ).body as Inventory[];
+
+    expect(again).toMatchObject({
+      id: original.id,
+      created: false,
+      firstJobId: first.id,
+      lastJobId: second.id,
+      sizeBytes: 2,
+    });
+    expect(
+      belowRoot(await listInventory(sourceId, { jobId: first.id })),
+    ).toHaveLength(0);
+    expect(
+      belowRoot(await listInventory(sourceId, { jobId: second.id })),
+    ).toHaveLength(1);
+  });
+
+  it('keeps recorded items and avoids duplicates when a crashed claim is redone', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const crashed = await claimOk(job.id, 'worker-a');
+    await record(crashed, [file('a.txt'), file('b.txt')]).expect(200);
+
+    await expireLease(crashed.id);
+    const retaken = await claimOk(job.id, 'worker-b');
+    expect(retaken.id).toBe(crashed.id);
+
+    // Recorded items survived the crash.
+    expect(belowRoot(await listInventory(sourceId))).toHaveLength(2);
+
+    // The dead claim can no longer record; the new one can, without duplicates.
+    await record(crashed, [file('c.txt')]).expect(409);
+    await record(retaken, [file('a.txt'), file('b.txt'), file('c.txt')]).expect(
+      200,
+    );
+    expect(belowRoot(await listInventory(sourceId))).toHaveLength(3);
+  });
+
+  describe('validation', () => {
+    it('rejects a wrong claim token, an expired lease and a finished item with 409', async () => {
+      const sourceId = await createSource();
+      const job = await startJob(sourceId);
+      const root = await claimOk(job.id);
+
+      await record(
+        root,
+        [file('a.txt')],
+        'a23e4567-e89b-12d3-a456-426614174000',
+      ).expect(409);
+
+      await expireLease(root.id);
+      await record(root, [file('a.txt')]).expect(409);
+
+      expect(belowRoot(await listInventory(sourceId))).toHaveLength(0);
+    });
+
+    it('404s for an unknown queue item', async () => {
+      await getRequest()
+        .post(
+          '/queue-items/00000000-0000-4000-8000-000000000000/inventory-items',
+        )
+        .send({
+          claimToken: 'a23e4567-e89b-12d3-a456-426614174000',
+          items: [file('a.txt')],
+        })
+        .expect(404);
+    });
+
+    it('rejects paths outside the claimed directory and records nothing', async () => {
+      const sourceId = await createSource();
+      const root = await claimOk((await startJob(sourceId)).id);
+
+      const res = await record(root, [
+        file('ok.txt'),
+        { path: 'C:\\Users\\YouOther\\x.txt', itemType: 'file' },
+        { path: 'D:\\x.txt', itemType: 'file' },
+      ]).expect(409);
+
+      expect(res.body.paths).toEqual([
+        'C:\\Users\\YouOther\\x.txt',
+        'D:\\x.txt',
+      ]);
+      expect(belowRoot(await listInventory(sourceId))).toHaveLength(0);
+    });
+
+    it('rejects the claimed directory itself', async () => {
+      const root = await claimOk((await startJob(await createSource())).id);
+
+      await record(root, [{ path: ROOT, itemType: 'directory' }]).expect(409);
+    });
+
+    it('allows descendants deeper than direct children', async () => {
+      const sourceId = await createSource();
+      const root = await claimOk((await startJob(sourceId)).id);
+
+      const res = await record(root, [
+        { path: `${ROOT}\\a\\b\\c.txt`, itemType: 'file' },
+      ]).expect(200);
+
+      expect(res.body[0].parentPath).toBe(`${ROOT}\\a\\b`);
+    });
+
+    it('takes source and job from the claim, ignoring client-supplied ids', async () => {
+      const sourceId = await createSource();
+      const otherSource = await createSource();
+      const job = await startJob(sourceId);
+      const root = await claimOk(job.id);
+
+      await getRequest()
+        .post(`/queue-items/${root.id}/inventory-items`)
+        .send({
+          claimToken: root.claimToken,
+          sourceId: otherSource,
+          jobId: 'a23e4567-e89b-12d3-a456-426614174000',
+          items: [file('a.txt')],
+        })
+        .expect(200);
+
+      expect(belowRoot(await listInventory(sourceId))).toHaveLength(1);
+      expect(await listInventory(otherSource)).toHaveLength(0);
+    });
+
+    it('404s when listing inventory for an unknown source', async () => {
+      await getRequest()
+        .get('/sources/00000000-0000-4000-8000-000000000000/inventory-items')
+        .expect(404);
+    });
+  });
+
+  describe('listing', () => {
+    const seed = async () => {
+      const sourceId = await createSource();
+      const job = await startJob(sourceId);
+      const root = await claimOk(job.id);
+      await record(root, [
+        file('b.txt'),
+        file('a.pdf'),
+        { path: `${ROOT}\\Docs`, itemType: 'directory' },
+        { path: `${ROOT}\\Docs\\inner.txt`, itemType: 'file' },
+        { path: `${ROOT}\\my_dir`, itemType: 'directory' },
+        { path: `${ROOT}\\myXdir`, itemType: 'directory' },
+      ]).expect(200);
+
+      return { sourceId, job };
+    };
+
+    it('orders by normalized path and filters by type', async () => {
+      const { sourceId } = await seed();
+
+      // Order is the database's, so just check it is stable across calls.
+      const all = await listInventory(sourceId);
+      expect(await listInventory(sourceId)).toEqual(all);
+
+      const dirs = await listInventory(sourceId, { itemType: 'directory' });
+      expect(dirs.map((i) => i.name).sort()).toEqual(
+        ['Docs', 'my_dir', 'myXdir', 'You'].sort(),
+      );
+    });
+
+    it('lists only the direct children of a parent, case-insensitively', async () => {
+      const { sourceId } = await seed();
+
+      const children = await listInventory(sourceId, {
+        parentPath: `${ROOT.toUpperCase()}\\docs`,
+      });
+
+      expect(children.map((i) => i.name)).toEqual(['inner.txt']);
+    });
+
+    it('matches a path prefix literally, not as a LIKE pattern', async () => {
+      const { sourceId } = await seed();
+
+      const underscore = await listInventory(sourceId, {
+        pathPrefix: `${ROOT}\\my_dir`,
+      });
+
+      expect(underscore.map((i) => i.name)).toEqual(['my_dir']);
+    });
+
+    it('filters by the job that last saw the item', async () => {
+      const { sourceId, job } = await seed();
+
+      expect(await listInventory(sourceId, { jobId: job.id })).toHaveLength(7);
+      expect(
+        await listInventory(sourceId, {
+          jobId: 'a23e4567-e89b-12d3-a456-426614174000',
+        }),
+      ).toHaveLength(0);
+    });
+
+    it('pages with a keyset cursor', async () => {
+      const { sourceId } = await seed();
+
+      const page1 = await listInventory(sourceId, { limit: 4 });
+      const page2 = await listInventory(sourceId, {
+        limit: 4,
+        after: page1[page1.length - 1].normalizedPath,
+      });
+
+      expect(page1).toHaveLength(4);
+      expect(page2).toHaveLength(3);
+      expect(new Set([...page1, ...page2].map((i) => i.id)).size).toBe(7);
+    });
+  });
+
+  it('deletes inventory with its source', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+    await record(root, [file('a.txt')]).expect(200);
+
+    await db.$client.query('delete from sources where id = $1', [sourceId]);
+
+    const { rows } = await db.$client.query(
+      'select 1 from inventory_items where source_id = $1',
+      [sourceId],
+    );
+    expect(rows).toHaveLength(0);
+  });
+});
+
+describe('concurrent inventory writes', () => {
+  it('does not deadlock when batches overlap in opposite orders', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+    const names = Array.from(
+      { length: 150 },
+      (_, i) => `f${String(i).padStart(3, '0')}.txt`,
+    );
+    const batch = (ordered: string[]) =>
+      ordered.map((n) => ({ path: `${ROOT}\\sub\\${n}`, itemType: 'file' }));
+
+    for (let round = 0; round < 8; round++) {
+      const responses = await Promise.all([
+        record(root, batch(names)),
+        record(root, batch([...names].reverse())),
+        record(root, batch(names)),
+        record(root, batch([...names].reverse())),
+      ]);
+
+      expect(responses.map((r) => r.status)).toEqual([200, 200, 200, 200]);
+    }
+
+    expect(
+      belowRoot(await listInventory(sourceId, { limit: 1000 })),
+    ).toHaveLength(150);
+  });
+
+  it('returns results in the order the paths were given', async () => {
+    const sourceId = await createSource();
+    const root = await claimOk((await startJob(sourceId)).id);
+
+    const res = await record(root, [
+      file('z.txt'),
+      file('a.txt'),
+      file('m.txt'),
+    ]).expect(200);
+
+    expect(res.body.map((i: Inventory) => i.name)).toEqual([
+      'z.txt',
+      'a.txt',
+      'm.txt',
+    ]);
+  });
+});
+
+describe('a finished job releases its workers', () => {
+  const lateCalls = (item: Item) => [
+    () => record(item, [file('late.txt')]),
+    () => complete(item, [`${ROOT}\\Late`]),
+    () => fail(item),
+    () =>
+      getRequest()
+        .post(`/queue-items/${item.id}/skip`)
+        .send({ claimToken: item.claimToken, reason: 'late' }),
+    () =>
+      getRequest()
+        .post(`/queue-items/${item.id}/heartbeat`)
+        .send({ claimToken: item.claimToken }),
+  ];
+
+  it.each(['cancel', 'fail'])(
+    'rejects every call from a worker whose job was %sed',
+    async (action) => {
+      const sourceId = await createSource();
+      const job = await startJob(sourceId);
+      const held = await claimOk(job.id);
+
+      await getRequest()
+        .post(`/discovery-jobs/${job.id}/${action}`)
+        .send(action === 'fail' ? { error: 'agent lost the share' } : {})
+        .expect(200);
+
+      for (const call of lateCalls(held)) {
+        const res = await call().expect(409);
+        expect(res.body.message).toMatch(/can no longer be changed/);
+      }
+
+      // Nothing leaked into the finished job.
+      expect(belowRoot(await listInventory(sourceId))).toHaveLength(0);
+      const items = await jobItems(job.id);
+      expect(items.map((i) => i.path)).toEqual([ROOT]);
+    },
+  );
+
+  it('releases in-progress items to queued with no claim and keeps the rest', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const root = await claimOk(job.id);
+    await complete(root, [`${ROOT}\\A`, `${ROOT}\\B`]).expect(200);
+    const held = await claimOk(job.id);
+    const failedItem = await claimOk(job.id);
+    await fail(failedItem, 'denied', false).expect(200);
+
+    await getRequest().post(`/discovery-jobs/${job.id}/cancel`).expect(200);
+
+    const byPath = Object.fromEntries(
+      (await jobItems(job.id)).map((i) => [i.path.split('\\').pop(), i]),
+    );
+    expect(byPath.You.status).toBe('completed');
+    expect(byPath[held.path.split('\\').pop() as string]).toMatchObject({
+      status: 'queued',
+      claimToken: null,
+      lastError: 'job cancelled',
+      attemptCount: 1,
+    });
+    expect(byPath[failedItem.path.split('\\').pop() as string].status).toBe(
+      'failed',
+    );
+    expect((await getJob(job.id)).queueCounts).toMatchObject({
+      in_progress: 0,
+      queued: 1,
+      failed: 1,
+      completed: 1,
+    });
+  });
+
+  it('refuses to claim or enqueue on a finished job', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    await getRequest().post(`/discovery-jobs/${job.id}/cancel`).expect(200);
+
+    await claim(job.id).expect(409);
+    await getRequest()
+      .post(`/discovery-jobs/${job.id}/queue-items`)
+      .send({ paths: [`${ROOT}\\X`] })
+      .expect(409);
+  });
+
+  it('never leaves a claim in progress on a job that was cancelled concurrently', async () => {
+    for (let trial = 0; trial < 12; trial++) {
+      const sourceId = await createSource();
+      const job = await startJob(sourceId);
+
+      await Promise.all([
+        claim(job.id),
+        getRequest().post(`/discovery-jobs/${job.id}/cancel`),
+      ]);
+
+      const counts = (await getJob(job.id)).queueCounts;
+      expect(counts.in_progress).toBe(0);
+      expect((await getJob(job.id)).status).toBe('cancelled');
+    }
+  });
+
+  it('never leaves queued work on a job that completed concurrently with an enqueue', async () => {
+    for (let trial = 0; trial < 12; trial++) {
+      const sourceId = await createSource();
+      const job = await startJob(sourceId);
+      await complete(await claimOk(job.id)).expect(200);
+
+      const [completion, enqueue] = await Promise.all([
+        getRequest().post(`/discovery-jobs/${job.id}/complete`),
+        getRequest()
+          .post(`/discovery-jobs/${job.id}/queue-items`)
+          .send({ paths: [`${ROOT}\\Racy`] }),
+      ]);
+
+      const queued = await jobItems(job.id, 'queued');
+      if (completion.status === 200) {
+        expect(enqueue.status).toBe(409);
+        expect(queued).toHaveLength(0);
+      } else {
+        // The enqueue won: the job correctly refused to finish over new work.
+        expect(completion.status).toBe(409);
+        expect(enqueue.status).toBe(200);
+        expect(queued).toHaveLength(1);
+      }
+    }
+  });
+});
+
+describe('retry needs an active job', () => {
+  it('refuses to retry a failed item once its job has finished', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    await fail(item, 'denied', false).expect(200);
+    await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+
+    const res = await getRequest()
+      .post(`/queue-items/${item.id}/retry`)
+      .expect(409);
+
+    expect(res.body.message).toMatch(/start a new discovery job/);
+    expect((await jobItems(job.id, 'failed')).map((i) => i.id)).toEqual([
+      item.id,
+    ]);
+  });
+
+  it('still retries a failed item while its job is running', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    await fail(item, 'denied', false).expect(200);
+
+    const res = await getRequest()
+      .post(`/queue-items/${item.id}/retry`)
+      .expect(200);
+
+    expect(res.body).toMatchObject({
+      status: 'queued',
+      claimToken: null,
+      attemptCount: 1,
+      maxAttempts: 2,
+      lastError: 'denied',
+    });
+  });
+
+  it('refuses to retry an item that is being worked on', async () => {
+    const job = await startJob(await createSource());
+    const item = await claimOk(job.id);
+
+    const res = await getRequest()
+      .post(`/queue-items/${item.id}/retry`)
+      .expect(409);
+
+    expect(res.body.message).toMatch(/only failed items/);
+  });
+});
+
+describe('claim result when idle', () => {
+  it('says queue_empty with no retryAt once all work is done', async () => {
+    const job = await startJob(await createSource());
+    await complete(await claimOk(job.id)).expect(200);
+
+    const idle = await claimIdle(job.id);
+
+    expect(idle).toMatchObject({ reason: 'queue_empty', retryAt: null });
+    expect(idle.queueCounts).toMatchObject({ completed: 1, queued: 0 });
+  });
+
+  it('says in_progress with the earliest lease expiry while others hold work', async () => {
+    const job = await startJob(await createSource());
+    await claimOk(job.id, 'worker-a');
+
+    const idle = await claimIdle(job.id, 'worker-b');
+
+    expect(idle.reason).toBe('in_progress');
+    expect(Date.parse(idle.retryAt as string)).toBeGreaterThan(Date.now());
+  });
+});
+
+describe('database state checks', () => {
+  const insertItem = async (sql: string) => {
+    const job = await startJob(await createSource());
+    const { rows } = await db.$client.query(
+      'select id from discovery_queue_items where job_id = $1',
+      [job.id],
+    );
+
+    return db.$client.query(sql, [rows[0].id]);
+  };
+
+  it('rejects more attempts than allowed', async () => {
+    await expect(
+      insertItem(
+        'update discovery_queue_items set attempt_count = max_attempts + 1 where id = $1',
+      ),
+    ).rejects.toThrow(/discovery_queue_items_attempts_check/);
+  });
+
+  it('rejects an in-progress item without a complete claim', async () => {
+    await expect(
+      insertItem(
+        "update discovery_queue_items set status = 'in_progress' where id = $1",
+      ),
+    ).rejects.toThrow(/discovery_queue_items_lease_check/);
+  });
+
+  it('rejects a negative file size', async () => {
+    const sourceId = await createSource();
+    await startJob(sourceId);
+
+    await expect(
+      db.$client.query(
+        'update inventory_items set size_bytes = -1 where source_id = $1',
+        [sourceId],
+      ),
+    ).rejects.toThrow(/inventory_items_size_check/);
   });
 });

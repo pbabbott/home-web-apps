@@ -81,7 +81,7 @@ export const updateHost = async (
   return row;
 };
 
-/** The host is still referenced (e.g. by an exodus backup source). */
+/** The host is still referenced (e.g. by an exodus source). */
 export class HostInUseError extends Error {
   constructor() {
     super('host is still referenced by other records');

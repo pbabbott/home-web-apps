@@ -2,6 +2,8 @@ import {
   InvalidWindowsPathError,
   isWithinPath,
   normalizeWindowsPath,
+  windowsPathName,
+  windowsPathParent,
 } from '../../src/lib/windows-path';
 
 describe('normalizeWindowsPath', () => {
@@ -88,5 +90,29 @@ describe('isWithinPath', () => {
   it('handles a drive root parent', () => {
     expect(isWithinPath('c:\\', 'c:\\users')).toBe(true);
     expect(isWithinPath('c:\\', 'd:\\users')).toBe(false);
+  });
+});
+
+describe('windowsPathParent', () => {
+  it.each([
+    ['C:\\Users\\You\\report.pdf', 'C:\\Users\\You'],
+    ['C:\\Users', 'C:\\'],
+    ['C:\\', null],
+    ['\\\\server\\share\\docs', '\\\\server\\share'],
+    ['\\\\server\\share\\docs\\a', '\\\\server\\share\\docs'],
+    ['\\\\server\\share', null],
+  ])('parent of %s is %s', (path, expected) => {
+    expect(windowsPathParent(path)).toBe(expected);
+  });
+});
+
+describe('windowsPathName', () => {
+  it.each([
+    ['C:\\Users\\You\\Report.PDF', 'Report.PDF'],
+    ['C:\\Users', 'Users'],
+    ['C:\\', 'C:'],
+    ['\\\\server\\share\\docs', 'docs'],
+  ])('name of %s is %s', (path, expected) => {
+    expect(windowsPathName(path)).toBe(expected);
   });
 });

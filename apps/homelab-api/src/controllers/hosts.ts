@@ -63,8 +63,7 @@ export const deleteHost = async (req: Request, res: Response) => {
   } catch (err) {
     if (err instanceof HostInUseError) {
       res.status(409).json({
-        message:
-          'host is in use (e.g. by a backup source) and cannot be deleted',
+        message: 'host is in use (e.g. by a source) and cannot be deleted',
       });
       return;
     }

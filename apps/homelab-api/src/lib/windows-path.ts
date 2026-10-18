@@ -93,3 +93,27 @@ export const isWithinPath = (
 
   return childNormalized.startsWith(prefix);
 };
+
+/**
+ * Parent directory of a normalized-form path, or null for a root (`C:\` or
+ * a UNC share like `\\server\share`). `C:\Users` -> `C:\`, `C:\a\b` -> `C:\a`.
+ */
+export const windowsPathParent = (path: string): string | null => {
+  if (DRIVE_ROOT.test(path)) return null;
+
+  const index = path.lastIndexOf('\\');
+  const parent = path.slice(0, index);
+
+  if (/^[A-Za-z]:$/.test(parent)) return `${parent}\\`;
+  // `\\server\share` has no parent inside the share namespace.
+  if (path.startsWith('\\\\') && parent.split('\\').length <= 3) return null;
+
+  return parent;
+};
+
+/** Last segment of a normalized-form path (`C:\` has the drive as its name). */
+export const windowsPathName = (path: string): string => {
+  if (DRIVE_ROOT.test(path)) return path.slice(0, 2);
+
+  return path.slice(path.lastIndexOf('\\') + 1);
+};

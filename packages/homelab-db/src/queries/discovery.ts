@@ -1,16 +1,30 @@
-import { and, asc, desc, eq, gt, inArray, lte, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  inArray,
+  lte,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import type { Database } from '../client';
 import { isForeignKeyViolation, isUniqueViolation } from '../pg-errors';
 import {
-  backupSources,
+  sources,
   discoveryJobs,
   discoveryQueueItems,
-  type BackupSource,
+  inventoryItems,
+  type Source,
   type DiscoveryJob,
   type DiscoveryJobStatus,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
-  type NewBackupSource,
+  type InventoryItem,
+  type InventoryItemType,
+  type NewSource,
 } from '../schema/discovery';
 
 type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -32,26 +46,26 @@ export class DiscoveryError extends Error {
   }
 }
 
-// -- backup sources ---------------------------------------------------------
+// -- sources ---------------------------------------------------------
 
-export type CreateBackupSourceInput = Pick<
-  NewBackupSource,
+export type CreateSourceInput = Pick<
+  NewSource,
   'name' | 'hostId' | 'sourceType'
 >;
 
-export const createBackupSource = async (
+export const createSource = async (
   db: Database,
-  input: CreateBackupSourceInput,
-): Promise<BackupSource> => {
+  input: CreateSourceInput,
+): Promise<Source> => {
   try {
-    const [row] = await db.insert(backupSources).values(input).returning();
+    const [row] = await db.insert(sources).values(input).returning();
 
     return row;
   } catch (err) {
     if (isUniqueViolation(err)) {
       throw new DiscoveryError(
         'conflict',
-        `backup source named "${input.name}" already exists`,
+        `source named "${input.name}" already exists`,
       );
     }
     if (isForeignKeyViolation(err)) {
@@ -61,19 +75,14 @@ export const createBackupSource = async (
   }
 };
 
-export const listBackupSources = async (
-  db: Database,
-): Promise<BackupSource[]> =>
-  db.select().from(backupSources).orderBy(backupSources.name);
+export const listSources = async (db: Database): Promise<Source[]> =>
+  db.select().from(sources).orderBy(sources.name);
 
-export const getBackupSourceById = async (
+export const getSourceById = async (
   db: Database,
   id: string,
-): Promise<BackupSource | undefined> => {
-  const [row] = await db
-    .select()
-    .from(backupSources)
-    .where(eq(backupSources.id, id));
+): Promise<Source | undefined> => {
+  const [row] = await db.select().from(sources).where(eq(sources.id, id));
 
   return row;
 };
@@ -92,13 +101,10 @@ const emptyCounts = (): QueueCounts => ({
   skipped: 0,
 });
 
-/**
- * Item counts by status for a source. The queue is source-wide (one active
- * job per source), so these describe the job's remaining work too.
- */
+/** Item counts by status for one job's queue. */
 export const getQueueCounts = async (
   db: Database | Tx,
-  sourceId: string,
+  jobId: string,
 ): Promise<QueueCounts> => {
   const rows = await db
     .select({
@@ -106,7 +112,7 @@ export const getQueueCounts = async (
       count: sql<number>`count(*)::int`,
     })
     .from(discoveryQueueItems)
-    .where(eq(discoveryQueueItems.sourceId, sourceId))
+    .where(eq(discoveryQueueItems.jobId, jobId))
     .groupBy(discoveryQueueItems.status);
 
   const counts = emptyCounts();
@@ -116,14 +122,13 @@ export const getQueueCounts = async (
 };
 
 /**
- * Inserts paths, ignoring any already queued for the source (matched on
+ * Inserts paths, ignoring any already queued for the job (matched on
  * normalized path, so differently-cased spellings dedupe). Returns every
  * requested path's row — new or pre-existing — flagged with `created`.
  */
 const insertQueuePaths = async (
   db: Database | Tx,
   input: {
-    sourceId: string;
     jobId: string;
     paths: QueuePath[];
     priority?: number;
@@ -138,7 +143,6 @@ const insertQueuePaths = async (
     .insert(discoveryQueueItems)
     .values(
       unique.map((p) => ({
-        sourceId: input.sourceId,
         jobId: input.jobId,
         path: p.path,
         normalizedPath: p.normalizedPath,
@@ -146,10 +150,7 @@ const insertQueuePaths = async (
       })),
     )
     .onConflictDoNothing({
-      target: [
-        discoveryQueueItems.sourceId,
-        discoveryQueueItems.normalizedPath,
-      ],
+      target: [discoveryQueueItems.jobId, discoveryQueueItems.normalizedPath],
     })
     .returning();
 
@@ -160,7 +161,7 @@ const insertQueuePaths = async (
     .from(discoveryQueueItems)
     .where(
       and(
-        eq(discoveryQueueItems.sourceId, input.sourceId),
+        eq(discoveryQueueItems.jobId, input.jobId),
         inArray(
           discoveryQueueItems.normalizedPath,
           unique.map((p) => p.normalizedPath),
@@ -181,7 +182,7 @@ const insertQueuePaths = async (
  * has run out goes back to `queued`, or to `failed` once it has used all its
  * attempts. attemptCount and the claim history are kept for debugging.
  */
-const expireLeases = async (tx: Tx, sourceId: string): Promise<void> => {
+const expireLeases = async (tx: Tx, jobId: string): Promise<void> => {
   const t = discoveryQueueItems;
 
   await tx
@@ -197,7 +198,7 @@ const expireLeases = async (tx: Tx, sourceId: string): Promise<void> => {
     })
     .where(
       and(
-        eq(t.sourceId, sourceId),
+        eq(t.jobId, jobId),
         eq(t.status, 'in_progress'),
         sql`${t.leaseExpiresAt} < now()`,
       ),
@@ -209,12 +210,18 @@ const expireLeases = async (tx: Tx, sourceId: string): Promise<void> => {
 export type CreateDiscoveryJobInput = {
   sourceId: string;
   root: QueuePath;
+  /**
+   * The root as an inventory directory. Nothing else would ever record it
+   * (a worker only records what lies beneath the directory it holds), so
+   * without this the root could not be reviewed or marked later.
+   */
+  rootInventory: InventoryPath;
 };
 
 /**
- * Creates a pending job and seeds the queue with its root directory in one
- * transaction. Fails with `conflict` if the source already has an active
- * job. If the root was already queued by an earlier job it is left as is.
+ * Creates a pending job, seeds its queue with the root directory and records
+ * the root in the inventory, all in one transaction. Fails with `conflict` if
+ * the source already has an active job.
  */
 export const createDiscoveryJob = async (
   db: Database,
@@ -223,12 +230,12 @@ export const createDiscoveryJob = async (
   try {
     return await db.transaction(async (tx) => {
       const [source] = await tx
-        .select({ id: backupSources.id })
-        .from(backupSources)
-        .where(eq(backupSources.id, input.sourceId));
+        .select({ id: sources.id })
+        .from(sources)
+        .where(eq(sources.id, input.sourceId));
 
       if (!source) {
-        throw new DiscoveryError('not_found', 'backup source not found');
+        throw new DiscoveryError('not_found', 'source not found');
       }
 
       const [job] = await tx
@@ -240,10 +247,11 @@ export const createDiscoveryJob = async (
         })
         .returning();
 
-      await insertQueuePaths(tx, {
+      await insertQueuePaths(tx, { jobId: job.id, paths: [input.root] });
+      await upsertInventoryItems(tx, {
         sourceId: input.sourceId,
         jobId: job.id,
-        paths: [input.root],
+        items: [input.rootInventory],
       });
 
       return job;
@@ -260,7 +268,7 @@ export const createDiscoveryJob = async (
 };
 
 export const getDiscoveryJobById = async (
-  db: Database,
+  db: Database | Tx,
   id: string,
 ): Promise<DiscoveryJob | undefined> => {
   const [row] = await db
@@ -305,11 +313,11 @@ export const listAllDiscoveryJobs = async (
   const rows = await db
     .select({
       job: discoveryJobs,
-      sourceName: backupSources.name,
-      hostId: backupSources.hostId,
+      sourceName: sources.name,
+      hostId: sources.hostId,
     })
     .from(discoveryJobs)
-    .innerJoin(backupSources, eq(backupSources.id, discoveryJobs.sourceId))
+    .innerJoin(sources, eq(sources.id, discoveryJobs.sourceId))
     .where(
       options.sourceId
         ? eq(discoveryJobs.sourceId, options.sourceId)
@@ -329,41 +337,61 @@ const ACTIVE_JOB_STATUSES: DiscoveryJobStatus[] = ['pending', 'running'];
 
 /**
  * Moves a job to a terminal status. `pending`/`running` are the only legal
- * starting points — `completed`, `failed` and `cancelled` are final.
+ * starting points — `completed`, `failed` and `cancelled` are final. Leases
+ * are released in the same transaction: an in-progress item goes back to
+ * `queued` with no claim, so a late worker is rejected (its token is gone)
+ * and the item stays on record as work that was never finished. Queued and
+ * failed items are left as they are.
  */
 export const transitionDiscoveryJob = async (
   db: Database,
   id: string,
   to: Extract<DiscoveryJobStatus, 'failed' | 'cancelled'>,
   error?: string,
-): Promise<DiscoveryJob> => {
-  const [row] = await db
-    .update(discoveryJobs)
-    .set({
-      status: to,
-      error: error ?? null,
-      finishedAt: sql`now()`,
-      updatedAt: sql`now()`,
-    })
-    .where(
-      and(
-        eq(discoveryJobs.id, id),
-        inArray(discoveryJobs.status, ACTIVE_JOB_STATUSES),
-      ),
-    )
-    .returning();
+): Promise<DiscoveryJob> =>
+  db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(discoveryJobs)
+      .set({
+        status: to,
+        error: error ?? null,
+        finishedAt: sql`now()`,
+        updatedAt: sql`now()`,
+      })
+      .where(
+        and(
+          eq(discoveryJobs.id, id),
+          inArray(discoveryJobs.status, ACTIVE_JOB_STATUSES),
+        ),
+      )
+      .returning();
 
-  if (row) return row;
+    if (!row) {
+      const existing = await getDiscoveryJobById(tx, id);
+      if (!existing)
+        throw new DiscoveryError('not_found', 'discovery job not found');
 
-  const existing = await getDiscoveryJobById(db, id);
-  if (!existing)
-    throw new DiscoveryError('not_found', 'discovery job not found');
+      throw new DiscoveryError(
+        'conflict',
+        `job is already ${existing.status}; cannot move to ${to}`,
+      );
+    }
 
-  throw new DiscoveryError(
-    'conflict',
-    `job is already ${existing.status}; cannot move to ${to}`,
-  );
-};
+    const t = discoveryQueueItems;
+    await tx
+      .update(t)
+      .set({
+        status: 'queued',
+        lastError: `job ${to}`,
+        claimedBy: null,
+        claimToken: null,
+        leaseExpiresAt: null,
+        updatedAt: sql`now()`,
+      })
+      .where(and(eq(t.jobId, id), eq(t.status, 'in_progress')));
+
+    return row;
+  });
 
 /**
  * Completes a job once nothing is queued or in progress (after reclaiming
@@ -380,7 +408,7 @@ export const completeDiscoveryJob = async (
       .select()
       .from(discoveryJobs)
       .where(eq(discoveryJobs.id, id))
-      .for('update');
+      .for('no key update');
 
     if (!job) throw new DiscoveryError('not_found', 'discovery job not found');
 
@@ -391,8 +419,8 @@ export const completeDiscoveryJob = async (
       );
     }
 
-    await expireLeases(tx, job.sourceId);
-    const counts = await getQueueCounts(tx, job.sourceId);
+    await expireLeases(tx, job.id);
+    const counts = await getQueueCounts(tx, job.id);
 
     if (counts.queued > 0 || counts.in_progress > 0) {
       throw new DiscoveryError(
@@ -430,7 +458,8 @@ export const getQueueItemById = async (
 };
 
 export type ListQueueItemsOptions = {
-  sourceId: string;
+  /** Items of any job of this source. */
+  sourceId?: string;
   jobId?: string;
   status?: DiscoveryQueueItemStatus;
 };
@@ -440,13 +469,16 @@ const LIST_QUEUE_ITEMS_LIMIT = 500;
 export const listQueueItems = async (
   db: Database,
   options: ListQueueItemsOptions,
-): Promise<DiscoveryQueueItem[]> =>
-  db
-    .select()
+): Promise<DiscoveryQueueItem[]> => {
+  const rows = await db
+    .select({ item: discoveryQueueItems })
     .from(discoveryQueueItems)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
     .where(
       and(
-        eq(discoveryQueueItems.sourceId, options.sourceId),
+        options.sourceId
+          ? eq(discoveryJobs.sourceId, options.sourceId)
+          : undefined,
         options.jobId
           ? eq(discoveryQueueItems.jobId, options.jobId)
           : undefined,
@@ -458,56 +490,31 @@ export const listQueueItems = async (
     .orderBy(asc(discoveryQueueItems.createdAt), asc(discoveryQueueItems.path))
     .limit(LIST_QUEUE_ITEMS_LIMIT);
 
+  return rows.map((row) => row.item);
+};
+
 export type EnqueueQueueItemsInput = {
   jobId: string;
   paths: QueuePath[];
   priority?: number;
 };
 
-/** Enqueues directories for an active job; already-queued paths are skipped. */
+/**
+ * Enqueues directories for an active job; already-queued paths are skipped.
+ * The job row is share-locked so this cannot interleave with completing,
+ * cancelling or failing the job: either it runs first and the job then sees
+ * the new work, or it waits and is rejected because the job is finished.
+ */
 export const enqueueQueueItems = async (
   db: Database,
   input: EnqueueQueueItemsInput,
-): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> => {
-  const job = await getDiscoveryJobById(db, input.jobId);
-  if (!job) throw new DiscoveryError('not_found', 'discovery job not found');
-
-  if (!ACTIVE_JOB_STATUSES.includes(job.status)) {
-    throw new DiscoveryError('conflict', `job is ${job.status}`);
-  }
-
-  return insertQueuePaths(db, {
-    sourceId: job.sourceId,
-    jobId: job.id,
-    paths: input.paths,
-    priority: input.priority,
-  });
-};
-
-export type ClaimQueueItemInput = {
-  jobId: string;
-  workerId: string;
-  leaseSeconds: number;
-};
-
-/**
- * Atomically claims the highest-priority eligible directory for an active
- * job, or returns undefined when there is none. Expired leases are
- * reclaimed first, so abandoned work is picked up by the next caller.
- * `FOR UPDATE SKIP LOCKED` means concurrent claimers never receive the same
- * row — each competing transaction skips rows another already locked. The
- * first claim also moves the job from pending to running. Claiming takes
- * from the whole source queue and re-stamps the item with this job.
- */
-export const claimNextQueueItem = async (
-  db: Database,
-  input: ClaimQueueItemInput,
-): Promise<DiscoveryQueueItem | undefined> =>
+): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> =>
   db.transaction(async (tx) => {
     const [job] = await tx
       .select()
       .from(discoveryJobs)
-      .where(eq(discoveryJobs.id, input.jobId));
+      .where(eq(discoveryJobs.id, input.jobId))
+      .for('share');
 
     if (!job) throw new DiscoveryError('not_found', 'discovery job not found');
 
@@ -515,7 +522,65 @@ export const claimNextQueueItem = async (
       throw new DiscoveryError('conflict', `job is ${job.status}`);
     }
 
-    await expireLeases(tx, job.sourceId);
+    return insertQueuePaths(tx, {
+      jobId: job.id,
+      paths: input.paths,
+      priority: input.priority,
+    });
+  });
+
+export type ClaimQueueItemInput = {
+  jobId: string;
+  workerId: string;
+  leaseSeconds: number;
+};
+
+/** Why a claim found nothing, so a worker knows whether to wait or stop. */
+export type ClaimIdleReason = 'queue_empty' | 'retry_backoff' | 'in_progress';
+
+export type ClaimQueueItemResult =
+  | { item: DiscoveryQueueItem }
+  | {
+      item: null;
+      /**
+       * `queue_empty`: nothing queued or in progress — the job can be completed.
+       * `retry_backoff`: queued items are waiting out a retry delay.
+       * `in_progress`: only other workers' leases remain.
+       */
+      reason: ClaimIdleReason;
+      /** When it is worth asking again; null for `queue_empty`. */
+      retryAt: Date | null;
+      queueCounts: QueueCounts;
+    };
+
+/**
+ * Atomically claims the highest-priority eligible directory of an active
+ * job's queue. Expired leases are reclaimed first, so abandoned work is
+ * picked up by the next caller. The job row is locked for the whole claim,
+ * which serializes claimers per job and keeps a concurrent cancel or fail
+ * from interleaving (it would otherwise miss the item being claimed);
+ * `FOR UPDATE SKIP LOCKED` on the item is the second guard that no row is
+ * ever handed out twice. The first claim also moves the job from pending to
+ * running. When nothing can be claimed the result says why.
+ */
+export const claimNextQueueItem = async (
+  db: Database,
+  input: ClaimQueueItemInput,
+): Promise<ClaimQueueItemResult> =>
+  db.transaction(async (tx) => {
+    const [job] = await tx
+      .select()
+      .from(discoveryJobs)
+      .where(eq(discoveryJobs.id, input.jobId))
+      .for('no key update');
+
+    if (!job) throw new DiscoveryError('not_found', 'discovery job not found');
+
+    if (!ACTIVE_JOB_STATUSES.includes(job.status)) {
+      throw new DiscoveryError('conflict', `job is ${job.status}`);
+    }
+
+    await expireLeases(tx, job.id);
 
     const t = discoveryQueueItems;
     const [next] = await tx
@@ -523,7 +588,7 @@ export const claimNextQueueItem = async (
       .from(t)
       .where(
         and(
-          eq(t.sourceId, job.sourceId),
+          eq(t.jobId, job.id),
           eq(t.status, 'queued'),
           lte(t.availableAt, sql`now()`),
         ),
@@ -532,13 +597,12 @@ export const claimNextQueueItem = async (
       .limit(1)
       .for('update', { skipLocked: true });
 
-    if (!next) return undefined;
+    if (!next) return describeIdleQueue(tx, job.id);
 
     const [item] = await tx
       .update(t)
       .set({
         status: 'in_progress',
-        jobId: job.id,
         attemptCount: sql`${t.attemptCount} + 1`,
         claimedBy: input.workerId,
         claimToken: sql`gen_random_uuid()`,
@@ -559,16 +623,62 @@ export const claimNextQueueItem = async (
         .where(eq(discoveryJobs.id, job.id));
     }
 
-    return item;
+    return { item };
   });
 
-/** Matches only the live, current claim — wrong token or expired lease misses. */
+const describeIdleQueue = async (
+  tx: Tx,
+  jobId: string,
+): Promise<Extract<ClaimQueueItemResult, { item: null }>> => {
+  const queueCounts = await getQueueCounts(tx, jobId);
+  const t = discoveryQueueItems;
+
+  if (queueCounts.queued > 0) {
+    const [row] = await tx
+      .select({ at: sql<Date>`min(${t.availableAt})` })
+      .from(t)
+      .where(and(eq(t.jobId, jobId), eq(t.status, 'queued')));
+
+    return {
+      item: null,
+      reason: 'retry_backoff',
+      retryAt: row.at ? new Date(row.at) : null,
+      queueCounts,
+    };
+  }
+
+  if (queueCounts.in_progress > 0) {
+    const [row] = await tx
+      .select({ at: sql<Date>`min(${t.leaseExpiresAt})` })
+      .from(t)
+      .where(and(eq(t.jobId, jobId), eq(t.status, 'in_progress')));
+
+    return {
+      item: null,
+      reason: 'in_progress',
+      retryAt: row.at ? new Date(row.at) : null,
+      queueCounts,
+    };
+  }
+
+  return { item: null, reason: 'queue_empty', retryAt: null, queueCounts };
+};
+
+const jobIsActive = (jobIdColumn: typeof discoveryQueueItems.jobId) =>
+  sql`exists (select 1 from ${discoveryJobs} where ${discoveryJobs.id} = ${jobIdColumn} and ${discoveryJobs.status} in ('pending', 'running'))`;
+
+/**
+ * Matches only the live, current claim on an item whose job is still active:
+ * a wrong token, an expired lease or a finished job all miss, so a worker
+ * cannot keep writing to a job that was cancelled or failed under it.
+ */
 const activeClaim = (id: string, claimToken: string) =>
   and(
     eq(discoveryQueueItems.id, id),
     eq(discoveryQueueItems.status, 'in_progress'),
     eq(discoveryQueueItems.claimToken, claimToken),
     gt(discoveryQueueItems.leaseExpiresAt, sql`now()`),
+    jobIsActive(discoveryQueueItems.jobId),
   );
 
 /** A guarded write matched nothing: either no such item or the claim is dead. */
@@ -577,16 +687,24 @@ const claimMissError = async (
   id: string,
 ): Promise<DiscoveryError> => {
   const [row] = await db
-    .select({ id: discoveryQueueItems.id })
+    .select({ jobStatus: discoveryJobs.status })
     .from(discoveryQueueItems)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
     .where(eq(discoveryQueueItems.id, id));
 
-  return row
-    ? new DiscoveryError(
-        'conflict',
-        'claim is no longer valid (wrong token, lease expired, or item not in progress)',
-      )
-    : new DiscoveryError('not_found', 'queue item not found');
+  if (!row) return new DiscoveryError('not_found', 'queue item not found');
+
+  if (!ACTIVE_JOB_STATUSES.includes(row.jobStatus)) {
+    return new DiscoveryError(
+      'conflict',
+      `job is ${row.jobStatus}; its items can no longer be changed`,
+    );
+  }
+
+  return new DiscoveryError(
+    'conflict',
+    'claim is no longer valid (wrong token, lease expired, or item not in progress)',
+  );
 };
 
 export const heartbeatQueueItem = async (
@@ -628,6 +746,21 @@ export const completeQueueItem = async (
   children: { item: DiscoveryQueueItem; created: boolean }[];
 }> =>
   db.transaction(async (tx) => {
+    // Share-lock the job first so a concurrent cancel/fail cannot slip
+    // between the completion and the enqueue of its children.
+    const [owner] = await tx
+      .select({ jobId: discoveryQueueItems.jobId })
+      .from(discoveryQueueItems)
+      .where(eq(discoveryQueueItems.id, id));
+
+    if (owner) {
+      await tx
+        .select({ id: discoveryJobs.id })
+        .from(discoveryJobs)
+        .where(eq(discoveryJobs.id, owner.jobId))
+        .for('share');
+    }
+
     const [item] = await tx
       .update(discoveryQueueItems)
       .set({
@@ -640,13 +773,10 @@ export const completeQueueItem = async (
 
     if (!item) throw await claimMissError(tx, id);
 
-    const children = item.jobId
-      ? await insertQueuePaths(tx, {
-          sourceId: item.sourceId,
-          jobId: item.jobId,
-          paths: input.discoveredPaths ?? [],
-        })
-      : [];
+    const children = await insertQueuePaths(tx, {
+      jobId: item.jobId,
+      paths: input.discoveredPaths ?? [],
+    });
 
     return { item, children };
   });
@@ -751,16 +881,196 @@ export const retryQueueItem = async (
       leaseExpiresAt: null,
       updatedAt: sql`now()`,
     })
-    .where(and(eq(t.id, id), eq(t.status, 'failed')))
+    .where(and(eq(t.id, id), eq(t.status, 'failed'), jobIsActive(t.jobId)))
     .returning();
 
   if (row) return row;
 
-  const existing = await getQueueItemById(db, id);
+  const [existing] = await db
+    .select({ status: t.status, jobStatus: discoveryJobs.status })
+    .from(t)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, t.jobId))
+    .where(eq(t.id, id));
+
   if (!existing) throw new DiscoveryError('not_found', 'queue item not found');
+
+  if (existing.status !== 'failed') {
+    throw new DiscoveryError(
+      'conflict',
+      `only failed items can be retried (item is ${existing.status})`,
+    );
+  }
 
   throw new DiscoveryError(
     'conflict',
-    `only failed items can be retried (item is ${existing.status})`,
+    `job is ${existing.jobStatus}; start a new discovery job to explore this directory again`,
   );
+};
+
+// -- inventory items --------------------------------------------------------
+
+export type InventoryPath = {
+  itemType: InventoryItemType;
+  path: string;
+  normalizedPath: string;
+  parentPath: string | null;
+  normalizedParentPath: string | null;
+  name: string;
+  extension: string | null;
+  sizeBytes?: number | null;
+  modifiedAt?: Date | null;
+};
+
+export type RecordInventoryItemsInput = {
+  claimToken: string;
+  items: InventoryPath[];
+};
+
+/**
+ * Upserts inventory rows by source + normalized path. Only filesystem facts
+ * and `lastSeen*` are overwritten; id, first-seen data and any future
+ * review/copy columns are untouched. A missing size or mtime keeps the
+ * stored value. Rows are written in normalized-path order so overlapping
+ * batches from concurrent workers always lock rows in the same order and
+ * cannot deadlock. Results come back in the order the paths were given.
+ */
+const upsertInventoryItems = async (
+  tx: Tx,
+  input: { sourceId: string; jobId: string; items: InventoryPath[] },
+): Promise<{ item: InventoryItem; created: boolean }[]> => {
+  // One statement cannot update the same row twice; last occurrence wins.
+  const byPath = new Map(input.items.map((i) => [i.normalizedPath, i]));
+  if (byPath.size === 0) return [];
+
+  const inputOrder = new Map([...byPath.keys()].map((p, idx) => [p, idx]));
+  const lockOrder = [...byPath.values()].sort((a, b) =>
+    a.normalizedPath < b.normalizedPath
+      ? -1
+      : a.normalizedPath > b.normalizedPath
+        ? 1
+        : 0,
+  );
+
+  const t = inventoryItems;
+  const rows = await tx
+    .insert(t)
+    .values(
+      lockOrder.map((i) => ({
+        sourceId: input.sourceId,
+        firstJobId: input.jobId,
+        lastJobId: input.jobId,
+        itemType: i.itemType,
+        path: i.path,
+        normalizedPath: i.normalizedPath,
+        parentPath: i.parentPath,
+        normalizedParentPath: i.normalizedParentPath,
+        name: i.name,
+        extension: i.extension,
+        sizeBytes: i.sizeBytes ?? null,
+        modifiedAt: i.modifiedAt ?? null,
+      })),
+    )
+    .onConflictDoUpdate({
+      target: [t.sourceId, t.normalizedPath],
+      set: {
+        lastJobId: input.jobId,
+        itemType: sql`excluded.item_type`,
+        path: sql`excluded.path`,
+        parentPath: sql`excluded.parent_path`,
+        normalizedParentPath: sql`excluded.normalized_parent_path`,
+        name: sql`excluded.name`,
+        extension: sql`excluded.extension`,
+        sizeBytes: sql`coalesce(excluded.size_bytes, ${t.sizeBytes})`,
+        modifiedAt: sql`coalesce(excluded.modified_at, ${t.modifiedAt})`,
+        lastSeenAt: sql`now()`,
+        updatedAt: sql`now()`,
+      },
+    })
+    .returning({ ...getTableColumns(t), created: sql<boolean>`(xmax = 0)` });
+
+  return rows
+    .sort(
+      (a, b) =>
+        (inputOrder.get(a.normalizedPath) ?? 0) -
+        (inputOrder.get(b.normalizedPath) ?? 0),
+    )
+    .map(({ created, ...item }) => ({ item, created }));
+};
+
+/**
+ * Records what was found inside a claimed directory. Identity is source +
+ * normalized path, so rediscovery (a retry, a reclaimed lease, a later job)
+ * updates the existing row instead of adding one (see upsertInventoryItems).
+ * The source and job come from the claimed item, never from the caller, and
+ * the claim must be live on an active job.
+ */
+export const recordInventoryItems = async (
+  db: Database,
+  queueItemId: string,
+  input: RecordInventoryItemsInput,
+): Promise<{ item: InventoryItem; created: boolean }[]> =>
+  db.transaction(async (tx) => {
+    const [claimed] = await tx
+      .select({
+        jobId: discoveryQueueItems.jobId,
+        sourceId: discoveryJobs.sourceId,
+      })
+      .from(discoveryQueueItems)
+      .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
+      .where(activeClaim(queueItemId, input.claimToken));
+
+    if (!claimed) throw await claimMissError(tx, queueItemId);
+
+    return upsertInventoryItems(tx, { ...claimed, items: input.items });
+  });
+
+export type ListInventoryItemsOptions = {
+  sourceId: string;
+  /** Items last seen by this job. */
+  jobId?: string;
+  itemType?: InventoryItemType;
+  /** Direct children of this directory (normalized). */
+  normalizedParentPath?: string;
+  /** Items whose normalized path starts with this (normalized) prefix. */
+  normalizedPathPrefix?: string;
+  /** Keyset cursor: the last normalizedPath of the previous page. */
+  after?: string;
+  limit?: number;
+};
+
+const LIST_INVENTORY_DEFAULT_LIMIT = 500;
+const LIST_INVENTORY_MAX_LIMIT = 1000;
+
+/** Escapes LIKE wildcards so a prefix is matched literally. */
+const escapeLike = (value: string): string => value.replace(/[!%_]/g, '!$&');
+
+export const listInventoryItems = async (
+  db: Database,
+  options: ListInventoryItemsOptions,
+): Promise<InventoryItem[]> => {
+  const t = inventoryItems;
+  const filters: (SQL | undefined)[] = [
+    eq(t.sourceId, options.sourceId),
+    options.jobId ? eq(t.lastJobId, options.jobId) : undefined,
+    options.itemType ? eq(t.itemType, options.itemType) : undefined,
+    options.normalizedParentPath
+      ? eq(t.normalizedParentPath, options.normalizedParentPath)
+      : undefined,
+    options.normalizedPathPrefix
+      ? sql`${t.normalizedPath} like ${`${escapeLike(options.normalizedPathPrefix)}%`} escape '!'`
+      : undefined,
+    options.after ? gt(t.normalizedPath, options.after) : undefined,
+  ];
+
+  return db
+    .select()
+    .from(t)
+    .where(and(...filters))
+    .orderBy(asc(t.normalizedPath))
+    .limit(
+      Math.min(
+        options.limit ?? LIST_INVENTORY_DEFAULT_LIMIT,
+        LIST_INVENTORY_MAX_LIMIT,
+      ),
+    );
 };

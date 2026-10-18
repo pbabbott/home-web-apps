@@ -1,13 +1,14 @@
 import {
-  backupSourceSelectSchema,
+  sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
+  inventoryItemSelectSchema,
 } from './discovery';
 import { retryDelaySeconds } from '../queries/discovery';
 
 const id = '123e4567-e89b-12d3-a456-426614174000';
 
-describe('backupSourceSelectSchema', () => {
+describe('sourceSelectSchema', () => {
   const row = {
     id,
     name: 'win11-desktop',
@@ -18,19 +19,18 @@ describe('backupSourceSelectSchema', () => {
   };
 
   it('accepts a realistic row shape', () => {
-    expect(backupSourceSelectSchema.safeParse(row).success).toBe(true);
+    expect(sourceSelectSchema.safeParse(row).success).toBe(true);
   });
 
   it('accepts a source with no host', () => {
-    expect(
-      backupSourceSelectSchema.safeParse({ ...row, hostId: null }).success,
-    ).toBe(true);
+    expect(sourceSelectSchema.safeParse({ ...row, hostId: null }).success).toBe(
+      true,
+    );
   });
 
   it('rejects an unknown sourceType', () => {
     expect(
-      backupSourceSelectSchema.safeParse({ ...row, sourceType: 'linux' })
-        .success,
+      sourceSelectSchema.safeParse({ ...row, sourceType: 'linux' }).success,
     ).toBe(false);
   });
 });
@@ -72,7 +72,6 @@ describe('discoveryJobSelectSchema', () => {
 describe('discoveryQueueItemSelectSchema', () => {
   const row = {
     id,
-    sourceId: id,
     jobId: id,
     path: 'C:\\Users\\You\\Documents',
     normalizedPath: 'c:\\users\\you\\documents',
@@ -94,15 +93,72 @@ describe('discoveryQueueItemSelectSchema', () => {
     expect(discoveryQueueItemSelectSchema.safeParse(row).success).toBe(true);
   });
 
-  it('accepts an item with no job', () => {
+  it('requires a job: an item belongs to exactly one', () => {
     expect(
       discoveryQueueItemSelectSchema.safeParse({ ...row, jobId: null }).success,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('rejects an unknown status', () => {
     expect(
       discoveryQueueItemSelectSchema.safeParse({ ...row, status: 'running' })
+        .success,
+    ).toBe(false);
+  });
+});
+
+describe('inventoryItemSelectSchema', () => {
+  const row = {
+    id,
+    sourceId: id,
+    firstJobId: id,
+    lastJobId: id,
+    itemType: 'file',
+    path: 'C:\\Users\\You\\Report.pdf',
+    normalizedPath: 'c:\\users\\you\\report.pdf',
+    parentPath: 'C:\\Users\\You',
+    normalizedParentPath: 'c:\\users\\you',
+    name: 'Report.pdf',
+    extension: 'pdf',
+    sizeBytes: 4_000_000_000,
+    modifiedAt: new Date(),
+    firstSeenAt: new Date(),
+    lastSeenAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  it('accepts a file, including a size beyond 32 bits', () => {
+    expect(inventoryItemSelectSchema.safeParse(row).success).toBe(true);
+  });
+
+  it('accepts a directory with no size, mtime or extension', () => {
+    expect(
+      inventoryItemSelectSchema.safeParse({
+        ...row,
+        itemType: 'directory',
+        sizeBytes: null,
+        modifiedAt: null,
+        extension: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('accepts a root with no parent and a job that was deleted', () => {
+    expect(
+      inventoryItemSelectSchema.safeParse({
+        ...row,
+        parentPath: null,
+        normalizedParentPath: null,
+        firstJobId: null,
+        lastJobId: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects an unknown itemType', () => {
+    expect(
+      inventoryItemSelectSchema.safeParse({ ...row, itemType: 'symlink' })
         .success,
     ).toBe(false);
   });
