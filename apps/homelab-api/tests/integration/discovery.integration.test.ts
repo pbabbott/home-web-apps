@@ -33,6 +33,9 @@ const createHost = async (): Promise<string> => {
 
 const ROOT = 'C:\\Users\\You';
 
+// Race tests loop many concurrent requests; jest's 5s default is too tight on slow runners.
+const RACE_TEST_TIMEOUT_MS = 30_000;
+
 type Item = {
   id: string;
   path: string;
@@ -1325,31 +1328,35 @@ describe('inventory items', () => {
 });
 
 describe('concurrent inventory writes', () => {
-  it('does not deadlock when batches overlap in opposite orders', async () => {
-    const sourceId = await createSource();
-    const root = await claimOk((await startJob(sourceId)).id);
-    const names = Array.from(
-      { length: 150 },
-      (_, i) => `f${String(i).padStart(3, '0')}.txt`,
-    );
-    const batch = (ordered: string[]) =>
-      ordered.map((n) => ({ path: `${ROOT}\\sub\\${n}`, itemType: 'file' }));
+  it(
+    'does not deadlock when batches overlap in opposite orders',
+    async () => {
+      const sourceId = await createSource();
+      const root = await claimOk((await startJob(sourceId)).id);
+      const names = Array.from(
+        { length: 150 },
+        (_, i) => `f${String(i).padStart(3, '0')}.txt`,
+      );
+      const batch = (ordered: string[]) =>
+        ordered.map((n) => ({ path: `${ROOT}\\sub\\${n}`, itemType: 'file' }));
 
-    for (let round = 0; round < 8; round++) {
-      const responses = await Promise.all([
-        record(root, batch(names)),
-        record(root, batch([...names].reverse())),
-        record(root, batch(names)),
-        record(root, batch([...names].reverse())),
-      ]);
+      for (let round = 0; round < 8; round++) {
+        const responses = await Promise.all([
+          record(root, batch(names)),
+          record(root, batch([...names].reverse())),
+          record(root, batch(names)),
+          record(root, batch([...names].reverse())),
+        ]);
 
-      expect(responses.map((r) => r.status)).toEqual([200, 200, 200, 200]);
-    }
+        expect(responses.map((r) => r.status)).toEqual([200, 200, 200, 200]);
+      }
 
-    expect(
-      belowRoot(await listInventory(sourceId, { limit: 1000 })),
-    ).toHaveLength(150);
-  });
+      expect(
+        belowRoot(await listInventory(sourceId, { limit: 1000 })),
+      ).toHaveLength(150);
+    },
+    RACE_TEST_TIMEOUT_MS,
+  );
 
   it('returns results in the order the paths were given', async () => {
     const sourceId = await createSource();
@@ -1468,31 +1475,35 @@ describe('a finished job releases its workers', () => {
     }
   });
 
-  it('never leaves queued work on a job that completed concurrently with an enqueue', async () => {
-    for (let trial = 0; trial < 12; trial++) {
-      const sourceId = await createSource();
-      const job = await startJob(sourceId);
-      await complete(await claimOk(job.id)).expect(200);
+  it(
+    'never leaves queued work on a job that completed concurrently with an enqueue',
+    async () => {
+      for (let trial = 0; trial < 12; trial++) {
+        const sourceId = await createSource();
+        const job = await startJob(sourceId);
+        await complete(await claimOk(job.id)).expect(200);
 
-      const [completion, enqueue] = await Promise.all([
-        getRequest().post(`/discovery-jobs/${job.id}/complete`),
-        getRequest()
-          .post(`/discovery-jobs/${job.id}/queue-items`)
-          .send({ paths: [`${ROOT}\\Racy`] }),
-      ]);
+        const [completion, enqueue] = await Promise.all([
+          getRequest().post(`/discovery-jobs/${job.id}/complete`),
+          getRequest()
+            .post(`/discovery-jobs/${job.id}/queue-items`)
+            .send({ paths: [`${ROOT}\\Racy`] }),
+        ]);
 
-      const queued = await jobItems(job.id, 'queued');
-      if (completion.status === 200) {
-        expect(enqueue.status).toBe(409);
-        expect(queued).toHaveLength(0);
-      } else {
-        // The enqueue won: the job correctly refused to finish over new work.
-        expect(completion.status).toBe(409);
-        expect(enqueue.status).toBe(200);
-        expect(queued).toHaveLength(1);
+        const queued = await jobItems(job.id, 'queued');
+        if (completion.status === 200) {
+          expect(enqueue.status).toBe(409);
+          expect(queued).toHaveLength(0);
+        } else {
+          // The enqueue won: the job correctly refused to finish over new work.
+          expect(completion.status).toBe(409);
+          expect(enqueue.status).toBe(200);
+          expect(queued).toHaveLength(1);
+        }
       }
-    }
-  });
+    },
+    RACE_TEST_TIMEOUT_MS,
+  );
 });
 
 describe('retry needs an active job', () => {
