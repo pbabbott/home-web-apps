@@ -53,6 +53,10 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - [Exodus](./docs/exodus.md) - Windows-to-NAS file migration: discovery queue design, API, UI, and decisions so far.
 - Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
 
+## Claude Restrictions
+
+- Never run Playwright snapshot (screenshot) UI tests locally — too expensive, crashes the workstation. See [`docs/test-guide-ui.md`](./docs/test-guide-ui.md).
+
 ## Model and Subagent Routing
 
 Use the least expensive model capable of completing each task.
