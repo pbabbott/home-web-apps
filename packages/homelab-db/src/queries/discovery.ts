@@ -466,6 +466,10 @@ export type ListQueueItemsOptions = {
 
 const LIST_QUEUE_ITEMS_LIMIT = 500;
 
+/**
+ * Most recently changed first, so when a big job exceeds the limit it is the
+ * oldest, settled items that drop off rather than fresh failures.
+ */
 export const listQueueItems = async (
   db: Database,
   options: ListQueueItemsOptions,
@@ -487,7 +491,7 @@ export const listQueueItems = async (
           : undefined,
       ),
     )
-    .orderBy(asc(discoveryQueueItems.createdAt), asc(discoveryQueueItems.path))
+    .orderBy(desc(discoveryQueueItems.updatedAt), asc(discoveryQueueItems.path))
     .limit(LIST_QUEUE_ITEMS_LIMIT);
 
   return rows.map((row) => row.item);
@@ -870,41 +874,59 @@ export const retryQueueItem = async (
 ): Promise<DiscoveryQueueItem> => {
   const t = discoveryQueueItems;
 
-  const [row] = await db
-    .update(t)
-    .set({
-      status: 'queued',
-      maxAttempts: sql`${t.attemptCount} + 1`,
-      availableAt: sql`now()`,
-      claimedBy: null,
-      claimToken: null,
-      leaseExpiresAt: null,
-      updatedAt: sql`now()`,
-    })
-    .where(and(eq(t.id, id), eq(t.status, 'failed'), jobIsActive(t.jobId)))
-    .returning();
+  return db.transaction(async (tx) => {
+    // Share-lock the job first so a concurrent cancel/fail/complete cannot
+    // interleave with the requeue.
+    const [owner] = await tx
+      .select({ jobId: t.jobId })
+      .from(t)
+      .where(eq(t.id, id));
 
-  if (row) return row;
+    if (owner) {
+      await tx
+        .select({ id: discoveryJobs.id })
+        .from(discoveryJobs)
+        .where(eq(discoveryJobs.id, owner.jobId))
+        .for('share');
+    }
 
-  const [existing] = await db
-    .select({ status: t.status, jobStatus: discoveryJobs.status })
-    .from(t)
-    .innerJoin(discoveryJobs, eq(discoveryJobs.id, t.jobId))
-    .where(eq(t.id, id));
+    const [row] = await tx
+      .update(t)
+      .set({
+        status: 'queued',
+        maxAttempts: sql`${t.attemptCount} + 1`,
+        availableAt: sql`now()`,
+        claimedBy: null,
+        claimToken: null,
+        leaseExpiresAt: null,
+        updatedAt: sql`now()`,
+      })
+      .where(and(eq(t.id, id), eq(t.status, 'failed'), jobIsActive(t.jobId)))
+      .returning();
 
-  if (!existing) throw new DiscoveryError('not_found', 'queue item not found');
+    if (row) return row;
 
-  if (existing.status !== 'failed') {
+    const [existing] = await tx
+      .select({ status: t.status, jobStatus: discoveryJobs.status })
+      .from(t)
+      .innerJoin(discoveryJobs, eq(discoveryJobs.id, t.jobId))
+      .where(eq(t.id, id));
+
+    if (!existing)
+      throw new DiscoveryError('not_found', 'queue item not found');
+
+    if (existing.status !== 'failed') {
+      throw new DiscoveryError(
+        'conflict',
+        `only failed items can be retried (item is ${existing.status})`,
+      );
+    }
+
     throw new DiscoveryError(
       'conflict',
-      `only failed items can be retried (item is ${existing.status})`,
+      `job is ${existing.jobStatus}; start a new discovery job to explore this directory again`,
     );
-  }
-
-  throw new DiscoveryError(
-    'conflict',
-    `job is ${existing.jobStatus}; start a new discovery job to explore this directory again`,
-  );
+  });
 };
 
 // -- inventory items --------------------------------------------------------
@@ -1031,7 +1053,10 @@ export type ListInventoryItemsOptions = {
   itemType?: InventoryItemType;
   /** Direct children of this directory (normalized). */
   normalizedParentPath?: string;
-  /** Items whose normalized path starts with this (normalized) prefix. */
+  /**
+   * The directory (normalized) itself and everything beneath it. Matches on
+   * directory boundaries: `c:\\foo` does not match `c:\\foobar`.
+   */
   normalizedPathPrefix?: string;
   /** Keyset cursor: the last normalizedPath of the previous page. */
   after?: string;
@@ -1043,6 +1068,16 @@ const LIST_INVENTORY_MAX_LIMIT = 1000;
 
 /** Escapes LIKE wildcards so a prefix is matched literally. */
 const escapeLike = (value: string): string => value.replace(/[!%_]/g, '!$&');
+
+/** The directory itself plus anything under `dir\\`, never a sibling sharing its name as a prefix. */
+const subtreeFilter = (normalizedDir: string): SQL => {
+  const t = inventoryItems;
+  const dir = normalizedDir.endsWith('\\')
+    ? normalizedDir.slice(0, -1)
+    : normalizedDir;
+
+  return sql`(${t.normalizedPath} = ${normalizedDir} or ${t.normalizedPath} like ${`${escapeLike(dir)}\\%`} escape '!')`;
+};
 
 export const listInventoryItems = async (
   db: Database,
@@ -1057,7 +1092,7 @@ export const listInventoryItems = async (
       ? eq(t.normalizedParentPath, options.normalizedParentPath)
       : undefined,
     options.normalizedPathPrefix
-      ? sql`${t.normalizedPath} like ${`${escapeLike(options.normalizedPathPrefix)}%`} escape '!'`
+      ? subtreeFilter(options.normalizedPathPrefix)
       : undefined,
     options.after ? gt(t.normalizedPath, options.after) : undefined,
   ];

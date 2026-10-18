@@ -1234,7 +1234,7 @@ describe('inventory items', () => {
         { path: `${ROOT}\\myXdir`, itemType: 'directory' },
       ]).expect(200);
 
-      return { sourceId, job };
+      return { sourceId, job, root };
     };
 
     it('orders by normalized path and filters by type', async () => {
@@ -1268,6 +1268,19 @@ describe('inventory items', () => {
       });
 
       expect(underscore.map((i) => i.name)).toEqual(['my_dir']);
+    });
+
+    it('matches a path prefix on directory boundaries', async () => {
+      const { sourceId, root } = await seed();
+      await record(root, [
+        { path: `${ROOT}\\Docs2`, itemType: 'directory' },
+      ]).expect(200);
+
+      const subtree = await listInventory(sourceId, {
+        pathPrefix: `${ROOT}\\docs`,
+      });
+
+      expect(subtree.map((i) => i.name).sort()).toEqual(['Docs', 'inner.txt']);
     });
 
     it('filters by the job that last saw the item', async () => {

@@ -56,9 +56,9 @@ export const sources = pgTable('sources', {
 
 /**
  * One discovery run over a source, rooted at `rootPath`. The partial unique
- * index allows at most one active (pending/running) job per source: the
- * queue is source-wide, so two concurrent jobs would just fight over the
- * same rows.
+ * index allows at most one active (pending/running) job per source: two
+ * concurrent walks of the same source would only duplicate work and fight
+ * over the same inventory rows.
  */
 export const discoveryJobs = pgTable(
   'discovery_jobs',
