@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 import { buildPodMap } from '../services/pod-map';
 import type { MapQuery, MapTypeParams } from '../schemas/maps';
+import type { Operation } from './operation';
+
+export const getMapOperation = {
+  summary: 'Fetch a status map for a Kubernetes resource type',
+  description:
+    'Today only type=pods is supported. Each item status is driven by the requested metric: cpu/memory/both use usage ÷ limit (falling back to request, then node-relative capacity); restarts is relative to the worst pod in this response (fewer than 10 restarts is always healthy). Pass groupBy to have items pre-grouped by namespace/node/workload.',
+} satisfies Operation;
 
 export const getMap = async (req: Request, res: Response) => {
   // req.params/req.query are already validated/typed by the

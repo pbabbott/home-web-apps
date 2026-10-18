@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import type { Database } from '../client';
+import { isForeignKeyViolation } from '../pg-errors';
 import { hosts, type Host, type HostType, type NewHost } from '../schema/hosts';
 
 /** All hosts, optionally filtered by physical/virtual, alphabetical by name. */
@@ -80,11 +81,24 @@ export const updateHost = async (
   return row;
 };
 
+/** The host is still referenced (e.g. by an exodus source). */
+export class HostInUseError extends Error {
+  constructor() {
+    super('host is still referenced by other records');
+    this.name = 'HostInUseError';
+  }
+}
+
 export const deleteHost = async (
   db: Database,
   id: string,
 ): Promise<Host | undefined> => {
-  const [row] = await db.delete(hosts).where(eq(hosts.id, id)).returning();
+  try {
+    const [row] = await db.delete(hosts).where(eq(hosts.id, id)).returning();
 
-  return row;
+    return row;
+  } catch (err) {
+    if (isForeignKeyViolation(err)) throw new HostInUseError();
+    throw err;
+  }
 };

@@ -7,6 +7,18 @@ UI tests live exclusively in `packages/fui-components` and cover the React compo
 | Screenshot regression | Playwright                         | Visual pixel diff of every Storybook story             |
 | DOM rendering         | Vitest + `@storybook/addon-vitest` | That every story renders in a browser without throwing |
 
+## Claude: Do Not Run Snapshot Tests Locally
+
+Claude must **never** run the Playwright screenshot (snapshot) tests locally — not `pnpm test:playwright`, `pnpm test:playwright:update-snapshots`, nor `pnpm test:ui` (which includes them) — in `packages/fui-components` or `apps/blog`.
+
+**Why:** they launch Storybook plus a browser and screenshot every story. That is too expensive for the workstation and has crashed it.
+
+**How to apply:**
+
+- Verify UI changes with cheaper checks instead: type-check, lint, and `pnpm test:dom` (Vitest) only when needed.
+- If snapshot results or baseline updates are needed, say so and let the user run them, or rely on CI (see below).
+- Never regenerate baselines locally on your own initiative.
+
 ## Screenshot Regression Tests (Playwright)
 
 ### How It Works

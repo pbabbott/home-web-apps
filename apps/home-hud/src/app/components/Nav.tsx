@@ -18,6 +18,12 @@ const VIDEO_MENU_ITEMS = [
   { href: '/video/file-renames', label: 'File Renames' },
 ];
 
+const EXODUS_MENU_ITEMS = [
+  { href: '/exodus/sources', label: 'Sources' },
+  { href: '/exodus/jobs', label: 'Discovery Jobs' },
+  { href: '/exodus/inventory', label: 'Inventory' },
+];
+
 const INFRA_MENU_ITEMS = [
   { href: '/infra/hosts', label: 'Hosts' },
   { href: '/infra/cluster-map', label: 'Cluster Map' },
@@ -29,9 +35,11 @@ export function Nav() {
   const router = useRouter();
   const [videoOpen, setVideoOpen] = useState(false);
   const [infraOpen, setInfraOpen] = useState(false);
+  const [exodusOpen, setExodusOpen] = useState(false);
 
   const videoActive = pathname.startsWith('/video');
   const infraActive = pathname.startsWith('/infra');
+  const exodusActive = pathname.startsWith('/exodus');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">
@@ -45,6 +53,21 @@ export function Nav() {
           </DropdownMenuTrigger>
           <DropdownMenuContent label="Infra" align="start">
             {INFRA_MENU_ITEMS.map((item) => (
+              <DropdownMenuItem
+                key={item.href}
+                onSelect={() => router.push(item.href)}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu open={exodusOpen} onOpenChange={setExodusOpen}>
+          <DropdownMenuTrigger className="bg-transparent border-0 p-0 cursor-pointer outline-none">
+            <NavItem active={exodusActive || exodusOpen}>Exodus</NavItem>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent label="Exodus" align="start">
+            {EXODUS_MENU_ITEMS.map((item) => (
               <DropdownMenuItem
                 key={item.href}
                 onSelect={() => router.push(item.href)}

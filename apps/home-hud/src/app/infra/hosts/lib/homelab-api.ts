@@ -19,8 +19,9 @@ export interface Host {
   cpuUsageRatio: number | null;
 }
 
-export async function getHosts(hostType: HostType): Promise<Host[]> {
-  const params = new URLSearchParams({ type: hostType });
+/** All hosts when `hostType` is omitted, otherwise just that type. */
+export async function getHosts(hostType?: HostType): Promise<Host[]> {
+  const params = new URLSearchParams(hostType ? { type: hostType } : {});
 
   const res = await fetch(`${HOMELAB_API_URL}/hosts?${params}`, {
     cache: 'no-store',

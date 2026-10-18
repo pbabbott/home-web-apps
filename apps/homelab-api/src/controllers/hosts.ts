@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { HostInUseError } from '@abbottland/homelab-db';
 import * as hostsService from '../services/hosts';
 import * as hostMetricsService from '../services/host-metrics';
 import type {
@@ -8,6 +9,13 @@ import type {
   HostMetricsRangeQuery,
   UpdateHostBody,
 } from '../schemas/hosts';
+import type { Operation } from './operation';
+
+export const listHostsOperation = {
+  summary: 'List registered hosts, enriched with live Prometheus data',
+  description:
+    'status/cpuUsageRatio are best-effort: a host with no instance, or whose node-exporter data has not reached Prometheus, still returns with status="unknown" rather than failing the request.',
+} satisfies Operation;
 
 export const listHosts = async (req: Request, res: Response) => {
   const { type } = req.query as HostListQuery;
@@ -20,6 +28,10 @@ export const listHosts = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'internal server error' });
   }
 };
+
+export const getHostOperation = {
+  summary: 'Fetch a single host, enriched with live Prometheus data',
+} satisfies Operation;
 
 export const getHost = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
@@ -37,6 +49,10 @@ export const getHost = async (req: Request, res: Response) => {
   }
 };
 
+export const createHostOperation = {
+  summary: 'Register a new host',
+} satisfies Operation;
+
 export const createHost = async (req: Request, res: Response) => {
   const body = req.body as CreateHostBody;
 
@@ -49,6 +65,10 @@ export const createHost = async (req: Request, res: Response) => {
   }
 };
 
+export const deleteHostOperation = {
+  summary: 'Delete a host',
+} satisfies Operation;
+
 export const deleteHost = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
 
@@ -60,10 +80,22 @@ export const deleteHost = async (req: Request, res: Response) => {
     }
     res.status(204).send();
   } catch (err) {
+    if (err instanceof HostInUseError) {
+      res.status(409).json({
+        message: 'host is in use (e.g. by a source) and cannot be deleted',
+      });
+      return;
+    }
     console.error(`DELETE /hosts/${id} failed:`, err);
     res.status(500).json({ message: 'internal server error' });
   }
 };
+
+export const getHostCpuMetricsOperation = {
+  summary: 'Per-CPU usage history for a single host',
+  description:
+    'One series per CPU core (e.g. 4 series for a 4-core host), each core’s busy ratio normalized by core count. A host with no instance set returns an empty series rather than 404/500.',
+} satisfies Operation;
 
 export const getHostCpuMetrics = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
@@ -86,6 +118,12 @@ export const getHostCpuMetrics = async (req: Request, res: Response) => {
   }
 };
 
+export const getHostMemoryMetricsOperation = {
+  summary: 'Memory breakdown history for a single host',
+  description:
+    'Four series in bytes: used (total − free − buffers − cached), buffers, cached, free. A host with no instance set returns an empty series rather than 404/500.',
+} satisfies Operation;
+
 export const getHostMemoryMetrics = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
   const { rangeSeconds, stepSeconds } =
@@ -106,6 +144,12 @@ export const getHostMemoryMetrics = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'internal server error' });
   }
 };
+
+export const getHostDiskIoMetricsOperation = {
+  summary: 'Per-device disk I/O history for a single host',
+  description:
+    'Three series per real block device (excludes loop/partition devices): read bytes/sec, written bytes/sec, io time (0-1 busy ratio). A host with no instance set returns an empty series rather than 404/500.',
+} satisfies Operation;
 
 export const getHostDiskIoMetrics = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
@@ -128,6 +172,12 @@ export const getHostDiskIoMetrics = async (req: Request, res: Response) => {
   }
 };
 
+export const getHostDiskSpaceOperation = {
+  summary: 'Current filesystem usage per mountpoint for a single host',
+  description:
+    'An instant snapshot (not a time range) of size/used/available per mountpoint. A host with no instance set returns an empty list rather than 404/500.',
+} satisfies Operation;
+
 export const getHostDiskSpace = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
 
@@ -143,6 +193,12 @@ export const getHostDiskSpace = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'internal server error' });
   }
 };
+
+export const getHostTemperatureMetricsOperation = {
+  summary: 'Per-sensor temperature history for a single host',
+  description:
+    'Only ever populated for physical hosts — standalone node-exporter targets expose hwmon sensors; in-cluster k8s nodes (VMs) do not. A host with no instance, or no hwmon sensors, returns an empty series rather than 404/500.',
+} satisfies Operation;
 
 export const getHostTemperatureMetrics = async (
   req: Request,
@@ -167,6 +223,10 @@ export const getHostTemperatureMetrics = async (
     res.status(500).json({ message: 'internal server error' });
   }
 };
+
+export const updateHostOperation = {
+  summary: 'Update a host',
+} satisfies Operation;
 
 export const updateHost = async (req: Request, res: Response) => {
   const { id } = req.params as HostIdParams;
