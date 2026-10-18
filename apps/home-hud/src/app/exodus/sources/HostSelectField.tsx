@@ -1,5 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  OutlinedButton,
+} from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
 
 interface HostSelectFieldProps {
@@ -14,18 +22,26 @@ export function HostSelectField({
   value,
   onChange,
 }: HostSelectFieldProps) {
+  const [open, setOpen] = useState(false);
+  const selected = hosts.find((host) => host.id === value);
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="border border-neutral-300 bg-neutral-600 px-2 py-1.5 text-neutral-50 focus:outline-none focus:ring-0"
-    >
-      <option value="">No host</option>
-      {hosts.map((host) => (
-        <option key={host.id} value={host.id}>
-          {host.name} ({host.ipAddress})
-        </option>
-      ))}
-    </select>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <OutlinedButton type="button" size="small">
+          {selected ? `${selected.name} (${selected.ipAddress})` : 'No host'}
+        </OutlinedButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent label="Host">
+        <DropdownMenuItem onSelect={() => onChange('')}>
+          No host
+        </DropdownMenuItem>
+        {hosts.map((host) => (
+          <DropdownMenuItem key={host.id} onSelect={() => onChange(host.id)}>
+            {host.name} ({host.ipAddress})
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
