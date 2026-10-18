@@ -13,7 +13,8 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { createHost } from './lib/actions';
-import type { HostType } from './lib/homelab-api';
+import type { ExporterType, HostType } from './lib/homelab-api';
+import { ExporterSelectField } from './ExporterSelectField';
 import { ModelSelectField } from './ModelSelectField';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -44,6 +45,8 @@ export function AddHostModal({
   const [ipAddress, setIpAddress] = useState('');
   const [instance, setInstance] = useState('');
   const [hostType, setHostType] = useState<HostType>(defaultHostType);
+  const [exporterType, setExporterType] =
+    useState<ExporterType>('node_exporter');
   const [model3d, setModel3d] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,7 @@ export function AddHostModal({
     setIpAddress('');
     setInstance('');
     setHostType(defaultHostType);
+    setExporterType('node_exporter');
     setModel3d('');
     setError(null);
   }
@@ -67,6 +71,7 @@ export function AddHostModal({
         name,
         ipAddress,
         hostType,
+        exporterType,
         instance: instance.trim() ? instance.trim() : undefined,
         model3d: model3d ? model3d : undefined,
       });
@@ -92,7 +97,7 @@ export function AddHostModal({
         <ModalTitle>Add Host</ModalTitle>
         <ModalDescription>
           Register a new host. Set instance to match it against Prometheus
-          node-exporter data.
+          exporter data.
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -119,6 +124,13 @@ export function AddHostModal({
               value={instance}
               onChange={(e) => setInstance(e.target.value)}
               placeholder="192.168.6.24:9100"
+            />
+          </Field>
+
+          <Field label="Metrics Exporter">
+            <ExporterSelectField
+              value={exporterType}
+              onChange={setExporterType}
             />
           </Field>
 

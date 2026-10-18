@@ -8,6 +8,9 @@ const REQUEST_TIMEOUT_MS = 5000;
 // "node-exporter-physical" (standalone homelab hosts scraped directly).
 export const NODE_EXPORTER_JOB_MATCH = 'job=~"node-exporter.*"';
 
+// Standalone Windows hosts scraped by windows_exporter.
+export const WINDOWS_EXPORTER_JOB_MATCH = 'job=~"windows-exporter.*"';
+
 type PrometheusVectorResponse = {
   status: 'success' | 'error';
   data: {
@@ -111,6 +114,25 @@ export function tagComponent(
     metric: { ...sample.metric, component },
     values: sample.values,
   }));
+}
+
+/**
+ * Renames a label on every sample (samples lacking `from` pass through
+ * untouched) — lets a non-node exporter's results come back with the label
+ * names the node_exporter queries use (`cpu`, `device`, `mountpoint`), so
+ * the service layer shapes every exporter's output the same way.
+ */
+export function renameLabel<T extends { metric: Record<string, string> }>(
+  samples: T[],
+  from: string,
+  to: string,
+): T[] {
+  return samples.map((sample) => {
+    if (sample.metric[from] === undefined) return sample;
+
+    const { [from]: value, ...rest } = sample.metric;
+    return { ...sample, metric: { ...rest, [to]: value } };
+  });
 }
 
 export function keyByInstance(

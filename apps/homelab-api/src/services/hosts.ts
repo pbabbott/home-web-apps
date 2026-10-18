@@ -10,7 +10,7 @@ import {
   type UpdateHostInput,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
-import { getNodeCpuUsage, getNodeUp } from '../api/prometheus';
+import { EXPORTERS } from '../api/prometheus';
 
 export type HostStatus = 'online' | 'offline' | 'unknown';
 
@@ -26,27 +26,40 @@ function resolveStatus(up: number | undefined): HostStatus {
 
 /**
  * Enriches DB-backed host rows with live Prometheus data, keyed by
- * instance. Prometheus is best-effort: a host with no instance set, or
- * whose node-exporter data hasn't reached Prometheus, still returns —
+ * instance and queried through each host's own exporter type. Prometheus
+ * is best-effort: a host with no instance set, or whose exporter data hasn't reached Prometheus, still returns —
  * just with "unknown" status and null cpu — so a Prometheus outage never
  * takes down the hosts list itself (mirrors pod-map.ts's enrich-if-
  * available approach).
  */
 async function enrichHosts(hosts: Host[]): Promise<HostWithMetrics[]> {
-  const [upByInstance, cpuByInstance] = await Promise.all([
-    getNodeUp(),
-    getNodeCpuUsage(),
-  ]);
+  // Only query exporters some host actually uses.
+  const exporterTypes = [...new Set(hosts.map((host) => host.exporterType))];
 
-  return hosts.map((host) => ({
-    ...host,
-    status: host.instance
-      ? resolveStatus(upByInstance.get(host.instance))
-      : 'unknown',
-    cpuUsageRatio: host.instance
-      ? (cpuByInstance.get(host.instance) ?? null)
-      : null,
-  }));
+  const entries = await Promise.all(
+    exporterTypes.map(async (type) => {
+      const [up, cpu] = await Promise.all([
+        EXPORTERS[type].up(),
+        EXPORTERS[type].cpuUsage(),
+      ]);
+      return [type, { up, cpu }] as const;
+    }),
+  );
+  const byExporter = new Map(entries);
+
+  return hosts.map((host) => {
+    const data = byExporter.get(host.exporterType);
+
+    return {
+      ...host,
+      status: host.instance
+        ? resolveStatus(data?.up.get(host.instance))
+        : 'unknown',
+      cpuUsageRatio: host.instance
+        ? (data?.cpu.get(host.instance) ?? null)
+        : null,
+    };
+  });
 }
 
 export async function listHosts(

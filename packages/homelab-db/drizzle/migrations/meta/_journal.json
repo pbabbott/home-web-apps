@@ -15,6 +15,13 @@
       "when": 1791991949200,
       "tag": "0001_complex_morph",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792272474060,
+      "tag": "0002_milky_the_watchers",
+      "breakpoints": true
     }
   ]
 }

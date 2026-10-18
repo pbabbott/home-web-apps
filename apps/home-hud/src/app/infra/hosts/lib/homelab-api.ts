@@ -1,12 +1,15 @@
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
 export type HostType = 'physical' | 'virtual';
+/** Which Prometheus exporter scrapes the host; decides the metric names queried. */
+export type ExporterType = 'node_exporter' | 'windows_exporter';
 export type HostStatus = 'online' | 'offline' | 'unknown';
 
 export interface Host {
   id: string;
   name: string;
   hostType: HostType;
+  exporterType: ExporterType;
   ipAddress: string;
   instance: string | null;
   /** Slug of a procedural 3D model (../viz/models/<slug>/) to render in place of this host's detail-panel placeholder, or null. */

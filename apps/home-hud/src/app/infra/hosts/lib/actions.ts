@@ -1,6 +1,6 @@
 'use server';
 
-import type { Host, HostType } from './homelab-api';
+import type { ExporterType, Host, HostType } from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
@@ -8,6 +8,7 @@ export interface CreateHostInput {
   name: string;
   ipAddress: string;
   hostType: HostType;
+  exporterType?: ExporterType;
   instance?: string;
   model3d?: string;
 }
@@ -44,6 +45,7 @@ export interface UpdateHostInput {
   name?: string;
   ipAddress?: string;
   hostType?: HostType;
+  exporterType?: ExporterType;
   instance?: string | null;
   model3d?: string | null;
 }

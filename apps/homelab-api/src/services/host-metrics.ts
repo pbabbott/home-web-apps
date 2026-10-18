@@ -1,12 +1,6 @@
 import { getHostById } from '@abbottland/homelab-db';
 import { db } from '../db';
-import {
-  getNodeCpuSeries,
-  getNodeDiskIoSeries,
-  getNodeDiskSpace,
-  getNodeMemorySeries,
-  getNodeTemperatureSeries,
-} from '../api/prometheus';
+import { EXPORTERS } from '../api/prometheus';
 
 export interface HostMetricSeriesPoint {
   t: number;
@@ -61,7 +55,7 @@ export async function getHostCpuSeries(
   const endSec = Math.floor(Date.now() / 1000);
   const startSec = endSec - rangeSeconds;
 
-  const samples = await getNodeCpuSeries(
+  const samples = await EXPORTERS[host.exporterType].cpuSeries(
     host.instance,
     startSec,
     endSec,
@@ -96,7 +90,7 @@ export async function getHostMemorySeries(
   const endSec = Math.floor(Date.now() / 1000);
   const startSec = endSec - rangeSeconds;
 
-  const samples = await getNodeMemorySeries(
+  const samples = await EXPORTERS[host.exporterType].memorySeries(
     host.instance,
     startSec,
     endSec,
@@ -148,7 +142,7 @@ export async function getHostDiskIoSeries(
   const endSec = Math.floor(Date.now() / 1000);
   const startSec = endSec - rangeSeconds;
 
-  const samples = await getNodeDiskIoSeries(
+  const samples = await EXPORTERS[host.exporterType].diskIoSeries(
     host.instance,
     startSec,
     endSec,
@@ -203,7 +197,9 @@ export async function getHostDiskSpace(
     return { instance: null, mountpoints: [] };
   }
 
-  const { size, avail } = await getNodeDiskSpace(host.instance);
+  const { size, avail } = await EXPORTERS[host.exporterType].diskSpace(
+    host.instance,
+  );
 
   const availByMountpoint = new Map(
     avail
@@ -247,7 +243,7 @@ export interface HostTemperatureMetrics {
 
 /**
  * Per-sensor temperature history (°C) for a single host. Only ever
- * populated for physical hosts — see `getNodeTemperatureSeries` for why
+ * populated for physical hosts — see `getNodeTemperatureSeries` (node-temperature.ts) for why
  * virtual (k8s-node) hosts have no hwmon data to report. Same best-effort
  * contract as `getHostCpuSeries` otherwise: no instance (or a host type
  * whose node-exporter reports no hwmon sensors) means an empty series, not
@@ -267,7 +263,7 @@ export async function getHostTemperatureSeries(
   const endSec = Math.floor(Date.now() / 1000);
   const startSec = endSec - rangeSeconds;
 
-  const samples = await getNodeTemperatureSeries(
+  const samples = await EXPORTERS[host.exporterType].temperatureSeries(
     host.instance,
     startSec,
     endSec,
