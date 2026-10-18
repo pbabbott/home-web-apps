@@ -25,6 +25,51 @@ import {
   skipQueueItemBodySchema,
   sourceIdParamsSchema,
 } from './schemas/discovery';
+import {
+  createHostOperation,
+  deleteHostOperation,
+  getHostOperation,
+  getHostCpuMetricsOperation,
+  getHostDiskIoMetricsOperation,
+  getHostDiskSpaceOperation,
+  getHostMemoryMetricsOperation,
+  getHostTemperatureMetricsOperation,
+  listHostsOperation,
+  updateHostOperation,
+} from './controllers/hosts';
+import { getMapOperation } from './controllers/maps';
+import {
+  getPodCpuMetricsOperation,
+  getPodMemoryMetricsOperation,
+} from './controllers/pod-metrics';
+import {
+  createSourceOperation,
+  listSourcesOperation,
+} from './controllers/discovery/sources';
+import {
+  createDiscoveryJobOperation,
+  listSourceJobsOperation,
+  listDiscoveryJobsOperation,
+  getDiscoveryJobOperation,
+  completeDiscoveryJobOperation,
+  cancelDiscoveryJobOperation,
+  failDiscoveryJobOperation,
+} from './controllers/discovery/discovery-jobs';
+import {
+  recordInventoryItemsOperation,
+  listSourceInventoryItemsOperation,
+} from './controllers/discovery/inventory-items';
+import {
+  listSourceQueueItemsOperation,
+  listJobQueueItemsOperation,
+  enqueueQueueItemsOperation,
+  claimQueueItemOperation,
+  heartbeatQueueItemOperation,
+  completeQueueItemOperation,
+  failQueueItemOperation,
+  skipQueueItemOperation,
+  retryQueueItemOperation,
+} from './controllers/discovery/queue-items';
 import { mapQuerySchema, mapTypeParamsSchema } from './schemas/maps';
 import {
   createHostBodySchema,
@@ -337,7 +382,7 @@ const discoveryJobWithSourceSchema = discoveryJobSelectSchema.extend({
 const discoveryPaths = {
   '/sources': {
     get: {
-      summary: 'List sources',
+      summary: listSourcesOperation.summary,
       responses: {
         '200': {
           description: 'The sources',
@@ -348,7 +393,7 @@ const discoveryPaths = {
       },
     },
     post: {
-      summary: 'Register a source (a machine to inventory)',
+      summary: createSourceOperation.summary,
       requestBody: {
         content: {
           'application/json': { schema: createSourceBodySchema },
@@ -368,9 +413,8 @@ const discoveryPaths = {
   },
   '/sources/{id}/discovery-jobs': {
     get: {
-      summary: 'List a source’s discovery jobs, newest first',
-      description:
-        'At most 50. queueCounts is omitted here — fetch it per job via GET /discovery-jobs/{id}.',
+      summary: listSourceJobsOperation.summary,
+      description: listSourceJobsOperation.description,
       requestParams: { path: sourceIdParamsSchema },
       responses: {
         '200': {
@@ -384,9 +428,8 @@ const discoveryPaths = {
       },
     },
     post: {
-      summary: 'Start a discovery job for a source',
-      description:
-        'Creates a pending job, queues rootPath as its first directory and records it as a directory in the source’s inventory. A source can have only one pending/running job at a time. The job moves to running when its first item is claimed.',
+      summary: createDiscoveryJobOperation.summary,
+      description: createDiscoveryJobOperation.description,
       requestParams: { path: sourceIdParamsSchema },
       requestBody: {
         content: {
@@ -408,9 +451,8 @@ const discoveryPaths = {
   },
   '/sources/{id}/queue-items': {
     get: {
-      summary: 'List a source’s queue items',
-      description:
-        'Newest 500 at most, oldest first. Filter by status=failed to inspect permanent failures.',
+      summary: listSourceQueueItemsOperation.summary,
+      description: listSourceQueueItemsOperation.description,
       requestParams: {
         path: sourceIdParamsSchema,
         query: queueItemListQuerySchema,
@@ -431,9 +473,8 @@ const discoveryPaths = {
   },
   '/sources/{id}/inventory-items': {
     get: {
-      summary: 'List a source’s inventory items',
-      description:
-        'Files and directories found by any job of the source, ordered by normalizedPath. Up to `limit` (default 500, max 1000) per page; pass the last normalizedPath as `after` for the next page. Filter by last-seen job, type, direct parent, or path prefix.',
+      summary: listSourceInventoryItemsOperation.summary,
+      description: listSourceInventoryItemsOperation.description,
       requestParams: {
         path: sourceIdParamsSchema,
         query: inventoryItemListQuerySchema,
@@ -454,9 +495,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs': {
     get: {
-      summary: 'List discovery jobs across all sources, newest first',
-      description:
-        'At most 100, each with its source’s name and host. Filter with sourceId to see only one source’s jobs. queueCounts is omitted — fetch it via GET /discovery-jobs/{id}.',
+      summary: listDiscoveryJobsOperation.summary,
+      description: listDiscoveryJobsOperation.description,
       requestParams: { query: jobListQuerySchema },
       responses: {
         '200': {
@@ -473,7 +513,7 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}': {
     get: {
-      summary: 'Fetch a discovery job with its queue counts',
+      summary: getDiscoveryJobOperation.summary,
       requestParams: { path: jobIdParamsSchema },
       responses: {
         '200': {
@@ -489,9 +529,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}/complete': {
     post: {
-      summary: 'Mark a job completed',
-      description:
-        'Allowed once no item is queued or in progress (expired leases are reclaimed first; an item waiting out a retry backoff still counts as queued). Permanently failed items do not block completion — they are reported in queueCounts.failed. 409 returns the blocking queueCounts.',
+      summary: completeDiscoveryJobOperation.summary,
+      description: completeDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       responses: {
         '200': {
@@ -508,9 +547,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}/cancel': {
     post: {
-      summary: 'Cancel a pending or running job',
-      description:
-        'In-progress items are released back to queued with no claim, so a worker still holding one is rejected (409) on its next call. Queued items stay on record as unexplored work. Terminal jobs reject all further item changes.',
+      summary: cancelDiscoveryJobOperation.summary,
+      description: cancelDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       responses: {
         '200': {
@@ -527,9 +565,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}/fail': {
     post: {
-      summary: 'Mark a pending or running job failed',
-      description:
-        'Releases leases the same way as cancel: in-progress items return to queued with no claim and a worker still holding one gets 409.',
+      summary: failDiscoveryJobOperation.summary,
+      description: failDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {
         content: {
@@ -551,8 +588,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}/queue-items': {
     get: {
-      summary: 'List a job’s queue items',
-      description: 'At most 500, oldest first. Filter with status.',
+      summary: listJobQueueItemsOperation.summary,
+      description: listJobQueueItemsOperation.description,
       requestParams: {
         path: jobIdParamsSchema,
         query: jobQueueItemListQuerySchema,
@@ -571,9 +608,8 @@ const discoveryPaths = {
       },
     },
     post: {
-      summary: 'Enqueue directories for a job',
-      description:
-        'Paths are normalized (slashes, case, trailing separators) and deduplicated per job; already-queued paths are returned with created=false. Every path must be inside the job’s root.',
+      summary: enqueueQueueItemsOperation.summary,
+      description: enqueueQueueItemsOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {
         content: {
@@ -599,9 +635,8 @@ const discoveryPaths = {
   },
   '/discovery-jobs/{id}/queue-items/claim': {
     post: {
-      summary: 'Claim the next directory to inspect',
-      description:
-        'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
+      summary: claimQueueItemOperation.summary,
+      description: claimQueueItemOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {
         content: {
@@ -623,7 +658,7 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/heartbeat': {
     post: {
-      summary: 'Extend a claim’s lease',
+      summary: heartbeatQueueItemOperation.summary,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -647,9 +682,8 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/inventory-items': {
     post: {
-      summary: 'Record the files and directories found in a claimed directory',
-      description:
-        'Upserts by source + normalized path (case-insensitive), so repeating a call or re-exploring after a crash updates the existing rows. Size and modifiedAt are refreshed when provided and kept when omitted. Every path must lie beneath the claimed directory. Send up to 200 items per call (the request body limit is 100kb); chunk larger directories.',
+      summary: recordInventoryItemsOperation.summary,
+      description: recordInventoryItemsOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -675,10 +709,8 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/complete': {
     post: {
-      summary:
-        'Complete a claimed directory and enqueue the children found in it',
-      description:
-        'The completion and the discoveredPaths enqueue happen in one transaction, so subdirectories are never lost to a crash in between.',
+      summary: completeQueueItemOperation.summary,
+      description: completeQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -702,9 +734,8 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/fail': {
     post: {
-      summary: 'Record a failure for a claimed directory',
-      description:
-        'A retryable failure with attempts left returns the item to queued behind an exponential backoff (30s, 60s, … capped at 1h). Otherwise it becomes failed and stays visible until a human retries it. lastError is always recorded.',
+      summary: failQueueItemOperation.summary,
+      description: failQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -728,7 +759,7 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/skip': {
     post: {
-      summary: 'Skip a claimed directory',
+      summary: skipQueueItemOperation.summary,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -752,9 +783,8 @@ const discoveryPaths = {
   },
   '/queue-items/{id}/retry': {
     post: {
-      summary: 'Retry a failed item (human)',
-      description:
-        'Requeues a failed item for exactly one more attempt; attemptCount and lastError are kept. Only allowed while the item’s job is pending or running; a finished job’s failures are retried by starting a new job.',
+      summary: retryQueueItemOperation.summary,
+      description: retryQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       responses: {
         '200': {
@@ -805,9 +835,8 @@ export const openApiSpec = createDocument({
     },
     '/maps/{type}': {
       get: {
-        summary: 'Fetch a status map for a Kubernetes resource type',
-        description:
-          'Today only type=pods is supported. Each item status is driven by the requested metric: cpu/memory/both use usage ÷ limit (falling back to request, then node-relative capacity); restarts is relative to the worst pod in this response (fewer than 10 restarts is always healthy). Pass groupBy to have items pre-grouped by namespace/node/workload.',
+        summary: getMapOperation.summary,
+        description: getMapOperation.description,
         requestParams: {
           path: mapTypeParamsSchema,
           query: mapQuerySchema,
@@ -823,9 +852,8 @@ export const openApiSpec = createDocument({
     },
     '/pods/{namespace}/{pod}/metrics/cpu': {
       get: {
-        summary: 'Per-container CPU usage history for a single pod',
-        description:
-          'One series per container, in cores, plus the pod’s declared requestCores/limitCores (summed across containers) for drawing reference lines. 404 if the pod does not exist.',
+        summary: getPodCpuMetricsOperation.summary,
+        description: getPodCpuMetricsOperation.description,
         requestParams: {
           path: podMetricsParamsSchema,
           query: podMetricsRangeQuerySchema,
@@ -842,10 +870,8 @@ export const openApiSpec = createDocument({
     },
     '/pods/{namespace}/{pod}/metrics/memory': {
       get: {
-        summary:
-          'Per-container working-set memory usage history for a single pod',
-        description:
-          'One series per container, in bytes, plus the pod’s declared requestBytes/limitBytes (summed across containers) for drawing reference lines. 404 if the pod does not exist.',
+        summary: getPodMemoryMetricsOperation.summary,
+        description: getPodMemoryMetricsOperation.description,
         requestParams: {
           path: podMetricsParamsSchema,
           query: podMetricsRangeQuerySchema,
@@ -865,9 +891,8 @@ export const openApiSpec = createDocument({
     ...discoveryPaths,
     '/hosts': {
       get: {
-        summary: 'List registered hosts, enriched with live Prometheus data',
-        description:
-          'status/cpuUsageRatio are best-effort: a host with no instance, or whose node-exporter data has not reached Prometheus, still returns with status="unknown" rather than failing the request.',
+        summary: listHostsOperation.summary,
+        description: listHostsOperation.description,
         requestParams: { query: hostListQuerySchema },
         responses: {
           '200': {
@@ -880,7 +905,7 @@ export const openApiSpec = createDocument({
         },
       },
       post: {
-        summary: 'Register a new host',
+        summary: createHostOperation.summary,
         requestBody: {
           content: { 'application/json': { schema: createHostBodySchema } },
         },
@@ -895,7 +920,7 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}': {
       get: {
-        summary: 'Fetch a single host, enriched with live Prometheus data',
+        summary: getHostOperation.summary,
         requestParams: { path: hostIdParamsSchema },
         responses: {
           '200': {
@@ -907,7 +932,7 @@ export const openApiSpec = createDocument({
         },
       },
       patch: {
-        summary: 'Update a host',
+        summary: updateHostOperation.summary,
         requestParams: { path: hostIdParamsSchema },
         requestBody: {
           content: { 'application/json': { schema: updateHostBodySchema } },
@@ -922,7 +947,7 @@ export const openApiSpec = createDocument({
         },
       },
       delete: {
-        summary: 'Delete a host',
+        summary: deleteHostOperation.summary,
         requestParams: { path: hostIdParamsSchema },
         responses: {
           '204': { description: 'The host was deleted' },
@@ -934,9 +959,8 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}/metrics/cpu': {
       get: {
-        summary: 'Per-CPU usage history for a single host',
-        description:
-          'One series per CPU core (e.g. 4 series for a 4-core host), each core’s busy ratio normalized by core count. A host with no instance set returns an empty series rather than 404/500.',
+        summary: getHostCpuMetricsOperation.summary,
+        description: getHostCpuMetricsOperation.description,
         requestParams: {
           path: hostIdParamsSchema,
           query: hostMetricsRangeQuerySchema,
@@ -955,9 +979,8 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}/metrics/memory': {
       get: {
-        summary: 'Memory breakdown history for a single host',
-        description:
-          'Four series in bytes: used (total − free − buffers − cached), buffers, cached, free. A host with no instance set returns an empty series rather than 404/500.',
+        summary: getHostMemoryMetricsOperation.summary,
+        description: getHostMemoryMetricsOperation.description,
         requestParams: {
           path: hostIdParamsSchema,
           query: hostMetricsRangeQuerySchema,
@@ -976,9 +999,8 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}/metrics/disk-io': {
       get: {
-        summary: 'Per-device disk I/O history for a single host',
-        description:
-          'Three series per real block device (excludes loop/partition devices): read bytes/sec, written bytes/sec, io time (0-1 busy ratio). A host with no instance set returns an empty series rather than 404/500.',
+        summary: getHostDiskIoMetricsOperation.summary,
+        description: getHostDiskIoMetricsOperation.description,
         requestParams: {
           path: hostIdParamsSchema,
           query: hostMetricsRangeQuerySchema,
@@ -997,9 +1019,8 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}/metrics/disk-space': {
       get: {
-        summary: 'Current filesystem usage per mountpoint for a single host',
-        description:
-          'An instant snapshot (not a time range) of size/used/available per mountpoint. A host with no instance set returns an empty list rather than 404/500.',
+        summary: getHostDiskSpaceOperation.summary,
+        description: getHostDiskSpaceOperation.description,
         requestParams: { path: hostIdParamsSchema },
         responses: {
           '200': {
@@ -1015,9 +1036,8 @@ export const openApiSpec = createDocument({
     },
     '/hosts/{id}/metrics/temperature': {
       get: {
-        summary: 'Per-sensor temperature history for a single host',
-        description:
-          'Only ever populated for physical hosts — standalone node-exporter targets expose hwmon sensors; in-cluster k8s nodes (VMs) do not. A host with no instance, or no hwmon sensors, returns an empty series rather than 404/500.',
+        summary: getHostTemperatureMetricsOperation.summary,
+        description: getHostTemperatureMetricsOperation.description,
         requestParams: {
           path: hostIdParamsSchema,
           query: hostMetricsRangeQuerySchema,

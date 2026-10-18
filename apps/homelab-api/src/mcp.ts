@@ -1,4 +1,17 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import {
+  getDiscoveryJobOperation,
+  listDiscoveryJobsOperation,
+} from './controllers/discovery/discovery-jobs';
+import { recordInventoryItemsOperation } from './controllers/discovery/inventory-items';
+import {
+  claimQueueItemOperation,
+  completeQueueItemOperation,
+  failQueueItemOperation,
+  heartbeatQueueItemOperation,
+  retryQueueItemOperation,
+  skipQueueItemOperation,
+} from './controllers/discovery/queue-items';
 import * as discoveryService from './services/discovery';
 import {
   claimQueueItemBodySchema,
@@ -7,7 +20,6 @@ import {
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
   jobListQuerySchema,
-  MAX_INVENTORY_ITEMS_PER_REQUEST,
   queueItemIdParamsSchema,
   recordInventoryItemsBodySchema,
   skipQueueItemBodySchema,
@@ -55,61 +67,61 @@ export const createMcpServer = (): McpServer => {
   const server = new McpServer({ name: 'homelab-api', version: '0.1.0' });
 
   server.registerTool(
-    'list_discovery_jobs',
+    listDiscoveryJobsOperation.mcp.name,
     {
-      description:
-        'List discovery jobs with their source. Use to find active (pending/running) jobs to resume.',
+      description: listDiscoveryJobsOperation.mcp.description,
       inputSchema: jobListQuerySchema.shape,
     },
     ({ sourceId }) =>
-      run('list_discovery_jobs', () => discoveryService.listAllJobs(sourceId)),
+      run(listDiscoveryJobsOperation.mcp.name, () =>
+        discoveryService.listAllJobs(sourceId),
+      ),
   );
 
   server.registerTool(
-    'get_discovery_job',
+    getDiscoveryJobOperation.mcp.name,
     {
-      description:
-        'Get one discovery job, including queueCounts, to check status and progress.',
+      description: getDiscoveryJobOperation.mcp.description,
       inputSchema: { id: jobId },
     },
     ({ id }) =>
-      run('get_discovery_job', () => discoveryService.getDiscoveryJob(id)),
+      run(getDiscoveryJobOperation.mcp.name, () =>
+        discoveryService.getDiscoveryJob(id),
+      ),
   );
 
   server.registerTool(
-    'claim_directory',
+    claimQueueItemOperation.mcp.name,
     {
-      description:
-        'Claim the next directory to explore in a job. Returns { item } with a claimToken (required by every later call on that directory), or { item: null, reason } when nothing is claimable: queue_empty means the job can be completed by a human, retry_backoff means queued directories are waiting out a retry delay, and in_progress means other workers still hold leases; for the last two, try again at retryAt. The claim is a lease; extend it with heartbeat_directory.',
+      description: claimQueueItemOperation.mcp.description,
       inputSchema: { jobId, ...claimQueueItemBodySchema.shape },
     },
     ({ jobId, workerId, leaseSeconds }) =>
-      run('claim_directory', () =>
+      run(claimQueueItemOperation.mcp.name, () =>
         discoveryService.claimQueueItem(jobId, workerId, leaseSeconds),
       ),
   );
 
   server.registerTool(
-    'heartbeat_directory',
+    heartbeatQueueItemOperation.mcp.name,
     {
-      description:
-        'Extend the lease on a claimed directory so a long-running exploration is not reclaimed by another worker.',
+      description: heartbeatQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...heartbeatQueueItemBodySchema.shape },
     },
     ({ id, claimToken, leaseSeconds }) =>
-      run('heartbeat_directory', () =>
+      run(heartbeatQueueItemOperation.mcp.name, () =>
         discoveryService.heartbeat(id, claimToken, leaseSeconds),
       ),
   );
 
   server.registerTool(
-    'record_discovered_items',
+    recordInventoryItemsOperation.mcp.name,
     {
-      description: `Record files and subdirectories found inside a claimed directory in one batch. Maximum ${MAX_INVENTORY_ITEMS_PER_REQUEST} items per call; a larger batch is rejected outright, so for a bigger directory split the entries into chunks of at most ${MAX_INVENTORY_ITEMS_PER_REQUEST} and call this once per chunk (re-sending an item is safe). Paths must lie inside the claimed directory. Does not enqueue subdirectories: pass them as discoveredPaths to complete_directory.`,
+      description: recordInventoryItemsOperation.mcp.description,
       inputSchema: { id: queueItemId, ...recordInventoryItemsBodySchema.shape },
     },
     ({ id, claimToken, items }) =>
-      run('record_discovered_items', async () =>
+      run(recordInventoryItemsOperation.mcp.name, async () =>
         (await discoveryService.recordInventory(id, claimToken, items)).map(
           ({ item, created }) => ({ ...item, created }),
         ),
@@ -117,14 +129,13 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
-    'complete_directory',
+    completeQueueItemOperation.mcp.name,
     {
-      description:
-        'Mark a claimed directory as explored. Child directories found are enqueued atomically via discoveredPaths.',
+      description: completeQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...completeQueueItemBodySchema.shape },
     },
     ({ id, claimToken, discoveredPaths }) =>
-      run('complete_directory', async () => {
+      run(completeQueueItemOperation.mcp.name, async () => {
         const { item, children } = await discoveryService.completeItem(
           id,
           claimToken,
@@ -142,39 +153,39 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
-    'fail_directory',
+    failQueueItemOperation.mcp.name,
     {
-      description:
-        'Report an error exploring a claimed directory. Retryable failures are requeued behind an exponential backoff until attempts run out; retryable=false fails it permanently.',
+      description: failQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...failQueueItemBodySchema.shape },
     },
     ({ id, claimToken, error, retryable }) =>
-      run('fail_directory', () =>
+      run(failQueueItemOperation.mcp.name, () =>
         discoveryService.failItem(id, claimToken, error, retryable),
       ),
   );
 
   server.registerTool(
-    'skip_directory',
+    skipQueueItemOperation.mcp.name,
     {
-      description:
-        'Mark a claimed directory as intentionally skipped (e.g. a system directory), with a reason.',
+      description: skipQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...skipQueueItemBodySchema.shape },
     },
     ({ id, claimToken, reason }) =>
-      run('skip_directory', () =>
+      run(skipQueueItemOperation.mcp.name, () =>
         discoveryService.skipItem(id, claimToken, reason),
       ),
   );
 
   server.registerTool(
-    'retry_directory',
+    retryQueueItemOperation.mcp.name,
     {
-      description:
-        'Requeue a permanently failed directory for exactly one more attempt.',
+      description: retryQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId },
     },
-    ({ id }) => run('retry_directory', () => discoveryService.retryItem(id)),
+    ({ id }) =>
+      run(retryQueueItemOperation.mcp.name, () =>
+        discoveryService.retryItem(id),
+      ),
   );
 
   return server;
