@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation';
 import { getHost, type Host } from '../../../infra/hosts/lib/homelab-api';
 import {
-  getBackupSources,
+  getSources,
   getDiscoveryJob,
   getDiscoveryJobs,
   getQueueItems,
   isActiveJob,
-  type BackupSource,
+  type Source,
   type DiscoveryJob,
   type DiscoveryJobWithCounts,
   type QueueItem,
@@ -30,12 +30,12 @@ function unwrap<T>(result: PromiseSettledResult<T>, label: string): T | null {
 export default async function SourceDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  let sources: BackupSource[];
+  let sources: Source[];
 
   try {
-    sources = await getBackupSources();
+    sources = await getSources();
   } catch (err) {
-    console.error('Failed to load backup sources from homelab-api:', err);
+    console.error('Failed to load sources from homelab-api:', err);
     return <SourceLoadError />;
   }
 
@@ -53,8 +53,7 @@ export default async function SourceDetailPage({ params }: PageProps) {
   const jobs: DiscoveryJob[] | null = unwrap(jobsResult, 'discovery jobs');
   const failedItems: QueueItem[] | null = unwrap(failedResult, 'failed items');
 
-  // Queue counts are source-wide, so the newest job's counts describe the
-  // source whether that job is still running or already finished.
+  // The newest job is the one worth showing, running or already finished.
   let latestJob: DiscoveryJobWithCounts | null = null;
 
   if (jobs && jobs.length > 0) {

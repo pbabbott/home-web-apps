@@ -20,7 +20,8 @@ const VIDEO_MENU_ITEMS = [
 
 const EXODUS_MENU_ITEMS = [
   { href: '/exodus/sources', label: 'Sources' },
-  { href: '/exodus/jobs', label: 'Jobs' },
+  { href: '/exodus/jobs', label: 'Discovery Jobs' },
+  { href: '/exodus/inventory', label: 'Inventory' },
 ];
 
 const INFRA_MENU_ITEMS = [

@@ -1,30 +1,28 @@
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
-export type BackupSourceType = 'windows';
+export type SourceType = 'windows';
 
-export interface BackupSource {
+export interface Source {
   id: string;
   name: string;
   /** Joins to a registered host (`Host.id`) for the machine's name/IP; null if not linked to one. */
   hostId: string | null;
-  sourceType: BackupSourceType;
+  sourceType: SourceType;
   createdAt: string;
   updatedAt: string;
 }
 
-export async function getBackupSources(): Promise<BackupSource[]> {
-  const res = await fetch(`${HOMELAB_API_URL}/backup-sources`, {
+export async function getSources(): Promise<Source[]> {
+  const res = await fetch(`${HOMELAB_API_URL}/sources`, {
     cache: 'no-store',
   });
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(
-      `homelab-api GET /backup-sources returned ${res.status}: ${body}`,
-    );
+    throw new Error(`homelab-api GET /sources returned ${res.status}: ${body}`);
   }
 
-  return (await res.json()) as BackupSource[];
+  return (await res.json()) as Source[];
 }
 
 export type DiscoveryJobStatus =
@@ -58,7 +56,7 @@ export type QueueItemStatus =
   | 'failed'
   | 'skipped';
 
-/** Item counts by status. Source-wide: the queue belongs to the source, not one job. */
+/** Item counts by status for one job's queue. */
 export type QueueCounts = Record<QueueItemStatus, number>;
 
 export interface DiscoveryJobWithCounts extends DiscoveryJob {
@@ -67,6 +65,8 @@ export interface DiscoveryJobWithCounts extends DiscoveryJob {
 
 export interface QueueItem {
   id: string;
+  /** The job this directory belongs to; only items of an active job can be retried. */
+  jobId: string;
   path: string;
   status: QueueItemStatus;
   attemptCount: number;
@@ -80,14 +80,14 @@ export async function getDiscoveryJobs(
   sourceId: string,
 ): Promise<DiscoveryJob[]> {
   const res = await fetch(
-    `${HOMELAB_API_URL}/backup-sources/${sourceId}/discovery-jobs`,
+    `${HOMELAB_API_URL}/sources/${sourceId}/discovery-jobs`,
     { cache: 'no-store' },
   );
 
   if (!res.ok) {
     const body = await res.text();
     throw new Error(
-      `homelab-api GET /backup-sources/${sourceId}/discovery-jobs returned ${res.status}: ${body}`,
+      `homelab-api GET /sources/${sourceId}/discovery-jobs returned ${res.status}: ${body}`,
     );
   }
 
@@ -118,14 +118,14 @@ export async function getQueueItems(
   const params = new URLSearchParams({ status });
 
   const res = await fetch(
-    `${HOMELAB_API_URL}/backup-sources/${sourceId}/queue-items?${params}`,
+    `${HOMELAB_API_URL}/sources/${sourceId}/queue-items?${params}`,
     { cache: 'no-store' },
   );
 
   if (!res.ok) {
     const body = await res.text();
     throw new Error(
-      `homelab-api GET /backup-sources/${sourceId}/queue-items returned ${res.status}: ${body}`,
+      `homelab-api GET /sources/${sourceId}/queue-items returned ${res.status}: ${body}`,
     );
   }
 
@@ -156,4 +156,58 @@ export async function getAllDiscoveryJobs(
   }
 
   return (await res.json()) as DiscoveryJobWithSource[];
+}
+
+export type InventoryItemType = 'file' | 'directory';
+
+export interface InventoryItem {
+  id: string;
+  itemType: InventoryItemType;
+  path: string;
+  /** Lowercased path; the cursor for the next page. */
+  normalizedPath: string;
+  parentPath: string | null;
+  name: string;
+  extension: string | null;
+  sizeBytes: number | null;
+  modifiedAt: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+export interface InventoryQuery {
+  /** Only direct children of this directory. */
+  parentPath?: string;
+  /** Items at or beneath this path. */
+  pathPrefix?: string;
+  itemType?: InventoryItemType;
+  /** The `normalizedPath` of the last item of the previous page. */
+  after?: string;
+  limit?: number;
+}
+
+/** A page of a source's inventory, ordered by normalized path. */
+export async function getInventoryItems(
+  sourceId: string,
+  query: InventoryQuery,
+): Promise<InventoryItem[]> {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined) params.set(key, String(value));
+  }
+
+  const res = await fetch(
+    `${HOMELAB_API_URL}/sources/${sourceId}/inventory-items?${params}`,
+    { cache: 'no-store' },
+  );
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /sources/${sourceId}/inventory-items returned ${res.status}: ${body}`,
+    );
+  }
+
+  return (await res.json()) as InventoryItem[];
 }

@@ -1,9 +1,9 @@
 import { getHosts, type Host } from '../../infra/hosts/lib/homelab-api';
 import {
   getAllDiscoveryJobs,
-  getBackupSources,
+  getSources,
   isActiveJob,
-  type BackupSource,
+  type Source,
   type DiscoveryJobWithSource,
 } from '../sources/lib/homelab-api';
 import { JobsClient } from './JobsClient';
@@ -27,12 +27,12 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
   const requestedSourceId = isUuid(sourceParam) ? sourceParam : undefined;
 
   const [sourcesResult, hostsResult, jobsResult] = await Promise.allSettled([
-    getBackupSources(),
+    getSources(),
     getHosts(),
     getAllDiscoveryJobs(requestedSourceId),
   ]);
 
-  let sources: BackupSource[] | null = null;
+  let sources: Source[] | null = null;
   let hosts: Host[] | null = null;
   let jobs: DiscoveryJobWithSource[] | null = null;
 
@@ -40,7 +40,7 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
     sources = sourcesResult.value;
   } else {
     console.error(
-      'Failed to load backup sources from homelab-api:',
+      'Failed to load sources from homelab-api:',
       sourcesResult.reason,
     );
   }

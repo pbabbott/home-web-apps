@@ -18,7 +18,7 @@ import {
 } from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
 import { AddSourceModal } from './AddSourceModal';
-import type { BackupSource } from './lib/homelab-api';
+import type { Source } from './lib/homelab-api';
 
 /** Date only, in UTC — deterministic so server and client renders match. */
 function formatDate(iso: string): string {
@@ -26,7 +26,7 @@ function formatDate(iso: string): string {
 }
 
 interface SourcesClientProps {
-  sources: BackupSource[] | null;
+  sources: Source[] | null;
   hosts: Host[] | null;
 }
 
@@ -39,7 +39,7 @@ export function SourcesClient({ sources, hosts }: SourcesClientProps) {
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
       <Typography variant="h1" component="h1">
-        Backup Sources
+        Sources
       </Typography>
 
       <Panel color="default" className="flex flex-col gap-4">
@@ -58,11 +58,11 @@ export function SourcesClient({ sources, hosts }: SourcesClientProps) {
 
         {sources === null ? (
           <Typography variant="body2" className="text-error-400">
-            Failed to load backup sources from homelab-api.
+            Failed to load sources from homelab-api.
           </Typography>
         ) : sources.length === 0 ? (
           <Typography variant="body2" className="text-neutral-400">
-            No backup sources yet.
+            No sources yet.
           </Typography>
         ) : (
           <ScrollableTable className="mb-0">

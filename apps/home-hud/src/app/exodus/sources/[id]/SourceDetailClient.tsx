@@ -22,6 +22,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import type { Host } from '../../../infra/hosts/lib/homelab-api';
+import { inventoryUrl } from '../../lib/inventory-display';
 import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
@@ -30,7 +31,7 @@ import {
 } from '../lib/actions';
 import {
   isActiveJob,
-  type BackupSource,
+  type Source,
   type DiscoveryJob,
   type DiscoveryJobWithCounts,
   type QueueItem,
@@ -164,7 +165,7 @@ function CurrentJobPanel({
             <Typography variant="body2" className="text-warning-400">
               Finished with {job.queueCounts.failed} failed{' '}
               {job.queueCounts.failed === 1 ? 'directory' : 'directories'} —
-              review them below.
+              review them below. Start a new job to explore them again.
             </Typography>
           )}
 
@@ -221,9 +222,12 @@ function CurrentJobPanel({
 
 function FailedItemsPanel({
   items,
+  activeJobIds,
   onRetried,
 }: {
   items: QueueItem[];
+  /** Ids of the source's pending/running jobs; only their failures can be retried. */
+  activeJobIds: ReadonlySet<string>;
   onRetried: () => void;
 }) {
   const [retryingId, setRetryingId] = useState<string | null>(null);
@@ -273,19 +277,30 @@ function FailedItemsPanel({
                 <Td>{item.lastError ?? '—'}</Td>
                 <Td>{formatDateTime(item.updatedAt)}</Td>
                 <Td>
-                  <OutlinedButton
-                    size="small"
-                    disabled={retryingId !== null}
-                    onClick={() => void retry(item.id)}
-                  >
-                    {retryingId === item.id ? 'Retrying…' : 'Retry'}
-                  </OutlinedButton>
+                  {activeJobIds.has(item.jobId) ? (
+                    <OutlinedButton
+                      size="small"
+                      disabled={retryingId !== null}
+                      onClick={() => void retry(item.id)}
+                    >
+                      {retryingId === item.id ? 'Retrying…' : 'Retry'}
+                    </OutlinedButton>
+                  ) : (
+                    <Typography variant="body2">Job finished</Typography>
+                  )}
                 </Td>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </ScrollableTable>
+
+      {items.some((item) => !activeJobIds.has(item.jobId)) && (
+        <Typography variant="body2">
+          Failures from a finished job can’t be retried. Start a new job to
+          explore those directories again.
+        </Typography>
+      )}
 
       {error && (
         <Typography variant="body2" className="text-error-400">
@@ -334,7 +349,7 @@ function JobHistoryPanel({ jobs }: { jobs: DiscoveryJob[] }) {
 }
 
 interface SourceDetailClientProps {
-  source: BackupSource;
+  source: Source;
   host: Host | null;
   jobs: DiscoveryJob[] | null;
   latestJob: DiscoveryJobWithCounts | null;
@@ -365,14 +380,15 @@ export function SourceDetailClient({
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
       <div className="flex flex-col gap-2">
-        <Link
+        <OutlinedButton
+          component={Link}
           href="/exodus/sources"
-          className="text-primary-400 hover:underline"
+          color="secondary"
+          size="small"
+          className="self-start"
         >
-          <Typography variant="small" component="span">
-            ← Backup Sources
-          </Typography>
-        </Link>
+          ← Sources
+        </OutlinedButton>
         <Typography variant="h1" component="h1" className="break-all">
           {source.name}
         </Typography>
@@ -384,6 +400,15 @@ export function SourceDetailClient({
               : 'No host linked'}{' '}
           · {source.sourceType}
         </Typography>
+        <OutlinedButton
+          component={Link}
+          href={inventoryUrl({ source: source.id })}
+          color="accent-falcon"
+          size="small"
+          className="self-start"
+        >
+          Browse inventory →
+        </OutlinedButton>
       </div>
 
       {jobs === null ? (
@@ -405,7 +430,13 @@ export function SourceDetailClient({
         </Typography>
       ) : (
         failedItems.length > 0 && (
-          <FailedItemsPanel items={failedItems} onRetried={refresh} />
+          <FailedItemsPanel
+            items={failedItems}
+            activeJobIds={
+              new Set((jobs ?? []).filter(isActiveJob).map((job) => job.id))
+            }
+            onRetried={refresh}
+          />
         )
       )}
 

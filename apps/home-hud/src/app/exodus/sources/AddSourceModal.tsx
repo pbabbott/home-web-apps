@@ -13,7 +13,7 @@ import {
 } from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
 import { HostSelectField } from './HostSelectField';
-import { createBackupSource } from './lib/actions';
+import { createSource } from './lib/actions';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -55,7 +55,7 @@ export function AddSourceModal({
     setSubmitting(true);
     setError(null);
 
-    const result = await createBackupSource({
+    const result = await createSource({
       name: name.trim(),
       hostId: hostId || undefined,
     });
@@ -80,7 +80,7 @@ export function AddSourceModal({
       }}
     >
       <ModalContent color="secondary">
-        <ModalTitle>Add Backup Source</ModalTitle>
+        <ModalTitle>Add Source</ModalTitle>
         <ModalDescription>
           Register a machine to inventory for the exodus migration. Link it to a
           host registered under Infra / Hosts, or leave it unlinked.

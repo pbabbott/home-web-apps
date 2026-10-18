@@ -1,7 +1,7 @@
 'use server';
 
 import { errorMessage } from './errors';
-import type { BackupSource, DiscoveryJob } from './homelab-api';
+import type { Source, DiscoveryJob } from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
 
@@ -31,23 +31,23 @@ async function post<T>(path: string, body?: unknown): Promise<ActionResult<T>> {
   }
 }
 
-export interface CreateBackupSourceInput {
+export interface CreateSourceInput {
   name: string;
   /** Omit for a machine that isn't a registered host. */
   hostId?: string;
 }
 
-export async function createBackupSource(
-  input: CreateBackupSourceInput,
-): Promise<ActionResult<BackupSource>> {
-  return post<BackupSource>('/backup-sources', input);
+export async function createSource(
+  input: CreateSourceInput,
+): Promise<ActionResult<Source>> {
+  return post<Source>('/sources', input);
 }
 
 export async function startDiscoveryJob(
   sourceId: string,
   rootPath: string,
 ): Promise<ActionResult<DiscoveryJob>> {
-  return post<DiscoveryJob>(`/backup-sources/${sourceId}/discovery-jobs`, {
+  return post<DiscoveryJob>(`/sources/${sourceId}/discovery-jobs`, {
     rootPath,
   });
 }

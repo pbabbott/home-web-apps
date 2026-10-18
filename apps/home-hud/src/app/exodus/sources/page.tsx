@@ -1,13 +1,13 @@
 import { getHosts, type Host } from '../../infra/hosts/lib/homelab-api';
 import { SourcesClient } from './SourcesClient';
-import { getBackupSources, type BackupSource } from './lib/homelab-api';
+import { getSources, type Source } from './lib/homelab-api';
 
 export default async function SourcesPage() {
-  let sources: BackupSource[] | null = null;
+  let sources: Source[] | null = null;
   let hosts: Host[] | null = null;
 
   const [sourcesResult, hostsResult] = await Promise.allSettled([
-    getBackupSources(),
+    getSources(),
     getHosts(),
   ]);
 
@@ -15,7 +15,7 @@ export default async function SourcesPage() {
     sources = sourcesResult.value;
   } else {
     console.error(
-      'Failed to load backup sources from homelab-api:',
+      'Failed to load sources from homelab-api:',
       sourcesResult.reason,
     );
   }

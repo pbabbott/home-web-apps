@@ -18,7 +18,7 @@ import {
 import type { Host } from '../../infra/hosts/lib/homelab-api';
 import { JOB_STATUS_COLOR, formatDateTime } from '../lib/job-display';
 import type {
-  BackupSource,
+  Source,
   DiscoveryJobWithSource,
 } from '../sources/lib/homelab-api';
 
@@ -31,7 +31,7 @@ function buildUrl(sourceId: string | null): string {
 
 interface JobsClientProps {
   jobs: DiscoveryJobWithSource[] | null;
-  sources: BackupSource[] | null;
+  sources: Source[] | null;
   hosts: Host[] | null;
   selectedSourceId: string | null;
   hasActiveJob: boolean;
@@ -64,7 +64,7 @@ export function JobsClient({
       <Panel color="default" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Typography variant="body2" className="text-neutral-400">
-            Discovery runs across all backup sources, newest first.
+            Discovery runs across all sources, newest first.
           </Typography>
 
           <label className="flex items-center gap-2">

@@ -10,7 +10,7 @@ export function SourceLoadError() {
   return (
     <main className="bg-neutral-800 p-8">
       <Typography variant="body2" className="text-error-400">
-        Failed to load backup sources from homelab-api.
+        Failed to load sources from homelab-api.
       </Typography>
     </main>
   );
