@@ -5,8 +5,8 @@ import {
   discoveryQueueItems,
   type DiscoveryJobStatus,
 } from '../../schema/discovery';
-import { DiscoveryError } from './errors';
-import type { Tx } from './tx';
+import { DiscoveryError } from '../shared';
+import type { Tx } from '../shared';
 
 export const ACTIVE_JOB_STATUSES: DiscoveryJobStatus[] = ['pending', 'running'];
 

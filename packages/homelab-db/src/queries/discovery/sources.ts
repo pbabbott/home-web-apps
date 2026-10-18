@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import type { Database } from '../../client';
 import { isForeignKeyViolation, isUniqueViolation } from '../../pg-errors';
 import { sources, type NewSource, type Source } from '../../schema/discovery';
-import { DiscoveryError } from './errors';
+import { DiscoveryError } from '../shared';
 
 // -- sources ---------------------------------------------------------
 

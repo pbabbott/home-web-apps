@@ -1,3 +1,7 @@
+import type { Database } from '../client';
+
+export type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
+
 /**
  * A rule violation the caller can act on: the row is missing (`not_found`)
  * or the request conflicts with current state (`conflict`) — a duplicate

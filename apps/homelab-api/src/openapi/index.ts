@@ -1,4 +1,6 @@
 import { createDocument } from 'zod-openapi';
+import { auditEventsPaths } from './discovery/audit-events';
+import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { inventoryItemsPaths } from './discovery/inventory-items';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
@@ -30,7 +32,9 @@ export const openApiSpec = createDocument({
     ...sourcesPaths,
     ...discoveryJobsPaths,
     ...queueItemsPaths,
+    ...exclusionRulesPaths,
     ...inventoryItemsPaths,
+    ...auditEventsPaths,
     ...hostsPaths,
   },
 });

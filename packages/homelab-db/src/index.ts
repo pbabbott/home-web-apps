@@ -25,14 +25,21 @@ export {
   discoveryJobs,
   discoveryQueueItems,
   inventoryItems,
+  exclusionRules,
+  auditEvents,
   inventoryItemTypeEnum,
   sourceTypeEnum,
   discoveryJobStatusEnum,
   discoveryQueueItemStatusEnum,
+  exclusionRuleScopeEnum,
+  reviewDispositionEnum,
+  auditActorTypeEnum,
   sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
   inventoryItemSelectSchema,
+  exclusionRuleSelectSchema,
+  auditEventSelectSchema,
 } from './schema/discovery';
 export type {
   Source,
@@ -47,7 +54,50 @@ export type {
   InventoryItem,
   NewInventoryItem,
   InventoryItemType,
+  ExclusionRule,
+  NewExclusionRule,
+  ExclusionRuleScope,
+  ReviewDisposition,
+  AuditEvent,
+  NewAuditEvent,
+  AuditActorType,
+  AuditEventType,
 } from './schema/discovery';
+
+export { insertAuditEvent, listAuditEvents } from './queries/audit';
+export type {
+  Actor,
+  AuditEventInput,
+  ListAuditEventsOptions,
+} from './queries/audit';
+
+export {
+  resolveExclusion,
+  listExclusionRules,
+  createExclusionRule,
+  updateExclusionRule,
+  deleteExclusionRule,
+} from './queries/exclusion-rules';
+export type {
+  ExclusionState,
+  ExclusionResolution,
+  ListExclusionRulesOptions,
+  CreateExclusionRuleInput,
+  UpdateExclusionRuleInput,
+} from './queries/exclusion-rules';
+
+export {
+  MAX_BULK_REVIEW_ITEMS,
+  getInventoryItemById,
+  reviewInventoryItem,
+  reviewInventoryItems,
+} from './queries/review';
+export type {
+  InventoryItemWithExclusion,
+  ReviewInput,
+  BulkReviewInput,
+  BulkReviewResult,
+} from './queries/review';
 
 export {
   DiscoveryError,
