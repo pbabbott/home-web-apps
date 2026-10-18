@@ -4,7 +4,7 @@ Exodus is a one-time migration of files from Windows machines to the NAS. This d
 
 ## The idea
 
-An OpenClaw agent runs on a cron schedule. Each run starts a fresh session with no memory of the last one, so the agent cannot hold its progress in conversation history. Instead it explores a machine one directory at a time through a durable queue in Postgres: claim a directory, inspect its immediate children, record what it found, repeat. Whatever is not written to the queue is lost, so the queue is the single source of truth. Eventually the agent will submit valuable files for human review and copying to the NAS.
+An OpenClaw agent runs on a cron schedule. Each run starts a fresh session with no memory of the last one, so the agent cannot hold its progress in conversation history. Instead it explores a machine one directory at a time through a durable queue in Postgres: claim a directory, inspect its immediate children, record the files and directories it found as inventory items, enqueue the subdirectories, repeat. Whatever is not written to Postgres is lost, so the database is the single source of truth. Eventually the agent will submit valuable files for human review and copying to the NAS.
 
 A human registers machines, starts and monitors jobs, and handles problems. The agent processes the work inside those jobs.
 
@@ -22,8 +22,8 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 
 ## Where things live
 
-- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery.ts`, migrations `0003`–`0007`). The same package and the same `homelab_api` database as `hosts`.
-- **API** — `apps/homelab-api` (`controllers/`, `services/`, `schemas/discovery.ts`, `lib/windows-path.ts`, `mcp.ts`). Interactive docs at `/docs`. The README has the agent workflow and the rules in short form.
+- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery.ts`, migrations `0003`–`0008`, and an [entity-relationship diagram](../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
+- **API** — `apps/homelab-api` (`controllers/discovery/` split by domain, `services/discovery.ts`, `schemas/discovery.ts`, `lib/windows-path.ts`, `mcp.ts`). Interactive docs at `/docs`. The README has the agent workflow and the rules in short form.
 - **UI** — `apps/home-hud/src/app/exodus/`, under the Exodus menu in the nav.
 
 ## Data model
@@ -33,10 +33,11 @@ Four tables. The split that matters: a **job** is one run over a source and owns
 - **`sources`** — a machine being inventoried: `name` (unique), `source_type` (only `windows` today), and an optional `host_id` that references `hosts.id`, so a source can be joined to the registered host for its name and IP. Sources need not be linked to a host. The foreign key is `ON DELETE RESTRICT`: deleting a host that still has a source returns 409 instead of silently wiping its discovery history.
 - **`discovery_jobs`** — one run over a source, rooted at `root_path`. Status: `pending` → `running` → `completed` | `failed` | `cancelled`. A partial unique index allows only **one active (pending/running) job per source**.
 - **`discovery_queue_items`** — one directory to explore within a job. Status: `queued` → `in_progress` → `completed` | `skipped` | `failed`. `job_id` is required and cascades on delete; unique on `(job_id, normalized_path)`. The source is reached through the job. Fields: `priority` (higher claimed first), `attempt_count`, `max_attempts` (default 3), `last_error`, `available_at` (retry backoff), and the lease (`claimed_by`, `claim_token`, `lease_expires_at`). No job-level lifecycle is duplicated on items.
-- **State checks.** `discovery_queue_items` has `CHECK`s that `0 <= attempt_count <= max_attempts` and that an `in_progress` item has `claimed_by`, `claim_token` and `lease_expires_at` all set; `inventory_items` checks `size_bytes >= 0`. The queries already keep to these, so the database now rejects an illegal state instead of storing it.
 - **`inventory_items`** — a file or directory found while exploring a source. Unique on `(source_id, normalized_path)` (lowercased, so Windows paths match case-insensitively). Fields: `item_type` (`file` | `directory`), `path`, `parent_path` (null only for roots), `name`, `extension` (lowercased, files only), `size_bytes` (bigint), `modified_at`, `first_job_id` / `last_job_id` (set null if a job is deleted) and `first_seen_at` / `last_seen_at`.
 
-Migration history: `0003` created the tables with a `hostname` text column, `0004` replaced it with a required `host_id`, and `0005` made `host_id` optional, `0006` scoped the queue to its job (see Decisions) and added `inventory_items`, `0007` added `CHECK` constraints (below), and `0008` renamed `backup_sources` to `sources` (the enum, the table and its constraints, all in place, so no data moved).
+**State checks.** `discovery_queue_items` has `CHECK`s that `0 <= attempt_count <= max_attempts` and that an `in_progress` item has `claimed_by`, `claim_token` and `lease_expires_at` all set; `inventory_items` checks `size_bytes >= 0`. The queries already keep to these, so the database now rejects an illegal state instead of storing it.
+
+Migration history: `0003` created the tables with a `hostname` text column, `0004` replaced it with a required `host_id`, `0005` made `host_id` optional, `0006` scoped the queue to its job (see Decisions) and added `inventory_items`, `0007` added the `CHECK` constraints above, and `0008` renamed `backup_sources` to `sources` (the enum, the table and its constraints, all in place, so no data moved).
 
 ## How processing works
 
@@ -95,7 +96,7 @@ Windows paths are normalized to single backslashes with no trailing separator (a
 | Method and path                                              | Purpose                                                                                      |
 | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | `POST` / `GET /sources`                                      | Register / list sources                                                                      |
-| `POST /sources/:id/discovery-jobs`                           | Start a job; queues `rootPath` as its first item                                             |
+| `POST /sources/:id/discovery-jobs`                           | Start a job; queues `rootPath` as its first item and records it as an inventory directory    |
 | `GET /sources/:id/discovery-jobs`                            | A source's jobs, newest first                                                                |
 | `GET /sources/:id/queue-items`                               | Queue items; filter with `?status=` and `?jobId=`                                            |
 | `GET /sources/:id/inventory-items`                           | Inventory; filter `jobId`, `itemType`, `parentPath`, `pathPrefix`, page with `after`/`limit` |
@@ -104,7 +105,7 @@ Windows paths are normalized to single backslashes with no trailing separator (a
 | `POST /discovery-jobs/:id/{complete,cancel,fail}`            | Guarded job transitions                                                                      |
 | `GET /discovery-jobs/:id/queue-items`                        | A job's queue items; filter with `?status=`                                                  |
 | `POST /discovery-jobs/:id/queue-items`                       | Enqueue paths (must be inside the job root)                                                  |
-| `POST /discovery-jobs/:id/queue-items/claim`                 | Claim the next directory                                                                     |
+| `POST /discovery-jobs/:id/queue-items/claim`                 | Claim the next directory, or learn why there is none (`{ item: null, reason, retryAt }`)     |
 | `POST /queue-items/:id/inventory-items`                      | Record files and directories found in the claimed directory                                  |
 | `POST /queue-items/:id/{heartbeat,complete,fail,skip,retry}` | Work on a claimed item; `retry` is the human one                                             |
 
@@ -129,18 +130,17 @@ Deliberately **not** exposed (human-only, REST): creating sources and jobs, enqu
 ## UI (home-hud)
 
 - **`/exodus/sources`** — table of sources with their linked host, and an Add Source modal. The host is optional.
-- **`/exodus/sources/[id]`** — the latest job with queue counts (refreshes itself every 5 seconds while a job is active), Start Job, Mark Complete, Cancel Job (with confirmation), failed directories with a Retry button, and job history.
-- **`/exodus/inventory`** — a read-only browser for a source's inventory, under the Exodus nav menu and linked from each source page ("Browse inventory"). A Source selector at the top (`?source=<id>`) picks whose inventory to show; a missing or unknown source falls back to the first one. It starts at the latest job's root and lists a folder's direct children (folders link into themselves, with a breadcrumb trail back up); "Everything beneath it" lists every descendant with full paths, and the Type filter narrows to files or folders. Sorted by path, 100 per page with Next/First page links. All state lives in the URL (`source`, `path`, `recursive`, `type`, `after`), so a view can be bookmarked or shared, and the page is server-rendered with no client-side fetching. Switching source resets the folder to that source's job root.
+- **`/exodus/sources/[id]`** — the latest job with queue counts (refreshes itself every 5 seconds while a job is active), Start Job, Mark Complete, Cancel Job (with confirmation), failed directories (with a Retry button only while their job is still active; a finished job's failures say to start a new job), a "Browse inventory" link, and job history.
+- **`/exodus/inventory`** — a read-only browser for a source's inventory, under the Exodus nav menu (Sources, Jobs, Inventory) and linked from each source page ("Browse inventory"). A Source selector at the top (`?source=<id>`) picks whose inventory to show; a missing or unknown source falls back to the first one. It starts at the latest job's root and lists a folder's direct children (folders link into themselves, with a breadcrumb trail back up); "Everything beneath it" lists every descendant with full paths, and the Type filter narrows to files or folders. Sorted by path, 100 per page with Next/First page links. All state lives in the URL (`source`, `path`, `recursive`, `type`, `after`), so a view can be bookmarked or shared, and the page is server-rendered with no client-side fetching. Switching source resets the folder to that source's job root.
 - **`/exodus/jobs`** — jobs across all sources, filterable by source through a `?source=<id>` URL parameter.
 
 ## Decisions and gotchas worth knowing
 
 - **The inventory page pages with a cursor, so it cannot go "back".** The API pages by the last `normalized_path` seen, which is stable under concurrent writes (page numbers would shift as the agent records new rows). The cost is that there is a Next link and a First page link but no Previous; the browser's Back button covers the rest because every page is its own URL. Rows are in path order, so folders and files interleave rather than folders coming first; sorting a single page would break the cursor.
 - **"Everything beneath it" filters the folder itself out on the page, not in the API.** The API's path-prefix filter includes the prefix path itself, so a full page can show 99 rows. The next-page decision uses the raw row count, so a short page never hides the Next link.
-
 - **The queue belongs to the job.** Each job explores from its own root with its own items, counts and completion check, so `queueCounts` describe that job exactly. What earlier jobs found is not lost: it lives in `inventory_items`, which are keyed by source and updated on rediscovery. (Migration `0006` replaced an earlier source-wide queue where a new job inherited a cancelled job's leftovers.)
 - **Inventory batches are capped at 200 items** because the shared Express `json()` body limit is 100 kb; a larger batch would be rejected as 413 before validation.
-- **No UI for failing a job by hand.** `POST /discovery-jobs/:id/fail` exists for the agent; the UI offers Complete and Cancel only.
+- **No UI for failing a job by hand.** `POST /discovery-jobs/:id/fail` exists as a REST route (it is not an MCP tool, so the agent cannot call it); the UI offers Complete and Cancel only.
 - **`retry_directory` is exposed to the agent, ungated.** It takes no `claimToken`, so any MCP client can requeue any failed item. Open question whether agents should be allowed to; if not, drop the tool or register it behind an env flag.
 - **Known small risks:** `claimToken` is visible in queue item listings, and there is no authentication, including on `/mcp`.
 - **Server actions return results instead of throwing.** Next.js redacts the message of an error thrown from a server action in production builds, and the API's messages ("already exists", "still has queued work (1 in progress)") are meant to be shown.
@@ -206,7 +206,7 @@ cd apps/home-hud
 pnpm dev          # UI on :4022, pages under /exodus
 ```
 
-Unit tests run with `pnpm test:unit` in `packages/homelab-db` and `apps/homelab-api`. `apps/homelab-api` also has its first integration test project (`pnpm test:int`, needs `dev:deps`): it runs end to end against the real local Postgres, covering concurrent claims, lease expiry and reclaim, retry exhaustion, completion rules and the host/source filters, and deletes everything it creates. CI picks the project up automatically through the `test:int` task. See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md) and the [integration test guide](./test-guide-integration.md).
+Unit tests run with `pnpm test:unit` in `packages/homelab-db` and `apps/homelab-api`. `apps/homelab-api` also has its first integration test project (`pnpm test:int`, needs `dev:deps`): it runs end to end against the real local Postgres, covering concurrent claims and inventory writes, lease expiry and reclaim, retry exhaustion, completion rules, the cancel/fail and enqueue races, the database state checks, inventory recording and listing, and the host/source filters, and deletes everything it creates. `apps/home-hud` has unit tests (`pnpm test:unit`) for the inventory page helpers (sizes, breadcrumbs, URLs). CI picks the project up automatically through the `test:int` task. See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md) and the [integration test guide](./test-guide-integration.md).
 
 After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` loads it from `dist/` at runtime (including in Jest), so a stale build shows up as confusing "undefined" errors.
 

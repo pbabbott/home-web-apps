@@ -80,7 +80,7 @@ export const createMcpServer = (): McpServer => {
     'claim_directory',
     {
       description:
-        'Claim the next directory to explore in a job. Returns { item } with a claimToken (required by every later call on that directory), or { item: null, reason } when nothing is claimable: queue_empty means the job can be completed by a human, retry_backoff means retry later. The claim is a lease; extend it with heartbeat_directory.',
+        'Claim the next directory to explore in a job. Returns { item } with a claimToken (required by every later call on that directory), or { item: null, reason } when nothing is claimable: queue_empty means the job can be completed by a human, retry_backoff means queued directories are waiting out a retry delay, and in_progress means other workers still hold leases; for the last two, try again at retryAt. The claim is a lease; extend it with heartbeat_directory.',
       inputSchema: { jobId, ...claimQueueItemBodySchema.shape },
     },
     ({ jobId, workerId, leaseSeconds }) =>
