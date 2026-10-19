@@ -13,13 +13,14 @@ jest.mock('../../src/services/discovery', () => {
     getDiscoveryJob: jest.fn(),
     claimQueueItem: jest.fn(),
     heartbeat: jest.fn(),
-    recordInventory: jest.fn(),
     completeItem: jest.fn(),
     failItem: jest.fn(),
     skipItem: jest.fn(),
     retryItem: jest.fn(),
     listExclusionRules: jest.fn(),
     createExclusionRule: jest.fn(),
+    proposeCandidates: jest.fn(),
+    listSourceReviewCandidates: jest.fn(),
   };
 });
 
@@ -64,7 +65,8 @@ describe('MCP endpoint (/mcp)', () => {
       'heartbeat_directory',
       'list_discovery_jobs',
       'list_exclusion_rules',
-      'record_discovered_items',
+      'list_review_candidates',
+      'propose_review_candidates',
       'retry_directory',
       'skip_directory',
     ]);
@@ -153,6 +155,120 @@ describe('MCP endpoint (/mcp)', () => {
       status: 'completed',
       children: [{ id: 'c1', created: true }],
     });
+  });
+
+  it('complete_directory passes follow-up reasons, summary and skipped paths', async () => {
+    (discoveryService.completeItem as jest.Mock).mockResolvedValue({
+      item: { id: ID },
+      children: [],
+    });
+
+    await call('complete_directory', {
+      id: ID,
+      claimToken: TOKEN,
+      discoveredPaths: [{ path: 'C:\\code', reason: 'likely repos' }],
+      summary: 'root assessed',
+      skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+    });
+
+    expect(discoveryService.completeItem).toHaveBeenCalledWith(
+      ID,
+      TOKEN,
+      [{ path: 'C:\\code', reason: 'likely repos' }],
+      {
+        summary: 'root assessed',
+        skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+      },
+    );
+  });
+
+  it('propose_review_candidates passes the worker id and has no decision field', async () => {
+    (discoveryService.proposeCandidates as jest.Mock).mockResolvedValue([
+      { candidate: { id: ID }, created: true, changed: false },
+    ]);
+
+    const { isError, body } = await call('propose_review_candidates', {
+      id: ID,
+      claimToken: TOKEN,
+      workerId: 'w1',
+      candidates: [
+        {
+          rootPath: 'C:\\Users\\You\\Documents',
+          kind: 'directory',
+          summary: 'Personal documents',
+          recommendation: 'back_up',
+          confidence: 'high',
+          reason: 'Documents folder',
+          evidence: {
+            contentKinds: ['personal_documents'],
+            git: null,
+            reproducible: 'no',
+            sufficientInformation: true,
+            observations: [],
+            openQuestions: [],
+          },
+        },
+      ],
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual([{ id: ID, created: true, changed: false }]);
+    expect(discoveryService.proposeCandidates).toHaveBeenCalledWith(
+      ID,
+      TOKEN,
+      'w1',
+      expect.any(Array),
+    );
+  });
+
+  it('propose_review_candidates rejects low-confidence back_up', async () => {
+    (discoveryService.proposeCandidates as jest.Mock).mockClear();
+
+    const result = await client.callTool({
+      name: 'propose_review_candidates',
+      arguments: {
+        id: ID,
+        claimToken: TOKEN,
+        candidates: [
+          {
+            rootPath: 'C:\\data',
+            kind: 'directory',
+            summary: 's',
+            recommendation: 'back_up',
+            confidence: 'low',
+            reason: 'r',
+            evidence: {
+              contentKinds: [],
+              git: null,
+              reproducible: 'unknown',
+              sufficientInformation: false,
+              observations: [],
+              openQuestions: [],
+            },
+          },
+        ],
+      },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(discoveryService.proposeCandidates).not.toHaveBeenCalled();
+  });
+
+  it('has no inventory tool and describes candidates as the only record', async () => {
+    const { tools } = await client.listTools();
+    const names = tools.map((t) => t.name);
+
+    expect(names).not.toContain('record_discovered_items');
+    expect(
+      tools.find((t) => t.name === 'propose_review_candidates')?.description,
+    ).toMatch(/creates no queue items/);
+  });
+
+  it('serves the agent playbook as server instructions', () => {
+    expect(client.getInstructions()).toContain('review candidates');
+    expect(client.getInstructions()).toContain(
+      'candidates are the only thing you record',
+    );
   });
 
   it('reports a DiscoveryError as a tool error with details', async () => {

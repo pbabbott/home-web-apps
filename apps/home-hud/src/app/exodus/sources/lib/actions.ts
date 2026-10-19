@@ -2,10 +2,11 @@
 
 import { errorMessage } from './errors';
 import type {
+  CandidateDecision,
   DiscoveryJob,
   ExclusionRule,
   ExclusionRuleScope,
-  ReviewDisposition,
+  ReviewCandidate,
   Source,
 } from './homelab-api';
 
@@ -21,7 +22,7 @@ export type ActionResult<T = undefined> =
   | { ok: false; error: string };
 
 async function send<T>(
-  method: 'POST' | 'DELETE',
+  method: 'POST' | 'PATCH' | 'DELETE',
   path: string,
   body?: unknown,
 ): Promise<ActionResult<T>> {
@@ -45,6 +46,7 @@ async function send<T>(
 }
 
 const post = <T>(path: string, body?: unknown) => send<T>('POST', path, body);
+const patch = <T>(path: string, body?: unknown) => send<T>('PATCH', path, body);
 
 export interface CreateSourceInput {
   name: string;
@@ -101,15 +103,18 @@ export async function deleteExclusionRule(id: string): Promise<ActionResult> {
   return send('DELETE', `/exclusion-rules/${id}`);
 }
 
-export interface ReviewResult {
-  changedCount: number;
-  unchangedCount: number;
-}
-
-/** One decision for several inventory items, all or nothing. */
-export async function reviewInventoryItems(
-  ids: string[],
-  disposition: ReviewDisposition,
-): Promise<ActionResult<ReviewResult>> {
-  return post<ReviewResult>('/inventory-items/review', { ids, disposition });
+/**
+ * A human's decision on a review candidate. Sent as the default (human) actor:
+ * the API refuses anything else. An omitted note keeps the note when the
+ * decision is unchanged and clears it when it changes.
+ */
+export async function decideReviewCandidate(
+  id: string,
+  decision: CandidateDecision,
+  note?: string | null,
+): Promise<ActionResult<ReviewCandidate>> {
+  return patch<ReviewCandidate>(`/review-candidates/${id}/decision`, {
+    decision,
+    ...(note !== undefined ? { note } : {}),
+  });
 }

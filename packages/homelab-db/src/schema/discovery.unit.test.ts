@@ -2,7 +2,7 @@ import {
   sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
-  inventoryItemSelectSchema,
+  reviewCandidateSelectSchema,
 } from './discovery';
 import { retryDelaySeconds } from '../queries/discovery';
 
@@ -80,6 +80,8 @@ describe('discoveryQueueItemSelectSchema', () => {
     attemptCount: 0,
     maxAttempts: 3,
     lastError: null,
+    reason: null,
+    result: null,
     availableAt: new Date(),
     claimedBy: null,
     claimToken: null,
@@ -107,85 +109,6 @@ describe('discoveryQueueItemSelectSchema', () => {
   });
 });
 
-describe('inventoryItemSelectSchema', () => {
-  const row = {
-    id,
-    sourceId: id,
-    firstJobId: id,
-    lastJobId: id,
-    itemType: 'file',
-    path: 'C:\\Users\\You\\Report.pdf',
-    normalizedPath: 'c:\\users\\you\\report.pdf',
-    parentPath: 'C:\\Users\\You',
-    normalizedParentPath: 'c:\\users\\you',
-    name: 'Report.pdf',
-    extension: 'pdf',
-    sizeBytes: 4_000_000_000,
-    modifiedAt: new Date(),
-    reviewDisposition: 'needs_review',
-    reviewedAt: null,
-    reviewedBy: null,
-    reviewNote: null,
-    firstSeenAt: new Date(),
-    lastSeenAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  it('accepts a file, including a size beyond 32 bits', () => {
-    expect(inventoryItemSelectSchema.safeParse(row).success).toBe(true);
-  });
-
-  it('accepts a reviewed item and rejects an unknown disposition', () => {
-    expect(
-      inventoryItemSelectSchema.safeParse({
-        ...row,
-        reviewDisposition: 'candidate',
-        reviewedAt: new Date(),
-        reviewedBy: 'brandon',
-        reviewNote: 'tax records',
-      }).success,
-    ).toBe(true);
-    expect(
-      inventoryItemSelectSchema.safeParse({
-        ...row,
-        reviewDisposition: 'maybe',
-      }).success,
-    ).toBe(false);
-  });
-
-  it('accepts a directory with no size, mtime or extension', () => {
-    expect(
-      inventoryItemSelectSchema.safeParse({
-        ...row,
-        itemType: 'directory',
-        sizeBytes: null,
-        modifiedAt: null,
-        extension: null,
-      }).success,
-    ).toBe(true);
-  });
-
-  it('accepts a root with no parent and a job that was deleted', () => {
-    expect(
-      inventoryItemSelectSchema.safeParse({
-        ...row,
-        parentPath: null,
-        normalizedParentPath: null,
-        firstJobId: null,
-        lastJobId: null,
-      }).success,
-    ).toBe(true);
-  });
-
-  it('rejects an unknown itemType', () => {
-    expect(
-      inventoryItemSelectSchema.safeParse({ ...row, itemType: 'symlink' })
-        .success,
-    ).toBe(false);
-  });
-});
-
 describe('retryDelaySeconds', () => {
   it('backs off exponentially from 30s', () => {
     expect([1, 2, 3, 4].map(retryDelaySeconds)).toEqual([30, 60, 120, 240]);
@@ -193,5 +116,65 @@ describe('retryDelaySeconds', () => {
 
   it('caps at one hour', () => {
     expect(retryDelaySeconds(20)).toBe(3600);
+  });
+});
+
+describe('reviewCandidateSelectSchema', () => {
+  const row = {
+    id,
+    sourceId: id,
+    firstJobId: id,
+    lastJobId: id,
+    kind: 'directory',
+    rootPath: 'C:\\code\\project-a',
+    normalizedRootPath: 'c:\\code\\project-a',
+    displayName: 'project-a',
+    summary: 'Git repository with local changes',
+    recommendation: 'back_up',
+    confidence: 'high',
+    recommendationReason: 'Uncommitted changes exist only locally',
+    evidence: {
+      contentKinds: ['source_code'],
+      git: null,
+      reproducible: 'no',
+      sufficientInformation: true,
+      observations: [],
+      openQuestions: [],
+    },
+    recommendedAt: new Date(),
+    recommendedBy: 'openclaw-1',
+    decision: 'pending',
+    decisionNote: null,
+    decidedAt: null,
+    decidedBy: null,
+    firstSeenAt: new Date(),
+    lastSeenAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  it('accepts a pending candidate', () => {
+    expect(reviewCandidateSelectSchema.safeParse(row).success).toBe(true);
+  });
+
+  it.each(['back_up', 'skip', 'needs_review'])(
+    'accepts recommendation %s',
+    (recommendation) => {
+      expect(
+        reviewCandidateSelectSchema.safeParse({ ...row, recommendation })
+          .success,
+      ).toBe(true);
+    },
+  );
+
+  it('rejects an unknown confidence or decision', () => {
+    expect(
+      reviewCandidateSelectSchema.safeParse({ ...row, confidence: 0.9 })
+        .success,
+    ).toBe(false);
+    expect(
+      reviewCandidateSelectSchema.safeParse({ ...row, decision: 'maybe' })
+        .success,
+    ).toBe(false);
   });
 });

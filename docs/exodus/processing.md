@@ -4,7 +4,7 @@
 
 ## Claiming and leases
 
-`POST /discovery-jobs/:id/queue-items/claim` atomically leases the highest-priority eligible item. The whole claim is one transaction that locks the job row (so claimers are serialized per job and a concurrent cancel cannot interleave) and picks the item with `FOR UPDATE SKIP LOCKED`, so concurrent workers never receive the same row. The response includes a `claimToken`; every later call on the item (`heartbeat`, `complete`, `fail`, `skip`, `inventory-items`) must send it, and each is rejected with 409 if the token is wrong, the lease has expired, **or the job is no longer active**.
+`POST /discovery-jobs/:id/queue-items/claim` atomically leases the highest-priority eligible item. The whole claim is one transaction that locks the job row (so claimers are serialized per job and a concurrent cancel cannot interleave) and picks the item with `FOR UPDATE SKIP LOCKED`, so concurrent workers never receive the same row. The response includes a `claimToken`; every later call on the item (`heartbeat`, `complete`, `fail`, `skip`) must send it, and each is rejected with 409 if the token is wrong, the lease has expired, **or the job is no longer active**.
 
 The lease defaults to 5 minutes (max 1 hour) and `heartbeat` extends it. If the agent crashes, the item stays `in_progress` until the lease expires. The next claim (or job completion check) first returns expired items to `queued`, so abandoned work is reclaimed and nothing stays stuck. `attempt_count` and `last_error` are kept for debugging. An expired item that has used all its attempts becomes `failed` instead.
 
@@ -18,21 +18,9 @@ Claiming only considers the claiming job's own items. The first claim on a pendi
 
 The idle response also carries the job's `queueCounts`. Claiming on a finished job is 409.
 
-## Exploring incrementally
+## Exploring selectively
 
-`POST /queue-items/:id/complete` takes `discoveredPaths` — the child directories found inside the one just inspected. The completion and the enqueue of the children happen in **one transaction**, so a crash cannot complete a directory while losing the subdirectories it found. Every path must lie inside the job's root. Enqueuing a path that is already queued is a no-op, reported with `created: false`.
-
-## Recording inventory
-
-Creating a job also records its **root as an inventory directory** (same transaction). A worker only records what lies beneath the directory it holds, so without this the root itself could never be reviewed or marked later.
-
-`POST /queue-items/:id/inventory-items` takes the claim token and up to 200 `{ path, itemType, sizeBytes?, modifiedAt? }` entries found inside the claimed directory (descendants are allowed, the directory itself is not; anything else is 409 and nothing is recorded). The source and job come from the claim, never from the request. Recording is an upsert on source + normalized path:
-
-- Rediscovery by a retry, a reclaimed lease or a later job updates the same row (filesystem facts, `last_job_id`, `last_seen_at`). `id`, `first_job_id`, `first_seen_at` and `created_at` never change, and columns added later for review or copy state are not in the update, so they survive.
-- A missing `sizeBytes` or `modifiedAt` keeps the stored value rather than clearing it.
-- Because it is separate from `complete`, items recorded before a crash stay; the next worker repeats the call without creating duplicates.
-
-`GET /sources/:id/inventory-items` lists by `jobId` (last seen), `itemType`, `parentPath` (direct children) or `pathPrefix`, ordered by normalized path with a keyset cursor (`after`, `limit` up to 1000).
+`POST /queue-items/:id/complete` takes `discoveredPaths` — follow-up directories that need more investigation, each a plain path or `{ path, reason?, priority? }`. It is **not** a list of every child: queue only promising paths, and never the inside of a project already turned into a candidate. It also takes an optional `summary` and `skipped: [{ path, reason }]` (paths inside the claimed directory that were seen and deliberately not explored), stored as the item's `result`. The completion and the enqueue happen in **one transaction**, so a crash cannot complete a directory while losing the follow-ups. Every path must lie inside the job's root. Enqueuing a path that is already queued is a no-op, reported with `created: false`. Follow-ups under an `exclude_subtree` rule come back already `skipped`; claims recheck in case rules change later.
 
 ## Failures and retries
 
@@ -44,7 +32,7 @@ Retrying is therefore both automatic (retryable failures with attempts left, beh
 
 `POST /discovery-jobs/:id/complete` succeeds once nothing is `queued` or `in_progress`, after reclaiming expired leases. A retry that is still waiting out its backoff counts as `queued`, so it blocks completion. A permanently `failed` item does **not** block completion: the job finishes "with failures", reported as `queueCounts.failed` on the job. Otherwise the call returns 409 with the blocking `queueCounts`. Terminal jobs reject further complete/cancel/fail, enqueue and claim with 409.
 
-`cancel` and `fail` also **release the job's leases** in the same transaction: in-progress items go back to `queued` with no claim and `last_error = 'job cancelled'` (or `'job failed'`). A worker still holding one is rejected with 409 on its next call (`heartbeat`, `complete`, `fail`, `skip` and `inventory-items` all require an active job), so it cannot add children or inventory to a finished job. Queued and failed items are left alone as a record of what was never explored.
+`cancel` and `fail` also **release the job's leases** in the same transaction: in-progress items go back to `queued` with no claim and `last_error = 'job cancelled'` (or `'job failed'`). A worker still holding one is rejected with 409 on its next call (`heartbeat`, `complete`, `fail`, `skip` and `review-candidates` all require an active job), so it cannot add children or candidates to a finished job. Queued and failed items are left alone as a record of what was never explored.
 
 Completing, cancelling, failing, claiming and enqueueing all take the job row lock, so they cannot interleave: an enqueue either lands before a completion (which then refuses to finish over the new work) or waits and is rejected.
 

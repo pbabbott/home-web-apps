@@ -7,7 +7,11 @@ import {
   createExclusionRuleOperation,
   listExclusionRulesOperation,
 } from './controllers/discovery/exclusion-rules';
-import { recordInventoryItemsOperation } from './controllers/discovery/inventory-items';
+import {
+  listReviewCandidatesOperation,
+  proposeReviewCandidatesOperation,
+} from './controllers/discovery/review-candidates';
+import { MCP_INSTRUCTIONS } from './mcp-instructions';
 import {
   claimQueueItemOperation,
   completeQueueItemOperation,
@@ -26,8 +30,10 @@ import {
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
   jobListQuerySchema,
+  proposeReviewCandidatesBodySchema,
   queueItemIdParamsSchema,
-  recordInventoryItemsBodySchema,
+  reviewCandidateListQuerySchema,
+  sourceIdParamsSchema,
   skipQueueItemBodySchema,
 } from './schemas/discovery';
 
@@ -68,15 +74,19 @@ const queueItemId = queueItemIdParamsSchema.shape.id.describe(
 
 /**
  * Builds a fresh MCP server exposing the agent-facing subset of the REST
- * routes in server.ts: the discovery work loop plus listing and creating
- * source-scoped exclusion rules. Source/job creation, job lifecycle (complete,
- * cancel, fail), global rules, editing or deleting rules, review and the
- * audit log stay human-only REST routes. A new
+ * routes in server.ts: the discovery work loop, proposing and listing
+ * review candidates, plus listing and creating source-scoped exclusion rules.
+ * Source/job creation, job lifecycle (complete, cancel, fail), global rules,
+ * editing or deleting rules, approving or rejecting candidates and the audit
+ * log stay human-only REST routes. A new
  * instance is created per-request (see server.ts) since the Streamable HTTP
  * transport is mounted in stateless mode.
  */
 export const createMcpServer = (): McpServer => {
-  const server = new McpServer({ name: 'homelab-api', version: '0.1.0' });
+  const server = new McpServer(
+    { name: 'homelab-api', version: '0.1.0' },
+    { instructions: MCP_INSTRUCTIONS },
+  );
 
   server.registerTool(
     listDiscoveryJobsOperation.mcp.name,
@@ -127,16 +137,43 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
-    recordInventoryItemsOperation.mcp.name,
+    proposeReviewCandidatesOperation.mcp.name,
     {
-      description: recordInventoryItemsOperation.mcp.description,
-      inputSchema: { id: queueItemId, ...recordInventoryItemsBodySchema.shape },
+      description: proposeReviewCandidatesOperation.mcp.description,
+      inputSchema: {
+        id: queueItemId,
+        ...proposeReviewCandidatesBodySchema.shape,
+      },
     },
-    ({ id, claimToken, items }) =>
-      run(recordInventoryItemsOperation.mcp.name, async () =>
-        (await discoveryService.recordInventory(id, claimToken, items)).map(
-          ({ item, created }) => ({ ...item, created }),
-        ),
+    ({ id, claimToken, workerId, candidates }) =>
+      run(proposeReviewCandidatesOperation.mcp.name, async () =>
+        (
+          await discoveryService.proposeCandidates(
+            id,
+            claimToken,
+            workerId ?? null,
+            candidates,
+          )
+        ).map(({ candidate, created, changed }) => ({
+          ...candidate,
+          created,
+          changed,
+        })),
+      ),
+  );
+
+  server.registerTool(
+    listReviewCandidatesOperation.mcp.name,
+    {
+      description: listReviewCandidatesOperation.mcp.description,
+      inputSchema: {
+        sourceId: sourceIdParamsSchema.shape.id.describe('Source id.'),
+        ...reviewCandidateListQuerySchema.shape,
+      },
+    },
+    ({ sourceId, ...filters }) =>
+      run(listReviewCandidatesOperation.mcp.name, () =>
+        discoveryService.listSourceReviewCandidates(sourceId, filters),
       ),
   );
 
@@ -146,12 +183,13 @@ export const createMcpServer = (): McpServer => {
       description: completeQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...completeQueueItemBodySchema.shape },
     },
-    ({ id, claimToken, discoveredPaths }) =>
+    ({ id, claimToken, discoveredPaths, summary, skipped }) =>
       run(completeQueueItemOperation.mcp.name, async () => {
         const { item, children } = await discoveryService.completeItem(
           id,
           claimToken,
           discoveredPaths,
+          { summary, skipped },
         );
 
         return {

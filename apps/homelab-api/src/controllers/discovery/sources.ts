@@ -3,10 +3,10 @@ import { handle } from './handle';
 import type { Operation } from '../operation';
 import type { CreateSourceBody } from '../../schemas/discovery';
 
-// Does: register a source (a machine to inventory).
+// Does: register a source (a machine to explore).
 // Who: human (home-hud add-source modal). No MCP tool.
 export const createSourceOperation = {
-  summary: 'Register a source (a machine to inventory)',
+  summary: 'Register a source (a machine to explore)',
 } satisfies Operation;
 
 export const createSource = handle('POST /sources', async (req, res) => {

@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
 import {
-  bigint,
   check,
   index,
   integer,
@@ -32,7 +31,7 @@ export const discoveryQueueItemStatusEnum = pgEnum(
   ['queued', 'in_progress', 'completed', 'failed', 'skipped'],
 );
 
-export const inventoryItemTypeEnum = pgEnum('inventory_item_type', [
+export const candidateKindEnum = pgEnum('candidate_kind', [
   'file',
   'directory',
 ]);
@@ -42,10 +41,27 @@ export const exclusionRuleScopeEnum = pgEnum('exclusion_rule_scope', [
   'exclude_subtree',
 ]);
 
-export const reviewDispositionEnum = pgEnum('review_disposition', [
-  'candidate',
-  'not_needed',
+export const candidateRecommendationEnum = pgEnum('candidate_recommendation', [
+  'back_up',
+  'skip',
   'needs_review',
+]);
+
+/**
+ * How sure the agent is. Not a calibrated probability: `high` = direct
+ * evidence settles it, `medium` = strong signals with minor unknowns,
+ * `low` = a guess (so the recommendation must be `needs_review`).
+ */
+export const candidateConfidenceEnum = pgEnum('candidate_confidence', [
+  'low',
+  'medium',
+  'high',
+]);
+
+export const candidateDecisionEnum = pgEnum('candidate_decision', [
+  'pending',
+  'approved',
+  'rejected',
 ]);
 
 export const auditActorTypeEnum = pgEnum('audit_actor_type', [
@@ -77,7 +93,7 @@ export const sources = pgTable('sources', {
  * One discovery run over a source, rooted at `rootPath`. The partial unique
  * index allows at most one active (pending/running) job per source: two
  * concurrent walks of the same source would only duplicate work and fight
- * over the same inventory rows.
+ * over the same review candidates.
  */
 export const discoveryJobs = pgTable(
   'discovery_jobs',
@@ -128,6 +144,10 @@ export const discoveryQueueItems = pgTable(
     attemptCount: integer('attempt_count').notNull().default(0),
     maxAttempts: integer('max_attempts').notNull().default(3),
     lastError: text('last_error'),
+    /** Why this directory was queued, for the next (memoryless) session. */
+    reason: text('reason'),
+    /** What the worker concluded about this directory (see QueueItemResult). */
+    result: jsonb('result').$type<QueueItemResult>(),
     availableAt: timestamp('available_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -161,77 +181,6 @@ export const discoveryQueueItems = pgTable(
     check(
       'discovery_queue_items_lease_check',
       sql`${table.status} <> 'in_progress' or (${table.claimedBy} is not null and ${table.claimToken} is not null and ${table.leaseExpiresAt} is not null)`,
-    ),
-  ],
-);
-
-/**
- * A file or directory found while exploring a source. Identity is the
- * source + normalized (lowercased) path, so rediscovery by any job updates
- * the same row. Only filesystem facts are overwritten on rediscovery; the
- * human review columns (`reviewDisposition`, `reviewedAt`, `reviewedBy`,
- * `reviewNote`) and any copy state added later are left alone.
- * `firstJobId`/`lastJobId` record which runs found it.
- */
-export const inventoryItems = pgTable(
-  'inventory_items',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    sourceId: uuid('source_id')
-      .notNull()
-      .references(() => sources.id, { onDelete: 'cascade' }),
-    firstJobId: uuid('first_job_id').references(() => discoveryJobs.id, {
-      onDelete: 'set null',
-    }),
-    lastJobId: uuid('last_job_id').references(() => discoveryJobs.id, {
-      onDelete: 'set null',
-    }),
-    itemType: inventoryItemTypeEnum('item_type').notNull(),
-    path: text('path').notNull(),
-    normalizedPath: text('normalized_path').notNull(),
-    parentPath: text('parent_path'),
-    normalizedParentPath: text('normalized_parent_path'),
-    name: text('name').notNull(),
-    extension: text('extension'),
-    sizeBytes: bigint('size_bytes', { mode: 'number' }),
-    modifiedAt: timestamp('modified_at', { withTimezone: true }),
-    reviewDisposition: reviewDispositionEnum('review_disposition')
-      .notNull()
-      .default('needs_review'),
-    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
-    reviewedBy: text('reviewed_by'),
-    reviewNote: text('review_note'),
-    firstSeenAt: timestamp('first_seen_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    lastSeenAt: timestamp('last_seen_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    uniqueIndex('inventory_items_source_path_unique').on(
-      table.sourceId,
-      table.normalizedPath,
-    ),
-    index('inventory_items_parent_idx').on(
-      table.sourceId,
-      table.normalizedParentPath,
-    ),
-    index('inventory_items_last_job_idx').on(table.lastJobId),
-    index('inventory_items_type_idx').on(table.sourceId, table.itemType),
-    index('inventory_items_review_idx').on(
-      table.sourceId,
-      table.reviewDisposition,
-    ),
-    check(
-      'inventory_items_size_check',
-      sql`${table.sizeBytes} is null or ${table.sizeBytes} >= 0`,
     ),
   ],
 );
@@ -271,6 +220,83 @@ export const exclusionRules = pgTable(
 );
 
 /**
+ * A coherent, potentially valuable backup unit proposed by the agent for human
+ * review: usually a directory (a project, a photo folder), occasionally a
+ * standalone file. One candidate covers its whole subtree, so a repository is
+ * one candidate and its contents get no candidates of their own. Approving it
+ * authorizes backup of that scope. Not a queue task. Identity is source + normalized
+ * root path, so rediscovery updates the same row.
+ *
+ * Two owners, kept apart on purpose. The agent owns the recommendation
+ * columns (`recommendation`, `confidence`, `recommendationReason`,
+ * `evidence`, `summary`, ...). A human owns `decision`, `decisionNote`,
+ * `decidedAt` and `decidedBy`. The agent upsert must never list the decision
+ * columns in its `set`, or rediscovery would reset a human's decision.
+ */
+export const reviewCandidates = pgTable(
+  'review_candidates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => sources.id, { onDelete: 'cascade' }),
+    firstJobId: uuid('first_job_id').references(() => discoveryJobs.id, {
+      onDelete: 'set null',
+    }),
+    /** The most recent job that proposed (or re-proposed) this candidate. */
+    lastJobId: uuid('last_job_id').references(() => discoveryJobs.id, {
+      onDelete: 'set null',
+    }),
+    kind: candidateKindEnum('kind').notNull(),
+    rootPath: text('root_path').notNull(),
+    normalizedRootPath: text('normalized_root_path').notNull(),
+    displayName: text('display_name').notNull(),
+    summary: text('summary').notNull(),
+    recommendation: candidateRecommendationEnum('recommendation').notNull(),
+    confidence: candidateConfidenceEnum('confidence').notNull(),
+    recommendationReason: text('recommendation_reason').notNull(),
+    evidence: jsonb('evidence').$type<CandidateEvidence>().notNull(),
+    /** When the recommendation, confidence or reason last changed. */
+    recommendedAt: timestamp('recommended_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    recommendedBy: text('recommended_by'),
+    decision: candidateDecisionEnum('decision').notNull().default('pending'),
+    decisionNote: text('decision_note'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    decidedBy: text('decided_by'),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('review_candidates_source_path_unique').on(
+      table.sourceId,
+      table.normalizedRootPath,
+    ),
+    index('review_candidates_decision_idx').on(table.sourceId, table.decision),
+    index('review_candidates_recommendation_idx').on(
+      table.sourceId,
+      table.recommendation,
+    ),
+    index('review_candidates_last_job_idx').on(table.lastJobId),
+    check(
+      'review_candidates_decided_check',
+      sql`${table.decision} = 'pending' or ${table.decidedAt} is not null`,
+    ),
+  ],
+);
+
+/**
  * Append-only record of changes to exclusion and review state. The id columns
  * deliberately have no foreign keys: the log must outlive the rows it
  * describes (a removed rule, a deleted source). `details` holds before/after
@@ -283,8 +309,8 @@ export const auditEvents = pgTable(
     sourceId: uuid('source_id'),
     jobId: uuid('job_id'),
     queueItemId: uuid('queue_item_id'),
-    inventoryItemId: uuid('inventory_item_id'),
     exclusionRuleId: uuid('exclusion_rule_id'),
+    reviewCandidateId: uuid('review_candidate_id'),
     eventType: text('event_type').$type<AuditEventType>().notNull(),
     actorType: auditActorTypeEnum('actor_type').notNull(),
     actorId: text('actor_id'),
@@ -300,24 +326,70 @@ export const auditEvents = pgTable(
     ),
     index('audit_events_source_idx').on(table.sourceId, table.createdAt.desc()),
     index('audit_events_job_idx').on(table.jobId, table.createdAt.desc()),
-    index('audit_events_inventory_item_idx').on(
-      table.inventoryItemId,
-      table.createdAt.desc(),
-    ),
     index('audit_events_rule_idx').on(
       table.exclusionRuleId,
+      table.createdAt.desc(),
+    ),
+    index('audit_events_review_candidate_idx').on(
+      table.reviewCandidateId,
       table.createdAt.desc(),
     ),
   ],
 );
 
+/**
+ * Concise, grounded observations behind a candidate's recommendation. Only
+ * verified facts belong in `observations`; what is unknown goes in
+ * `openQuestions`. `git` is null when the path was not checked as a
+ * repository; inside it, a null flag means "not determined".
+ */
+export type CandidateContentKind =
+  | 'source_code'
+  | 'personal_documents'
+  | 'media'
+  | 'configuration'
+  | 'application_data'
+  | 'generated_artifacts'
+  | 'installed_software'
+  | 'other';
+
+export type CandidateGitEvidence = {
+  remoteUrl: string | null;
+  remoteVisibility: 'public' | 'private' | 'none' | 'unknown';
+  /** True only when status and upstream comparison actually ran. */
+  localStateKnown: boolean;
+  uncommittedChanges: boolean | null;
+  untrackedFiles: boolean | null;
+  unpushedCommits: boolean | null;
+  ignoredFilesOfNote: boolean | null;
+};
+
+export type CandidateEvidence = {
+  contentKinds: CandidateContentKind[];
+  git: CandidateGitEvidence | null;
+  reproducible: 'yes' | 'no' | 'unknown';
+  sufficientInformation: boolean;
+  observations: string[];
+  openQuestions: string[];
+  estimatedSizeBytes?: number;
+  estimatedFileCount?: number;
+};
+
+/** What a worker concluded about a queue item's directory. */
+export type QueueItemResult = {
+  summary?: string;
+  /** Paths seen but deliberately not explored or queued. */
+  skipped: { path: string; reason: string }[];
+};
+
 export type AuditEventType =
   | 'exclusion_rule.created'
   | 'exclusion_rule.updated'
   | 'exclusion_rule.deleted'
-  | 'inventory_item.review_changed'
-  | 'inventory_item.review_bulk_changed'
-  | 'queue_items.excluded';
+  | 'queue_items.excluded'
+  | 'review_candidate.created'
+  | 'review_candidate.recommendation_changed'
+  | 'review_candidate.decision_changed';
 
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;
@@ -333,18 +405,21 @@ export type NewDiscoveryQueueItem = typeof discoveryQueueItems.$inferInsert;
 export type DiscoveryQueueItemStatus =
   (typeof discoveryQueueItemStatusEnum.enumValues)[number];
 
-export type InventoryItem = typeof inventoryItems.$inferSelect;
-export type NewInventoryItem = typeof inventoryItems.$inferInsert;
-export type InventoryItemType =
-  (typeof inventoryItemTypeEnum.enumValues)[number];
+export type CandidateKind = (typeof candidateKindEnum.enumValues)[number];
 
 export type ExclusionRule = typeof exclusionRules.$inferSelect;
 export type NewExclusionRule = typeof exclusionRules.$inferInsert;
 export type ExclusionRuleScope =
   (typeof exclusionRuleScopeEnum.enumValues)[number];
 
-export type ReviewDisposition =
-  (typeof reviewDispositionEnum.enumValues)[number];
+export type ReviewCandidate = typeof reviewCandidates.$inferSelect;
+export type NewReviewCandidate = typeof reviewCandidates.$inferInsert;
+export type CandidateRecommendation =
+  (typeof candidateRecommendationEnum.enumValues)[number];
+export type CandidateConfidence =
+  (typeof candidateConfidenceEnum.enumValues)[number];
+export type CandidateDecision =
+  (typeof candidateDecisionEnum.enumValues)[number];
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
@@ -384,11 +459,14 @@ export const auditEventSelectSchema = createSelectSchema(auditEvents, {
   createdAt: dateTime,
 });
 
-export const inventoryItemSelectSchema = createSelectSchema(inventoryItems, {
-  modifiedAt: dateTime,
-  reviewedAt: dateTime,
-  firstSeenAt: dateTime,
-  lastSeenAt: dateTime,
-  createdAt: dateTime,
-  updatedAt: dateTime,
-});
+export const reviewCandidateSelectSchema = createSelectSchema(
+  reviewCandidates,
+  {
+    recommendedAt: dateTime,
+    decidedAt: dateTime,
+    firstSeenAt: dateTime,
+    lastSeenAt: dateTime,
+    createdAt: dateTime,
+    updatedAt: dateTime,
+  },
+);

@@ -141,7 +141,7 @@ export type CreateExclusionRuleInput = {
  * Creates a rule and its audit event in one transaction. At most one rule
  * exists per path per owner, and a path is never ruled both globally and by a
  * source: two rules for the same path could disagree, and the precedence
- * above would then hide one of them. Existing inventory is left untouched.
+ * above would then hide one of them. Existing candidates are left untouched.
  */
 export const createExclusionRule = async (
   db: Database,
@@ -265,7 +265,7 @@ export const updateExclusionRule = async (
 
 /**
  * Removes a rule. The event keeps a snapshot of it, since the rule itself is
- * gone. Existing inventory and queue state are left as they are.
+ * gone. Existing candidates and queue state are left as they are.
  */
 export const deleteExclusionRule = async (
   db: Database,

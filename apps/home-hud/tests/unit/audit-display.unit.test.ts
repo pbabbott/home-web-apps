@@ -12,8 +12,8 @@ const event = (
   id: 'e1',
   sourceId: null,
   jobId: null,
-  inventoryItemId: null,
   exclusionRuleId: null,
+  reviewCandidateId: null,
   eventType,
   actorType: 'human',
   actorId: null,
@@ -68,32 +68,34 @@ describe('describeAuditEvent', () => {
     ).toBe('C:\\x (selective only)');
   });
 
-  it('describes single and bulk reviews', () => {
+  it('describes review candidate events', () => {
     expect(
       describeAuditEvent(
-        event('inventory_item.review_changed', {
-          path: 'C:\\taxes.pdf',
-          from: 'needs_review',
-          to: 'candidate',
+        event('review_candidate.created', {
+          path: 'C:\\code\\a',
+          recommendation: 'back_up',
+          confidence: 'high',
         }),
       ),
-    ).toBe('C:\\taxes.pdf: Needs review → Candidate');
+    ).toBe('C:\\code\\a: back up (high confidence)');
     expect(
       describeAuditEvent(
-        event('inventory_item.review_bulk_changed', {
-          disposition: 'not_needed',
-          changed: [{ id: 'a' }, { id: 'b' }],
+        event('review_candidate.recommendation_changed', {
+          path: 'C:\\code\\a',
+          from: { recommendation: 'needs_review', confidence: 'low' },
+          to: { recommendation: 'skip', confidence: 'high' },
         }),
       ),
-    ).toBe('2 items → Not needed');
+    ).toBe('C:\\code\\a: needs review → skip');
     expect(
       describeAuditEvent(
-        event('inventory_item.review_bulk_changed', {
-          disposition: 'candidate',
-          changed: [{ id: 'a' }],
+        event('review_candidate.decision_changed', {
+          path: 'C:\\code\\a',
+          from: 'pending',
+          to: 'approved',
         }),
       ),
-    ).toBe('1 item → Candidate');
+    ).toBe('C:\\code\\a: pending → approved');
   });
 
   it('describes skipped queue items', () => {

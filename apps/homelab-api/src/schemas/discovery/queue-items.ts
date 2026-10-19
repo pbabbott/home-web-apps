@@ -42,15 +42,44 @@ export type HeartbeatQueueItemBody = z.infer<
   typeof heartbeatQueueItemBodySchema
 >;
 
+const followUpSchema = z.object({
+  path: windowsPathSchema,
+  reason: z.string().trim().min(1).max(300).optional().meta({
+    description:
+      'Why this directory is worth exploring. Shown to whoever claims it, who starts with no memory of this session.',
+  }),
+  priority: z.number().int().optional().meta({
+    description: 'Higher priority items are claimed first. Default 0.',
+  }),
+});
+
+const MAX_SKIPPED_PER_REQUEST = 100;
+
 export const completeQueueItemBodySchema = z.object({
   claimToken: claimTokenSchema,
   discoveredPaths: z
-    .array(windowsPathSchema)
+    .array(z.union([windowsPathSchema, followUpSchema]))
     .max(MAX_PATHS_PER_REQUEST)
     .default([])
     .meta({
       description:
-        'Child directories found inside this one; enqueued atomically with the completion.',
+        'Follow-up directories worth exploring, as plain paths or { path, reason?, priority? }; enqueued atomically with the completion. Do not list every child: queue only paths that need more inspection. Paths under an exclusion rule are skipped immediately.',
+    }),
+  summary: z.string().trim().min(1).max(1000).optional().meta({
+    description: 'What was concluded about this directory.',
+  }),
+  skipped: z
+    .array(
+      z.object({
+        path: windowsPathSchema,
+        reason: z.string().trim().min(1).max(300),
+      }),
+    )
+    .max(MAX_SKIPPED_PER_REQUEST)
+    .default([])
+    .meta({
+      description:
+        'Paths inside this directory that were seen and deliberately not explored or queued (system, generated, replaceable), with why. A per-run judgment, not a persistent exclusion rule.',
     }),
 });
 export type CompleteQueueItemBody = z.infer<typeof completeQueueItemBodySchema>;

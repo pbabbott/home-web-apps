@@ -71,6 +71,20 @@
       "when": 1792342873406,
       "tag": "0009_exclusion_review_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792375656611,
+      "tag": "0010_review_candidates",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792414437480,
+      "tag": "0011_remove_inventory",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,6 @@
 import {
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
-  inventoryItemSelectSchema,
 } from '@abbottland/homelab-db';
 import { z } from 'zod';
 
@@ -52,12 +51,6 @@ export const queueItemWithCreatedSchema = discoveryQueueItemSelectSchema.extend(
   },
 );
 
-export const inventoryItemWithCreatedSchema = inventoryItemSelectSchema.extend({
-  created: z.boolean().meta({
-    description: 'false if this path was already recorded for the source.',
-  }),
-});
-
 export const claimResultSchema = z
   .object({
     item: discoveryQueueItemSelectSchema.nullable().meta({
@@ -96,5 +89,12 @@ export const actorHeaders = z.object({
   }),
   'x-actor-id': z.string().optional().meta({
     description: 'Free-form identifier of the actor, for the audit log.',
+  }),
+});
+
+export const exclusionResolutionSchema = z.object({
+  state: z.enum(['none', 'selective', 'excluded']),
+  ruleIds: z.array(z.uuid()).meta({
+    description: 'The rules that decided the state.',
   }),
 });

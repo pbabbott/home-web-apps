@@ -17,9 +17,9 @@ import {
   type QueuePath,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { isWithinPath } from '../../lib/windows-path';
+import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
-import { toQueuePath } from './paths';
+import { toFollowUpPath, toQueuePath, type FollowUpInput } from './paths';
 
 export type QueueItemWithCreated = {
   item: DiscoveryQueueItem;
@@ -80,18 +80,50 @@ export const heartbeat = (
 export async function completeItem(
   id: string,
   claimToken: string,
-  discoveredPaths: string[],
+  discoveredPaths: FollowUpInput[],
+  outcome: {
+    summary?: string;
+    skipped?: { path: string; reason: string }[];
+  } = {},
 ) {
-  const queuePaths = discoveredPaths.map(toQueuePath);
+  const queuePaths = discoveredPaths.map(toFollowUpPath);
+  const skipped = (outcome.skipped ?? []).map((s) => ({
+    ...normalizeWindowsPath(s.path),
+    reason: s.reason,
+  }));
 
-  if (queuePaths.length > 0) {
+  if (queuePaths.length > 0 || skipped.length > 0) {
     const item = await getQueueItemById(db, id);
     if (!item) throw new DiscoveryError('not_found', 'queue item not found');
 
     assertWithinJobRoot(await requireJob(item.jobId), queuePaths);
+
+    const outside = skipped.filter(
+      (s) =>
+        s.normalizedPath === item.normalizedPath ||
+        !isWithinPath(item.normalizedPath, s.normalizedPath),
+    );
+    if (outside.length > 0) {
+      throw new DiscoveryError(
+        'conflict',
+        `skipped paths are not inside the claimed directory ${item.path}`,
+        { paths: outside.map((s) => s.path) },
+      );
+    }
   }
 
-  return completeQueueItem(db, id, { claimToken, discoveredPaths: queuePaths });
+  const hasResult = outcome.summary !== undefined || skipped.length > 0;
+
+  return completeQueueItem(db, id, {
+    claimToken,
+    discoveredPaths: queuePaths,
+    result: hasResult
+      ? {
+          ...(outcome.summary ? { summary: outcome.summary } : {}),
+          skipped: skipped.map((s) => ({ path: s.path, reason: s.reason })),
+        }
+      : undefined,
+  });
 }
 
 export const failItem = (

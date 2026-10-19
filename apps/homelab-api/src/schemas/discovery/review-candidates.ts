@@ -1,0 +1,176 @@
+import { z } from 'zod';
+import { claimTokenSchema, windowsPathSchema } from './common';
+
+// Kept small so a worst-case batch stays under the shared Express json() body
+// limit of 100kb (evidence alone can reach ~6kb per candidate).
+export const MAX_CANDIDATES_PER_REQUEST = 10;
+
+export const reviewCandidateIdParamsSchema = z.object({ id: z.uuid() });
+export type ReviewCandidateIdParams = z.infer<
+  typeof reviewCandidateIdParamsSchema
+>;
+
+const shortText = z.string().trim().min(1).max(300);
+
+export const candidateRecommendationSchema = z
+  .enum(['back_up', 'skip', 'needs_review'])
+  .meta({
+    description:
+      'back_up: unique or valuable material worth preserving. skip: strong evidence it is irrelevant, reproducible or replaceable. needs_review: not enough evidence for a confident call. A recommendation is never an approval.',
+  });
+
+export const candidateConfidenceSchema = z
+  .enum(['low', 'medium', 'high'])
+  .meta({
+    description:
+      'Not a calibrated probability. high: direct evidence settles it. medium: strong signals with minor unknowns. low: a guess, so the recommendation must be needs_review.',
+  });
+
+export const candidateEvidenceSchema = z.object({
+  contentKinds: z
+    .array(
+      z.enum([
+        'source_code',
+        'personal_documents',
+        'media',
+        'configuration',
+        'application_data',
+        'generated_artifacts',
+        'installed_software',
+        'other',
+      ]),
+    )
+    .max(8),
+  git: z
+    .object({
+      remoteUrl: z.string().max(500).nullable(),
+      remoteVisibility: z.enum(['public', 'private', 'none', 'unknown']),
+      localStateKnown: z.boolean().meta({
+        description:
+          'True only when git status and the upstream comparison actually ran.',
+      }),
+      uncommittedChanges: z.boolean().nullable(),
+      untrackedFiles: z.boolean().nullable(),
+      unpushedCommits: z.boolean().nullable(),
+      ignoredFilesOfNote: z.boolean().nullable(),
+    })
+    .nullable()
+    .meta({
+      description:
+        'null when the path is not a git repository (or was not checked). Inside, null means not determined.',
+    }),
+  reproducible: z.enum(['yes', 'no', 'unknown']),
+  sufficientInformation: z.boolean().meta({
+    description: 'Whether the agent had enough information to be confident.',
+  }),
+  observations: z.array(shortText).max(10).meta({
+    description: 'Verified facts only; no speculation.',
+  }),
+  openQuestions: z.array(shortText).max(5).meta({
+    description: 'What further inspection would resolve the uncertainty.',
+  }),
+  estimatedSizeBytes: z
+    .number()
+    .int()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+  estimatedFileCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+});
+
+export const reviewCandidateInputSchema = z
+  .object({
+    rootPath: windowsPathSchema.meta({
+      description:
+        'The backup unit: a directory (project, document collection) or a standalone file. Must be the claimed directory or lie inside it.',
+    }),
+    kind: z.enum(['file', 'directory']),
+    displayName: z.string().trim().min(1).max(200).optional().meta({
+      description: 'Defaults to the last path segment.',
+    }),
+    summary: z.string().trim().min(1).max(500),
+    recommendation: candidateRecommendationSchema,
+    confidence: candidateConfidenceSchema,
+    reason: z.string().trim().min(1).max(500).meta({
+      description: 'Why this recommendation.',
+    }),
+    evidence: candidateEvidenceSchema,
+  })
+  .superRefine((c, ctx) => {
+    if (c.confidence === 'low' && c.recommendation !== 'needs_review') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['confidence'],
+        message:
+          'low confidence requires recommendation needs_review; use back_up or skip only with medium or high confidence',
+      });
+    }
+
+    const git = c.evidence.git;
+    if (
+      c.recommendation === 'skip' &&
+      git &&
+      (!git.localStateKnown ||
+        git.uncommittedChanges !== false ||
+        git.untrackedFiles !== false ||
+        git.unpushedCommits !== false ||
+        git.ignoredFilesOfNote === true)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['recommendation'],
+        message:
+          'a git repository can only be skipped when its local state is known and shows no uncommitted changes, untracked files, unpushed commits or notable ignored files; a public remote alone does not make it disposable (use needs_review)',
+      });
+    }
+  });
+export type ReviewCandidateInput = z.infer<typeof reviewCandidateInputSchema>;
+
+export const proposeReviewCandidatesBodySchema = z.object({
+  claimToken: claimTokenSchema,
+  workerId: z.string().min(1).optional().meta({
+    description: 'Your worker id, recorded as the recommending agent.',
+  }),
+  candidates: z
+    .array(reviewCandidateInputSchema)
+    .min(1)
+    .max(MAX_CANDIDATES_PER_REQUEST),
+});
+export type ProposeReviewCandidatesBody = z.infer<
+  typeof proposeReviewCandidatesBodySchema
+>;
+
+export const reviewCandidateListQuerySchema = z.object({
+  jobId: z.uuid().optional().meta({
+    description: 'Only candidates last proposed by this job.',
+  }),
+  recommendation: candidateRecommendationSchema.optional(),
+  decision: z.enum(['pending', 'approved', 'rejected']).optional(),
+  pathPrefix: windowsPathSchema.optional().meta({
+    description: 'Only candidates at or beneath this path.',
+  }),
+  after: z.string().min(1).optional().meta({
+    description:
+      'Cursor: the normalizedRootPath of the last candidate of the previous page.',
+  }),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
+});
+export type ReviewCandidateListQuery = z.infer<
+  typeof reviewCandidateListQuerySchema
+>;
+
+export const decideReviewCandidateBodySchema = z.object({
+  decision: z.enum(['pending', 'approved', 'rejected']),
+  note: z.string().trim().min(1).max(1000).nullable().optional().meta({
+    description:
+      'Replaces the note; null clears it. When omitted the note is kept if the decision is unchanged and cleared if it changes.',
+  }),
+});
+export type DecideReviewCandidateBody = z.infer<
+  typeof decideReviewCandidateBodySchema
+>;

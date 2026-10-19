@@ -15,7 +15,7 @@ import type {
 export const createDiscoveryJobOperation = {
   summary: 'Start a discovery job for a source',
   description:
-    'Creates a pending job, queues rootPath as its first directory and records it as a directory in the source’s inventory. A source can have only one pending/running job at a time. The job moves to running when its first item is claimed.',
+    'Creates a pending job, queues rootPath as its first directory. A source can have only one pending/running job at a time. The job moves to running when its first item is claimed.',
 } satisfies Operation;
 
 export const createDiscoveryJob = handle(

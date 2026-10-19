@@ -8,13 +8,11 @@ import {
   createDiscoveryJob,
   listSourceJobs,
 } from '../../controllers/discovery/discovery-jobs';
-import { listSourceInventoryItems } from '../../controllers/discovery/inventory-items';
 import { listSourceQueueItems } from '../../controllers/discovery/queue-items';
 import { createSource, listSources } from '../../controllers/discovery/sources';
 import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
-  inventoryItemListQuerySchema,
   queueItemListQuerySchema,
   sourceIdParamsSchema,
 } from '../../schemas/discovery';
@@ -43,10 +41,4 @@ sourcesRouter.get(
   validateParams(sourceIdParamsSchema),
   validateQuery(queueItemListQuerySchema),
   listSourceQueueItems,
-);
-sourcesRouter.get(
-  '/sources/:id/inventory-items',
-  validateParams(sourceIdParamsSchema),
-  validateQuery(inventoryItemListQuerySchema),
-  listSourceInventoryItems,
 );

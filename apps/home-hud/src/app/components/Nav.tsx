@@ -21,7 +21,7 @@ const VIDEO_MENU_ITEMS = [
 const EXODUS_MENU_ITEMS = [
   { href: '/exodus/sources', label: 'Sources' },
   { href: '/exodus/jobs', label: 'Discovery Jobs' },
-  { href: '/exodus/inventory', label: 'Inventory' },
+  { href: '/exodus/candidates', label: 'Review Candidates' },
   { href: '/exodus/rules', label: 'Exclusion Rules' },
   { href: '/exodus/audit', label: 'Audit Log' },
 ];

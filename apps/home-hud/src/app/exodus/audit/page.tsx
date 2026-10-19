@@ -24,7 +24,7 @@ export default async function ExodusAuditPage({ searchParams }: PageProps) {
     console.error('Failed to load sources from homelab-api:', err);
   }
 
-  // Unlike the inventory page, "no source" means every source.
+  // "No source" means every source.
   const source = sources?.find((candidate) => candidate.id === query.source);
   const type = parseAuditEventType(query.type);
   const before = query.before || undefined;

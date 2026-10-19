@@ -10,7 +10,6 @@ import {
 } from '../../schema/discovery';
 import { ACTIVE_JOB_STATUSES } from './claims';
 import { DiscoveryError } from '../shared';
-import { upsertInventoryItems, type InventoryPath } from './inventory-upsert';
 import {
   expireLeases,
   getQueueCounts,
@@ -24,17 +23,11 @@ import type { Tx } from '../shared';
 export type CreateDiscoveryJobInput = {
   sourceId: string;
   root: QueuePath;
-  /**
-   * The root as an inventory directory. Nothing else would ever record it
-   * (a worker only records what lies beneath the directory it holds), so
-   * without this the root could not be reviewed or marked later.
-   */
-  rootInventory: InventoryPath;
 };
 
 /**
- * Creates a pending job, seeds its queue with the root directory and records
- * the root in the inventory, all in one transaction. Fails with `conflict` if
+ * Creates a pending job and seeds its queue with the root directory, in one
+ * transaction. Fails with `conflict` if
  * the source already has an active job.
  */
 export const createDiscoveryJob = async (
@@ -62,11 +55,6 @@ export const createDiscoveryJob = async (
         .returning();
 
       await insertQueuePaths(tx, { jobId: job.id, paths: [input.root] });
-      await upsertInventoryItems(tx, {
-        sourceId: input.sourceId,
-        jobId: job.id,
-        items: [input.rootInventory],
-      });
 
       return job;
     });

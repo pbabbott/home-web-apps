@@ -24,22 +24,24 @@ export {
   sources,
   discoveryJobs,
   discoveryQueueItems,
-  inventoryItems,
   exclusionRules,
   auditEvents,
-  inventoryItemTypeEnum,
+  candidateKindEnum,
   sourceTypeEnum,
   discoveryJobStatusEnum,
   discoveryQueueItemStatusEnum,
   exclusionRuleScopeEnum,
-  reviewDispositionEnum,
+  candidateRecommendationEnum,
+  candidateConfidenceEnum,
+  candidateDecisionEnum,
+  reviewCandidates,
   auditActorTypeEnum,
   sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
-  inventoryItemSelectSchema,
   exclusionRuleSelectSchema,
   auditEventSelectSchema,
+  reviewCandidateSelectSchema,
 } from './schema/discovery';
 export type {
   Source,
@@ -51,13 +53,19 @@ export type {
   DiscoveryQueueItem,
   NewDiscoveryQueueItem,
   DiscoveryQueueItemStatus,
-  InventoryItem,
-  NewInventoryItem,
-  InventoryItemType,
+  CandidateKind,
   ExclusionRule,
   NewExclusionRule,
   ExclusionRuleScope,
-  ReviewDisposition,
+  ReviewCandidate,
+  NewReviewCandidate,
+  CandidateRecommendation,
+  CandidateConfidence,
+  CandidateDecision,
+  CandidateEvidence,
+  CandidateContentKind,
+  CandidateGitEvidence,
+  QueueItemResult,
   AuditEvent,
   NewAuditEvent,
   AuditActorType,
@@ -87,17 +95,19 @@ export type {
 } from './queries/exclusion-rules';
 
 export {
-  MAX_BULK_REVIEW_ITEMS,
-  getInventoryItemById,
-  reviewInventoryItem,
-  reviewInventoryItems,
-} from './queries/review';
+  upsertReviewCandidates,
+  getReviewCandidateById,
+  decideReviewCandidate,
+  listReviewCandidates,
+} from './queries/review-candidates';
 export type {
-  InventoryItemWithExclusion,
-  ReviewInput,
-  BulkReviewInput,
-  BulkReviewResult,
-} from './queries/review';
+  CandidateInput,
+  UpsertReviewCandidatesInput,
+  UpsertedCandidate,
+  ReviewCandidateWithExclusion,
+  DecideReviewCandidateInput,
+  ListReviewCandidatesOptions,
+} from './queries/review-candidates';
 
 export {
   DiscoveryError,
@@ -121,8 +131,6 @@ export {
   skipQueueItem,
   retryQueueItem,
   retryDelaySeconds,
-  recordInventoryItems,
-  listInventoryItems,
 } from './queries/discovery';
 export type {
   CreateSourceInput,
@@ -138,9 +146,6 @@ export type {
   ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,
-  InventoryPath,
-  RecordInventoryItemsInput,
-  ListInventoryItemsOptions,
 } from './queries/discovery';
 
 export {

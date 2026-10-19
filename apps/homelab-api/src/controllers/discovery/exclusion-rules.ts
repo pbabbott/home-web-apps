@@ -36,7 +36,7 @@ export const listExclusionRules = handle(
 export const createExclusionRuleOperation = {
   summary: 'Create an exclusion rule',
   description:
-    'Precedence: an `exclude_subtree` rule on the path or any ancestor — global or source-specific — always wins; no rule can re-enable it. `selective_only` marks just that path as not a backup candidate and keeps exploring beneath it. A path may have only one rule across a source and the global level (409). Creating a rule never deletes inventory; directories already queued under an `exclude_subtree` rule are skipped when they would next be claimed. Records an audit event; send X-Actor-Type / X-Actor-Id to attribute it.',
+    'Precedence: an `exclude_subtree` rule on the path or any ancestor — global or source-specific — always wins; no rule can re-enable it. `selective_only` marks just that path as not a backup candidate and keeps exploring beneath it. A path may have only one rule across a source and the global level (409). Creating a rule never deletes candidates or their history; directories already queued under an `exclude_subtree` rule are skipped when they would next be claimed. Records an audit event; send X-Actor-Type / X-Actor-Id to attribute it.',
   mcp: {
     name: 'create_exclusion_rule',
     description:

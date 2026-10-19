@@ -16,8 +16,8 @@ export type AuditEventInput = {
   sourceId?: string | null;
   jobId?: string | null;
   queueItemId?: string | null;
-  inventoryItemId?: string | null;
   exclusionRuleId?: string | null;
+  reviewCandidateId?: string | null;
   details?: Record<string, unknown> | null;
 };
 
@@ -39,8 +39,8 @@ export const insertAuditEvent = async (
       sourceId: event.sourceId ?? null,
       jobId: event.jobId ?? null,
       queueItemId: event.queueItemId ?? null,
-      inventoryItemId: event.inventoryItemId ?? null,
       exclusionRuleId: event.exclusionRuleId ?? null,
+      reviewCandidateId: event.reviewCandidateId ?? null,
       details: event.details ?? null,
     })
     .returning();
@@ -51,8 +51,8 @@ export const insertAuditEvent = async (
 export type ListAuditEventsOptions = {
   sourceId?: string;
   jobId?: string;
-  inventoryItemId?: string;
   exclusionRuleId?: string;
+  reviewCandidateId?: string;
   eventType?: AuditEventType;
   since?: Date;
   until?: Date;
@@ -76,10 +76,8 @@ export const listAuditEvents = async (
     options.exclusionRuleId
       ? eq(t.exclusionRuleId, options.exclusionRuleId)
       : undefined,
-    // A bulk review has no single inventory item; it lists the changed items
-    // in details.changed, so match those too.
-    options.inventoryItemId
-      ? sql`(${t.inventoryItemId} = ${options.inventoryItemId} or ${t.details} @> jsonb_build_object('changed', jsonb_build_array(jsonb_build_object('id', ${options.inventoryItemId}::text))))`
+    options.reviewCandidateId
+      ? eq(t.reviewCandidateId, options.reviewCandidateId)
       : undefined,
     options.eventType ? eq(t.eventType, options.eventType) : undefined,
     options.since ? gte(t.createdAt, options.since) : undefined,

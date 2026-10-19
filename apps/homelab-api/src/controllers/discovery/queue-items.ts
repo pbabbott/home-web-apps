@@ -121,13 +121,13 @@ export const heartbeatQueueItem = handle(
 // (`discoveredPaths`) in one transaction.
 // Who: agent (complete_directory). This is what drives the tree walk.
 export const completeQueueItemOperation = {
-  summary: 'Complete a claimed directory and enqueue the children found in it',
+  summary: 'Complete a claimed directory and enqueue the follow-ups it needs',
   description:
-    'The completion and the discoveredPaths enqueue happen in one transaction, so subdirectories are never lost to a crash in between.',
+    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary` and `skipped` are stored on the item as its result. Follow-ups under an exclusion rule are skipped immediately.',
   mcp: {
     name: 'complete_directory',
     description:
-      'Mark a claimed directory as explored. Child directories found are enqueued atomically via discoveredPaths.',
+      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into a candidate. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason, and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
   },
 } satisfies Operation;
 
@@ -135,11 +135,13 @@ export const completeQueueItem = handle(
   'POST /queue-items/:id/complete',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, discoveredPaths } = req.body as CompleteQueueItemBody;
+    const { claimToken, discoveredPaths, summary, skipped } =
+      req.body as CompleteQueueItemBody;
     const { item, children } = await discoveryService.completeItem(
       id,
       claimToken,
       discoveredPaths,
+      { summary, skipped },
     );
     res.status(200).json({
       ...item,

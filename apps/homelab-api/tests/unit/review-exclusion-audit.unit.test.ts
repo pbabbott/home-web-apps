@@ -11,11 +11,7 @@ jest.mock('../../src/services/discovery', () => {
     createExclusionRule: jest.fn(),
     updateExclusionRule: jest.fn(),
     deleteExclusionRule: jest.fn(),
-    getInventoryItem: jest.fn(),
-    reviewInventoryItem: jest.fn(),
-    reviewInventoryItems: jest.fn(),
     listAuditEvents: jest.fn(),
-    listSourceInventory: jest.fn(),
   };
 });
 
@@ -139,125 +135,6 @@ describe('exclusion rule, review and audit routes', () => {
         type: 'human',
         id: null,
       });
-    });
-  });
-
-  describe('PATCH /inventory-items/:id/review', () => {
-    it('applies the disposition with the actor', async () => {
-      mocked.reviewInventoryItem.mockResolvedValue({ id: ID } as never);
-
-      await supertest(createServer())
-        .patch(`/inventory-items/${ID}/review`)
-        .set('X-Actor-Id', 'brandon')
-        .send({ disposition: 'candidate', note: 'taxes' })
-        .expect(200);
-
-      expect(mocked.reviewInventoryItem).toHaveBeenCalledWith(
-        ID,
-        { disposition: 'candidate', note: 'taxes' },
-        { type: 'human', id: 'brandon' },
-      );
-    });
-
-    it('rejects an unknown disposition', async () => {
-      await supertest(createServer())
-        .patch(`/inventory-items/${ID}/review`)
-        .send({ disposition: 'maybe' })
-        .expect(400);
-
-      expect(mocked.reviewInventoryItem).not.toHaveBeenCalled();
-    });
-
-    it('returns blocking rule ids on 409', async () => {
-      mocked.reviewInventoryItem.mockRejectedValue(
-        new service.DiscoveryError('conflict', 'excluded', {
-          blocked: [{ id: ID, ruleIds: ['r1'] }],
-        }),
-      );
-
-      const res = await supertest(createServer())
-        .patch(`/inventory-items/${ID}/review`)
-        .send({ disposition: 'candidate' })
-        .expect(409);
-
-      expect(res.body.blocked).toEqual([{ id: ID, ruleIds: ['r1'] }]);
-    });
-
-    it('maps a missing item to 404', async () => {
-      mocked.reviewInventoryItem.mockRejectedValue(
-        new service.DiscoveryError('not_found', 'inventory item not found'),
-      );
-
-      await supertest(createServer())
-        .patch(`/inventory-items/${ID}/review`)
-        .send({ disposition: 'not_needed' })
-        .expect(404);
-    });
-  });
-
-  describe('POST /inventory-items/review', () => {
-    it('applies one decision to many items', async () => {
-      mocked.reviewInventoryItems.mockResolvedValue({
-        changedCount: 2,
-        unchangedCount: 0,
-        items: [],
-      });
-
-      await supertest(createServer())
-        .post('/inventory-items/review')
-        .send({ ids: [ID, SOURCE_ID], disposition: 'not_needed' })
-        .expect(200);
-
-      expect(mocked.reviewInventoryItems).toHaveBeenCalledWith(
-        { ids: [ID, SOURCE_ID], disposition: 'not_needed' },
-        { type: 'human', id: null },
-      );
-    });
-
-    it('rejects an empty list and more than 200 ids', async () => {
-      await supertest(createServer())
-        .post('/inventory-items/review')
-        .send({ ids: [], disposition: 'candidate' })
-        .expect(400);
-
-      await supertest(createServer())
-        .post('/inventory-items/review')
-        .send({
-          ids: Array.from({ length: 201 }, () => ID),
-          disposition: 'candidate',
-        })
-        .expect(400);
-
-      expect(mocked.reviewInventoryItems).not.toHaveBeenCalled();
-    });
-
-    it('is not shadowed by GET /inventory-items/:id', async () => {
-      mocked.getInventoryItem.mockResolvedValue({ id: ID } as never);
-
-      await supertest(createServer()).get(`/inventory-items/${ID}`).expect(200);
-    });
-  });
-
-  describe('GET /sources/:id/inventory-items', () => {
-    it('passes the review disposition filter', async () => {
-      mocked.listSourceInventory.mockResolvedValue([]);
-
-      await supertest(createServer())
-        .get(
-          `/sources/${SOURCE_ID}/inventory-items?reviewDisposition=candidate`,
-        )
-        .expect(200);
-
-      expect(mocked.listSourceInventory).toHaveBeenCalledWith(
-        SOURCE_ID,
-        expect.objectContaining({ reviewDisposition: 'candidate' }),
-      );
-    });
-
-    it('rejects an unknown disposition filter', async () => {
-      await supertest(createServer())
-        .get(`/sources/${SOURCE_ID}/inventory-items?reviewDisposition=maybe`)
-        .expect(400);
     });
   });
 
