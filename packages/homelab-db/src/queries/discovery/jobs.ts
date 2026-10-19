@@ -9,7 +9,7 @@ import {
   type DiscoveryJobStatus,
 } from '../../schema/discovery';
 import { ACTIVE_JOB_STATUSES } from './claims';
-import { DiscoveryError } from './errors';
+import { DiscoveryError } from '../shared';
 import { upsertInventoryItems, type InventoryPath } from './inventory-upsert';
 import {
   expireLeases,
@@ -17,7 +17,7 @@ import {
   insertQueuePaths,
   type QueuePath,
 } from './queue-helpers';
-import type { Tx } from './tx';
+import type { Tx } from '../shared';
 
 // -- discovery jobs ---------------------------------------------------------
 

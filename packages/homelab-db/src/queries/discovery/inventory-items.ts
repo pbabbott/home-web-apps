@@ -6,6 +6,7 @@ import {
   inventoryItems,
   type InventoryItem,
   type InventoryItemType,
+  type ReviewDisposition,
 } from '../../schema/discovery';
 import { activeClaim, claimMissError } from './claims';
 import { upsertInventoryItems, type InventoryPath } from './inventory-upsert';
@@ -49,6 +50,7 @@ export type ListInventoryItemsOptions = {
   /** Items last seen by this job. */
   jobId?: string;
   itemType?: InventoryItemType;
+  reviewDisposition?: ReviewDisposition;
   /** Direct children of this directory (normalized). */
   normalizedParentPath?: string;
   /**
@@ -86,6 +88,9 @@ export const listInventoryItems = async (
     eq(t.sourceId, options.sourceId),
     options.jobId ? eq(t.lastJobId, options.jobId) : undefined,
     options.itemType ? eq(t.itemType, options.itemType) : undefined,
+    options.reviewDisposition
+      ? eq(t.reviewDisposition, options.reviewDisposition)
+      : undefined,
     options.normalizedParentPath
       ? eq(t.normalizedParentPath, options.normalizedParentPath)
       : undefined,

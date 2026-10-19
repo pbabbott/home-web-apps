@@ -1,10 +1,17 @@
 import {
   DiscoveryError,
+  getInventoryItemById,
   getQueueItemById,
   getSourceById,
   listInventoryItems as listInventoryItemRows,
   recordInventoryItems,
+  reviewInventoryItem as reviewInventoryItemRow,
+  reviewInventoryItems as reviewInventoryItemRows,
+  type Actor,
+  type BulkReviewResult,
   type InventoryItem,
+  type InventoryItemWithExclusion,
+  type ReviewDisposition,
   type InventoryItemType,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
@@ -56,6 +63,7 @@ export async function listSourceInventory(
   filters: {
     jobId?: string;
     itemType?: InventoryItemType;
+    reviewDisposition?: ReviewDisposition;
     parentPath?: string;
     pathPrefix?: string;
     after?: string;
@@ -70,6 +78,7 @@ export async function listSourceInventory(
     sourceId,
     jobId: filters.jobId,
     itemType: filters.itemType,
+    reviewDisposition: filters.reviewDisposition,
     normalizedParentPath: filters.parentPath
       ? normalizeWindowsPath(filters.parentPath).normalizedPath
       : undefined,
@@ -79,4 +88,29 @@ export async function listSourceInventory(
     after: filters.after,
     limit: filters.limit,
   });
+}
+
+export async function getInventoryItem(
+  id: string,
+): Promise<InventoryItemWithExclusion> {
+  return getInventoryItemById(db, id);
+}
+
+export async function reviewInventoryItem(
+  id: string,
+  input: { disposition: ReviewDisposition; note?: string | null },
+  actor: Actor,
+): Promise<InventoryItem> {
+  return reviewInventoryItemRow(db, id, { ...input, actor });
+}
+
+export async function reviewInventoryItems(
+  input: {
+    ids: string[];
+    disposition: ReviewDisposition;
+    note?: string | null;
+  },
+  actor: Actor,
+): Promise<BulkReviewResult> {
+  return reviewInventoryItemRows(db, { ...input, actor });
 }

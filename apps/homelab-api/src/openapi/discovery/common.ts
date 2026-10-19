@@ -89,3 +89,12 @@ export const discoveryJobWithSourceSchema = discoveryJobSelectSchema.extend({
     description: 'The host the job’s source is linked to, if any.',
   }),
 });
+
+export const actorHeaders = z.object({
+  'x-actor-type': z.enum(['human', 'openclaw', 'system']).optional().meta({
+    description: 'Who is making the change, for the audit log. Default human.',
+  }),
+  'x-actor-id': z.string().optional().meta({
+    description: 'Free-form identifier of the actor, for the audit log.',
+  }),
+});

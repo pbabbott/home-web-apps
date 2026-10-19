@@ -1,4 +1,4 @@
-export { DiscoveryError } from './errors';
+export { DiscoveryError } from '../shared';
 export * from './sources';
 export * from './jobs';
 export * from './queue-items';

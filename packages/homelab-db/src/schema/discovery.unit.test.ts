@@ -122,6 +122,10 @@ describe('inventoryItemSelectSchema', () => {
     extension: 'pdf',
     sizeBytes: 4_000_000_000,
     modifiedAt: new Date(),
+    reviewDisposition: 'needs_review',
+    reviewedAt: null,
+    reviewedBy: null,
+    reviewNote: null,
     firstSeenAt: new Date(),
     lastSeenAt: new Date(),
     createdAt: new Date(),
@@ -130,6 +134,24 @@ describe('inventoryItemSelectSchema', () => {
 
   it('accepts a file, including a size beyond 32 bits', () => {
     expect(inventoryItemSelectSchema.safeParse(row).success).toBe(true);
+  });
+
+  it('accepts a reviewed item and rejects an unknown disposition', () => {
+    expect(
+      inventoryItemSelectSchema.safeParse({
+        ...row,
+        reviewDisposition: 'candidate',
+        reviewedAt: new Date(),
+        reviewedBy: 'brandon',
+        reviewNote: 'tax records',
+      }).success,
+    ).toBe(true);
+    expect(
+      inventoryItemSelectSchema.safeParse({
+        ...row,
+        reviewDisposition: 'maybe',
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts a directory with no size, mtime or extension', () => {

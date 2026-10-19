@@ -2,6 +2,7 @@ import {
   formatBytes,
   inventoryUrl,
   isWithinPath,
+  parseReview,
   pathCrumbs,
   tidyPath,
 } from '../../src/app/exodus/lib/inventory-display';
@@ -120,6 +121,7 @@ describe('inventoryUrl', () => {
       path: 'C:\\Users\\You\\My Docs',
       recursive: true,
       type: 'file',
+      review: 'candidate',
       after: 'c:\\users\\you\\a.txt',
     });
     const params = new URL(url, 'http://x').searchParams;
@@ -129,6 +131,20 @@ describe('inventoryUrl', () => {
     expect(params.get('path')).toBe('C:\\Users\\You\\My Docs');
     expect(params.get('recursive')).toBe('1');
     expect(params.get('type')).toBe('file');
+    expect(params.get('review')).toBe('candidate');
     expect(params.get('after')).toBe('c:\\users\\you\\a.txt');
+  });
+});
+
+describe('parseReview', () => {
+  it.each(['candidate', 'not_needed', 'needs_review'])(
+    'accepts %s',
+    (value) => {
+      expect(parseReview(value)).toBe(value);
+    },
+  );
+
+  it.each([undefined, '', 'maybe', 'CANDIDATE'])('ignores %p', (value) => {
+    expect(parseReview(value)).toBeUndefined();
   });
 });

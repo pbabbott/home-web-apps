@@ -5,7 +5,7 @@ import {
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
 } from '../../schema/discovery';
-import type { Tx } from './tx';
+import type { Tx } from '../shared';
 
 // -- queue helpers ----------------------------------------------------------
 

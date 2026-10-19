@@ -75,7 +75,7 @@ Three tables (`packages/homelab-db/src/schema/discovery.ts`):
 
 ### MCP
 
-The agent's work loop is also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, and finishing/cancelling/failing a job stay REST-only for humans.
+The agent's work loop and exclusion rules are also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, finishing/cancelling/failing a job, global rules, editing or deleting rules, review and the audit log stay REST-only for humans. Rules the agent creates are attributed to actor `openclaw` (with its optional `workerId`) in the audit log.
 
 | MCP tool                  | REST route                                   |
 | ------------------------- | -------------------------------------------- |
@@ -88,6 +88,8 @@ The agent's work loop is also exposed as MCP tools over stateless Streamable HTT
 | `fail_directory`          | `POST /queue-items/:id/fail`                 |
 | `skip_directory`          | `POST /queue-items/:id/skip`                 |
 | `retry_directory`         | `POST /queue-items/:id/retry`                |
+| `list_exclusion_rules`    | `GET /exclusion-rules`                       |
+| `create_exclusion_rule`   | `POST /exclusion-rules` (source-scoped only) |
 
 Tools call the same service layer as the controllers; not-found/conflict errors come back as tool errors (`isError`) with the same details as the REST body.
 

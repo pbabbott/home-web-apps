@@ -4,10 +4,12 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
@@ -33,6 +35,23 @@ export const discoveryQueueItemStatusEnum = pgEnum(
 export const inventoryItemTypeEnum = pgEnum('inventory_item_type', [
   'file',
   'directory',
+]);
+
+export const exclusionRuleScopeEnum = pgEnum('exclusion_rule_scope', [
+  'selective_only',
+  'exclude_subtree',
+]);
+
+export const reviewDispositionEnum = pgEnum('review_disposition', [
+  'candidate',
+  'not_needed',
+  'needs_review',
+]);
+
+export const auditActorTypeEnum = pgEnum('audit_actor_type', [
+  'human',
+  'openclaw',
+  'system',
 ]);
 
 /**
@@ -149,8 +168,9 @@ export const discoveryQueueItems = pgTable(
 /**
  * A file or directory found while exploring a source. Identity is the
  * source + normalized (lowercased) path, so rediscovery by any job updates
- * the same row. Only filesystem facts are overwritten on rediscovery; any
- * review/copy state added later lives in other columns and is left alone.
+ * the same row. Only filesystem facts are overwritten on rediscovery; the
+ * human review columns (`reviewDisposition`, `reviewedAt`, `reviewedBy`,
+ * `reviewNote`) and any copy state added later are left alone.
  * `firstJobId`/`lastJobId` record which runs found it.
  */
 export const inventoryItems = pgTable(
@@ -175,6 +195,12 @@ export const inventoryItems = pgTable(
     extension: text('extension'),
     sizeBytes: bigint('size_bytes', { mode: 'number' }),
     modifiedAt: timestamp('modified_at', { withTimezone: true }),
+    reviewDisposition: reviewDispositionEnum('review_disposition')
+      .notNull()
+      .default('needs_review'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewedBy: text('reviewed_by'),
+    reviewNote: text('review_note'),
     firstSeenAt: timestamp('first_seen_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -199,12 +225,99 @@ export const inventoryItems = pgTable(
     ),
     index('inventory_items_last_job_idx').on(table.lastJobId),
     index('inventory_items_type_idx').on(table.sourceId, table.itemType),
+    index('inventory_items_review_idx').on(
+      table.sourceId,
+      table.reviewDisposition,
+    ),
     check(
       'inventory_items_size_check',
       sql`${table.sizeBytes} is null or ${table.sizeBytes} >= 0`,
     ),
   ],
 );
+
+/**
+ * A persistent rule that limits discovery. `sourceId` null means the rule is
+ * global (applies to every source). `exclude_subtree` drops the path and
+ * everything beneath it; `selective_only` only stops the path itself from
+ * being a backup candidate while its descendants are still explored. One rule
+ * per path per owner (source or global); NULLS NOT DISTINCT makes the unique
+ * index cover global rules too.
+ */
+export const exclusionRules = pgTable(
+  'exclusion_rules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id').references(() => sources.id, {
+      onDelete: 'cascade',
+    }),
+    path: text('path').notNull(),
+    normalizedPath: text('normalized_path').notNull(),
+    scope: exclusionRuleScopeEnum('scope').notNull(),
+    reason: text('reason'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('exclusion_rules_owner_path_unique')
+      .on(table.sourceId, table.normalizedPath)
+      .nullsNotDistinct(),
+    index('exclusion_rules_path_idx').on(table.normalizedPath),
+  ],
+);
+
+/**
+ * Append-only record of changes to exclusion and review state. The id columns
+ * deliberately have no foreign keys: the log must outlive the rows it
+ * describes (a removed rule, a deleted source). `details` holds before/after
+ * values and is kept small by the callers.
+ */
+export const auditEvents = pgTable(
+  'audit_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id'),
+    jobId: uuid('job_id'),
+    queueItemId: uuid('queue_item_id'),
+    inventoryItemId: uuid('inventory_item_id'),
+    exclusionRuleId: uuid('exclusion_rule_id'),
+    eventType: text('event_type').$type<AuditEventType>().notNull(),
+    actorType: auditActorTypeEnum('actor_type').notNull(),
+    actorId: text('actor_id'),
+    details: jsonb('details').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('audit_events_created_idx').on(
+      table.createdAt.desc(),
+      table.id.desc(),
+    ),
+    index('audit_events_source_idx').on(table.sourceId, table.createdAt.desc()),
+    index('audit_events_job_idx').on(table.jobId, table.createdAt.desc()),
+    index('audit_events_inventory_item_idx').on(
+      table.inventoryItemId,
+      table.createdAt.desc(),
+    ),
+    index('audit_events_rule_idx').on(
+      table.exclusionRuleId,
+      table.createdAt.desc(),
+    ),
+  ],
+);
+
+export type AuditEventType =
+  | 'exclusion_rule.created'
+  | 'exclusion_rule.updated'
+  | 'exclusion_rule.deleted'
+  | 'inventory_item.review_changed'
+  | 'inventory_item.review_bulk_changed'
+  | 'queue_items.excluded';
 
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;
@@ -224,6 +337,18 @@ export type InventoryItem = typeof inventoryItems.$inferSelect;
 export type NewInventoryItem = typeof inventoryItems.$inferInsert;
 export type InventoryItemType =
   (typeof inventoryItemTypeEnum.enumValues)[number];
+
+export type ExclusionRule = typeof exclusionRules.$inferSelect;
+export type NewExclusionRule = typeof exclusionRules.$inferInsert;
+export type ExclusionRuleScope =
+  (typeof exclusionRuleScopeEnum.enumValues)[number];
+
+export type ReviewDisposition =
+  (typeof reviewDispositionEnum.enumValues)[number];
+
+export type AuditEvent = typeof auditEvents.$inferSelect;
+export type NewAuditEvent = typeof auditEvents.$inferInsert;
+export type AuditActorType = (typeof auditActorTypeEnum.enumValues)[number];
 
 const dateTime = (schema: z.ZodDate) => schema.meta({ format: 'date-time' });
 
@@ -250,8 +375,18 @@ export const discoveryQueueItemSelectSchema = createSelectSchema(
   },
 );
 
+export const exclusionRuleSelectSchema = createSelectSchema(exclusionRules, {
+  createdAt: dateTime,
+  updatedAt: dateTime,
+});
+
+export const auditEventSelectSchema = createSelectSchema(auditEvents, {
+  createdAt: dateTime,
+});
+
 export const inventoryItemSelectSchema = createSelectSchema(inventoryItems, {
   modifiedAt: dateTime,
+  reviewedAt: dateTime,
   firstSeenAt: dateTime,
   lastSeenAt: dateTime,
   createdAt: dateTime,

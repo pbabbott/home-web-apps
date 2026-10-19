@@ -1,4 +1,23 @@
+import type { ReviewDisposition } from '../sources/lib/homelab-api';
+
 export type InventoryTypeFilter = 'file' | 'directory';
+
+export const REVIEW_LABELS: Record<ReviewDisposition, string> = {
+  candidate: 'Candidate',
+  not_needed: 'Not needed',
+  needs_review: 'Needs review',
+};
+
+/** A review filter from a URL parameter; anything else means "all". */
+export function parseReview(
+  value: string | undefined,
+): ReviewDisposition | undefined {
+  return value === 'candidate' ||
+    value === 'not_needed' ||
+    value === 'needs_review'
+    ? value
+    : undefined;
+}
 
 export interface Crumb {
   label: string;
@@ -94,6 +113,7 @@ export interface InventoryView {
   /** List every descendant instead of only direct children. */
   recursive?: boolean;
   type?: InventoryTypeFilter;
+  review?: ReviewDisposition;
   /** Keyset cursor from the previous page. */
   after?: string;
 }
@@ -108,6 +128,7 @@ export function inventoryUrl(view: InventoryView): string {
   if (view.path) params.set('path', view.path);
   if (view.recursive) params.set('recursive', '1');
   if (view.type) params.set('type', view.type);
+  if (view.review) params.set('review', view.review);
   if (view.after) params.set('after', view.after);
 
   const query = params.toString();

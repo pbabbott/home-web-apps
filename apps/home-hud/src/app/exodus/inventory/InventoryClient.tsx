@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Badge,
+  Button,
   OutlinedButton,
   Panel,
   ScrollableTable,
@@ -18,11 +20,23 @@ import {
 import {
   formatBytes,
   inventoryUrl,
+  parseReview,
   pathCrumbs,
+  REVIEW_LABELS,
   type InventoryTypeFilter,
 } from '../lib/inventory-display';
 import { formatDateTime } from '../lib/job-display';
-import type { InventoryItem } from '../sources/lib/homelab-api';
+import { reviewInventoryItems } from '../sources/lib/actions';
+import type {
+  InventoryItem,
+  ReviewDisposition,
+} from '../sources/lib/homelab-api';
+
+const REVIEW_BADGE_COLORS = {
+  candidate: 'success',
+  not_needed: 'dark',
+  needs_review: 'warning',
+} as const;
 
 interface InventoryClientProps {
   /** Null if the sources could not be loaded. */
@@ -34,6 +48,7 @@ interface InventoryClientProps {
   currentPath: string | null;
   recursive: boolean;
   type: InventoryTypeFilter | undefined;
+  review: ReviewDisposition | undefined;
   isFirstPage: boolean;
   /** Null if the inventory could not be loaded. */
   items: InventoryItem[] | null;
@@ -50,18 +65,53 @@ export function InventoryClient({
   currentPath,
   recursive,
   type,
+  review,
   isFirstPage,
   items,
   nextCursor,
 }: InventoryClientProps) {
   const router = useRouter();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const view = {
     source: sourceId ?? undefined,
     path: currentPath ?? undefined,
     recursive,
     type,
+    review,
   };
+
+  // Only items on this page can be selected; a page change drops the rest.
+  const pageIds = new Set(items?.map((item) => item.id));
+  const selectedIds = [...selected].filter((id) => pageIds.has(id));
+  const allSelected =
+    items !== null && items.length > 0 && selectedIds.length === items.length;
+
+  function toggle(id: string) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
+
+  async function applyReview(disposition: ReviewDisposition) {
+    setReviewing(true);
+    setReviewError(null);
+
+    const result = await reviewInventoryItems(selectedIds, disposition);
+    setReviewing(false);
+
+    if (!result.ok) {
+      setReviewError(result.error);
+      return;
+    }
+
+    setSelected(new Set());
+    router.refresh();
+  }
   const crumbs =
     rootPath && currentPath ? pathCrumbs(rootPath, currentPath) : [];
 
@@ -216,6 +266,31 @@ export function InventoryClient({
                   <option value="directory">Folders</option>
                 </select>
               </label>
+
+              <label className="flex items-center gap-2">
+                <Typography variant="small" className="text-neutral-400">
+                  Review
+                </Typography>
+                <select
+                  value={review ?? ''}
+                  onChange={(e) =>
+                    router.push(
+                      inventoryUrl({
+                        ...view,
+                        review: parseReview(e.target.value),
+                      }),
+                    )
+                  }
+                  className={selectClass}
+                >
+                  <option value="">All</option>
+                  {Object.entries(REVIEW_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
 
@@ -229,54 +304,121 @@ export function InventoryClient({
               {isFirstPage ? 'Nothing recorded here yet.' : 'No more items.'}
             </Typography>
           ) : (
-            <ScrollableTable className="mb-0">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <Th>{recursive ? 'Path' : 'Name'}</Th>
-                    <Th>Type</Th>
-                    <Th>Size</Th>
-                    <Th>Modified (UTC)</Th>
-                    <Th>Last seen (UTC)</Th>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <Td className="break-all">
-                        {item.itemType === 'directory' ? (
-                          <Link
-                            href={inventoryUrl({
-                              ...view,
-                              path: item.path,
-                            })}
-                            className="text-primary-400 hover:underline"
-                          >
-                            {recursive ? item.path : item.name}
-                          </Link>
-                        ) : recursive ? (
-                          item.path
-                        ) : (
-                          item.name
-                        )}
-                      </Td>
-                      <Td>
-                        <Badge
-                          color={
-                            item.itemType === 'directory' ? 'secondary' : 'dark'
+            <>
+              {selectedIds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Typography variant="small" className="text-neutral-400">
+                    {selectedIds.length} selected
+                  </Typography>
+                  <Button
+                    size="small"
+                    disabled={reviewing}
+                    onClick={() => applyReview('candidate')}
+                  >
+                    Mark candidate
+                  </Button>
+                  <OutlinedButton
+                    size="small"
+                    disabled={reviewing}
+                    onClick={() => applyReview('not_needed')}
+                  >
+                    Not needed
+                  </OutlinedButton>
+                  <OutlinedButton
+                    size="small"
+                    disabled={reviewing}
+                    onClick={() => applyReview('needs_review')}
+                  >
+                    Needs review
+                  </OutlinedButton>
+                </div>
+              )}
+              {reviewError && (
+                <Typography variant="body2" className="text-error-400">
+                  {reviewError}
+                </Typography>
+              )}
+              <ScrollableTable className="mb-0">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <Th>
+                        <input
+                          type="checkbox"
+                          aria-label="Select all on this page"
+                          checked={allSelected}
+                          onChange={() =>
+                            setSelected(
+                              allSelected
+                                ? new Set()
+                                : new Set(items.map((item) => item.id)),
+                            )
                           }
-                        >
-                          {item.itemType === 'directory' ? 'folder' : 'file'}
-                        </Badge>
-                      </Td>
-                      <Td>{formatBytes(item.sizeBytes)}</Td>
-                      <Td>{formatDateTime(item.modifiedAt)}</Td>
-                      <Td>{formatDateTime(item.lastSeenAt)}</Td>
+                        />
+                      </Th>
+                      <Th>{recursive ? 'Path' : 'Name'}</Th>
+                      <Th>Review</Th>
+                      <Th>Type</Th>
+                      <Th>Size</Th>
+                      <Th>Modified (UTC)</Th>
+                      <Th>Last seen (UTC)</Th>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollableTable>
+                  </TableHead>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <Td>
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${item.name}`}
+                            checked={selected.has(item.id)}
+                            onChange={() => toggle(item.id)}
+                          />
+                        </Td>
+                        <Td className="break-all">
+                          {item.itemType === 'directory' ? (
+                            <Link
+                              href={inventoryUrl({
+                                ...view,
+                                path: item.path,
+                              })}
+                              className="text-primary-400 hover:underline"
+                            >
+                              {recursive ? item.path : item.name}
+                            </Link>
+                          ) : recursive ? (
+                            item.path
+                          ) : (
+                            item.name
+                          )}
+                        </Td>
+                        <Td>
+                          <Badge
+                            color={REVIEW_BADGE_COLORS[item.reviewDisposition]}
+                          >
+                            {REVIEW_LABELS[item.reviewDisposition]}
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <Badge
+                            color={
+                              item.itemType === 'directory'
+                                ? 'secondary'
+                                : 'dark'
+                            }
+                          >
+                            {item.itemType === 'directory' ? 'folder' : 'file'}
+                          </Badge>
+                        </Td>
+                        <Td>{formatBytes(item.sizeBytes)}</Td>
+                        <Td>{formatDateTime(item.modifiedAt)}</Td>
+                        <Td>{formatDateTime(item.lastSeenAt)}</Td>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollableTable>
+            </>
           )}
 
           {items !== null && (!isFirstPage || nextCursor) && (

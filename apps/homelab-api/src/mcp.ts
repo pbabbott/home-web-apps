@@ -3,6 +3,10 @@ import {
   getDiscoveryJobOperation,
   listDiscoveryJobsOperation,
 } from './controllers/discovery/discovery-jobs';
+import {
+  createExclusionRuleOperation,
+  listExclusionRulesOperation,
+} from './controllers/discovery/exclusion-rules';
 import { recordInventoryItemsOperation } from './controllers/discovery/inventory-items';
 import {
   claimQueueItemOperation,
@@ -16,6 +20,8 @@ import * as discoveryService from './services/discovery';
 import {
   claimQueueItemBodySchema,
   completeQueueItemBodySchema,
+  createExclusionRuleBodySchema,
+  exclusionRuleListQuerySchema,
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
@@ -51,6 +57,10 @@ const run = async (label: string, fn: () => Promise<unknown>) => {
   }
 };
 
+const workerIdSchema = claimQueueItemBodySchema.shape.workerId
+  .optional()
+  .describe('Your worker id, recorded in the audit log.');
+
 const jobId = jobIdParamsSchema.shape.id.describe('Discovery job id.');
 const queueItemId = queueItemIdParamsSchema.shape.id.describe(
   'Queue item (directory) id, from claim_directory.',
@@ -58,8 +68,10 @@ const queueItemId = queueItemIdParamsSchema.shape.id.describe(
 
 /**
  * Builds a fresh MCP server exposing the agent-facing subset of the REST
- * routes in server.ts: the discovery work loop only. Source/job creation and
- * job lifecycle (complete, cancel, fail) stay human-only REST routes. A new
+ * routes in server.ts: the discovery work loop plus listing and creating
+ * source-scoped exclusion rules. Source/job creation, job lifecycle (complete,
+ * cancel, fail), global rules, editing or deleting rules, review and the
+ * audit log stay human-only REST routes. A new
  * instance is created per-request (see server.ts) since the Streamable HTTP
  * transport is mounted in stateless mode.
  */
@@ -185,6 +197,46 @@ export const createMcpServer = (): McpServer => {
     ({ id }) =>
       run(retryQueueItemOperation.mcp.name, () =>
         discoveryService.retryItem(id),
+      ),
+  );
+
+  server.registerTool(
+    listExclusionRulesOperation.mcp.name,
+    {
+      description: listExclusionRulesOperation.mcp.description,
+      inputSchema: {
+        ...exclusionRuleListQuerySchema.shape,
+        sourceId: exclusionRuleListQuerySchema.shape.sourceId
+          .unwrap()
+          .describe('Source whose rules (plus the global ones) to list.'),
+      },
+    },
+    (filters) =>
+      run(listExclusionRulesOperation.mcp.name, () =>
+        discoveryService.listExclusionRules(filters),
+      ),
+  );
+
+  server.registerTool(
+    createExclusionRuleOperation.mcp.name,
+    {
+      description: createExclusionRuleOperation.mcp.description,
+      inputSchema: {
+        ...createExclusionRuleBodySchema.shape,
+        // The agent may only create source-scoped rules; a global rule
+        // affects every machine and is a human decision.
+        sourceId: createExclusionRuleBodySchema.shape.sourceId
+          .unwrap()
+          .describe('Source the rule applies to.'),
+        workerId: workerIdSchema,
+      },
+    },
+    ({ workerId, ...rule }) =>
+      run(createExclusionRuleOperation.mcp.name, () =>
+        discoveryService.createExclusionRule(rule, {
+          type: 'openclaw',
+          id: workerId ?? null,
+        }),
       ),
   );
 

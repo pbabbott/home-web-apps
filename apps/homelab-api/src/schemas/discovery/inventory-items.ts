@@ -38,6 +38,9 @@ export const inventoryItemListQuerySchema = z.object({
     description: 'Only items last seen by this job.',
   }),
   itemType: z.enum(['file', 'directory']).optional(),
+  reviewDisposition: z
+    .enum(['candidate', 'not_needed', 'needs_review'])
+    .optional(),
   parentPath: windowsPathSchema.optional().meta({
     description: 'Only direct children of this directory.',
   }),
@@ -52,4 +55,34 @@ export const inventoryItemListQuerySchema = z.object({
 });
 export type InventoryItemListQuery = z.infer<
   typeof inventoryItemListQuerySchema
+>;
+
+export const MAX_REVIEW_ITEMS_PER_REQUEST = 200;
+
+export const inventoryItemIdParamsSchema = z.object({ id: z.uuid() });
+export type InventoryItemIdParams = z.infer<typeof inventoryItemIdParamsSchema>;
+
+const reviewDispositionSchema = z.enum([
+  'candidate',
+  'not_needed',
+  'needs_review',
+]);
+
+export const reviewInventoryItemBodySchema = z.object({
+  disposition: reviewDispositionSchema,
+  note: z.string().trim().min(1).max(1000).nullable().optional().meta({
+    description:
+      'Replaces the note; null clears it. When omitted the note is kept if the disposition is unchanged and cleared if it changes.',
+  }),
+});
+export type ReviewInventoryItemBody = z.infer<
+  typeof reviewInventoryItemBodySchema
+>;
+
+export const reviewInventoryItemsBodySchema =
+  reviewInventoryItemBodySchema.extend({
+    ids: z.array(z.uuid()).min(1).max(MAX_REVIEW_ITEMS_PER_REQUEST),
+  });
+export type ReviewInventoryItemsBody = z.infer<
+  typeof reviewInventoryItemsBodySchema
 >;

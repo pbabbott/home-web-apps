@@ -2,6 +2,8 @@ import { HOMELAB_API_URL } from './config';
 
 export type InventoryItemType = 'file' | 'directory';
 
+export type ReviewDisposition = 'candidate' | 'not_needed' | 'needs_review';
+
 export interface InventoryItem {
   id: string;
   itemType: InventoryItemType;
@@ -15,9 +17,15 @@ export interface InventoryItem {
   modifiedAt: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
+  /** The human's decision; separate from the filesystem facts above. */
+  reviewDisposition: ReviewDisposition;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewNote: string | null;
 }
 
 export interface InventoryQuery {
+  reviewDisposition?: ReviewDisposition;
   /** Only direct children of this directory. */
   parentPath?: string;
   /** Items at or beneath this path. */

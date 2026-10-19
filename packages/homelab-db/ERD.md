@@ -8,6 +8,7 @@ erDiagram
     sources ||--o{ discovery_jobs : "source_id (CASCADE)"
     discovery_jobs ||--o{ discovery_queue_items : "job_id (CASCADE)"
     sources ||--o{ inventory_items : "source_id (CASCADE)"
+    sources |o--o{ exclusion_rules : "source_id (CASCADE)"
     discovery_jobs |o--o{ inventory_items : "first_job_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "last_job_id (SET NULL)"
 
@@ -77,10 +78,39 @@ erDiagram
         text extension "nullable, files only"
         bigint size_bytes "nullable"
         timestamptz modified_at "nullable"
+        review_disposition review_disposition "default needs_review"
+        timestamptz reviewed_at "nullable"
+        text reviewed_by "nullable"
+        text review_note "nullable"
         timestamptz first_seen_at
         timestamptz last_seen_at
         timestamptz created_at
         timestamptz updated_at
+    }
+
+    exclusion_rules {
+        uuid id PK
+        uuid source_id FK "nullable, null = global; UK with normalized_path (NULLS NOT DISTINCT)"
+        text path
+        text normalized_path
+        exclusion_rule_scope scope "selective_only | exclude_subtree"
+        text reason "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    audit_events {
+        uuid id PK
+        uuid source_id "no FK"
+        uuid job_id "no FK"
+        uuid queue_item_id "no FK"
+        uuid inventory_item_id "no FK"
+        uuid exclusion_rule_id "no FK"
+        text event_type
+        audit_actor_type actor_type "human | openclaw | system"
+        text actor_id "nullable"
+        jsonb details "nullable"
+        timestamptz created_at
     }
 ```
 
@@ -89,6 +119,7 @@ erDiagram
 - **Job vs. queue item vs. inventory item.** A job is one run over a source and owns the lifecycle. A queue item is one directory to explore _within_ that job, so it reaches the source only through the job. An inventory item is keyed by source and outlives any single job.
 - **Uniqueness.** `discovery_queue_items` is unique on `(job_id, normalized_path)`. `inventory_items` is unique on `(source_id, normalized_path)`. `discovery_jobs` has a partial unique index on `source_id` where status is `pending` or `running`, so a source has at most one active job.
 - **State checks (migration `0007`).** `discovery_queue_items`: `0 <= attempt_count <= max_attempts`, and `in_progress` requires `claimed_by`, `claim_token` and `lease_expires_at`. `inventory_items`: `size_bytes >= 0`.
+- **Review and audit (migration `0009`).** Review columns on `inventory_items` are never in the rediscovery upsert. `audit_events` ids have no foreign keys on purpose: the log must outlive deleted rules, items and sources. `exclusion_rules` is unique per owner and path, and `NULLS NOT DISTINCT` makes that cover global rules.
 - **Job root.** Creating a job also upserts its root as an `inventory_items` directory, since no worker records the directory it starts from.
 - **Normalized paths** are lowercased, so Windows paths compare case-insensitively.
 - **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory. Deleting a host that a source references is blocked (`RESTRICT`).

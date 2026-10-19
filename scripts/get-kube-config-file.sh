@@ -19,7 +19,7 @@ TMP_FILES=()
 CONTROLLERS=(
   # "192.168.4.193:prod-gen1"
   "192.168.6.24:prod-gen2"
-  "192.168.6.31:nonprod-gen2"
+  # "192.168.6.31:nonprod-gen2"
 )
 
 die() { echo "error: $*" >&2; exit 1; }

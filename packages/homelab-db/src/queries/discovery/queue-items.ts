@@ -6,7 +6,8 @@ import {
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
 } from '../../schema/discovery';
-import { DiscoveryError } from './errors';
+import { skipExcludedQueueItems } from '../exclusion-rules';
+import { DiscoveryError } from '../shared';
 import {
   ACTIVE_JOB_STATUSES,
   activeClaim,
@@ -20,7 +21,7 @@ import {
   type QueueCounts,
   type QueuePath,
 } from './queue-helpers';
-import type { Tx } from './tx';
+import type { Tx } from '../shared';
 
 // -- queue items ------------------------------------------------------------
 
@@ -164,6 +165,10 @@ export const claimNextQueueItem = async (
     }
 
     await expireLeases(tx, job.id);
+    // Enforcement point for exclusion rules: anything queued before a rule
+    // existed (or enqueued under one) is skipped here, under the job lock,
+    // before it can be handed out.
+    await skipExcludedQueueItems(tx, { jobId: job.id, sourceId: job.sourceId });
 
     const t = discoveryQueueItems;
     const [next] = await tx
