@@ -131,6 +131,7 @@ export {
   skipQueueItem,
   retryQueueItem,
   retryDelaySeconds,
+  listKnownSkips,
 } from './queries/discovery';
 export type {
   CreateSourceInput,
@@ -143,6 +144,8 @@ export type {
   EnqueueQueueItemsInput,
   ClaimQueueItemInput,
   ClaimQueueItemResult,
+  KnownSkip,
+  ListKnownSkipsOptions,
   ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,

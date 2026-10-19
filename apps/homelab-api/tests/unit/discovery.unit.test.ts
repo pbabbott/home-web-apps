@@ -22,6 +22,7 @@ jest.mock('../../src/services/discovery', () => {
     listAllJobs: jest.fn(),
     heartbeat: jest.fn(),
     completeItem: jest.fn(),
+    listSourceKnownSkips: jest.fn(),
     failItem: jest.fn(),
     skipItem: jest.fn(),
     retryItem: jest.fn(),
@@ -431,6 +432,38 @@ describe('discovery routes', () => {
 
       await supertest(createServer())
         .get(`/discovery-jobs/${ID}/queue-items`)
+        .expect(404);
+    });
+  });
+
+  describe('GET /sources/:id/known-skips', () => {
+    it('passes the path prefix and defaults the limit', async () => {
+      mocked.listSourceKnownSkips.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips`)
+        .query({ pathPrefix: 'C:\\Users\\You' })
+        .expect(200);
+
+      expect(mocked.listSourceKnownSkips).toHaveBeenCalledWith(ID, {
+        pathPrefix: 'C:\\Users\\You',
+        limit: 200,
+      });
+    });
+
+    it('rejects a bad path or limit, and maps an unknown source to 404', async () => {
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips?pathPrefix=relative`)
+        .expect(400);
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips?limit=1001`)
+        .expect(400);
+
+      mocked.listSourceKnownSkips.mockRejectedValue(
+        new service.DiscoveryError('not_found', 'source not found'),
+      );
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips`)
         .expect(404);
     });
   });

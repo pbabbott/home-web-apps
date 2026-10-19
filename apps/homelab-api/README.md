@@ -84,6 +84,7 @@ The agent's work loop, candidate proposals and exclusion rules are also exposed 
 | `claim_directory`           | `POST /discovery-jobs/:id/queue-items/claim` |
 | `heartbeat_directory`       | `POST /queue-items/:id/heartbeat`            |
 | `propose_review_candidates` | `POST /queue-items/:id/review-candidates`    |
+| `list_known_skips`          | `GET /sources/:id/known-skips`               |
 | `list_review_candidates`    | `GET /sources/:id/review-candidates`         |
 | `complete_directory`        | `POST /queue-items/:id/complete`             |
 | `fail_directory`            | `POST /queue-items/:id/fail`                 |
@@ -101,6 +102,7 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 - **Finishing:** a job completes once nothing is `queued` or `in_progress` (expired leases are reclaimed first, and an item still in retry backoff counts as queued). Permanently `failed` items do **not** block completion — the job finishes with failures, visible as `queueCounts.failed`.
 - **The queue is per job.** A new job explores from its root again; what earlier jobs found is kept in `review_candidates`, which are deduplicated per source and updated rather than duplicated on rediscovery.
 - **Candidates:** a proposal's path must be the claimed directory or inside it. Guardrails (400): `back_up`/`skip` need `medium` or `high` confidence, and a git repository is only skippable with known-clean local state. Paths under an exclusion rule are 409. List with `GET /sources/:id/review-candidates` (`jobId`, `recommendation`, `decision`, `pathPrefix`, keyset `after`/`limit`). Confidence is `high` = direct evidence settles it, `medium` = strong signals with minor unknowns, `low` = a guess (must be `needs_review`).
+- **Known skips:** `GET /sources/:id/known-skips` lists paths earlier jobs chose not to explore (from their stored `skipped` lists). A per-run judgment the agent may revisit, not an exclusion rule.
 - **Exclusions at enqueue:** follow-ups under an `exclude_subtree` rule are `skipped` as soon as they are queued, and each claim rechecks.
 
 ## Seeding hosts from a remote environment

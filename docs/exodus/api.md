@@ -9,6 +9,7 @@
 | `POST` / `GET /sources`                                      | Register / list sources                                                                           |
 | `POST /sources/:id/discovery-jobs`                           | Start a job; queues `rootPath` as its first item                                                  |
 | `GET /sources/:id/discovery-jobs`                            | A source's jobs, newest first                                                                     |
+| `GET /sources/:id/known-skips`                               | Paths earlier jobs chose not to explore, newest reason per path; filter `pathPrefix`, `limit`     |
 | `GET /sources/:id/queue-items`                               | Queue items; filter with `?status=` and `?jobId=`                                                 |
 | `POST /queue-items/:id/review-candidates`                    | Agent proposes candidates (≤10) for the claimed directory; upsert, never touches decisions        |
 | `GET /sources/:id/review-candidates`                         | Candidates; filter `jobId`, `recommendation`, `decision`, `pathPrefix`, page with `after`/`limit` |
@@ -36,6 +37,7 @@ The agent's work loop, candidate proposals and exclusion rules are also exposed 
 | `claim_directory`           | `POST /discovery-jobs/:id/queue-items/claim` |
 | `heartbeat_directory`       | `POST /queue-items/:id/heartbeat`            |
 | `propose_review_candidates` | `POST /queue-items/:id/review-candidates`    |
+| `list_known_skips`          | `GET /sources/:id/known-skips`               |
 | `list_review_candidates`    | `GET /sources/:id/review-candidates`         |
 | `complete_directory`        | `POST /queue-items/:id/complete`             |
 | `fail_directory`            | `POST /queue-items/:id/fail`                 |

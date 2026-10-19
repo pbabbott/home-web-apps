@@ -104,3 +104,12 @@ export const jobQueueItemListQuerySchema = z.object({
   status: queueItemListQuerySchema.shape.status,
 });
 export type JobQueueItemListQuery = z.infer<typeof jobQueueItemListQuerySchema>;
+
+export const knownSkipListQuerySchema = z.object({
+  pathPrefix: windowsPathSchema.optional().meta({
+    description:
+      'Only skips at or beneath this path, e.g. the job root, so unrelated parts of the source are left out.',
+  }),
+  limit: z.coerce.number().int().min(1).max(1000).default(200),
+});
+export type KnownSkipListQuery = z.infer<typeof knownSkipListQuerySchema>;

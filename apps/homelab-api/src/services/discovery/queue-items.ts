@@ -7,6 +7,7 @@ import {
   getQueueItemById,
   getSourceById,
   heartbeatQueueItem,
+  listKnownSkips as listKnownSkipRows,
   listQueueItems as listQueueItemRows,
   retryQueueItem,
   skipQueueItem,
@@ -14,6 +15,7 @@ import {
   type DiscoveryJob,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
+  type KnownSkip,
   type QueuePath,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
@@ -145,4 +147,25 @@ export async function listJobQueueItems(
   await requireJob(jobId);
 
   return listQueueItemRows(db, { jobId, ...filters });
+}
+
+/**
+ * Paths earlier jobs of the source chose not to explore, newest reason per
+ * path. A per-run judgment the agent may revisit, not an exclusion rule.
+ */
+export async function listSourceKnownSkips(
+  sourceId: string,
+  filters: { pathPrefix?: string; limit?: number },
+): Promise<KnownSkip[]> {
+  if (!(await getSourceById(db, sourceId))) {
+    throw new DiscoveryError('not_found', 'source not found');
+  }
+
+  return listKnownSkipRows(db, {
+    sourceId,
+    normalizedPathPrefix: filters.pathPrefix
+      ? normalizeWindowsPath(filters.pathPrefix).normalizedPath
+      : undefined,
+    limit: filters.limit,
+  });
 }

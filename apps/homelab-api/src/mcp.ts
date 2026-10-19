@@ -17,6 +17,7 @@ import {
   completeQueueItemOperation,
   failQueueItemOperation,
   heartbeatQueueItemOperation,
+  listKnownSkipsOperation,
   retryQueueItemOperation,
   skipQueueItemOperation,
 } from './controllers/discovery/queue-items';
@@ -30,6 +31,7 @@ import {
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
   jobListQuerySchema,
+  knownSkipListQuerySchema,
   proposeReviewCandidatesBodySchema,
   queueItemIdParamsSchema,
   reviewCandidateListQuerySchema,
@@ -159,6 +161,21 @@ export const createMcpServer = (): McpServer => {
           created,
           changed,
         })),
+      ),
+  );
+
+  server.registerTool(
+    listKnownSkipsOperation.mcp.name,
+    {
+      description: listKnownSkipsOperation.mcp.description,
+      inputSchema: {
+        sourceId: sourceIdParamsSchema.shape.id.describe('Source id.'),
+        ...knownSkipListQuerySchema.shape,
+      },
+    },
+    ({ sourceId, ...filters }) =>
+      run(listKnownSkipsOperation.mcp.name, () =>
+        discoveryService.listSourceKnownSkips(sourceId, filters),
       ),
   );
 

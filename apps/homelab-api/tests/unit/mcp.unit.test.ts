@@ -21,6 +21,7 @@ jest.mock('../../src/services/discovery', () => {
     createExclusionRule: jest.fn(),
     proposeCandidates: jest.fn(),
     listSourceReviewCandidates: jest.fn(),
+    listSourceKnownSkips: jest.fn(),
   };
 });
 
@@ -65,6 +66,7 @@ describe('MCP endpoint (/mcp)', () => {
       'heartbeat_directory',
       'list_discovery_jobs',
       'list_exclusion_rules',
+      'list_known_skips',
       'list_review_candidates',
       'propose_review_candidates',
       'retry_directory',
@@ -262,6 +264,24 @@ describe('MCP endpoint (/mcp)', () => {
     expect(
       tools.find((t) => t.name === 'propose_review_candidates')?.description,
     ).toMatch(/creates no queue items/);
+  });
+
+  it('list_known_skips passes the source and filters through', async () => {
+    (discoveryService.listSourceKnownSkips as jest.Mock).mockResolvedValue([
+      { path: 'C:\\Windows', reason: 'operating system' },
+    ]);
+
+    const { isError, body } = await call('list_known_skips', {
+      sourceId: ID,
+      pathPrefix: 'C:\\',
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual([{ path: 'C:\\Windows', reason: 'operating system' }]);
+    expect(discoveryService.listSourceKnownSkips).toHaveBeenCalledWith(ID, {
+      pathPrefix: 'C:\\',
+      limit: 200,
+    });
   });
 
   it('serves the agent playbook as server instructions', () => {

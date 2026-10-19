@@ -13,6 +13,7 @@ import {
   failQueueItemOperation,
   heartbeatQueueItemOperation,
   listJobQueueItemsOperation,
+  listKnownSkipsOperation,
   listSourceQueueItemsOperation,
   retryQueueItemOperation,
   skipQueueItemOperation,
@@ -25,6 +26,7 @@ import {
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
   jobQueueItemListQuerySchema,
+  knownSkipListQuerySchema,
   queueItemIdParamsSchema,
   queueItemListQuerySchema,
   skipQueueItemBodySchema,
@@ -33,7 +35,34 @@ import {
 import { discoveryQueueItemSelectSchema } from '@abbottland/homelab-db';
 import { z } from 'zod';
 
+const knownSkipSchema = z.object({
+  path: z.string(),
+  reason: z.string(),
+  skippedAt: z.string().meta({ format: 'date-time' }),
+  jobId: z.uuid().meta({ description: 'The job that recorded the skip.' }),
+});
+
 export const queueItemsPaths = {
+  '/sources/{id}/known-skips': {
+    get: {
+      summary: listKnownSkipsOperation.summary,
+      description: listKnownSkipsOperation.description,
+      requestParams: {
+        path: sourceIdParamsSchema,
+        query: knownSkipListQuerySchema,
+      },
+      responses: {
+        '200': {
+          description: 'The skipped paths, newest reason per path',
+          content: {
+            'application/json': { schema: z.array(knownSkipSchema) },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('source'),
+      },
+    },
+  },
   '/sources/{id}/queue-items': {
     get: {
       summary: listSourceQueueItemsOperation.summary,

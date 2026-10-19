@@ -9,6 +9,7 @@ import type {
   HeartbeatQueueItemBody,
   JobIdParams,
   JobQueueItemListQuery,
+  KnownSkipListQuery,
   QueueItemIdParams,
   QueueItemListQuery,
   SkipQueueItemBody,
@@ -219,5 +220,29 @@ export const retryQueueItem = handle(
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
     res.status(200).json(await discoveryService.retryItem(id));
+  },
+);
+
+// Does: list paths earlier jobs of a source chose not to explore.
+// Who: agent (list_known_skips) and human (REST).
+export const listKnownSkipsOperation = {
+  summary: 'List paths earlier jobs chose not to explore',
+  description:
+    'Derived from the `skipped` lists stored on the source’s queue items, newest reason per path (case-insensitive), ordered by path. These are per-run judgments, not exclusion rules: a later run may revisit one, and nothing here blocks exploring or proposing a path. Filter with `pathPrefix` (default limit 200, max 1000).',
+  mcp: {
+    name: 'list_known_skips',
+    description:
+      'List paths that earlier discovery runs of this source deliberately did not explore, each with the reason and when. Call it at the start of a run (pass pathPrefix = the job root) and do not re-inspect those paths unless you have a specific reason to. These are your own past judgments, not rules: they never block you, and only a human policy belongs in create_exclusion_rule.',
+  },
+} satisfies Operation;
+
+export const listKnownSkips = handle(
+  'GET /sources/:id/known-skips',
+  async (req, res) => {
+    const { id } = req.params as SourceIdParams;
+    const filters = req.query as unknown as KnownSkipListQuery;
+    res
+      .status(200)
+      .json(await discoveryService.listSourceKnownSkips(id, filters));
   },
 );

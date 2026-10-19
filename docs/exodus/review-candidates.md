@@ -130,6 +130,12 @@ Enforcement: proposing a candidate under an `exclude_subtree` rule, or exactly o
 
 Each is written in the same transaction as its change. Listing a directory, skipping a path, or an unchanged re-proposal writes nothing. Filter with `GET /audit-events?reviewCandidateId=`.
 
+## Remembering skips across jobs
+
+`complete_directory`'s `skipped` is stored on that queue item, which belongs to one job. So a later job could re-inspect `C:\Windows`. `GET /sources/:id/known-skips` (MCP `list_known_skips`) gathers the `skipped` entries from all of the source's earlier jobs: one row per path (case-insensitive), the newest reason and spelling, which job recorded it and when, ordered by path, with `pathPrefix` and `limit` (default 200, max 1000). The agent playbook tells it to call this, with the job root as `pathPrefix`, at the start of a run.
+
+It is derived from the stored results, not a table or a rule: a skip stays a per-run judgment. Nothing it lists blocks queueing or proposing a path, the agent may revisit one if its reason looks wrong, and only a human policy belongs in an exclusion rule. If a skip should be permanent, create a source-scoped rule instead.
+
 ## Prerequisite: filesystem access
 
 This API grants no filesystem access. The agent needs its own read-only access to the source (a separately configured mechanism) to list directories and run `git status`. Nothing here assumes it exists. The agent should prefer metadata, names and git signals over reading file contents, never follow symlinks, junctions or other reparse points, and stay inside the job's root.

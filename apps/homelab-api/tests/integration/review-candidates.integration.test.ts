@@ -907,3 +907,110 @@ describe('discovery writes only queue items and candidates', () => {
       .expect(404);
   });
 });
+
+describe('known skips across jobs', () => {
+  const skipsOf = async (
+    sourceId: string,
+    query: Record<string, string> = {},
+  ) =>
+    (
+      await getRequest()
+        .get(`/sources/${sourceId}/known-skips`)
+        .query(query)
+        .expect(200)
+    ).body as {
+      path: string;
+      reason: string;
+      skippedAt: string;
+      jobId: string;
+    }[];
+
+  /** Runs and finishes a job whose root directory records `skipped`. */
+  const runSkipping = async (
+    sourceId: string,
+    skipped: { path: string; reason: string }[],
+  ) => {
+    const { job, item } = await startAndClaim(sourceId);
+    await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({ claimToken: item.claimToken, skipped })
+      .expect(200);
+    await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+
+    return job;
+  };
+
+  it('shows a later job the paths an earlier job skipped, newest reason per path', async () => {
+    const sourceId = await createSource();
+    const first = await runSkipping(sourceId, [
+      { path: `${ROOT}\\cache`, reason: 'generated' },
+      { path: `${ROOT}\\Windows`, reason: 'operating system' },
+    ]);
+    expect((await skipsOf(sourceId)).map((s) => s.jobId)).toEqual([
+      first.id,
+      first.id,
+    ]);
+
+    // Same path spelled differently, with a newer reason; plus a new path.
+    const second = await runSkipping(sourceId, [
+      { path: 'c:/CODE/Cache/', reason: 'build output, regenerated daily' },
+      { path: `${ROOT}\\tmp`, reason: 'scratch' },
+    ]);
+
+    const skips = await skipsOf(sourceId);
+    expect(skips.map((s) => [s.path, s.reason, s.jobId])).toEqual([
+      // The newest spelling of the path wins, like other display paths.
+      ['C:\\CODE\\Cache', 'build output, regenerated daily', second.id],
+      ['C:\\code\\tmp', 'scratch', second.id],
+      ['C:\\code\\Windows', 'operating system', first.id],
+    ]);
+    expect(Date.parse(skips[0].skippedAt)).toBeGreaterThan(0);
+  });
+
+  it('filters by path prefix, limits, and stays within the source', async () => {
+    const sourceId = await createSource();
+    await runSkipping(sourceId, [
+      { path: `${ROOT}\\a\\one`, reason: 'x' },
+      { path: `${ROOT}\\a\\two`, reason: 'x' },
+      { path: `${ROOT}\\ab`, reason: 'x' },
+    ]);
+
+    expect(
+      (await skipsOf(sourceId, { pathPrefix: `${ROOT}\\a` })).map(
+        (s) => s.path,
+      ),
+    ).toEqual(['C:\\code\\a\\one', 'C:\\code\\a\\two']);
+    expect(await skipsOf(sourceId, { limit: '1' })).toHaveLength(1);
+    expect(await skipsOf(await createSource())).toEqual([]);
+    await getRequest()
+      .get('/sources/123e4567-e89b-12d3-a456-426614174000/known-skips')
+      .expect(404);
+  });
+
+  it('is a record of judgments, not a rule: it blocks neither queueing nor proposals', async () => {
+    const sourceId = await createSource();
+    await runSkipping(sourceId, [
+      { path: `${ROOT}\\cache`, reason: 'generated' },
+    ]);
+
+    expect(
+      (
+        await getRequest()
+          .get('/exclusion-rules')
+          .query({ sourceId })
+          .expect(200)
+      ).body,
+    ).toEqual([]);
+
+    const { item } = await startAndClaim(sourceId);
+    await propose(item, [proposal(`${ROOT}\\cache`)]).expect(200);
+    const done = await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        discoveredPaths: [`${ROOT}\\cache\\deep`],
+      })
+      .expect(200);
+    expect(done.body.children[0].status).toBe('queued');
+  });
+});
