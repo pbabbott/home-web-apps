@@ -8,6 +8,7 @@ export const auditEventsPaths = {
   '/audit-events': {
     get: {
       summary: listAuditEventsOperation.summary,
+      'x-home-hud': listAuditEventsOperation.hud,
       description: listAuditEventsOperation.description,
       requestParams: { query: auditEventListQuerySchema },
       responses: {

@@ -21,6 +21,7 @@ export const listExclusionRulesOperation = {
     description:
       'List the exclusion rules that apply to a source (its own plus the global ones). Check this before create_exclusion_rule: a path can have only one rule across a source and the global level. A directory under an `exclude_subtree` rule is skipped automatically when you next claim, so you never need to avoid it yourself.',
   },
+  hud: '/exodus/rules',
 } satisfies Operation;
 
 export const listExclusionRules = handle(
@@ -42,6 +43,7 @@ export const createExclusionRuleOperation = {
     description:
       'Stop exploring, or stop recommending, a path on a source, for example generated output such as a build or node_modules directory. Scope `exclude_subtree`: the path and everything beneath it is skipped from now on, including directories already queued (they are skipped when claimed). Scope `selective_only`: the directory itself is not a backup inventory item but you should still explore inside it. Always give a short reason; a human reviews it. Rules are per source (global rules are human-only) and one path has at most one rule, so a duplicate is rejected. This does not delete anything already recorded. You cannot edit or delete rules.',
   },
+  hud: '/exodus/rules',
 } satisfies Operation;
 
 export const createExclusionRule = handle(
@@ -55,7 +57,7 @@ export const createExclusionRule = handle(
 );
 
 // Does: change a rule's scope or reason. The path is fixed.
-// Who: human (home-hud). No MCP tool.
+// Who: human (no UI caller yet). No MCP tool.
 export const updateExclusionRuleOperation = {
   summary: 'Update an exclusion rule’s scope or reason',
   description:
@@ -79,6 +81,7 @@ export const deleteExclusionRuleOperation = {
   summary: 'Delete an exclusion rule',
   description:
     'Takes effect for future claims only; items already skipped stay skipped. Records an audit event holding a snapshot of the removed rule.',
+  hud: '/exodus/rules',
 } satisfies Operation;
 
 export const deleteExclusionRule = handle(

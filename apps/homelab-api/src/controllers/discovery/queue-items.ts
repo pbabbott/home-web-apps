@@ -22,6 +22,7 @@ export const listSourceQueueItemsOperation = {
   summary: 'List a source’s queue items',
   description:
     'Newest 500 at most, oldest first. Filter by status=failed to inspect permanent failures.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const listSourceQueueItems = handle(
@@ -208,6 +209,7 @@ export const retryQueueItemOperation = {
   summary: 'Retry a failed item',
   description:
     'Requeues a failed item for exactly one more attempt; attemptCount and lastError are kept. Only allowed while the item’s job is pending or running; a finished job’s failures are retried by starting a new job.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const retryQueueItem = handle(

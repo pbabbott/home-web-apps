@@ -46,6 +46,7 @@ export const queueItemsPaths = {
   '/sources/{id}/known-skips': {
     get: {
       summary: listKnownSkipsOperation.summary,
+      'x-mcp-tool': listKnownSkipsOperation.mcp.name,
       description: listKnownSkipsOperation.description,
       requestParams: {
         path: sourceIdParamsSchema,
@@ -66,6 +67,7 @@ export const queueItemsPaths = {
   '/sources/{id}/queue-items': {
     get: {
       summary: listSourceQueueItemsOperation.summary,
+      'x-home-hud': listSourceQueueItemsOperation.hud,
       description: listSourceQueueItemsOperation.description,
       requestParams: {
         path: sourceIdParamsSchema,
@@ -135,6 +137,7 @@ export const queueItemsPaths = {
   '/discovery-jobs/{id}/queue-items/claim': {
     post: {
       summary: claimQueueItemOperation.summary,
+      'x-mcp-tool': claimQueueItemOperation.mcp.name,
       description: claimQueueItemOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {
@@ -158,6 +161,7 @@ export const queueItemsPaths = {
   '/queue-items/{id}/heartbeat': {
     post: {
       summary: heartbeatQueueItemOperation.summary,
+      'x-mcp-tool': heartbeatQueueItemOperation.mcp.name,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -182,6 +186,7 @@ export const queueItemsPaths = {
   '/queue-items/{id}/complete': {
     post: {
       summary: completeQueueItemOperation.summary,
+      'x-mcp-tool': completeQueueItemOperation.mcp.name,
       description: completeQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
@@ -207,6 +212,7 @@ export const queueItemsPaths = {
   '/queue-items/{id}/fail': {
     post: {
       summary: failQueueItemOperation.summary,
+      'x-mcp-tool': failQueueItemOperation.mcp.name,
       description: failQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
@@ -232,6 +238,7 @@ export const queueItemsPaths = {
   '/queue-items/{id}/skip': {
     post: {
       summary: skipQueueItemOperation.summary,
+      'x-mcp-tool': skipQueueItemOperation.mcp.name,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
         content: {
@@ -256,6 +263,7 @@ export const queueItemsPaths = {
   '/queue-items/{id}/retry': {
     post: {
       summary: retryQueueItemOperation.summary,
+      'x-home-hud': retryQueueItemOperation.hud,
       description: retryQueueItemOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       responses: {

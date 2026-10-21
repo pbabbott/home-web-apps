@@ -9,7 +9,8 @@
     "ENABLE_ANALYTICS",
     "STORYBOOK",
     "VIDEO_API_URL",
-    "HOMELAB_API_URL"
+    "HOMELAB_API_URL",
+    "HOMELAB_API_PUBLIC_URL"
   ],
   "tasks": {
     "build": {

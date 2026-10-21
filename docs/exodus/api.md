@@ -26,6 +26,8 @@
 | `POST /discovery-jobs/:id/queue-items/claim`                 | Claim the next directory, or learn why there is none (`{ item: null, reason, retryAt }`)               |
 | `POST /queue-items/:id/{heartbeat,complete,fail,skip,retry}` | Work on a claimed item; `retry` is the human one                                                       |
 
+The OpenAPI spec is also served as JSON at `GET /openapi.json`. Operations carry `x-mcp-tool` (the MCP tool name, when one exists) and `x-home-hud` (the home-hud page that calls the route, when one does; set via `hud` on the controller `Operation`); `/exodus/architecture` uses it to show which routes the agent can also reach.
+
 ## MCP
 
 The agent's work loop, inventory item proposals and exclusion rules are also exposed as MCP tools at `POST /mcp` (stateless Streamable HTTP, same pattern as `gluetun-sync`; `GET`/`DELETE` return 405). The server sends the agent playbook as MCP `instructions` (`src/mcp-instructions.ts`): the three discovery actions, the confidence convention, the git guidance and the "inspect cheaply, never follow reparse points" rules. The tools call the service layer directly, reuse the REST zod schemas for input, and report `DiscoveryError`s as tool errors (`isError`) with the same details as the REST body.

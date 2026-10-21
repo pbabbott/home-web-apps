@@ -16,6 +16,7 @@ export const createDiscoveryJobOperation = {
   summary: 'Start a discovery job for a source',
   description:
     'Creates a pending job, queues rootPath as its first directory. A source can have only one pending/running job at a time. The job moves to running when its first item is claimed.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const createDiscoveryJob = handle(
@@ -35,6 +36,7 @@ export const listSourceJobsOperation = {
   summary: 'List a source’s discovery jobs, newest first',
   description:
     'At most 50. queueCounts is omitted here — fetch it per job via GET /discovery-jobs/{id}.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const listSourceJobs = handle(
@@ -57,6 +59,7 @@ export const listDiscoveryJobsOperation = {
     description:
       'List discovery jobs with their source. Use to find active (pending/running) jobs to resume.',
   },
+  hud: '/exodus/jobs',
 } satisfies Operation;
 
 export const listDiscoveryJobs = handle(
@@ -76,6 +79,7 @@ export const getDiscoveryJobOperation = {
     description:
       'Get one discovery job, including queueCounts, to check status and progress.',
   },
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const getDiscoveryJob = handle(
@@ -93,6 +97,7 @@ export const completeDiscoveryJobOperation = {
   summary: 'Mark a job completed',
   description:
     'Allowed once no item is queued or in progress (expired leases are reclaimed first; an item waiting out a retry backoff still counts as queued). Permanently failed items do not block completion — they are reported in queueCounts.failed. 409 returns the blocking queueCounts.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const completeDiscoveryJob = handle(
@@ -109,6 +114,7 @@ export const cancelDiscoveryJobOperation = {
   summary: 'Cancel a pending or running job',
   description:
     'In-progress items are released back to queued with no claim, so a worker still holding one is rejected (409) on its next call. Queued items stay on record as unexplored work. Terminal jobs reject all further item changes.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const cancelDiscoveryJob = handle(

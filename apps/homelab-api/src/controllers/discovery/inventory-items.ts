@@ -59,6 +59,7 @@ export const listInventoryItemsOperation = {
     description:
       'List the inventory items already recorded for a source (filter by recommendation, decision, jobId or pathPrefix). Check this before proposing, to see what earlier runs found and what a human has already decided.',
   },
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
 export const listSourceInventoryItems = handle(
@@ -94,6 +95,7 @@ export const decideInventoryItemOperation = {
   summary: 'Approve or reject an inventory item',
   description:
     'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). Approval is refused for paths under an exclusion rule. An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow and changes nothing else. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
 export const decideInventoryItem = handle(

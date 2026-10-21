@@ -12,6 +12,7 @@ import { createRouter, MCP_ROUTE } from './routes';
 
 export { MCP_ROUTE };
 export const DOCS_ROUTE = '/docs';
+export const OPENAPI_ROUTE = '/openapi.json';
 
 export const createServer = (): Express => {
   const app = express();
@@ -20,6 +21,9 @@ export const createServer = (): Express => {
   configureHealthRoute(app);
   configureMetricsRoute(app);
 
+  app.get(OPENAPI_ROUTE, (_req, res) => {
+    res.json(openApiSpec);
+  });
   app.use(DOCS_ROUTE, swaggerUi.serve, swaggerUi.setup(openApiSpec));
   app.use(createRouter());
 
@@ -36,6 +40,7 @@ export const startServer = () => {
   server.listen(port, () => {
     console.log(`homelab-api running on ${port}`);
     console.log(`📚 Swagger docs: http://localhost:${port}${DOCS_ROUTE}`);
+    console.log(`📄 OpenAPI spec: http://localhost:${port}${OPENAPI_ROUTE}`);
     console.log(`🔌 MCP endpoint: http://localhost:${port}${MCP_ROUTE}`);
   });
 };

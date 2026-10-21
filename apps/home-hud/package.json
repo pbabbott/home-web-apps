@@ -20,6 +20,7 @@
     "@abbottland/fui-components": "workspace:*",
     "@abbottland/fui-icons": "workspace:*",
     "@abbottland/next-middleware": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@react-three/drei": "catalog:",
     "@react-three/fiber": "catalog:",
     "@react-three/postprocessing": "catalog:",

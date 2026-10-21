@@ -23,6 +23,8 @@ export const exclusionRulesPaths = {
   '/exclusion-rules': {
     get: {
       summary: listExclusionRulesOperation.summary,
+      'x-home-hud': listExclusionRulesOperation.hud,
+      'x-mcp-tool': listExclusionRulesOperation.mcp.name,
       description: listExclusionRulesOperation.description,
       requestParams: { query: exclusionRuleListQuerySchema },
       responses: {
@@ -38,6 +40,8 @@ export const exclusionRulesPaths = {
     },
     post: {
       summary: createExclusionRuleOperation.summary,
+      'x-home-hud': createExclusionRuleOperation.hud,
+      'x-mcp-tool': createExclusionRuleOperation.mcp.name,
       description: createExclusionRuleOperation.description,
       requestParams: { header: actorHeaders },
       requestBody: {
@@ -86,6 +90,7 @@ export const exclusionRulesPaths = {
     },
     delete: {
       summary: deleteExclusionRuleOperation.summary,
+      'x-home-hud': deleteExclusionRuleOperation.hud,
       description: deleteExclusionRuleOperation.description,
       requestParams: {
         path: exclusionRuleIdParamsSchema,

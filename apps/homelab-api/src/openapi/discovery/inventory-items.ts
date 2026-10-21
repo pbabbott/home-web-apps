@@ -69,6 +69,7 @@ export const inventoryItemsPaths = {
   '/queue-items/{id}/inventory-items': {
     post: {
       summary: proposeInventoryItemsOperation.summary,
+      'x-mcp-tool': proposeInventoryItemsOperation.mcp.name,
       description: proposeInventoryItemsOperation.description,
       requestParams: { path: queueItemIdParamsSchema },
       requestBody: {
@@ -96,6 +97,8 @@ export const inventoryItemsPaths = {
   '/sources/{id}/inventory-items': {
     get: {
       summary: listInventoryItemsOperation.summary,
+      'x-home-hud': listInventoryItemsOperation.hud,
+      'x-mcp-tool': listInventoryItemsOperation.mcp.name,
       description: listInventoryItemsOperation.description,
       requestParams: {
         path: sourceIdParamsSchema,
@@ -133,6 +136,7 @@ export const inventoryItemsPaths = {
   '/inventory-items/{id}/decision': {
     patch: {
       summary: decideInventoryItemOperation.summary,
+      'x-home-hud': decideInventoryItemOperation.hud,
       description: decideInventoryItemOperation.description,
       requestParams: {
         path: inventoryItemIdParamsSchema,
