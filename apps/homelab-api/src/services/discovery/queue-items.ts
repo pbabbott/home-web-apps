@@ -86,6 +86,7 @@ export async function completeItem(
   outcome: {
     summary?: string;
     skipped?: { path: string; reason: string }[];
+    skippedGroups?: { pattern: string; count?: number; reason: string }[];
   } = {},
 ) {
   const queuePaths = discoveredPaths.map(toFollowUpPath);
@@ -114,7 +115,11 @@ export async function completeItem(
     }
   }
 
-  const hasResult = outcome.summary !== undefined || skipped.length > 0;
+  const skippedGroups = outcome.skippedGroups ?? [];
+  const hasResult =
+    outcome.summary !== undefined ||
+    skipped.length > 0 ||
+    skippedGroups.length > 0;
 
   return completeQueueItem(db, id, {
     claimToken,
@@ -123,6 +128,7 @@ export async function completeItem(
       ? {
           ...(outcome.summary ? { summary: outcome.summary } : {}),
           skipped: skipped.map((s) => ({ path: s.path, reason: s.reason })),
+          ...(skippedGroups.length > 0 ? { skippedGroups } : {}),
         }
       : undefined,
   });

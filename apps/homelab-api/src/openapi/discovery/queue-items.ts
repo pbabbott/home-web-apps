@@ -38,6 +38,11 @@ import { z } from 'zod';
 const knownSkipSchema = z.object({
   path: z.string(),
   reason: z.string(),
+  pattern: z.string().optional().meta({
+    description:
+      'Present for a pattern skip: it covers matching direct children of `path`, a directory.',
+  }),
+  count: z.number().optional(),
   skippedAt: z.string().meta({ format: 'date-time' }),
   jobId: z.uuid().meta({ description: 'The job that recorded the skip.' }),
 });

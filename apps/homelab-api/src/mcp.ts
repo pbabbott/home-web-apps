@@ -201,13 +201,13 @@ export const createMcpServer = (): McpServer => {
       description: completeQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...completeQueueItemBodySchema.shape },
     },
-    ({ id, claimToken, discoveredPaths, summary, skipped }) =>
+    ({ id, claimToken, discoveredPaths, summary, skipped, skippedGroups }) =>
       run(completeQueueItemOperation.mcp.name, async () => {
         const { item, children } = await discoveryService.completeItem(
           id,
           claimToken,
           discoveredPaths,
-          { summary, skipped },
+          { summary, skipped, skippedGroups },
         );
 
         return {

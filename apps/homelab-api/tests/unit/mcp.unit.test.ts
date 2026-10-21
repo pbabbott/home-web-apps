@@ -4,6 +4,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { createServer } from '../../src/server';
 import * as discoveryService from '../../src/services/discovery';
+import { completeQueueItemBodySchema } from '../../src/schemas/discovery';
 
 jest.mock('../../src/services/discovery', () => {
   const actual = jest.requireActual('../../src/services/discovery');
@@ -179,8 +180,38 @@ describe('MCP endpoint (/mcp)', () => {
       {
         summary: 'root assessed',
         skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+        skippedGroups: [],
       },
     );
+  });
+
+  it('complete_directory passes pattern skips and rejects bad patterns', async () => {
+    (discoveryService.completeItem as jest.Mock).mockClear();
+    (discoveryService.completeItem as jest.Mock).mockResolvedValue({
+      item: { id: ID },
+      children: [],
+    });
+    const group = { pattern: '*.msi', count: 212, reason: 'installers' };
+
+    await call('complete_directory', {
+      id: ID,
+      claimToken: TOKEN,
+      skippedGroups: [group],
+    });
+    expect(discoveryService.completeItem).toHaveBeenCalledWith(ID, TOKEN, [], {
+      summary: undefined,
+      skipped: [],
+      skippedGroups: [group],
+    });
+
+    for (const pattern of ['*', 'installer.msi', '*\\*.msi', 'a/*.msi']) {
+      expect(
+        completeQueueItemBodySchema.safeParse({
+          claimToken: TOKEN,
+          skippedGroups: [{ pattern, reason: 'x' }],
+        }).success,
+      ).toBe(false);
+    }
   });
 
   it('propose_inventory_items passes the worker id and has no decision field', async () => {

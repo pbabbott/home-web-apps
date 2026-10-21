@@ -35,6 +35,8 @@ export const inventoryItemEvidenceSchema = z.object({
         'application_data',
         'generated_artifacts',
         'installed_software',
+        'installers',
+        'archives',
         'other',
       ]),
     )

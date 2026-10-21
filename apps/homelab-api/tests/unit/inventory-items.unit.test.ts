@@ -303,6 +303,7 @@ describe('inventory item routes', () => {
         {
           summary: 'assessed root',
           skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+          skippedGroups: [],
         },
       );
     });

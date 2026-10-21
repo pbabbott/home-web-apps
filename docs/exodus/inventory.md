@@ -8,12 +8,13 @@ Discovery is **selective**, not a crawl. The agent reasons about the filesystem,
 
 Inventory items are the **only** output of discovery. There is no per-file or per-directory catalogue: the earlier per-path catalogue (its table, routes, the `record_discovered_items` tool and its browser) was removed in migration `0011`, because nothing consumed it; this entity was called "review candidate" until migration `0012` renamed it. Any per-file metadata is gathered by a future copy workflow while copying, using approved inventory items as its authorization and scope, or by the agent as `evidence` on an inventory item (for example `estimatedSizeBytes`).
 
-| Path or situation                      | Result                                                       |
-| -------------------------------------- | ------------------------------------------------------------ |
-| `C:\Users\Me\Pictures\Family\`         | One directory inventory item. Nothing per photo.             |
-| `C:\code\my-project\` (a repository)   | One inventory item. None for `src\`, `tests\` or any file.   |
-| `C:\Users\Me\Documents\tax-return.pdf` | Possibly one file inventory item.                            |
-| A generated or irrelevant file         | Usually nothing; at most listed in a queue item's `skipped`. |
+| Path or situation                      | Result                                                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `C:\Users\Me\Pictures\Family\`         | One directory inventory item. Nothing per photo.                                                                               |
+| `C:\code\my-project\` (a repository)   | One inventory item. None for `src\`, `tests\` or any file.                                                                     |
+| `C:\Users\Me\Documents\tax-return.pdf` | Possibly one file inventory item.                                                                                              |
+| A generated or irrelevant file         | Usually nothing; at most listed in a queue item's `skipped`.                                                                   |
+| `C:\Users\Me\Downloads\` (mixed)       | Never one item. One file item per keeper, `skippedGroups` for the junk. See [Mixed directories](#mixed-directories-downloads). |
 
 **Approval** only sets the inventory item's `decision` to `approved`. It does not recurse into the subtree or write any other rows.
 
@@ -32,11 +33,22 @@ Inventory items are the **only** output of discovery. There is no per-file or pe
 
 For each location it inspects the agent chooses one. These are discovery actions, not approvals.
 
-1. **Skip exploration** — strong evidence the path is operating-system managed, generated, replaceable or out of scope (`C:\Windows`). List it in `complete_directory`'s `skipped` with a reason; it is stored on the queue item's `result`. No inventory item, no audit event, no persistent rule.
+1. **Skip exploration** — strong evidence the path is operating-system managed, generated, replaceable or out of scope (`C:\Windows`). List it in `complete_directory`'s `skipped` with a reason (or, for many similar direct entries, `skippedGroups`; see [Mixed directories](#mixed-directories-downloads)); it is stored on the queue item's `result`. No inventory item, no audit event, no persistent rule.
 2. **Explore selectively** — may hold valuable data; more evidence needed. Pass it in `discoveredPaths` as `{ path, reason }`. Queue only promising paths, never every child.
 3. **Propose an inventory item** — a coherent backup unit. Call `propose_inventory_items`. A git repository or project root is **one** inventory item; its internal folders are never proposed or queued. A standalone file can be an inventory item.
 
 A job is finished when the dynamically created work has drained, exactly as before: it cannot complete while anything is `queued` or `in_progress`.
+
+## Mixed directories (Downloads)
+
+A folder like `Downloads`, `Desktop` or an old-drive dump holds thousands of unrelated loose files and folders: mostly re-downloadable junk, some irreplaceable. It is neither one backup unit nor noise, so the agent judges each entry on its own; proposing some, skipping most and exploring a few is the normal outcome. Nothing in the model is new: the same three actions apply per entry.
+
+- **Keepers** (personal documents, scans, receipts, photos, licence keys, anything unique): one `kind: file` inventory item each. A coherent subfolder (an extracted project, a photo dump) is one directory item, or is explored for more evidence. The mixed folder itself is never proposed and never skipped wholesale.
+- **Junk** (installers, ISOs, drivers, partial downloads, `name (1).ext` copies): `complete_directory.skippedGroups`, e.g. `{ pattern: "*.msi", count: 212, reason: "installers" }`. A pattern matches direct entries of the claimed directory only (no `\` or `/`, needs a wildcard and some literal text, at most 50 groups). Notable single skips still go in `skipped` (max 100). The agent does not propose `skip` items for obvious junk, which would only add review work; `recommendation: skip` is for things a human might expect to be kept.
+- **Signals**, cheapest first: extension, size and dates, then the Mark-of-the-Web `Zone.Identifier` stream (`HostUrl` / `ReferrerUrl`): a public vendor URL suggests re-downloadable; an email attachment, internal host or no stream suggests unique. The agent records the signals it used in `observations` and fills `estimatedSizeBytes`.
+- **Archives** are not extracted. An installer, driver or SDK by name or origin goes in `skippedGroups`; otherwise `needs_review` with an `openQuestions` entry. `contentKinds` has `installers` and `archives` for these.
+- **Large directories**: the agent heartbeats (the lease is 5 minutes), proposes in batches of 10 as it goes and completes once at the end. After a crash and re-claim it calls `list_inventory_items` with `pathPrefix` set to the directory and continues; re-proposals are idempotent.
+- **Uncertain** entries are `needs_review`, but groups are judged by pattern first so the reviewer is not flooded.
 
 ## Inventory item fields
 
@@ -84,7 +96,7 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 }
 ```
 
-`git` is `null` when the path is not a repository (or was not checked); inside it, `null` means "not determined". `contentKinds` is one of `source_code`, `personal_documents`, `media`, `configuration`, `application_data`, `generated_artifacts`, `installed_software`, `other`. Size and file count are optional and only worth providing when cheap; never crawl just to fill them.
+`git` is `null` when the path is not a repository (or was not checked); inside it, `null` means "not determined". `contentKinds` is one of `source_code`, `personal_documents`, `media`, `configuration`, `application_data`, `generated_artifacts`, `installed_software`, `installers`, `archives`, `other`. Size and file count are optional and only worth providing when cheap; never crawl just to fill them.
 
 ### API guardrails (400)
 
@@ -145,7 +157,7 @@ Each is written in the same transaction as its change. Listing a directory, skip
 
 `complete_directory`'s `skipped` is stored on that queue item, which belongs to one job. So a later job could re-inspect `C:\Windows`. `GET /sources/:id/known-skips` (MCP `list_known_skips`) gathers the `skipped` entries from all of the source's earlier jobs: one row per path (case-insensitive), the newest reason and spelling, which job recorded it and when, ordered by path, with `pathPrefix` and `limit` (default 200, max 1000). The agent playbook tells it to call this, with the job root as `pathPrefix`, at the start of a run.
 
-It is derived from the stored results, not a table or a rule: a skip stays a per-run judgment. Nothing it lists blocks queueing or proposing a path, the agent may revisit one if its reason looks wrong, and only a human policy belongs in an exclusion rule. If a skip should be permanent, create a source-scoped rule instead.
+Pattern skips (`skippedGroups`) are listed too, with `path` set to the directory, plus `pattern` and `count`; one row per directory and pattern (case-insensitive), newest reason wins, and the `pathPrefix` filter applies to the directory. A pattern entry covers the matching direct children of `path`, not `path` itself. It is derived from the stored results, not a table or a rule: a skip stays a per-run judgment. Nothing it lists blocks queueing or proposing a path, the agent may revisit one if its reason looks wrong, and only a human policy belongs in an exclusion rule. If a skip should be permanent, create a source-scoped rule instead.
 
 ## Prerequisite: filesystem access
 
@@ -154,5 +166,7 @@ This API grants no filesystem access. The agent needs its own read-only access t
 ## Limits and follow-ups
 
 - Guardrails check the shape of the evidence, not whether it is true.
+- Stale items: a file deleted from Downloads keeps its inventory item; only `lastSeenAt` hints that no later job saw it. Nothing detects or retires them yet.
+- Pattern skips are not matched against anything server-side: the pattern and count are the agent's claim, kept for later runs and humans.
 - No inheritance or override semantics between nested inventory items; overlap is only reported (see [Nested inventory items](#nested-inventory-items)).
-- The review UI ([`/exodus/inventory`](./ui.md)) handles one inventory item at a time, with no bulk approve and no free-text search. There is no copy workflow yet; it will read approved inventory items from `GET /sources/:id/inventory-items?decision=approved`.
+- The review UI ([`/exodus/inventory`](./ui.md)) handles one inventory item at a time, with no bulk approve and no free-text search. Mixed directories make this the most painful gap: a Downloads folder can yield dozens of file items. There is no copy workflow yet; it will read approved inventory items from `GET /sources/:id/inventory-items?decision=approved`.

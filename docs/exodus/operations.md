@@ -22,6 +22,7 @@ After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` load
 Not started, and not decided:
 
 - The OpenClaw agent: how it authenticates to the API and MCP endpoint, the read-only filesystem access it uses to inspect a machine (the API grants none), and the cron cadence.
-- Review UI extras: bulk approve/reject, search by path, and a link from an inventory item to its audit history. The copy workflow for approved inventory items.
+- Review UI extras: bulk approve/reject (most urgent: a Downloads folder yields many file items), search by path, and a link from an inventory item to its audit history. The copy workflow for approved inventory items.
 - Nested-inventory item inheritance and overrides.
+- Stale inventory items (source file since deleted or moved): detect from `lastSeenAt` or have the copy workflow report them.
 - Pattern-based exclusion (globs such as `node_modules`); rules are exact paths today.

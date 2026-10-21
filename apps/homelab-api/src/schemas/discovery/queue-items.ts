@@ -54,6 +54,28 @@ const followUpSchema = z.object({
 });
 
 const MAX_SKIPPED_PER_REQUEST = 100;
+const MAX_SKIPPED_GROUPS_PER_REQUEST = 50;
+
+const skippedGroupSchema = z.object({
+  pattern: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .refine((p) => /[*?]/.test(p) && /[^*?]/.test(p), {
+      message:
+        'must be a name pattern with a wildcard (* or ?) and some literal text, e.g. *.msi; to skip the whole directory use skip_directory',
+    })
+    .refine((p) => !/[\\/]/.test(p), {
+      message:
+        'matches one directory level only: no path separators, just the entry name pattern',
+    })
+    .meta({ example: '*.msi' }),
+  count: z.number().int().min(0).optional().meta({
+    description: 'How many entries matched, if you counted.',
+  }),
+  reason: z.string().trim().min(1).max(300),
+});
 
 export const completeQueueItemBodySchema = z.object({
   claimToken: claimTokenSchema,
@@ -80,6 +102,14 @@ export const completeQueueItemBodySchema = z.object({
     .meta({
       description:
         'Paths inside this directory that were seen and deliberately not explored or queued (system, generated, replaceable), with why. A per-run judgment, not a persistent exclusion rule.',
+    }),
+  skippedGroups: z
+    .array(skippedGroupSchema)
+    .max(MAX_SKIPPED_GROUPS_PER_REQUEST)
+    .default([])
+    .meta({
+      description:
+        'Skip many similar direct entries of this directory by name pattern ({ pattern: "*.msi", count?, reason }) instead of listing each in `skipped`. Not recursive. Use for bulk replaceable files such as installers or partial downloads. Same per-run judgment as `skipped`.',
     }),
 });
 export type CompleteQueueItemBody = z.infer<typeof completeQueueItemBodySchema>;

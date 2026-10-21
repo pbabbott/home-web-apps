@@ -352,6 +352,8 @@ export type InventoryItemContentKind =
   | 'application_data'
   | 'generated_artifacts'
   | 'installed_software'
+  | 'installers'
+  | 'archives'
   | 'other';
 
 export type InventoryItemGitEvidence = {
@@ -381,6 +383,11 @@ export type QueueItemResult = {
   summary?: string;
   /** Paths seen but deliberately not explored or queued. */
   skipped: { path: string; reason: string }[];
+  /**
+   * Many similar direct entries of this directory skipped by name pattern
+   * (`*.msi`) instead of one `skipped` entry each. Not recursive.
+   */
+  skippedGroups?: { pattern: string; count?: number; reason: string }[];
 };
 
 export type AuditEventType =

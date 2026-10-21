@@ -104,7 +104,7 @@ export const heartbeatQueueItemOperation = {
   mcp: {
     name: 'heartbeat_directory',
     description:
-      'Extend the lease on a claimed directory so a long-running exploration is not reclaimed by another worker.',
+      'Extend the lease on a claimed directory so a long-running exploration is not reclaimed by another worker. Call it periodically while working through a large directory (thousands of entries); the default lease is 5 minutes.',
   },
 } satisfies Operation;
 
@@ -125,11 +125,11 @@ export const heartbeatQueueItem = handle(
 export const completeQueueItemOperation = {
   summary: 'Complete a claimed directory and enqueue the follow-ups it needs',
   description:
-    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary` and `skipped` are stored on the item as its result. Follow-ups under an exclusion rule are skipped immediately.',
+    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped` and `skippedGroups` are stored on the item as its result. Follow-ups under an exclusion rule are skipped immediately.',
   mcp: {
     name: 'complete_directory',
     description:
-      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into an inventory item. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason, and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
+      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into an inventory item. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason (for many similar direct entries, such as hundreds of installers in Downloads, use `skippedGroups`: { pattern: "*.msi", count, reason } instead of listing each), and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
   },
 } satisfies Operation;
 
@@ -137,13 +137,13 @@ export const completeQueueItem = handle(
   'POST /queue-items/:id/complete',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, discoveredPaths, summary, skipped } =
+    const { claimToken, discoveredPaths, summary, skipped, skippedGroups } =
       req.body as CompleteQueueItemBody;
     const { item, children } = await discoveryService.completeItem(
       id,
       claimToken,
       discoveredPaths,
-      { summary, skipped },
+      { summary, skipped, skippedGroups },
     );
     res.status(200).json({
       ...item,
@@ -229,7 +229,7 @@ export const listKnownSkipsOperation = {
   mcp: {
     name: 'list_known_skips',
     description:
-      'List paths that earlier discovery runs of this source deliberately did not explore, each with the reason and when. Call it at the start of a run (pass pathPrefix = the job root) and do not re-inspect those paths unless you have a specific reason to. These are your own past judgments, not rules: they never block you, and only a human policy belongs in create_exclusion_rule.',
+      'List paths that earlier discovery runs of this source deliberately did not explore, each with the reason and when. Call it at the start of a run (pass pathPrefix = the job root) and do not re-inspect those paths unless you have a specific reason to. These are your own past judgments, not rules: they never block you, and only a human policy belongs in create_exclusion_rule. An entry with a `pattern` covers the matching direct children of its `path` (a directory), not the path itself.',
   },
 } satisfies Operation;
 

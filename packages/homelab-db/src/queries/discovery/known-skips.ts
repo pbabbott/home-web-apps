@@ -8,6 +8,13 @@ export type KnownSkip = {
   /** When the queue item that recorded the skip was completed. */
   skippedAt: Date;
   jobId: string;
+  /**
+   * Set for a pattern skip: `path` is then the directory and the pattern
+   * covers its matching direct children.
+   */
+  pattern?: string;
+  /** How many entries the pattern matched, when the agent counted. */
+  count?: number;
 };
 
 export type ListKnownSkipsOptions = {
@@ -25,7 +32,8 @@ const LIST_KNOWN_SKIPS_MAX_LIMIT = 1000;
  * lists that earlier jobs of the source stored on their queue items. Derived,
  * not a table of its own: a skip stays a per-run judgment that a later run may
  * revisit, never a persisted rule. A path skipped more than once (case
- * insensitively) appears once, with the newest reason. Ordered by path.
+ * insensitively) appears once, with the newest reason; a pattern skip is
+ * keyed by directory and pattern. Ordered by path, then pattern.
  */
 export const listKnownSkips = async (
   db: Database,
@@ -40,28 +48,55 @@ export const listKnownSkips = async (
     LIST_KNOWN_SKIPS_MAX_LIMIT,
   );
 
+  const groupPrefix = dir
+    ? sql`and (lower(q.path) = ${dir} or lower(q.path) like ${`${escapeLike(dir)}\\%`} escape '!')`
+    : sql``;
+
   const result = await db.execute<{
     path: string;
     reason: string;
+    pattern: string | null;
+    count: number | null;
     skipped_at: Date;
     job_id: string;
   }>(sql`
     select * from (
-      select distinct on (lower(s.entry->>'path'))
-        s.entry->>'path' as path,
-        s.entry->>'reason' as reason,
-        q.completed_at as skipped_at,
-        q.job_id as job_id
-      from discovery_queue_items q
-      join discovery_jobs j on j.id = q.job_id
-      cross join lateral jsonb_array_elements(q.result->'skipped') as s(entry)
-      where j.source_id = ${options.sourceId}
-        and q.result is not null
-        and jsonb_typeof(q.result->'skipped') = 'array'
-        ${prefix}
-      order by lower(s.entry->>'path'), q.completed_at desc nulls last
+      select distinct on (lower(path), lower(coalesce(pattern, '')))
+        path, reason, pattern, count, skipped_at, job_id
+      from (
+        select
+          s.entry->>'path' as path,
+          s.entry->>'reason' as reason,
+          null::text as pattern,
+          null::int as count,
+          q.completed_at as skipped_at,
+          q.job_id as job_id
+        from discovery_queue_items q
+        join discovery_jobs j on j.id = q.job_id
+        cross join lateral jsonb_array_elements(q.result->'skipped') as s(entry)
+        where j.source_id = ${options.sourceId}
+          and q.result is not null
+          and jsonb_typeof(q.result->'skipped') = 'array'
+          ${prefix}
+        union all
+        select
+          q.path as path,
+          g.entry->>'reason' as reason,
+          g.entry->>'pattern' as pattern,
+          (g.entry->>'count')::int as count,
+          q.completed_at as skipped_at,
+          q.job_id as job_id
+        from discovery_queue_items q
+        join discovery_jobs j on j.id = q.job_id
+        cross join lateral jsonb_array_elements(q.result->'skippedGroups') as g(entry)
+        where j.source_id = ${options.sourceId}
+          and q.result is not null
+          and jsonb_typeof(q.result->'skippedGroups') = 'array'
+          ${groupPrefix}
+      ) all_skips
+      order by lower(path), lower(coalesce(pattern, '')), skipped_at desc nulls last
     ) latest
-    order by lower(path)
+    order by lower(path), lower(coalesce(pattern, ''))
     limit ${limit}
   `);
 
@@ -70,5 +105,7 @@ export const listKnownSkips = async (
     reason: row.reason,
     skippedAt: new Date(row.skipped_at),
     jobId: row.job_id,
+    ...(row.pattern ? { pattern: row.pattern } : {}),
+    ...(row.count !== null && row.pattern ? { count: row.count } : {}),
   }));
 };

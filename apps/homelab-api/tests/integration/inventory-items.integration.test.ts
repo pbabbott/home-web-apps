@@ -899,6 +899,66 @@ describe('discovery writes only queue items and inventory items', () => {
   });
 });
 
+describe('a mixed directory such as Downloads', () => {
+  it('yields file items for keepers and a pattern skip for junk, never an item for the folder', async () => {
+    const sourceId = await createSource();
+    const downloads = 'C:\\Users\\You\\Downloads';
+    const { job, item } = await startAndClaim(sourceId, downloads);
+
+    await propose(item, [
+      proposal(`${downloads}\\bank-statement-2024.pdf`, {
+        kind: 'file',
+        summary: 'Bank statement',
+        evidence: evidence({
+          contentKinds: ['personal_documents'],
+          reproducible: 'no',
+          estimatedSizeBytes: 120000,
+        }),
+      }),
+      proposal(`${downloads}\\unknown-tool.zip`, {
+        kind: 'file',
+        recommendation: 'needs_review',
+        confidence: 'low',
+        evidence: evidence({
+          contentKinds: ['archives'],
+          sufficientInformation: false,
+          openQuestions: ['What is inside the archive?'],
+        }),
+      }),
+    ]).expect(200);
+
+    await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        summary: 'two keepers, installers skipped by pattern',
+        skippedGroups: [
+          { pattern: '*.msi', count: 212, reason: 'installers' },
+          { pattern: '*.iso', count: 9, reason: 'disk images' },
+        ],
+      })
+      .expect(200);
+    await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+
+    const items = await listInventoryItems(sourceId);
+    expect(items.map((i) => [i.kind, i.rootPath])).toEqual([
+      ['file', `${downloads}\\bank-statement-2024.pdf`],
+      ['file', `${downloads}\\unknown-tool.zip`],
+    ]);
+    expect(items.every((i) => i.rootPath !== downloads)).toBe(true);
+
+    const queue = (
+      await getRequest()
+        .get(`/discovery-jobs/${job.id}/queue-items`)
+        .expect(200)
+    ).body as { result: { skippedGroups: { pattern: string }[] } }[];
+    expect(queue[0].result.skippedGroups.map((g) => g.pattern)).toEqual([
+      '*.msi',
+      '*.iso',
+    ]);
+  });
+});
+
 describe('known skips across jobs', () => {
   const skipsOf = async (
     sourceId: string,
@@ -914,6 +974,8 @@ describe('known skips across jobs', () => {
       reason: string;
       skippedAt: string;
       jobId: string;
+      pattern?: string;
+      count?: number;
     }[];
 
   /** Runs and finishes a job whose root directory records `skipped`. */
@@ -976,6 +1038,57 @@ describe('known skips across jobs', () => {
     await getRequest()
       .get('/sources/123e4567-e89b-12d3-a456-426614174000/known-skips')
       .expect(404);
+  });
+
+  it('remembers pattern skips against their directory, newest reason per pattern', async () => {
+    const sourceId = await createSource();
+    const downloads = 'C:\\Users\\You\\Downloads';
+    const runGrouping = async (
+      skippedGroups: { pattern: string; count?: number; reason: string }[],
+    ) => {
+      const { job, item } = await startAndClaim(sourceId, downloads);
+      await getRequest()
+        .post(`/queue-items/${item.id}/complete`)
+        .send({ claimToken: item.claimToken, skippedGroups })
+        .expect(200);
+      await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+
+      return job;
+    };
+
+    await runGrouping([
+      { pattern: '*.msi', count: 100, reason: 'installers' },
+      { pattern: '*.crdownload', reason: 'partial downloads' },
+    ]);
+    const second = await runGrouping([
+      { pattern: '*.MSI', count: 212, reason: 'installers and updaters' },
+    ]);
+
+    const skips = await skipsOf(sourceId);
+    expect(skips.map((s) => [s.path, s.pattern, s.count, s.reason])).toEqual([
+      [downloads, '*.crdownload', undefined, 'partial downloads'],
+      [downloads, '*.MSI', 212, 'installers and updaters'],
+    ]);
+    expect(skips[1].jobId).toBe(second.id);
+
+    expect(
+      await skipsOf(sourceId, { pathPrefix: 'C:\\Users\\You\\Documents' }),
+    ).toEqual([]);
+    expect(await skipsOf(sourceId, { pathPrefix: 'C:\\Users' })).toHaveLength(
+      2,
+    );
+  });
+
+  it('rejects an invalid pattern skip', async () => {
+    const sourceId = await createSource();
+    const { item } = await startAndClaim(sourceId);
+    await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        skippedGroups: [{ pattern: '*', reason: 'everything' }],
+      })
+      .expect(400);
   });
 
   it('is a record of judgments, not a rule: it blocks neither queueing nor proposals', async () => {
