@@ -57,7 +57,7 @@ export const listDiscoveryJobsOperation = {
   mcp: {
     name: 'list_discovery_jobs',
     description:
-      'List discovery jobs with their source. Use to find active (pending/running) jobs to resume.',
+      'Discovery jobs with their source. Find pending/running jobs to resume.',
   },
   hud: '/exodus/jobs',
 } satisfies Operation;
@@ -76,8 +76,7 @@ export const getDiscoveryJobOperation = {
   summary: 'Fetch a discovery job with its queue counts',
   mcp: {
     name: 'get_discovery_job',
-    description:
-      'Get one discovery job, including queueCounts, to check status and progress.',
+    description: 'One discovery job with queueCounts (progress).',
   },
   hud: '/exodus/sources/[id]',
 } satisfies Operation;

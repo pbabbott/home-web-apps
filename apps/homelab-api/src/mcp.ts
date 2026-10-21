@@ -13,6 +13,18 @@ import {
 } from './controllers/discovery/inventory-items';
 import { MCP_INSTRUCTIONS } from './mcp-instructions';
 import {
+  claimResult,
+  completeResult,
+  failResult,
+  heartbeatResult,
+  inventoryListResult,
+  jobResult,
+  knownSkipsResult,
+  proposeResult,
+  ruleResult,
+  skipResult,
+} from './mcp-results';
+import {
   claimQueueItemOperation,
   completeQueueItemOperation,
   failQueueItemOperation,
@@ -66,11 +78,11 @@ const run = async (label: string, fn: () => Promise<unknown>) => {
 
 const workerIdSchema = claimQueueItemBodySchema.shape.workerId
   .optional()
-  .describe('Your worker id, recorded in the audit log.');
+  .describe('Your worker id, for the audit log.');
 
-const jobId = jobIdParamsSchema.shape.id.describe('Discovery job id.');
+const jobId = jobIdParamsSchema.shape.id.describe('Job id.');
 const queueItemId = queueItemIdParamsSchema.shape.id.describe(
-  'Queue item (directory) id, from claim_directory.',
+  'Directory id from claim_directory.',
 );
 
 /**
@@ -96,8 +108,8 @@ export const createMcpServer = (): McpServer => {
       inputSchema: jobListQuerySchema.shape,
     },
     ({ sourceId }) =>
-      run(listDiscoveryJobsOperation.mcp.name, () =>
-        discoveryService.listAllJobs(sourceId),
+      run(listDiscoveryJobsOperation.mcp.name, async () =>
+        (await discoveryService.listAllJobs(sourceId)).map(jobResult),
       ),
   );
 
@@ -108,8 +120,8 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { id: jobId },
     },
     ({ id }) =>
-      run(getDiscoveryJobOperation.mcp.name, () =>
-        discoveryService.getDiscoveryJob(id),
+      run(getDiscoveryJobOperation.mcp.name, async () =>
+        jobResult(await discoveryService.getDiscoveryJob(id)),
       ),
   );
 
@@ -120,8 +132,10 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { jobId, ...claimQueueItemBodySchema.shape },
     },
     ({ jobId, workerId, leaseSeconds }) =>
-      run(claimQueueItemOperation.mcp.name, () =>
-        discoveryService.claimQueueItem(jobId, workerId, leaseSeconds),
+      run(claimQueueItemOperation.mcp.name, async () =>
+        claimResult(
+          await discoveryService.claimQueueItem(jobId, workerId, leaseSeconds),
+        ),
       ),
   );
 
@@ -132,8 +146,10 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { id: queueItemId, ...heartbeatQueueItemBodySchema.shape },
     },
     ({ id, claimToken, leaseSeconds }) =>
-      run(heartbeatQueueItemOperation.mcp.name, () =>
-        discoveryService.heartbeat(id, claimToken, leaseSeconds),
+      run(heartbeatQueueItemOperation.mcp.name, async () =>
+        heartbeatResult(
+          await discoveryService.heartbeat(id, claimToken, leaseSeconds),
+        ),
       ),
   );
 
@@ -148,20 +164,14 @@ export const createMcpServer = (): McpServer => {
     },
     ({ id, claimToken, workerId, inventoryItems }) =>
       run(proposeInventoryItemsOperation.mcp.name, async () =>
-        (
+        proposeResult(
           await discoveryService.proposeInventoryItems(
             id,
             claimToken,
             workerId ?? null,
             inventoryItems,
-          )
-        ).map(({ inventoryItem, created, changed, coveredBy, covers }) => ({
-          ...inventoryItem,
-          created,
-          changed,
-          coveredBy,
-          covers,
-        })),
+          ),
+        ),
       ),
   );
 
@@ -175,8 +185,10 @@ export const createMcpServer = (): McpServer => {
       },
     },
     ({ sourceId, ...filters }) =>
-      run(listKnownSkipsOperation.mcp.name, () =>
-        discoveryService.listSourceKnownSkips(sourceId, filters),
+      run(listKnownSkipsOperation.mcp.name, async () =>
+        knownSkipsResult(
+          await discoveryService.listSourceKnownSkips(sourceId, filters),
+        ),
       ),
   );
 
@@ -190,8 +202,11 @@ export const createMcpServer = (): McpServer => {
       },
     },
     ({ sourceId, ...filters }) =>
-      run(listInventoryItemsOperation.mcp.name, () =>
-        discoveryService.listSourceInventoryItems(sourceId, filters),
+      run(listInventoryItemsOperation.mcp.name, async () =>
+        inventoryListResult(
+          await discoveryService.listSourceInventoryItems(sourceId, filters),
+          filters.limit,
+        ),
       ),
   );
 
@@ -210,13 +225,7 @@ export const createMcpServer = (): McpServer => {
           { summary, skipped, skippedGroups },
         );
 
-        return {
-          ...item,
-          children: children.map((child) => ({
-            ...child.item,
-            created: child.created,
-          })),
-        };
+        return completeResult(item, children);
       }),
   );
 
@@ -227,8 +236,10 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { id: queueItemId, ...failQueueItemBodySchema.shape },
     },
     ({ id, claimToken, error, retryable }) =>
-      run(failQueueItemOperation.mcp.name, () =>
-        discoveryService.failItem(id, claimToken, error, retryable),
+      run(failQueueItemOperation.mcp.name, async () =>
+        failResult(
+          await discoveryService.failItem(id, claimToken, error, retryable),
+        ),
       ),
   );
 
@@ -239,8 +250,8 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { id: queueItemId, ...skipQueueItemBodySchema.shape },
     },
     ({ id, claimToken, reason }) =>
-      run(skipQueueItemOperation.mcp.name, () =>
-        discoveryService.skipItem(id, claimToken, reason),
+      run(skipQueueItemOperation.mcp.name, async () =>
+        skipResult(await discoveryService.skipItem(id, claimToken, reason)),
       ),
   );
 
@@ -256,8 +267,8 @@ export const createMcpServer = (): McpServer => {
       },
     },
     (filters) =>
-      run(listExclusionRulesOperation.mcp.name, () =>
-        discoveryService.listExclusionRules(filters),
+      run(listExclusionRulesOperation.mcp.name, async () =>
+        (await discoveryService.listExclusionRules(filters)).map(ruleResult),
       ),
   );
 
@@ -276,11 +287,13 @@ export const createMcpServer = (): McpServer => {
       },
     },
     ({ workerId, ...rule }) =>
-      run(createExclusionRuleOperation.mcp.name, () =>
-        discoveryService.createExclusionRule(rule, {
-          type: 'openclaw',
-          id: workerId ?? null,
-        }),
+      run(createExclusionRuleOperation.mcp.name, async () =>
+        ruleResult(
+          await discoveryService.createExclusionRule(rule, {
+            type: 'openclaw',
+            id: workerId ?? null,
+          }),
+        ),
       ),
   );
 

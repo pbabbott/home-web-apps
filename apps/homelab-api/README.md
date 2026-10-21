@@ -75,7 +75,7 @@ Tables (`packages/homelab-db/src/schema/discovery.ts`; design in [`docs/exodus/i
 
 ### MCP
 
-The agent's work loop, inventory item proposals and exclusion rules are also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, finishing/cancelling/failing a job, global rules, editing or deleting rules, approving or rejecting inventory items and the audit log stay REST-only for humans. The server also sends the agent playbook as MCP `instructions`. Rules the agent creates are attributed to actor `openclaw` (with its optional `workerId`) in the audit log.
+The agent's work loop, inventory item proposals and exclusion rules are also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, finishing/cancelling/failing a job, global rules, editing or deleting rules, approving or rejecting inventory items and the audit log stay REST-only for humans. The server also sends the agent playbook as MCP `instructions`, and tool results are compact projections of the REST rows (`src/mcp-results.ts`), not the rows themselves. Rules the agent creates are attributed to actor `openclaw` (with its optional `workerId`) in the audit log.
 
 | MCP tool                  | REST route                                   |
 | ------------------------- | -------------------------------------------- |

@@ -85,7 +85,7 @@ export const claimQueueItemOperation = {
   mcp: {
     name: 'claim_directory',
     description:
-      'Claim the next directory to explore in a job. Returns { item } with a claimToken (required by every later call on that directory), or { item: null, reason } when nothing is claimable: queue_empty means the job can be completed by a human, retry_backoff means queued directories are waiting out a retry delay, and in_progress means other workers still hold leases; for the last two, try again at retryAt. The claim is a lease; extend it with heartbeat_directory.',
+      'Lease the next directory of a job. Returns { id, path, reason, claimToken } (claimToken is required by every later call on it), or { idle, next } where next is `stop` (queue empty) or `wait` (retry at retryAt).',
   },
 } satisfies Operation;
 
@@ -107,7 +107,7 @@ export const heartbeatQueueItemOperation = {
   mcp: {
     name: 'heartbeat_directory',
     description:
-      'Extend the lease on a claimed directory so a long-running exploration is not reclaimed by another worker. Call it periodically while working through a large directory (thousands of entries); the default lease is 5 minutes.',
+      'Extend the lease on a claimed directory (default 5 minutes) so a long exploration is not reclaimed.',
   },
 } satisfies Operation;
 
@@ -132,7 +132,7 @@ export const completeQueueItemOperation = {
   mcp: {
     name: 'complete_directory',
     description:
-      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into an inventory item. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason (for many similar direct entries, such as hundreds of installers in Downloads, use `skippedGroups`: { pattern: "*.msi", count, reason } instead of listing each), and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
+      'Finish a claimed directory. discoveredPaths: subdirectories to explore later; skipped / skippedGroups: entries deliberately not explored; summary: one line. Returns what was queued, and what was auto-excluded by a rule.',
   },
 } satisfies Operation;
 
@@ -168,7 +168,7 @@ export const failQueueItemOperation = {
   mcp: {
     name: 'fail_directory',
     description:
-      'Report an error exploring a claimed directory. Retryable failures are requeued behind an exponential backoff until attempts run out; retryable=false fails it permanently.',
+      'Report that a claimed directory could not be explored. Retryable failures are requeued with backoff until attempts run out; retryable=false fails it permanently.',
   },
 } satisfies Operation;
 
@@ -189,8 +189,7 @@ export const skipQueueItemOperation = {
   summary: 'Skip a claimed directory',
   mcp: {
     name: 'skip_directory',
-    description:
-      'Mark a claimed directory as intentionally skipped (e.g. a system directory), with a reason.',
+    description: 'Mark the whole claimed directory as skipped, with a reason.',
   },
 } satisfies Operation;
 
@@ -232,7 +231,7 @@ export const listKnownSkipsOperation = {
   mcp: {
     name: 'list_known_skips',
     description:
-      'List paths that earlier discovery runs of this source deliberately did not explore, each with the reason and when. Call it at the start of a run (pass pathPrefix = the job root) and do not re-inspect those paths unless you have a specific reason to. These are your own past judgments, not rules: they never block you, and only a human policy belongs in create_exclusion_rule. An entry with a `pattern` covers the matching direct children of its `path` (a directory), not the path itself.',
+      'Paths earlier runs of this source deliberately did not explore, with reason and date. A `pattern` entry covers the matching direct children of its `path`.',
   },
 } satisfies Operation;
 

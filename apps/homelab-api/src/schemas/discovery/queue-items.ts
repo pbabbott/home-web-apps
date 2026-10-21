@@ -46,7 +46,7 @@ const followUpSchema = z.object({
   path: windowsPathSchema,
   reason: z.string().trim().min(1).max(300).optional().meta({
     description:
-      'Why this directory is worth exploring. Shown to whoever claims it, who starts with no memory of this session.',
+      'Why it is worth exploring. Shown to whoever claims it, who has no memory of this session.',
   }),
   priority: z.number().int().optional().meta({
     description: 'Higher priority items are claimed first. Default 0.',
@@ -85,7 +85,7 @@ export const completeQueueItemBodySchema = z.object({
     .default([])
     .meta({
       description:
-        'Follow-up directories worth exploring, as plain paths or { path, reason?, priority? }; enqueued atomically with the completion. Do not list every child: queue only paths that need more inspection. Paths under an exclusion rule are skipped immediately.',
+        'Subdirectories to explore later: paths or { path, reason?, priority? }.',
     }),
   summary: z.string().trim().min(1).max(1000).optional().meta({
     description: 'What was concluded about this directory.',
@@ -101,7 +101,7 @@ export const completeQueueItemBodySchema = z.object({
     .default([])
     .meta({
       description:
-        'Paths inside this directory that were seen and deliberately not explored or queued (system, generated, replaceable), with why. A per-run judgment, not a persistent exclusion rule.',
+        'Paths inside this directory deliberately not explored, with why.',
     }),
   skippedGroups: z
     .array(skippedGroupSchema)
@@ -109,7 +109,7 @@ export const completeQueueItemBodySchema = z.object({
     .default([])
     .meta({
       description:
-        'Skip many similar direct entries of this directory by name pattern ({ pattern: "*.msi", count?, reason }) instead of listing each in `skipped`. Not recursive. Use for bulk replaceable files such as installers or partial downloads. Same per-run judgment as `skipped`.',
+        'Many similar direct entries skipped by name pattern instead of listing each. Not recursive.',
     }),
 });
 export type CompleteQueueItemBody = z.infer<typeof completeQueueItemBodySchema>;

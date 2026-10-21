@@ -14,14 +14,14 @@ export const inventoryItemRecommendationSchema = z
   .enum(['back_up', 'skip', 'needs_review'])
   .meta({
     description:
-      'back_up: unique or valuable material worth preserving. skip: strong evidence it is irrelevant, reproducible or replaceable. needs_review: not enough evidence for a confident call. A recommendation is never an approval.',
+      'back_up: unique or valuable. skip: strong evidence it is irrelevant or reproducible. needs_review: not enough evidence.',
   });
 
 export const inventoryItemConfidenceSchema = z
   .enum(['low', 'medium', 'high'])
   .meta({
     description:
-      'Not a calibrated probability. high: direct evidence settles it. medium: strong signals with minor unknowns. low: a guess, so the recommendation must be needs_review.',
+      'Not a probability. high: direct evidence. medium: strong signals, minor unknowns. low: a guess (needs_review only).',
   });
 
 export const inventoryItemEvidenceSchema = z.object({

@@ -19,7 +19,7 @@ export const listExclusionRulesOperation = {
   mcp: {
     name: 'list_exclusion_rules',
     description:
-      'List the exclusion rules that apply to a source (its own plus the global ones). Check this before create_exclusion_rule: a path can have only one rule across a source and the global level. A directory under an `exclude_subtree` rule is skipped automatically when you next claim, so you never need to avoid it yourself.',
+      'Exclusion rules for a source, including global ones. One path has at most one rule. Directories under an exclude_subtree rule are skipped automatically when claimed.',
   },
   hud: '/exodus/rules',
 } satisfies Operation;
@@ -41,7 +41,7 @@ export const createExclusionRuleOperation = {
   mcp: {
     name: 'create_exclusion_rule',
     description:
-      'Stop exploring, or stop recommending, a path on a source, for example generated output such as a build or node_modules directory. Scope `exclude_subtree`: the path and everything beneath it is skipped from now on, including directories already queued (they are skipped when claimed). Scope `selective_only`: the directory itself is not a backup inventory item but you should still explore inside it. Always give a short reason; a human reviews it. Rules are per source (global rules are human-only) and one path has at most one rule, so a duplicate is rejected. This does not delete anything already recorded. You cannot edit or delete rules.',
+      'Add a source-scoped rule for a path. exclude_subtree: skip the path and everything beneath it, including already queued directories. selective_only: the path is not an item itself but its contents are still explored. Give a short reason; a human reviews it. Cannot edit or delete rules; a duplicate path is rejected.',
   },
   hud: '/exodus/rules',
 } satisfies Operation;

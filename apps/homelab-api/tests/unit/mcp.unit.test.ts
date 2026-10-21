@@ -125,9 +125,21 @@ describe('MCP endpoint (/mcp)', () => {
     });
   });
 
-  it('claim_directory applies the lease default and returns the service result', async () => {
+  it('claim_directory applies the lease default and returns a compact item', async () => {
     (discoveryService.claimQueueItem as jest.Mock).mockResolvedValue({
-      item: { id: ID },
+      item: {
+        id: ID,
+        path: 'C:\\Users\\You',
+        normalizedPath: 'c:\\users\\you',
+        reason: null,
+        claimToken: TOKEN,
+        claimedBy: 'w1',
+        leaseExpiresAt: '2026-10-21T10:05:00.000Z',
+        attemptCount: 1,
+        maxAttempts: 3,
+        lastError: null,
+        createdAt: '2026-10-21T10:00:00.000Z',
+      },
     });
 
     const { isError, body } = await call('claim_directory', {
@@ -136,14 +148,53 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(isError).toBeFalsy();
-    expect(body).toEqual({ item: { id: ID } });
+    expect(body).toEqual({
+      id: ID,
+      path: 'C:\\Users\\You',
+      claimToken: TOKEN,
+      leaseExpiresAt: '2026-10-21T10:05:00.000Z',
+      attempt: '1/3',
+    });
     expect(discoveryService.claimQueueItem).toHaveBeenCalledWith(ID, 'w1', 300);
   });
 
-  it('complete_directory flattens children like the REST route', async () => {
+  it.each([
+    ['queue_empty', 'stop', null],
+    ['retry_backoff', 'wait', '2026-10-21T10:10:00.000Z'],
+    ['in_progress', 'wait', '2026-10-21T10:05:00.000Z'],
+  ])(
+    'claim_directory idle %s tells the agent to %s',
+    async (reason, next, retryAt) => {
+      const queueCounts = { queued: 0, in_progress: 0 };
+      (discoveryService.claimQueueItem as jest.Mock).mockResolvedValue({
+        item: null,
+        reason,
+        retryAt,
+        queueCounts,
+      });
+
+      const { body } = await call('claim_directory', {
+        jobId: ID,
+        workerId: 'w1',
+      });
+
+      expect(body).toEqual({
+        idle: reason,
+        next,
+        ...(retryAt ? { retryAt } : {}),
+        queueCounts,
+      });
+    },
+  );
+
+  it('complete_directory reports queued, excluded and already queued children', async () => {
     (discoveryService.completeItem as jest.Mock).mockResolvedValue({
       item: { id: ID, status: 'completed' },
-      children: [{ item: { id: 'c1' }, created: true }],
+      children: [
+        { item: { path: 'C:\\a', status: 'queued' }, created: true },
+        { item: { path: 'C:\\b', status: 'skipped' }, created: true },
+        { item: { path: 'C:\\c', status: 'queued' }, created: false },
+      ],
     });
 
     const { body } = await call('complete_directory', {
@@ -153,9 +204,10 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(body).toEqual({
-      id: ID,
       status: 'completed',
-      children: [{ id: 'c1', created: true }],
+      queued: ['C:\\a'],
+      excluded: ['C:\\b'],
+      alreadyQueued: 1,
     });
   });
 
@@ -216,7 +268,27 @@ describe('MCP endpoint (/mcp)', () => {
 
   it('propose_inventory_items passes the worker id and has no decision field', async () => {
     (discoveryService.proposeInventoryItems as jest.Mock).mockResolvedValue([
-      { inventoryItem: { id: ID }, created: true, changed: false },
+      {
+        inventoryItem: {
+          id: ID,
+          rootPath: 'C:\\Users\\You\\Documents',
+          decision: 'pending',
+          evidence: { observations: ['big'] },
+        },
+        created: true,
+        changed: false,
+        coveredBy: [
+          {
+            id: 'p1',
+            kind: 'directory',
+            rootPath: 'C:\\Users\\You',
+            displayName: 'You',
+            recommendation: 'back_up',
+            decision: 'approved',
+          },
+        ],
+        covers: [],
+      },
     ]);
 
     const { isError, body } = await call('propose_inventory_items', {
@@ -244,7 +316,23 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(isError).toBeFalsy();
-    expect(body).toEqual([{ id: ID, created: true, changed: false }]);
+    expect(body).toEqual([
+      {
+        id: ID,
+        rootPath: 'C:\\Users\\You\\Documents',
+        created: true,
+        changed: false,
+        decision: 'pending',
+        coveredBy: [
+          {
+            rootPath: 'C:\\Users\\You',
+            kind: 'directory',
+            decision: 'approved',
+          },
+        ],
+        covers: [],
+      },
+    ]);
     expect(discoveryService.proposeInventoryItems).toHaveBeenCalledWith(
       ID,
       TOKEN,
@@ -293,7 +381,7 @@ describe('MCP endpoint (/mcp)', () => {
     expect(names).not.toContain('record_discovered_items');
     expect(
       tools.find((t) => t.name === 'propose_inventory_items')?.description,
-    ).toMatch(/creates no queue items/);
+    ).toMatch(/queues nothing/i);
   });
 
   it('list_known_skips passes the source and filters through', async () => {
@@ -316,9 +404,54 @@ describe('MCP endpoint (/mcp)', () => {
 
   it('serves the agent playbook as server instructions', () => {
     expect(client.getInstructions()).toContain('inventory items');
-    expect(client.getInstructions()).toContain(
-      'inventory items are the only thing you record',
-    );
+    expect(client.getInstructions()).toContain('claim_directory');
+  });
+
+  it('keeps the playbook and tool descriptions short', async () => {
+    expect(client.getInstructions().length).toBeLessThanOrEqual(4000);
+
+    const { tools } = await client.listTools();
+    for (const tool of tools) {
+      expect(tool.description.length).toBeLessThanOrEqual(400);
+    }
+  });
+
+  it('list_inventory_items returns compact items and a cursor on a full page', async () => {
+    (discoveryService.listSourceInventoryItems as jest.Mock).mockResolvedValue([
+      {
+        id: ID,
+        rootPath: 'C:\\a',
+        normalizedRootPath: 'c:\\a',
+        kind: 'directory',
+        recommendation: 'back_up',
+        confidence: 'high',
+        decision: 'pending',
+        decisionNote: null,
+        summary: 'docs',
+        evidence: {},
+        decidedBy: null,
+      },
+    ]);
+
+    const { body } = await call('list_inventory_items', {
+      sourceId: ID,
+      limit: 1,
+    });
+
+    expect(body).toEqual({
+      items: [
+        {
+          id: ID,
+          rootPath: 'C:\\a',
+          kind: 'directory',
+          recommendation: 'back_up',
+          confidence: 'high',
+          decision: 'pending',
+          summary: 'docs',
+        },
+      ],
+      next: 'c:\\a',
+    });
   });
 
   it('reports a DiscoveryError as a tool error with details', async () => {
