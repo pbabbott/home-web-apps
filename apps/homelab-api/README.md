@@ -89,7 +89,6 @@ The agent's work loop, candidate proposals and exclusion rules are also exposed 
 | `complete_directory`        | `POST /queue-items/:id/complete`             |
 | `fail_directory`            | `POST /queue-items/:id/fail`                 |
 | `skip_directory`            | `POST /queue-items/:id/skip`                 |
-| `retry_directory`           | `POST /queue-items/:id/retry`                |
 | `list_exclusion_rules`      | `GET /exclusion-rules`                       |
 | `create_exclusion_rule`     | `POST /exclusion-rules` (source-scoped only) |
 

@@ -42,8 +42,7 @@ The agent's work loop, candidate proposals and exclusion rules are also exposed 
 | `complete_directory`        | `POST /queue-items/:id/complete`             |
 | `fail_directory`            | `POST /queue-items/:id/fail`                 |
 | `skip_directory`            | `POST /queue-items/:id/skip`                 |
-| `retry_directory`           | `POST /queue-items/:id/retry`                |
 | `list_exclusion_rules`      | `GET /exclusion-rules`                       |
 | `create_exclusion_rule`     | `POST /exclusion-rules` (source-scoped only) |
 
-Deliberately **not** exposed (human-only, REST): creating sources and jobs, enqueueing arbitrary paths, completing/cancelling/failing a job, global exclusion rules, editing or deleting rules, approving or rejecting candidates (the agent can only recommend), the audit log. Rules the agent creates are attributed to actor `openclaw` in the audit log. The agent works only inside a job a human started.
+Deliberately **not** exposed (human-only, REST): retrying a failed directory, creating sources and jobs, enqueueing arbitrary paths, completing/cancelling/failing a job, global exclusion rules, editing or deleting rules, approving or rejecting candidates (the agent can only recommend), the audit log. Rules the agent creates are attributed to actor `openclaw` in the audit log. The agent works only inside a job a human started.

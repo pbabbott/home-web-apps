@@ -203,16 +203,11 @@ export const skipQueueItem = handle(
 
 // Does: requeue a permanently failed directory for one more attempt. No
 // claimToken: it acts on a failed item nobody holds a lease on.
-// Who: human (home-hud retry button) and agent (retry_directory).
+// Who: human only (home-hud retry button). Deliberately not an MCP tool.
 export const retryQueueItemOperation = {
   summary: 'Retry a failed item',
   description:
     'Requeues a failed item for exactly one more attempt; attemptCount and lastError are kept. Only allowed while the item’s job is pending or running; a finished job’s failures are retried by starting a new job.',
-  mcp: {
-    name: 'retry_directory',
-    description:
-      'Requeue a permanently failed directory for exactly one more attempt.',
-  },
 } satisfies Operation;
 
 export const retryQueueItem = handle(

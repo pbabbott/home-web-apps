@@ -69,7 +69,6 @@ describe('MCP endpoint (/mcp)', () => {
       'list_known_skips',
       'list_review_candidates',
       'propose_review_candidates',
-      'retry_directory',
       'skip_directory',
     ]);
   });

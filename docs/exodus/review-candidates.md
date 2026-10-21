@@ -156,4 +156,3 @@ This API grants no filesystem access. The agent needs its own read-only access t
 - Guardrails check the shape of the evidence, not whether it is true.
 - No inheritance or override semantics between nested candidates; overlap is only reported (see [Nested candidates](#nested-candidates)).
 - The review UI ([`/exodus/candidates`](./ui.md)) handles one candidate at a time, with no bulk approve and no free-text search. There is no copy workflow yet; it will read approved candidates from `GET /sources/:id/review-candidates?decision=approved`.
-- `retry_directory` is still callable by the agent (see [Decisions](./decisions.md)).

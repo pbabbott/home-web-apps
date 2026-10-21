@@ -18,7 +18,6 @@ import {
   failQueueItemOperation,
   heartbeatQueueItemOperation,
   listKnownSkipsOperation,
-  retryQueueItemOperation,
   skipQueueItemOperation,
 } from './controllers/discovery/queue-items';
 import * as discoveryService from './services/discovery';
@@ -242,18 +241,6 @@ export const createMcpServer = (): McpServer => {
     ({ id, claimToken, reason }) =>
       run(skipQueueItemOperation.mcp.name, () =>
         discoveryService.skipItem(id, claimToken, reason),
-      ),
-  );
-
-  server.registerTool(
-    retryQueueItemOperation.mcp.name,
-    {
-      description: retryQueueItemOperation.mcp.description,
-      inputSchema: { id: queueItemId },
-    },
-    ({ id }) =>
-      run(retryQueueItemOperation.mcp.name, () =>
-        discoveryService.retryItem(id),
       ),
   );
 
