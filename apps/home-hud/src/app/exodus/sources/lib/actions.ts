@@ -2,11 +2,11 @@
 
 import { errorMessage } from './errors';
 import type {
-  CandidateDecision,
+  InventoryItemDecision,
   DiscoveryJob,
   ExclusionRule,
   ExclusionRuleScope,
-  ReviewCandidate,
+  InventoryItem,
   Source,
 } from './homelab-api';
 
@@ -104,16 +104,16 @@ export async function deleteExclusionRule(id: string): Promise<ActionResult> {
 }
 
 /**
- * A human's decision on a review candidate. Sent as the default (human) actor:
+ * A human's decision on an inventory item. Sent as the default (human) actor:
  * the API refuses anything else. An omitted note keeps the note when the
  * decision is unchanged and clears it when it changes.
  */
-export async function decideReviewCandidate(
+export async function decideInventoryItem(
   id: string,
-  decision: CandidateDecision,
+  decision: InventoryItemDecision,
   note?: string | null,
-): Promise<ActionResult<ReviewCandidate>> {
-  return patch<ReviewCandidate>(`/review-candidates/${id}/decision`, {
+): Promise<ActionResult<InventoryItem>> {
+  return patch<InventoryItem>(`/inventory-items/${id}/decision`, {
     decision,
     ...(note !== undefined ? { note } : {}),
   });

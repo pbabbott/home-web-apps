@@ -39,7 +39,7 @@ export default async function SourceDetailPage({ params }: PageProps) {
     return <SourceLoadError />;
   }
 
-  const source = sources.find((candidate) => candidate.id === id);
+  const source = sources.find((s) => s.id === id);
 
   if (!source) notFound();
 

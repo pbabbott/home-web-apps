@@ -5,16 +5,16 @@ export type AuditEventType =
   | 'exclusion_rule.updated'
   | 'exclusion_rule.deleted'
   | 'queue_items.excluded'
-  | 'review_candidate.created'
-  | 'review_candidate.recommendation_changed'
-  | 'review_candidate.decision_changed';
+  | 'inventory_item.created'
+  | 'inventory_item.recommendation_changed'
+  | 'inventory_item.decision_changed';
 
 export interface AuditEvent {
   id: string;
   sourceId: string | null;
   jobId: string | null;
   exclusionRuleId: string | null;
-  reviewCandidateId: string | null;
+  inventoryItemId: string | null;
   eventType: AuditEventType;
   actorType: 'human' | 'openclaw' | 'system';
   actorId: string | null;

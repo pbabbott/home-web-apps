@@ -7,10 +7,10 @@ jest.mock('../../src/services/discovery', () => {
 
   return {
     DiscoveryError: actual.DiscoveryError,
-    proposeCandidates: jest.fn(),
-    listSourceReviewCandidates: jest.fn(),
-    getReviewCandidate: jest.fn(),
-    decideReviewCandidate: jest.fn(),
+    proposeInventoryItems: jest.fn(),
+    listSourceInventoryItems: jest.fn(),
+    getInventoryItem: jest.fn(),
+    decideInventoryItem: jest.fn(),
     completeItem: jest.fn(),
   };
 });
@@ -30,7 +30,7 @@ const cleanGit = {
   ignoredFilesOfNote: false,
 };
 
-const candidate = (overrides: Record<string, unknown> = {}) => ({
+const inventoryItem = (overrides: Record<string, unknown> = {}) => ({
   rootPath: 'C:\\code\\project-a',
   kind: 'directory',
   summary: 'A project',
@@ -49,17 +49,17 @@ const candidate = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const withGit = (git: unknown, overrides: Record<string, unknown> = {}) =>
-  candidate({
-    evidence: { ...candidate().evidence, git, reproducible: 'yes' },
+  inventoryItem({
+    evidence: { ...inventoryItem().evidence, git, reproducible: 'yes' },
     ...overrides,
   });
 
-const propose = (candidates: unknown[]) =>
+const propose = (inventoryItems: unknown[]) =>
   supertest(createServer())
-    .post(`/queue-items/${ID}/review-candidates`)
-    .send({ claimToken: TOKEN, workerId: 'w1', candidates });
+    .post(`/queue-items/${ID}/inventory-items`)
+    .send({ claimToken: TOKEN, workerId: 'w1', inventoryItems });
 
-describe('review candidate routes', () => {
+describe('inventory item routes', () => {
   let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -71,16 +71,16 @@ describe('review candidate routes', () => {
     jest.resetAllMocks();
   });
 
-  describe('POST /queue-items/:id/review-candidates', () => {
+  describe('POST /queue-items/:id/inventory-items', () => {
     it('flattens results with created and changed flags', async () => {
-      mocked.proposeCandidates.mockResolvedValue([
-        { candidate: { id: ID }, created: true, changed: false },
+      mocked.proposeInventoryItems.mockResolvedValue([
+        { inventoryItem: { id: ID }, created: true, changed: false },
       ] as never);
 
-      const res = await propose([candidate()]).expect(200);
+      const res = await propose([inventoryItem()]).expect(200);
 
       expect(res.body).toEqual([{ id: ID, created: true, changed: false }]);
-      expect(mocked.proposeCandidates).toHaveBeenCalledWith(
+      expect(mocked.proposeInventoryItems).toHaveBeenCalledWith(
         ID,
         TOKEN,
         'w1',
@@ -90,9 +90,9 @@ describe('review candidate routes', () => {
 
     it('passes coveredBy and covers through', async () => {
       const nested = [{ id: ID, rootPath: 'C:\\code' }];
-      mocked.proposeCandidates.mockResolvedValue([
+      mocked.proposeInventoryItems.mockResolvedValue([
         {
-          candidate: { id: ID },
+          inventoryItem: { id: ID },
           created: true,
           changed: false,
           coveredBy: nested,
@@ -100,22 +100,22 @@ describe('review candidate routes', () => {
         },
       ] as never);
 
-      const res = await propose([candidate()]).expect(200);
+      const res = await propose([inventoryItem()]).expect(200);
 
       expect(res.body[0].coveredBy).toEqual(nested);
       expect(res.body[0].covers).toEqual([]);
     });
 
     it('rejects low confidence for back_up and skip but allows needs_review', async () => {
-      await propose([candidate({ confidence: 'low' })]).expect(400);
+      await propose([inventoryItem({ confidence: 'low' })]).expect(400);
       await propose([
-        candidate({ recommendation: 'skip', confidence: 'low' }),
+        inventoryItem({ recommendation: 'skip', confidence: 'low' }),
       ]).expect(400);
-      expect(mocked.proposeCandidates).not.toHaveBeenCalled();
+      expect(mocked.proposeInventoryItems).not.toHaveBeenCalled();
 
-      mocked.proposeCandidates.mockResolvedValue([] as never);
+      mocked.proposeInventoryItems.mockResolvedValue([] as never);
       await propose([
-        candidate({ recommendation: 'needs_review', confidence: 'low' }),
+        inventoryItem({ recommendation: 'needs_review', confidence: 'low' }),
       ]).expect(200);
     });
 
@@ -138,11 +138,11 @@ describe('review candidate routes', () => {
           { recommendation: 'skip', confidence: 'high' },
         ),
       ]).expect(400);
-      expect(mocked.proposeCandidates).not.toHaveBeenCalled();
+      expect(mocked.proposeInventoryItems).not.toHaveBeenCalled();
     });
 
     it('allows skipping a repo only when its clean state is known', async () => {
-      mocked.proposeCandidates.mockResolvedValue([] as never);
+      mocked.proposeInventoryItems.mockResolvedValue([] as never);
 
       await propose([
         withGit(cleanGit, { recommendation: 'skip', confidence: 'high' }),
@@ -150,7 +150,7 @@ describe('review candidate routes', () => {
     });
 
     it('allows needs_review for a public repo with unknown local state', async () => {
-      mocked.proposeCandidates.mockResolvedValue([] as never);
+      mocked.proposeInventoryItems.mockResolvedValue([] as never);
 
       await propose([
         withGit(
@@ -168,87 +168,86 @@ describe('review candidate routes', () => {
     });
 
     it('rejects bad paths, empty batches and oversized batches', async () => {
-      await propose([candidate({ rootPath: 'relative\\path' })]).expect(400);
+      await propose([inventoryItem({ rootPath: 'relative\\path' })]).expect(
+        400,
+      );
       await propose([]).expect(400);
-      await propose(Array.from({ length: 11 }, () => candidate())).expect(400);
+      await propose(Array.from({ length: 11 }, () => inventoryItem())).expect(
+        400,
+      );
     });
 
     it('ignores a decision field: the agent cannot approve or reject', async () => {
-      mocked.proposeCandidates.mockResolvedValue([] as never);
+      mocked.proposeInventoryItems.mockResolvedValue([] as never);
 
-      await propose([candidate({ decision: 'approved' })]).expect(200);
+      await propose([inventoryItem({ decision: 'approved' })]).expect(200);
 
-      const sent = mocked.proposeCandidates.mock.calls[0][3][0];
+      const sent = mocked.proposeInventoryItems.mock.calls[0][3][0];
       expect(sent).not.toHaveProperty('decision');
     });
 
     it('maps exclusion and claim conflicts to 409 with details', async () => {
-      mocked.proposeCandidates.mockRejectedValue(
+      mocked.proposeInventoryItems.mockRejectedValue(
         new service.DiscoveryError('conflict', 'excluded', {
           blocked: [{ path: 'C:\\Windows', state: 'excluded', ruleIds: ['r'] }],
         }),
       );
 
-      const res = await propose([candidate()]).expect(409);
+      const res = await propose([inventoryItem()]).expect(409);
 
       expect(res.body.blocked).toHaveLength(1);
     });
   });
 
-  describe('GET /sources/:id/review-candidates', () => {
+  describe('GET /sources/:id/inventory-items', () => {
     it('passes filters and defaults the limit', async () => {
-      mocked.listSourceReviewCandidates.mockResolvedValue([]);
+      mocked.listSourceInventoryItems.mockResolvedValue([]);
 
       await supertest(createServer())
         .get(
-          `/sources/${SOURCE_ID}/review-candidates?recommendation=back_up&decision=pending&jobId=${ID}`,
+          `/sources/${SOURCE_ID}/inventory-items?recommendation=back_up&decision=pending&jobId=${ID}`,
         )
         .expect(200);
 
-      expect(mocked.listSourceReviewCandidates).toHaveBeenCalledWith(
-        SOURCE_ID,
-        {
-          recommendation: 'back_up',
-          decision: 'pending',
-          jobId: ID,
-          limit: 100,
-        },
-      );
+      expect(mocked.listSourceInventoryItems).toHaveBeenCalledWith(SOURCE_ID, {
+        recommendation: 'back_up',
+        decision: 'pending',
+        jobId: ID,
+        limit: 100,
+      });
     });
 
     it('rejects unknown filter values', async () => {
       await supertest(createServer())
-        .get(`/sources/${SOURCE_ID}/review-candidates?decision=maybe`)
+        .get(`/sources/${SOURCE_ID}/inventory-items?decision=maybe`)
         .expect(400);
       await supertest(createServer())
-        .get(`/sources/${SOURCE_ID}/review-candidates?recommendation=keep`)
+        .get(`/sources/${SOURCE_ID}/inventory-items?recommendation=keep`)
         .expect(400);
     });
   });
 
-  describe('GET /review-candidates/:id', () => {
-    it('returns 404 for a missing candidate', async () => {
-      mocked.getReviewCandidate.mockRejectedValue(
-        new service.DiscoveryError('not_found', 'review candidate not found'),
+  describe('GET /inventory-items/:id', () => {
+    it('returns 404 for a missing inventory item', async () => {
+      mocked.getInventoryItem.mockRejectedValue(
+        new service.DiscoveryError('not_found', 'inventory item not found'),
       );
 
-      await supertest(createServer())
-        .get(`/review-candidates/${ID}`)
-        .expect(404);
+      await supertest(createServer()).get(`/inventory-items/${ID}`).expect(404);
     });
   });
 
-  describe('PATCH /review-candidates/:id/decision', () => {
+  describe('PATCH /inventory-items/:id/decision', () => {
     it('applies the decision with the actor', async () => {
-      mocked.decideReviewCandidate.mockResolvedValue({ id: ID } as never);
+      mocked.decideInventoryItem.mockResolvedValue({ id: ID } as never);
 
       await supertest(createServer())
-        .patch(`/review-candidates/${ID}/decision`)
+        .patch(`/inventory-items/${ID}/decision`)
         .set('X-Actor-Id', 'brandon')
         .send({ decision: 'approved', note: 'tax records' })
         .expect(200);
 
-      expect(mocked.decideReviewCandidate).toHaveBeenCalledWith(
+      expect(mocked.decideInventoryItem).toHaveBeenCalledWith(
         ID,
         { decision: 'approved', note: 'tax records' },
         { type: 'human', id: 'brandon' },
@@ -256,12 +255,12 @@ describe('review candidate routes', () => {
     });
 
     it('passes a non-human actor through so the service can refuse it', async () => {
-      mocked.decideReviewCandidate.mockRejectedValue(
+      mocked.decideInventoryItem.mockRejectedValue(
         new service.DiscoveryError('conflict', 'only a human can decide'),
       );
 
       await supertest(createServer())
-        .patch(`/review-candidates/${ID}/decision`)
+        .patch(`/inventory-items/${ID}/decision`)
         .set('X-Actor-Type', 'openclaw')
         .send({ decision: 'approved' })
         .expect(409);
@@ -269,11 +268,11 @@ describe('review candidate routes', () => {
 
     it('rejects an unknown decision', async () => {
       await supertest(createServer())
-        .patch(`/review-candidates/${ID}/decision`)
+        .patch(`/inventory-items/${ID}/decision`)
         .send({ decision: 'maybe' })
         .expect(400);
 
-      expect(mocked.decideReviewCandidate).not.toHaveBeenCalled();
+      expect(mocked.decideInventoryItem).not.toHaveBeenCalled();
     });
   });
 

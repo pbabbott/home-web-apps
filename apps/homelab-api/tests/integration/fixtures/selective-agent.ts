@@ -135,10 +135,10 @@ export const evidence = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-type Candidate = Record<string, unknown>;
+type InventoryItem = Record<string, unknown>;
 
 /** The fixed judgment the scripted agent applies to one child. */
-const judge = (path: string, node: FsNode): Candidate | null => {
+const judge = (path: string, node: FsNode): InventoryItem | null => {
   switch (node.kind) {
     case 'personal':
       return {
@@ -234,7 +234,7 @@ export type AgentRun = {
 
 /**
  * Drains a job like a selective agent: at each claimed directory it skips
- * system paths (recording why), proposes candidates for logical backup units
+ * system paths (recording why), proposes inventory items for logical backup units
  * without descending into them, and queues only container directories.
  */
 export const runSelectiveAgent = async (jobId: string): Promise<AgentRun> => {
@@ -250,7 +250,7 @@ export const runSelectiveAgent = async (jobId: string): Promise<AgentRun> => {
 
     run.visited.push(item.path);
     const node = lookup(item.path);
-    const candidates: Candidate[] = [];
+    const inventoryItems: InventoryItem[] = [];
     const followUps: { path: string; reason: string }[] = [];
     const skipped: { path: string; reason: string }[] = [];
 
@@ -263,18 +263,18 @@ export const runSelectiveAgent = async (jobId: string): Promise<AgentRun> => {
         } else if (child.kind === 'container') {
           followUps.push({ path, reason: 'may contain user data' });
         } else {
-          candidates.push(judge(path, child) as Candidate);
+          inventoryItems.push(judge(path, child) as InventoryItem);
         }
       }
     }
 
-    if (candidates.length > 0) {
+    if (inventoryItems.length > 0) {
       const res = await getRequest()
-        .post(`/queue-items/${item.id}/review-candidates`)
+        .post(`/queue-items/${item.id}/inventory-items`)
         .send({
           claimToken: item.claimToken,
           workerId: 'fixture-agent',
-          candidates,
+          inventoryItems,
         })
         .expect(200);
       for (const c of res.body) {

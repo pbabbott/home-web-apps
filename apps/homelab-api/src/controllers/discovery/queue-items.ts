@@ -128,7 +128,7 @@ export const completeQueueItemOperation = {
   mcp: {
     name: 'complete_directory',
     description:
-      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into a candidate. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason, and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
+      'Mark a claimed directory as inspected. Pass discoveredPaths ONLY for subdirectories that need more investigation, each ideally as { path, reason }; do not list every child and never list the inside of a project/repository you already turned into an inventory item. Put paths you deliberately did not explore (system, generated, replaceable) in `skipped` with a reason, and a one-line `summary` of what you concluded. Follow-ups are enqueued atomically; any under an exclusion rule come back already skipped.',
   },
 } satisfies Operation;
 

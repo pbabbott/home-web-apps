@@ -2,7 +2,7 @@ import {
   sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
-  reviewCandidateSelectSchema,
+  inventoryItemSelectSchema,
 } from './discovery';
 import { retryDelaySeconds } from '../queries/discovery';
 
@@ -119,7 +119,7 @@ describe('retryDelaySeconds', () => {
   });
 });
 
-describe('reviewCandidateSelectSchema', () => {
+describe('inventoryItemSelectSchema', () => {
   const row = {
     id,
     sourceId: id,
@@ -153,27 +153,25 @@ describe('reviewCandidateSelectSchema', () => {
     updatedAt: new Date(),
   };
 
-  it('accepts a pending candidate', () => {
-    expect(reviewCandidateSelectSchema.safeParse(row).success).toBe(true);
+  it('accepts a pending inventory item', () => {
+    expect(inventoryItemSelectSchema.safeParse(row).success).toBe(true);
   });
 
   it.each(['back_up', 'skip', 'needs_review'])(
     'accepts recommendation %s',
     (recommendation) => {
       expect(
-        reviewCandidateSelectSchema.safeParse({ ...row, recommendation })
-          .success,
+        inventoryItemSelectSchema.safeParse({ ...row, recommendation }).success,
       ).toBe(true);
     },
   );
 
   it('rejects an unknown confidence or decision', () => {
     expect(
-      reviewCandidateSelectSchema.safeParse({ ...row, confidence: 0.9 })
-        .success,
+      inventoryItemSelectSchema.safeParse({ ...row, confidence: 0.9 }).success,
     ).toBe(false);
     expect(
-      reviewCandidateSelectSchema.safeParse({ ...row, decision: 'maybe' })
+      inventoryItemSelectSchema.safeParse({ ...row, decision: 'maybe' })
         .success,
     ).toBe(false);
   });

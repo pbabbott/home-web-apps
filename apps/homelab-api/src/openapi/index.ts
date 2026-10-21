@@ -3,7 +3,7 @@ import { auditEventsPaths } from './discovery/audit-events';
 import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
-import { reviewCandidatesPaths } from './discovery/review-candidates';
+import { inventoryItemsPaths } from './discovery/inventory-items';
 import { sourcesPaths } from './discovery/sources';
 import { healthPaths } from './health';
 import { hostsPaths } from './hosts';
@@ -33,7 +33,7 @@ export const openApiSpec = createDocument({
     ...discoveryJobsPaths,
     ...queueItemsPaths,
     ...exclusionRulesPaths,
-    ...reviewCandidatesPaths,
+    ...inventoryItemsPaths,
     ...auditEventsPaths,
     ...hostsPaths,
   },

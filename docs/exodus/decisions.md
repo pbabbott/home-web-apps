@@ -4,9 +4,9 @@
 
 ## Decisions and gotchas worth knowing
 
-- **Inventory was removed (migration `0011`).** Once review candidates existed, `inventory_items` had no reader: the agent was told not to catalogue, the copy workflow takes its scope from approved candidates, and the one automatic write (the job root) only fed the inventory browser. The table, its routes, the `record_discovered_items` tool, the home-hud page and the audit `inventory_item_id` column were dropped, the legacy `inventory_item.review_*` audit events were deleted, and the `inventory_item_type` enum became `candidate_kind` because candidates still use it. Reviewed rows had already moved to candidates in `0010`. If per-object metadata is ever needed again, it should come from the copy job or the agent's own filesystem access, not stored rows.
+- **The per-path catalogue was removed (migration `0011`), then "review candidates" were renamed "inventory items" (migration `0012`).** Once review candidates existed, the old `inventory_items` catalogue had no reader: the agent was told not to catalogue, the copy workflow takes its scope from approved items, and the one automatic write (the job root) only fed the catalogue browser. That table, its routes, the `record_discovered_items` tool, the home-hud page and the audit `inventory_item_id` column were dropped in `0011`; reviewed rows had already moved to review candidates in `0010`. The name "inventory" fit the surviving entity better, so `0012` renamed it in place (table, enums, constraints, indexes, audit column and event types, REST paths, MCP tools, UI route) with no behaviour change. If per-object metadata is ever needed again, it should come from the copy job or the agent's own filesystem access, not stored rows.
 - **"Everything beneath it" filters the folder itself out on the page, not in the API.** The API's path-prefix filter includes the prefix path itself, so a full page can show 99 rows. The next-page decision uses the raw row count, so a short page never hides the Next link.
-- **The queue belongs to the job.** Each job explores from its own root with its own items, counts and completion check, so `queueCounts` describe that job exactly. What earlier jobs found is not lost: it lives in `review_candidates`, which are keyed by source and updated on rediscovery. (Migration `0006` replaced an earlier source-wide queue where a new job inherited a cancelled job's leftovers.)
+- **The queue belongs to the job.** Each job explores from its own root with its own items, counts and completion check, so `queueCounts` describe that job exactly. What earlier jobs found is not lost: it lives in `inventory_items`, which are keyed by source and updated on rediscovery. (Migration `0006` replaced an earlier source-wide queue where a new job inherited a cancelled job's leftovers.)
 - **No UI for failing a job by hand.** `POST /discovery-jobs/:id/fail` exists as a REST route (it is not an MCP tool, so the agent cannot call it); the UI offers Complete and Cancel only.
 - **Retry is human-only (REST), not an MCP tool.** `POST /queue-items/:id/retry` takes no `claimToken`, so exposing it would let any MCP client requeue any failed item, and retry is meant to be one extra attempt per human request. The `retry_directory` tool was dropped (issue #216).
 - **Known small risks:** `claimToken` is visible in queue item listings, and there is no authentication, including on `/mcp`.
@@ -16,16 +16,16 @@
 
 ## Learnings
 
-Things that were not obvious while building the job-scoped queue and its stored results (including the since-removed inventory). Most are about Postgres, Drizzle or the test setup, and would otherwise be rediscovered the hard way.
+Things that were not obvious while building the job-scoped queue and its stored results (including the since-removed per-path catalogue). Most are about Postgres, Drizzle or the test setup, and would otherwise be rediscovered the hard way.
 
 ### Modelling
 
-- **Keep job and queue item separate.** A job is a user-requested run and owns the lifecycle; a queue item is one directory within that job and tracks only its own work. The first design made the queue source-wide (nullable `job_id` meaning "last job that touched it", dedupe per source, claims re-stamping items). That blurred the boundary and made `queueCounts` describe the source rather than the job, so it was replaced. Anything that must be remembered across jobs belongs in review candidates, keyed by source.
+- **Keep job and queue item separate.** A job is a user-requested run and owns the lifecycle; a queue item is one directory within that job and tracks only its own work. The first design made the queue source-wide (nullable `job_id` meaning "last job that touched it", dedupe per source, claims re-stamping items). That blurred the boundary and made `queueCounts` describe the source rather than the job, so it was replaced. Anything that must be remembered across jobs belongs in inventory items, keyed by source.
 - **Derive instead of duplicating.** Queue items dropped `source_id` because the job already knows it. Queries that filter by source join through `discovery_jobs`.
 - **Identity vs. display.** Every path-bearing table stores `path` (as typed, drive letter uppercased) next to `normalized_path` (lowercased). Dedupe uses the normalized column. Rediscovery overwrites the display form, so `c:/users/you/REPORT.PDF` after `Report.pdf` shows `C:\users\you\REPORT.PDF` on the same row.
-- **Overwrite only what you own.** The candidate upsert lists only the agent-owned columns it updates; the human `decision*` columns are never in a `set`, so rediscovery cannot reset a decision. Adding a decision column to a `set` list would be the bug.
-- **`first_*` / `last_*` instead of one `job_id`.** `first_job_id` and `last_job_id` answer "who found this" and "who last saw this" separately; `first_seen_at` and `last_seen_at` do the same for time. Both job columns are `SET NULL` so deleting a job never deletes candidates.
-- **Take ownership from the claim, not the request.** Proposing candidates looks up the source and job from the claimed queue item. A client cannot write into another source's candidates even if it sends `sourceId` in the body (the field is ignored).
+- **Overwrite only what you own.** The inventory item upsert lists only the agent-owned columns it updates; the human `decision*` columns are never in a `set`, so rediscovery cannot reset a decision. Adding a decision column to a `set` list would be the bug.
+- **`first_*` / `last_*` instead of one `job_id`.** `first_job_id` and `last_job_id` answer "who found this" and "who last saw this" separately; `first_seen_at` and `last_seen_at` do the same for time. Both job columns are `SET NULL` so deleting a job never deletes inventory items.
+- **Take ownership from the claim, not the request.** Proposing inventory items looks up the source and job from the claimed queue item. A client cannot write into another source's inventory items even if it sends `sourceId` in the body (the field is ignored).
 
 ### Postgres and Drizzle
 
@@ -40,7 +40,7 @@ Things that were not obvious while building the job-scoped queue and its stored 
 
 ### Concurrency and locking
 
-- **Overlapping multi-row upserts deadlock unless they lock in the same order.** Two workers writing overlapping batches in opposite orders hit `deadlock detected` (found with the since-removed inventory upsert: HTTP 500, 11 of 40 probe requests). Candidate batches are written in normalized-path order, so every transaction locks rows in the same order.
+- **Overlapping multi-row upserts deadlock unless they lock in the same order.** Two workers writing overlapping batches in opposite orders hit `deadlock detected` (found with the since-removed per-path catalogue upsert: HTTP 500, 11 of 40 probe requests). Inventory item batches are written in normalized-path order, so every transaction locks rows in the same order.
 - **Take the job row lock first, then item rows.** `claim`, `complete job`, `enqueue`, and `complete item` all lock the job row before touching items (claim, complete-job: `FOR NO KEY UPDATE`; enqueue, complete-item: `FOR SHARE`), and `cancel`/`fail` get the same lock from their `UPDATE`. One lock order means no deadlock between them, and it closes two races found by probing: a cancel interleaving with a claim (leaving an item in progress on a cancelled job, or resurrecting the job to `running`) and a completion interleaving with an enqueue (leaving queued work on a completed job).
 - **Do not combine `FOR SHARE` with an update of the same row in the same transaction across many workers.** Two claimers each holding a share lock and each wanting to update the job to `running` would deadlock, which is why claim uses `FOR NO KEY UPDATE` (self-conflicting, so claimers queue up) instead. `FOR NO KEY UPDATE` also does not block the foreign-key check that inserting queue items does against the job row, where plain `FOR UPDATE` would.
 - **A guard in the `WHERE` beats a check-then-write.** Every item mutation goes through `activeClaim`, which includes `exists (select 1 from discovery_jobs … status in ('pending','running'))`, so job status, token, state and lease are all verified by the same statement that writes. Retry uses the same job guard.
@@ -48,7 +48,7 @@ Things that were not obvious while building the job-scoped queue and its stored 
 
 ### HTTP and API
 
-- **The body limit is 100 kb.** `configureBaseServerMiddleware` uses `json()` with the Node default, so a body that is too large becomes a 413 that this API surfaces as a 500. Candidate batches are capped at 10. The existing `POST /discovery-jobs/:id/queue-items` allows 1000 paths and could hit the same limit with long paths.
+- **The body limit is 100 kb.** `configureBaseServerMiddleware` uses `json()` with the Node default, so a body that is too large becomes a 413 that this API surfaces as a 500. Inventory item batches are capped at 10. The existing `POST /discovery-jobs/:id/queue-items` allows 1000 paths and could hit the same limit with long paths.
 - **A claim with nothing to give is still `200`.** A bare `204` could not tell a worker to stop from a worker to wait. The body carries `reason`, `retryAt` and the job's `queueCounts`; success is `{ item }`.
 - **A path must lie inside the claimed directory** (strictly, not the directory itself) to be recorded. Rejecting the whole batch with 409 and listing the offending paths keeps a buggy worker from half-recording a directory.
 - **Duplicate OpenAPI keys fail the typecheck.** A path object can only appear once in `openapi.ts`; adding `get` to a path that already has `post` means merging into the existing entry.
@@ -56,7 +56,7 @@ Things that were not obvious while building the job-scoped queue and its stored 
 ### Testing
 
 - **Mocked-route unit tests need every new service function in the `jest.mock` factory** in `tests/unit/discovery.unit.test.ts`, or the route throws on an undefined function.
-- **The integration suite runs against the real dev database** and deletes what it creates by deleting sources (jobs, queue items and candidates cascade). A test that creates data another way must clean it up itself.
+- **The integration suite runs against the real dev database** and deletes what it creates by deleting sources (jobs, queue items and inventory items cascade). A test that creates data another way must clean it up itself.
 - **Simulate time by editing rows.** Lease expiry and retry backoff are tested by updating `lease_expires_at` / `available_at` directly rather than sleeping.
 - **Prove "does not reset" by backdating.** To check that `first_seen_at` survives rediscovery, backdate it first; otherwise a reset to `now()` is indistinguishable from the original.
 - **Rebuild `homelab-db` after changing it** (`pnpm build`), because `homelab-api` runs against `dist/`, including under Jest.

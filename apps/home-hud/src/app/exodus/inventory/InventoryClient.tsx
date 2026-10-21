@@ -18,7 +18,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import {
-  candidatesUrl,
+  inventoryItemsUrl,
   changedSinceDecision,
   DECISION_COLOR,
   DECISION_LABELS,
@@ -27,41 +27,41 @@ import {
   RECOMMENDATION_COLOR,
   RECOMMENDATION_LABELS,
   type DecisionFilter,
-} from '../lib/candidate-display';
+} from '../lib/inventory-display';
 import { formatDateTime } from '../lib/job-display';
-import { decideReviewCandidate } from '../sources/lib/actions';
+import { decideInventoryItem } from '../sources/lib/actions';
 import type {
-  CandidateDecision,
-  CandidateRecommendation,
-  ReviewCandidate,
+  InventoryItemDecision,
+  InventoryItemRecommendation,
+  InventoryItem,
 } from '../sources/lib/homelab-api';
-import { CandidateDetailModal } from './CandidateDetailModal';
+import { InventoryItemDetailModal } from './InventoryItemDetailModal';
 
-interface CandidatesClientProps {
+interface InventoryClientProps {
   /** Null if the sources could not be loaded. */
   sources: { id: string; name: string }[] | null;
   /** The source being reviewed; null if there are none. */
   sourceId: string | null;
   decision: DecisionFilter;
-  recommendation: CandidateRecommendation | undefined;
+  recommendation: InventoryItemRecommendation | undefined;
   isFirstPage: boolean;
-  /** Null if the candidates could not be loaded. */
-  candidates: ReviewCandidate[] | null;
+  /** Null if the inventory items could not be loaded. */
+  inventoryItems: InventoryItem[] | null;
   nextCursor: string | null;
 }
 
 const selectClass =
   'border border-neutral-300 bg-neutral-600 px-2 py-1.5 text-neutral-50 focus:outline-none focus:ring-0';
 
-export function CandidatesClient({
+export function InventoryClient({
   sources,
   sourceId,
   decision,
   recommendation,
   isFirstPage,
-  candidates,
+  inventoryItems,
   nextCursor,
-}: CandidatesClientProps) {
+}: InventoryClientProps) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -69,20 +69,20 @@ export function CandidatesClient({
 
   const view = { source: sourceId ?? undefined, decision, recommendation };
   // Looked up by id so the modal shows fresh data after a refresh.
-  const open = candidates?.find((c) => c.id === openId) ?? null;
+  const open = inventoryItems?.find((c) => c.id === openId) ?? null;
 
   async function quickDecide(
-    candidate: ReviewCandidate,
-    next: CandidateDecision,
+    inventoryItem: InventoryItem,
+    next: InventoryItemDecision,
   ) {
-    setBusyId(candidate.id);
+    setBusyId(inventoryItem.id);
     setError(null);
 
-    const result = await decideReviewCandidate(candidate.id, next);
+    const result = await decideInventoryItem(inventoryItem.id, next);
     setBusyId(null);
 
     if (!result.ok) {
-      setError(`${candidate.displayName}: ${result.error}`);
+      setError(`${inventoryItem.displayName}: ${result.error}`);
       return;
     }
 
@@ -93,7 +93,7 @@ export function CandidatesClient({
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
       <div className="flex flex-col gap-2">
         <Typography variant="h1" component="h1">
-          Review Candidates
+          Inventory
         </Typography>
         <Typography variant="body2" className="text-neutral-400">
           Backup units the agent proposes. Its recommendation is advice only:
@@ -115,7 +115,7 @@ export function CandidatesClient({
           >
             Add one
           </Link>{' '}
-          and run a discovery job to get candidates.
+          and run a discovery job to get inventoryItems.
         </Typography>
       ) : (
         <div className="flex flex-wrap items-center gap-4">
@@ -126,7 +126,9 @@ export function CandidatesClient({
             <select
               value={sourceId}
               onChange={(e) =>
-                router.push(candidatesUrl({ ...view, source: e.target.value }))
+                router.push(
+                  inventoryItemsUrl({ ...view, source: e.target.value }),
+                )
               }
               className={selectClass}
             >
@@ -146,7 +148,7 @@ export function CandidatesClient({
               value={decision}
               onChange={(e) =>
                 router.push(
-                  candidatesUrl({
+                  inventoryItemsUrl({
                     ...view,
                     decision: parseDecisionFilter(e.target.value),
                   }),
@@ -169,7 +171,7 @@ export function CandidatesClient({
               value={recommendation ?? ''}
               onChange={(e) =>
                 router.push(
-                  candidatesUrl({
+                  inventoryItemsUrl({
                     ...view,
                     recommendation: parseRecommendation(e.target.value),
                   }),
@@ -205,17 +207,17 @@ export function CandidatesClient({
             </Typography>
           )}
 
-          {candidates === null ? (
+          {inventoryItems === null ? (
             <Typography variant="body2" className="text-error-400">
-              Failed to load review candidates from homelab-api.
+              Failed to load inventory items from homelab-api.
             </Typography>
-          ) : candidates.length === 0 ? (
+          ) : inventoryItems.length === 0 ? (
             <Typography variant="body2" className="text-neutral-400">
               {!isFirstPage
-                ? 'No more candidates.'
+                ? 'No more inventory items.'
                 : decision === 'pending' && !recommendation
                   ? 'Nothing waiting for review.'
-                  : 'No candidates match these filters.'}
+                  : 'No inventory items match these filters.'}
             </Typography>
           ) : (
             <ScrollableTable className="mb-0">
@@ -234,75 +236,77 @@ export function CandidatesClient({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {candidates.map((candidate) => (
-                    <TableRow key={candidate.id}>
+                  {inventoryItems.map((inventoryItem) => (
+                    <TableRow key={inventoryItem.id}>
                       <Td className="break-all">
                         <button
                           type="button"
-                          onClick={() => setOpenId(candidate.id)}
+                          onClick={() => setOpenId(inventoryItem.id)}
                           className="text-left text-primary-400 hover:underline"
                         >
-                          {candidate.rootPath}
+                          {inventoryItem.rootPath}
                         </button>
                         <Typography
                           variant="small"
                           className="text-neutral-400"
                         >
-                          {candidate.summary}
+                          {inventoryItem.summary}
                         </Typography>
                       </Td>
                       <Td>
                         <Badge
                           color={
-                            candidate.kind === 'file' ? 'dark' : 'secondary'
+                            inventoryItem.kind === 'file' ? 'dark' : 'secondary'
                           }
                         >
-                          {candidate.kind === 'file' ? 'file' : 'folder'}
+                          {inventoryItem.kind === 'file' ? 'file' : 'folder'}
                         </Badge>
                       </Td>
                       <Td>
                         <Badge
-                          color={RECOMMENDATION_COLOR[candidate.recommendation]}
+                          color={
+                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
+                          }
                         >
-                          {RECOMMENDATION_LABELS[candidate.recommendation]}
+                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
                         </Badge>
                       </Td>
-                      <Td>{candidate.confidence}</Td>
+                      <Td>{inventoryItem.confidence}</Td>
                       <Td>
                         <div className="flex flex-wrap items-center gap-1">
-                          <Badge color={DECISION_COLOR[candidate.decision]}>
-                            {DECISION_LABELS[candidate.decision]}
+                          <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                            {DECISION_LABELS[inventoryItem.decision]}
                           </Badge>
-                          {changedSinceDecision(candidate) && (
+                          {changedSinceDecision(inventoryItem) && (
                             <Badge color="warning">Agent changed</Badge>
                           )}
                         </div>
                       </Td>
-                      <Td>{formatDateTime(candidate.recommendedAt)}</Td>
+                      <Td>{formatDateTime(inventoryItem.recommendedAt)}</Td>
                       <Td>
                         <div className="flex flex-wrap gap-2">
                           <OutlinedButton
                             size="small"
-                            onClick={() => setOpenId(candidate.id)}
+                            onClick={() => setOpenId(inventoryItem.id)}
                           >
                             Details
                           </OutlinedButton>
-                          {candidate.decision === 'pending' && (
+                          {inventoryItem.decision === 'pending' && (
                             <>
                               <Button
                                 size="small"
-                                disabled={busyId === candidate.id}
+                                disabled={busyId === inventoryItem.id}
                                 onClick={() =>
-                                  quickDecide(candidate, 'approved')
+                                  quickDecide(inventoryItem, 'approved')
                                 }
                               >
                                 Approve
                               </Button>
                               <OutlinedButton
                                 size="small"
-                                disabled={busyId === candidate.id}
+                                disabled={busyId === inventoryItem.id}
                                 onClick={() =>
-                                  quickDecide(candidate, 'rejected')
+                                  quickDecide(inventoryItem, 'rejected')
                                 }
                               >
                                 Reject
@@ -318,13 +322,13 @@ export function CandidatesClient({
             </ScrollableTable>
           )}
 
-          {candidates !== null && (!isFirstPage || nextCursor) && (
+          {inventoryItems !== null && (!isFirstPage || nextCursor) && (
             <div className="flex items-center justify-between gap-3">
               {isFirstPage ? (
                 <span />
               ) : (
                 <Link
-                  href={candidatesUrl(view)}
+                  href={inventoryItemsUrl(view)}
                   className="text-primary-400 hover:underline"
                 >
                   <Typography variant="small" component="span">
@@ -334,7 +338,7 @@ export function CandidatesClient({
               )}
               {nextCursor && (
                 <Link
-                  href={candidatesUrl({ ...view, after: nextCursor })}
+                  href={inventoryItemsUrl({ ...view, after: nextCursor })}
                   className="text-primary-400 hover:underline"
                 >
                   <Typography variant="small" component="span">
@@ -347,8 +351,8 @@ export function CandidatesClient({
         </Panel>
       )}
 
-      <CandidateDetailModal
-        candidate={open}
+      <InventoryItemDetailModal
+        inventoryItem={open}
         onClose={() => setOpenId(null)}
         onDecided={() => {
           setOpenId(null);

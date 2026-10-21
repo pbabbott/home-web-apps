@@ -9,7 +9,7 @@ import {
 
 // Runs against the real local dev Postgres, so everything created here is
 // deleted afterwards. Sources cascade to jobs, queue items,
-// candidates and source-level rules; global rules and the audit log (which has
+// inventory items and source-level rules; global rules and the audit log (which has
 // no foreign keys by design) are removed explicitly.
 const createdSourceIds: string[] = [];
 const createdRuleIds: string[] = [];
@@ -93,18 +93,18 @@ const proposal = (path: string, overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const propose = (item: ClaimedItem, candidates: object[]) =>
+const propose = (item: ClaimedItem, inventoryItems: object[]) =>
   getRequest()
-    .post(`/queue-items/${item.id}/review-candidates`)
-    .send({ claimToken: item.claimToken, workerId: 'w1', candidates });
+    .post(`/queue-items/${item.id}/inventory-items`)
+    .send({ claimToken: item.claimToken, workerId: 'w1', inventoryItems });
 
-const listCandidates = async (
+const listInventoryItems = async (
   sourceId: string,
   query: Record<string, string> = {},
 ) =>
   (
     await getRequest()
-      .get(`/sources/${sourceId}/review-candidates`)
+      .get(`/sources/${sourceId}/inventory-items`)
       .query(query)
       .expect(200)
   ).body as Record<string, any>[];
@@ -114,16 +114,13 @@ const decide = (
   body: object,
   headers: Record<string, string> = { 'X-Actor-Id': 'brandon' },
 ) =>
-  getRequest()
-    .patch(`/review-candidates/${id}/decision`)
-    .set(headers)
-    .send(body);
+  getRequest().patch(`/inventory-items/${id}/decision`).set(headers).send(body);
 
-const candidateEvents = async (candidateId: string) =>
+const inventoryItemEvents = async (inventoryItemId: string) =>
   (
     await getRequest()
       .get('/audit-events')
-      .query({ reviewCandidateId: candidateId })
+      .query({ inventoryItemId: inventoryItemId })
       .expect(200)
   ).body as {
     eventType: string;
@@ -132,7 +129,7 @@ const candidateEvents = async (candidateId: string) =>
     details: Record<string, any>;
   }[];
 
-/** Proposes one candidate in a fresh, completed job and returns it. */
+/** Proposes one inventory item in a fresh, completed job and returns it. */
 const proposeInNewJob = async (
   sourceId: string,
   path: string,
@@ -142,11 +139,11 @@ const proposeInNewJob = async (
   const res = await propose(item, [proposal(path, overrides)]).expect(200);
   await finish(job, item);
 
-  return { job, candidate: res.body[0] as Record<string, any> };
+  return { job, inventoryItem: res.body[0] as Record<string, any> };
 };
 
-describe('creating and retrieving candidates', () => {
-  it('creates a pending candidate and returns it by id and in the list', async () => {
+describe('creating and retrieving inventory items', () => {
+  it('creates a pending inventory item and returns it by id and in the list', async () => {
     const sourceId = await createSource();
     const { job, item } = await startAndClaim(sourceId);
 
@@ -174,17 +171,15 @@ describe('creating and retrieving candidates', () => {
     ]);
 
     const id = res.body[0].id;
-    const detail = await getRequest()
-      .get(`/review-candidates/${id}`)
-      .expect(200);
+    const detail = await getRequest().get(`/inventory-items/${id}`).expect(200);
     expect(detail.body).toMatchObject({
       id,
       exclusion: { state: 'none', ruleIds: [] },
       evidence: { contentKinds: ['source_code'] },
     });
-    expect(await listCandidates(sourceId)).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
     await getRequest()
-      .get('/review-candidates/123e4567-e89b-12d3-a456-426614174000')
+      .get('/inventory-items/123e4567-e89b-12d3-a456-426614174000')
       .expect(404);
   });
 
@@ -202,26 +197,28 @@ describe('creating and retrieving candidates', () => {
     const a = res.body.find((c: any) => c.rootPath.endsWith('\\a')).id;
     await decide(a, { decision: 'approved' }).expect(200);
 
-    expect(await listCandidates(sourceId)).toHaveLength(3);
+    expect(await listInventoryItems(sourceId)).toHaveLength(3);
     expect(
-      await listCandidates(sourceId, { recommendation: 'needs_review' }),
+      await listInventoryItems(sourceId, { recommendation: 'needs_review' }),
     ).toHaveLength(1);
-    expect(await listCandidates(sourceId, { decision: 'approved' })).toEqual([
-      expect.objectContaining({ id: a }),
-    ]);
-    expect(await listCandidates(sourceId, { jobId: job.id })).toHaveLength(3);
     expect(
-      await listCandidates(sourceId, { pathPrefix: `${ROOT}\\sub` }),
+      await listInventoryItems(sourceId, { decision: 'approved' }),
+    ).toEqual([expect.objectContaining({ id: a })]);
+    expect(await listInventoryItems(sourceId, { jobId: job.id })).toHaveLength(
+      3,
+    );
+    expect(
+      await listInventoryItems(sourceId, { pathPrefix: `${ROOT}\\sub` }),
     ).toHaveLength(1);
     // Keyset paging by normalizedRootPath.
-    const page = await listCandidates(sourceId, { limit: '2' });
-    const rest = await listCandidates(sourceId, {
+    const page = await listInventoryItems(sourceId, { limit: '2' });
+    const rest = await listInventoryItems(sourceId, {
       after: page[1].normalizedRootPath,
     });
     expect(rest).toHaveLength(1);
   });
 
-  it('refuses candidates outside the claimed directory or from a dead claim', async () => {
+  it('refuses inventory items outside the claimed directory or from a dead claim', async () => {
     const sourceId = await createSource();
     const { item } = await startAndClaim(sourceId);
 
@@ -231,18 +228,18 @@ describe('creating and retrieving candidates', () => {
     expect(outside.body.paths).toEqual(['C:\\elsewhere\\x']);
 
     await getRequest()
-      .post(`/queue-items/${item.id}/review-candidates`)
+      .post(`/queue-items/${item.id}/inventory-items`)
       .send({
         claimToken: '123e4567-e89b-12d3-a456-426614174000',
-        candidates: [proposal(`${ROOT}\\a`)],
+        inventoryItems: [proposal(`${ROOT}\\a`)],
       })
       .expect(409);
-    expect(await listCandidates(sourceId)).toHaveLength(0);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
   });
 });
 
 describe('uniqueness and rediscovery', () => {
-  it('keeps one candidate per source and normalized path', async () => {
+  it('keeps one inventory item per source and normalized path', async () => {
     const sourceId = await createSource();
     const { item } = await startAndClaim(sourceId);
 
@@ -259,7 +256,7 @@ describe('uniqueness and rediscovery', () => {
       created: false,
       changed: false,
     });
-    expect(await listCandidates(sourceId)).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
   });
 
   it('updates evidence and recommendation on rediscovery by another job', async () => {
@@ -271,7 +268,7 @@ describe('uniqueness and rediscovery', () => {
       reason: 'unknown local state',
     });
 
-    const { job: job2, candidate } = await proposeInNewJob(sourceId, path, {
+    const { job: job2, inventoryItem } = await proposeInNewJob(sourceId, path, {
       recommendation: 'back_up',
       confidence: 'high',
       reason: 'uncommitted changes found',
@@ -281,8 +278,8 @@ describe('uniqueness and rediscovery', () => {
       }),
     });
 
-    expect(candidate).toMatchObject({
-      id: first.candidate.id,
+    expect(inventoryItem).toMatchObject({
+      id: first.inventoryItem.id,
       created: false,
       changed: true,
       recommendation: 'back_up',
@@ -291,24 +288,26 @@ describe('uniqueness and rediscovery', () => {
       firstJobId: first.job.id,
       lastJobId: job2.id,
     });
-    expect(candidate.evidence.observations).toEqual([
+    expect(inventoryItem.evidence.observations).toEqual([
       'git status shows modified files',
     ]);
-    expect(new Date(candidate.recommendedAt).getTime()).toBeGreaterThanOrEqual(
-      new Date(first.candidate.recommendedAt).getTime(),
+    expect(
+      new Date(inventoryItem.recommendedAt).getTime(),
+    ).toBeGreaterThanOrEqual(
+      new Date(first.inventoryItem.recommendedAt).getTime(),
     );
-    expect(new Date(candidate.createdAt)).toEqual(
-      new Date(first.candidate.createdAt),
+    expect(new Date(inventoryItem.createdAt)).toEqual(
+      new Date(first.inventoryItem.createdAt),
     );
-    expect(await listCandidates(sourceId)).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
 
-    const events = await candidateEvents(first.candidate.id);
+    const events = await inventoryItemEvents(first.inventoryItem.id);
     expect(events.map((e) => e.eventType).sort()).toEqual([
-      'review_candidate.created',
-      'review_candidate.recommendation_changed',
+      'inventory_item.created',
+      'inventory_item.recommendation_changed',
     ]);
     const changed = events.find(
-      (e) => e.eventType === 'review_candidate.recommendation_changed',
+      (e) => e.eventType === 'inventory_item.recommendation_changed',
     )!;
     expect(changed.actorType).toBe('openclaw');
     expect(changed.details).toMatchObject({
@@ -321,8 +320,8 @@ describe('uniqueness and rediscovery', () => {
   it('preserves an existing human decision on rediscovery', async () => {
     const sourceId = await createSource();
     const path = `${ROOT}\\project-a`;
-    const { candidate } = await proposeInNewJob(sourceId, path);
-    const approved = await decide(candidate.id, {
+    const { inventoryItem } = await proposeInNewJob(sourceId, path);
+    const approved = await decide(inventoryItem.id, {
       decision: 'approved',
       note: 'keep',
     }).expect(200);
@@ -334,19 +333,19 @@ describe('uniqueness and rediscovery', () => {
       evidence: evidence({ reproducible: 'yes' }),
     });
 
-    expect(again.candidate).toMatchObject({
-      id: candidate.id,
+    expect(again.inventoryItem).toMatchObject({
+      id: inventoryItem.id,
       recommendation: 'skip',
       decision: 'approved',
       decisionNote: 'keep',
       decidedBy: 'brandon',
     });
-    expect(again.candidate.decidedAt).toBe(approved.body.decidedAt);
+    expect(again.inventoryItem.decidedAt).toBe(approved.body.decidedAt);
     // The audit trail says a decision was already in place when it changed.
-    const events = await candidateEvents(candidate.id);
+    const events = await inventoryItemEvents(inventoryItem.id);
     expect(
       events.find(
-        (e) => e.eventType === 'review_candidate.recommendation_changed',
+        (e) => e.eventType === 'inventory_item.recommendation_changed',
       )!.details.decision,
     ).toBe('approved');
   });
@@ -354,15 +353,15 @@ describe('uniqueness and rediscovery', () => {
   it('writes no audit events for no-op re-proposals or repeated decisions', async () => {
     const sourceId = await createSource();
     const path = `${ROOT}\\project-a`;
-    const { candidate } = await proposeInNewJob(sourceId, path);
+    const { inventoryItem } = await proposeInNewJob(sourceId, path);
     await proposeInNewJob(sourceId, path);
     await proposeInNewJob(sourceId, path);
 
-    expect(await candidateEvents(candidate.id)).toHaveLength(1);
+    expect(await inventoryItemEvents(inventoryItem.id)).toHaveLength(1);
 
-    await decide(candidate.id, { decision: 'approved' }).expect(200);
-    await decide(candidate.id, { decision: 'approved' }).expect(200);
-    expect(await candidateEvents(candidate.id)).toHaveLength(2);
+    await decide(inventoryItem.id, { decision: 'approved' }).expect(200);
+    await decide(inventoryItem.id, { decision: 'approved' }).expect(200);
+    expect(await inventoryItemEvents(inventoryItem.id)).toHaveLength(2);
   });
 });
 
@@ -384,10 +383,10 @@ describe('agent recommendations versus human decisions', () => {
 
   it('refuses a decision from a non-human actor', async () => {
     const sourceId = await createSource();
-    const { candidate } = await proposeInNewJob(sourceId, `${ROOT}\\a`);
+    const { inventoryItem } = await proposeInNewJob(sourceId, `${ROOT}\\a`);
 
     await decide(
-      candidate.id,
+      inventoryItem.id,
       { decision: 'approved' },
       {
         'X-Actor-Type': 'openclaw',
@@ -395,7 +394,7 @@ describe('agent recommendations versus human decisions', () => {
       },
     ).expect(409);
     await decide(
-      candidate.id,
+      inventoryItem.id,
       { decision: 'rejected' },
       {
         'X-Actor-Type': 'system',
@@ -403,16 +402,16 @@ describe('agent recommendations versus human decisions', () => {
     ).expect(409);
 
     const detail = await getRequest()
-      .get(`/review-candidates/${candidate.id}`)
+      .get(`/inventory-items/${inventoryItem.id}`)
       .expect(200);
     expect(detail.body.decision).toBe('pending');
   });
 
   it('persists approval and rejection with audit events, and allows changing it', async () => {
     const sourceId = await createSource();
-    const { candidate } = await proposeInNewJob(sourceId, `${ROOT}\\a`);
+    const { inventoryItem } = await proposeInNewJob(sourceId, `${ROOT}\\a`);
 
-    const approved = await decide(candidate.id, {
+    const approved = await decide(inventoryItem.id, {
       decision: 'approved',
       note: 'tax records',
     }).expect(200);
@@ -424,24 +423,24 @@ describe('agent recommendations versus human decisions', () => {
     expect(approved.body.decidedAt).not.toBeNull();
 
     // An omitted note is kept for a repeat and cleared when the decision changes.
-    const rejected = await decide(candidate.id, {
+    const rejected = await decide(inventoryItem.id, {
       decision: 'rejected',
     }).expect(200);
     expect(rejected.body).toMatchObject({
       decision: 'rejected',
       decisionNote: null,
     });
-    const reset = await decide(candidate.id, { decision: 'pending' }).expect(
-      200,
-    );
+    const reset = await decide(inventoryItem.id, {
+      decision: 'pending',
+    }).expect(200);
     expect(reset.body).toMatchObject({
       decision: 'pending',
       decidedAt: null,
       decidedBy: null,
     });
 
-    const decisions = (await candidateEvents(candidate.id)).filter(
-      (e) => e.eventType === 'review_candidate.decision_changed',
+    const decisions = (await inventoryItemEvents(inventoryItem.id)).filter(
+      (e) => e.eventType === 'inventory_item.decision_changed',
     );
     expect(decisions.map((e) => [e.details.from, e.details.to])).toEqual([
       ['rejected', 'pending'],
@@ -454,9 +453,9 @@ describe('agent recommendations versus human decisions', () => {
       details: { note: 'tax records', path: 'C:\\code\\a' },
     });
 
-    await decide(candidate.id, { decision: 'maybe' }).expect(400);
+    await decide(inventoryItem.id, { decision: 'maybe' }).expect(400);
     await getRequest()
-      .patch('/review-candidates/123e4567-e89b-12d3-a456-426614174000/decision')
+      .patch('/inventory-items/123e4567-e89b-12d3-a456-426614174000/decision')
       .send({ decision: 'approved' })
       .expect(404);
   });
@@ -484,7 +483,7 @@ describe('agent recommendations versus human decisions', () => {
         evidence: evidence({ git }),
       }),
     ]).expect(400);
-    expect(await listCandidates(sourceId)).toHaveLength(0);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
 
     // The same repository is acceptable as needs_review.
     await propose(item, [
@@ -534,11 +533,11 @@ describe('selective discovery of a fixture drive', () => {
     expect(done.body.status).toBe('completed');
   });
 
-  it('turns a repository into one candidate without its internal folders', async () => {
+  it('turns a repository into one inventory item without its internal folders', async () => {
     const { sourceId } = await runFixtureJob();
-    const candidates = await listCandidates(sourceId);
+    const inventoryItems = await listInventoryItems(sourceId);
 
-    const projectA = candidates.find(
+    const projectA = inventoryItems.find(
       (c) => c.rootPath === 'C:\\code\\project-a',
     )!;
     expect(projectA).toMatchObject({
@@ -548,11 +547,11 @@ describe('selective discovery of a fixture drive', () => {
       evidence: { git: { uncommittedChanges: true } },
     });
     expect(
-      candidates.filter((c) =>
+      inventoryItems.filter((c) =>
         c.normalizedRootPath.startsWith('c:\\code\\project-a\\'),
       ),
     ).toHaveLength(0);
-    expect(candidates.map((c) => c.rootPath).sort()).toEqual(
+    expect(inventoryItems.map((c) => c.rootPath).sort()).toEqual(
       [
         'C:\\code\\project-a',
         'C:\\code\\public-clean',
@@ -564,23 +563,27 @@ describe('selective discovery of a fixture drive', () => {
     );
   });
 
-  it('represents a standalone file and a personal-data folder as candidates', async () => {
+  it('represents a standalone file and a personal-data folder as inventory items', async () => {
     const { sourceId } = await runFixtureJob();
-    const candidates = await listCandidates(sourceId);
+    const inventoryItems = await listInventoryItems(sourceId);
 
     expect(
-      candidates.find((c) => c.rootPath === 'C:\\Users\\You\\taxes-2025.xlsx'),
+      inventoryItems.find(
+        (c) => c.rootPath === 'C:\\Users\\You\\taxes-2025.xlsx',
+      ),
     ).toMatchObject({ kind: 'file', recommendation: 'back_up' });
     expect(
-      candidates.find((c) => c.rootPath === 'C:\\Users\\You\\Documents'),
+      inventoryItems.find((c) => c.rootPath === 'C:\\Users\\You\\Documents'),
     ).toMatchObject({ kind: 'directory', recommendation: 'back_up' });
   });
 
-  it('skips system paths with a recorded reason and no candidate', async () => {
+  it('skips system paths with a recorded reason and no inventory item', async () => {
     const { sourceId, job } = await runFixtureJob();
-    const candidates = await listCandidates(sourceId);
+    const inventoryItems = await listInventoryItems(sourceId);
     expect(
-      candidates.some((c) => /windows|program files|appdata/i.test(c.rootPath)),
+      inventoryItems.some((c) =>
+        /windows|program files|appdata/i.test(c.rootPath),
+      ),
     ).toBe(false);
 
     const queue = await getRequest()
@@ -605,9 +608,11 @@ describe('selective discovery of a fixture drive', () => {
 
   it('records uncertainty as needs_review with explanations and evidence', async () => {
     const { sourceId } = await runFixtureJob();
-    const candidates = await listCandidates(sourceId);
+    const inventoryItems = await listInventoryItems(sourceId);
 
-    const mystery = candidates.find((c) => c.rootPath === 'C:\\data\\mystery')!;
+    const mystery = inventoryItems.find(
+      (c) => c.rootPath === 'C:\\data\\mystery',
+    )!;
     expect(mystery).toMatchObject({
       recommendation: 'needs_review',
       confidence: 'low',
@@ -621,9 +626,9 @@ describe('selective discovery of a fixture drive', () => {
 
   it('does not treat a public remote as proof a repository is disposable', async () => {
     const { sourceId } = await runFixtureJob();
-    const candidates = await listCandidates(sourceId);
+    const inventoryItems = await listInventoryItems(sourceId);
 
-    const unknown = candidates.find(
+    const unknown = inventoryItems.find(
       (c) => c.rootPath === 'C:\\code\\public-unknown',
     )!;
     expect(unknown.evidence.git).toMatchObject({
@@ -633,7 +638,7 @@ describe('selective discovery of a fixture drive', () => {
     expect(unknown.recommendation).toBe('needs_review');
 
     // Only a known-clean, fully pushed repository is skippable.
-    const clean = candidates.find(
+    const clean = inventoryItems.find(
       (c) => c.rootPath === 'C:\\code\\public-clean',
     )!;
     expect(clean.recommendation).toBe('skip');
@@ -648,7 +653,7 @@ describe('selective discovery of a fixture drive', () => {
 });
 
 describe('exclusion rules', () => {
-  it('rejects candidates under exclude_subtree and on a selective_only path itself', async () => {
+  it('rejects inventory items under exclude_subtree and on a selective_only path itself', async () => {
     const sourceId = await createSource();
     const subtree = await createRule({
       sourceId,
@@ -672,7 +677,7 @@ describe('exclusion rules', () => {
       { path: 'C:\\code\\old\\x', state: 'excluded', ruleIds: [subtree.id] },
     ]);
     // All or nothing: the allowed path was not recorded either.
-    expect(await listCandidates(sourceId)).toHaveLength(0);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
 
     // A descendant of a selective_only path is still explorable and proposable.
     await propose(item, [proposal(`${ROOT}\\data\\child`)]).expect(200);
@@ -739,7 +744,7 @@ describe('exclusion rules', () => {
     expect(next.body.reason).toBe('queue_empty');
   });
 
-  it('keeps candidate history when a rule is added, and blocks approval', async () => {
+  it('keeps inventory item history when a rule is added, and blocks approval', async () => {
     const sourceId = await createSource();
     const { job, item } = await startAndClaim(sourceId);
     const res = await propose(item, [proposal(`${ROOT}\\keep-me`)]).expect(200);
@@ -752,15 +757,13 @@ describe('exclusion rules', () => {
       scope: 'exclude_subtree',
     });
 
-    // Nothing was deleted: the candidate remains, now flagged by the rule.
-    const detail = await getRequest()
-      .get(`/review-candidates/${id}`)
-      .expect(200);
+    // Nothing was deleted: the inventory item remains, now flagged by the rule.
+    const detail = await getRequest().get(`/inventory-items/${id}`).expect(200);
     expect(detail.body.exclusion).toEqual({
       state: 'excluded',
       ruleIds: [rule.id],
     });
-    expect(await listCandidates(sourceId)).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
 
     const blocked = await decide(id, { decision: 'approved' }).expect(409);
     expect(blocked.body.ruleIds).toEqual([rule.id]);
@@ -817,7 +820,7 @@ describe('job completion with dynamically created work', () => {
   });
 });
 
-describe('discovery writes only queue items and candidates', () => {
+describe('discovery writes only queue items and inventory items', () => {
   const ME = 'C:\\Users\\Me';
 
   const queueOf = async (jobId: string) =>
@@ -829,28 +832,28 @@ describe('discovery writes only queue items and candidates', () => {
     const { job } = await startAndClaim(sourceId, ME);
 
     expect((await queueOf(job.id)).map((q) => q.path)).toEqual([ME]);
-    expect(await listCandidates(sourceId)).toHaveLength(0);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
   });
 
-  it('proposes a photo folder as one candidate and queues nothing for it', async () => {
+  it('proposes a photo folder as one inventory item and queues nothing for it', async () => {
     const sourceId = await createSource();
     const { job, item } = await startAndClaim(sourceId, ME);
 
     await propose(item, [proposal(`${ME}\\Pictures\\Family`)]).expect(200);
 
     expect((await queueOf(job.id)).map((q) => q.path)).toEqual([ME]);
-    expect(await listCandidates(sourceId)).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
   });
 
-  it('proposes a repository as one candidate, with nothing for its internals', async () => {
+  it('proposes a repository as one inventory item, with nothing for its internals', async () => {
     const sourceId = await createSource();
     const { job, item } = await startAndClaim(sourceId, 'C:\\code');
 
     await propose(item, [proposal('C:\\code\\my-project')]).expect(200);
 
-    expect((await listCandidates(sourceId)).map((c) => c.rootPath)).toEqual([
-      'C:\\code\\my-project',
-    ]);
+    expect((await listInventoryItems(sourceId)).map((c) => c.rootPath)).toEqual(
+      ['C:\\code\\my-project'],
+    );
     expect((await queueOf(job.id)).map((q) => q.path)).toEqual(['C:\\code']);
   });
 
@@ -871,9 +874,9 @@ describe('discovery writes only queue items and candidates', () => {
       await getRequest().get('/audit-events').query({ sourceId }).expect(200)
     ).body.map((e: any) => e.eventType);
     expect(events.sort()).toEqual([
-      'review_candidate.created',
-      'review_candidate.decision_changed',
-      'review_candidate.decision_changed',
+      'inventory_item.created',
+      'inventory_item.decision_changed',
+      'inventory_item.decision_changed',
     ]);
   });
 
@@ -889,22 +892,10 @@ describe('discovery writes only queue items and candidates', () => {
       })
       .expect(200);
 
-    expect(await listCandidates(sourceId)).toHaveLength(0);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
     expect((await queueOf(job.id))[0].result.skipped).toEqual([
       { path: `${ME}\\build\\out.tmp`, reason: 'generated' },
     ]);
-  });
-
-  it('no longer serves inventory routes', async () => {
-    const sourceId = await createSource();
-    const id = '123e4567-e89b-12d3-a456-426614174000';
-
-    await getRequest().get(`/sources/${sourceId}/inventory-items`).expect(404);
-    await getRequest().get(`/inventory-items/${id}`).expect(404);
-    await getRequest()
-      .post(`/queue-items/${id}/inventory-items`)
-      .send({})
-      .expect(404);
   });
 });
 
@@ -1015,8 +1006,8 @@ describe('known skips across jobs', () => {
   });
 });
 
-describe('nested candidates', () => {
-  it('reports the candidates a proposal sits inside or contains', async () => {
+describe('nested inventory items', () => {
+  it('reports the inventory items a proposal sits inside or contains', async () => {
     const sourceId = await createSource();
     const { job, item } = await startAndClaim(sourceId);
 

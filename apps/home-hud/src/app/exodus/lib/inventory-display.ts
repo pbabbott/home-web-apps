@@ -1,38 +1,43 @@
 import type { BadgeColor } from '@abbottland/fui-components';
 import type {
-  CandidateDecision,
-  CandidateGitEvidence,
-  CandidateRecommendation,
-  ReviewCandidate,
+  InventoryItemDecision,
+  InventoryItemGitEvidence,
+  InventoryItemRecommendation,
+  InventoryItem,
 } from '../sources/lib/homelab-api';
 
-export const RECOMMENDATION_LABELS: Record<CandidateRecommendation, string> = {
+export const RECOMMENDATION_LABELS: Record<
+  InventoryItemRecommendation,
+  string
+> = {
   back_up: 'Back up',
   skip: 'Skip',
   needs_review: 'Needs review',
 };
 
-export const RECOMMENDATION_COLOR: Record<CandidateRecommendation, BadgeColor> =
-  {
-    back_up: 'success',
-    skip: 'dark',
-    needs_review: 'warning',
-  };
+export const RECOMMENDATION_COLOR: Record<
+  InventoryItemRecommendation,
+  BadgeColor
+> = {
+  back_up: 'success',
+  skip: 'dark',
+  needs_review: 'warning',
+};
 
-export const DECISION_LABELS: Record<CandidateDecision, string> = {
+export const DECISION_LABELS: Record<InventoryItemDecision, string> = {
   pending: 'Pending',
   approved: 'Approved',
   rejected: 'Rejected',
 };
 
-export const DECISION_COLOR: Record<CandidateDecision, BadgeColor> = {
+export const DECISION_COLOR: Record<InventoryItemDecision, BadgeColor> = {
   pending: 'warning',
   approved: 'success',
   rejected: 'error',
 };
 
 /** What the decision filter shows: the three decisions, or everything. */
-export type DecisionFilter = CandidateDecision | 'all';
+export type DecisionFilter = InventoryItemDecision | 'all';
 
 /** A decision filter from a URL parameter. Absent or unknown means the review queue: pending. */
 export function parseDecisionFilter(value: string | undefined): DecisionFilter {
@@ -47,7 +52,7 @@ export function parseDecisionFilter(value: string | undefined): DecisionFilter {
 /** A recommendation filter from a URL parameter; anything else means "all". */
 export function parseRecommendation(
   value: string | undefined,
-): CandidateRecommendation | undefined {
+): InventoryItemRecommendation | undefined {
   return value === 'back_up' || value === 'skip' || value === 'needs_review'
     ? value
     : undefined;
@@ -55,15 +60,19 @@ export function parseRecommendation(
 
 /**
  * True when the agent changed its recommendation after a human decided, so the
- * decision may deserve another look. A pending candidate has nothing to revisit.
+ * decision may deserve another look. A pending inventory item has nothing to revisit.
  */
 export function changedSinceDecision(
-  candidate: Pick<ReviewCandidate, 'decision' | 'decidedAt' | 'recommendedAt'>,
+  inventoryItem: Pick<
+    InventoryItem,
+    'decision' | 'decidedAt' | 'recommendedAt'
+  >,
 ): boolean {
   return (
-    candidate.decision !== 'pending' &&
-    candidate.decidedAt !== null &&
-    Date.parse(candidate.recommendedAt) > Date.parse(candidate.decidedAt)
+    inventoryItem.decision !== 'pending' &&
+    inventoryItem.decidedAt !== null &&
+    Date.parse(inventoryItem.recommendedAt) >
+      Date.parse(inventoryItem.decidedAt)
   );
 }
 
@@ -71,7 +80,7 @@ const flag = (label: string, value: boolean | null): string =>
   `${label}: ${value === null ? 'unknown' : value ? 'yes' : 'no'}`;
 
 /** One short line per git fact, so unknowns are visible rather than implied. */
-export function describeGit(git: CandidateGitEvidence): string[] {
+export function describeGit(git: InventoryItemGitEvidence): string[] {
   return [
     `Remote: ${git.remoteUrl ?? 'none'} (${git.remoteVisibility})`,
     `Local state checked: ${git.localStateKnown ? 'yes' : 'no'}`,
@@ -82,20 +91,20 @@ export function describeGit(git: CandidateGitEvidence): string[] {
   ];
 }
 
-export interface CandidateView {
-  /** Source whose candidates are shown. */
+export interface InventoryItemView {
+  /** Source whose inventory items are shown. */
   source?: string;
   /** Defaults to pending, so it is omitted from the URL. */
   decision?: DecisionFilter;
-  recommendation?: CandidateRecommendation;
+  recommendation?: InventoryItemRecommendation;
   /** Keyset cursor from the previous page. */
   after?: string;
 }
 
-const CANDIDATES_PATH = '/exodus/candidates';
+const INVENTORY_ITEMS_PATH = '/exodus/inventory';
 
 /** Page URL for a view; defaults are left out so URLs stay short and shareable. */
-export function candidatesUrl(view: CandidateView): string {
+export function inventoryItemsUrl(view: InventoryItemView): string {
   const params = new URLSearchParams();
 
   if (view.source) params.set('source', view.source);
@@ -107,5 +116,5 @@ export function candidatesUrl(view: CandidateView): string {
 
   const query = params.toString();
 
-  return query ? `${CANDIDATES_PATH}?${query}` : CANDIDATES_PATH;
+  return query ? `${INVENTORY_ITEMS_PATH}?${query}` : INVENTORY_ITEMS_PATH;
 }

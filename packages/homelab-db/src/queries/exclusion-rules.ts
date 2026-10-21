@@ -18,7 +18,7 @@ import { DiscoveryError, type Tx } from './shared';
  *    source-specific — means `excluded`. No rule grants permission, so a
  *    source rule can never re-enable what a global rule excludes.
  * 2. Otherwise a `selective_only` rule on exactly the path means `selective`:
- *    the path is not a backup candidate itself, but its descendants are still
+ *    the path is not a backup inventory item itself, but its descendants are still
  *    explored and judged on their own. A `selective_only` rule on an ancestor
  *    has no effect on descendants.
  * 3. Otherwise `none`.
@@ -141,7 +141,7 @@ export type CreateExclusionRuleInput = {
  * Creates a rule and its audit event in one transaction. At most one rule
  * exists per path per owner, and a path is never ruled both globally and by a
  * source: two rules for the same path could disagree, and the precedence
- * above would then hide one of them. Existing candidates are left untouched.
+ * above would then hide one of them. Existing inventory items are left untouched.
  */
 export const createExclusionRule = async (
   db: Database,
@@ -265,7 +265,7 @@ export const updateExclusionRule = async (
 
 /**
  * Removes a rule. The event keeps a snapshot of it, since the rule itself is
- * gone. Existing candidates and queue state are left as they are.
+ * gone. Existing inventory items and queue state are left as they are.
  */
 export const deleteExclusionRule = async (
   db: Database,

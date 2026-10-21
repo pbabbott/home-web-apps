@@ -17,7 +17,7 @@ export type AuditEventInput = {
   jobId?: string | null;
   queueItemId?: string | null;
   exclusionRuleId?: string | null;
-  reviewCandidateId?: string | null;
+  inventoryItemId?: string | null;
   details?: Record<string, unknown> | null;
 };
 
@@ -40,7 +40,7 @@ export const insertAuditEvent = async (
       jobId: event.jobId ?? null,
       queueItemId: event.queueItemId ?? null,
       exclusionRuleId: event.exclusionRuleId ?? null,
-      reviewCandidateId: event.reviewCandidateId ?? null,
+      inventoryItemId: event.inventoryItemId ?? null,
       details: event.details ?? null,
     })
     .returning();
@@ -52,7 +52,7 @@ export type ListAuditEventsOptions = {
   sourceId?: string;
   jobId?: string;
   exclusionRuleId?: string;
-  reviewCandidateId?: string;
+  inventoryItemId?: string;
   eventType?: AuditEventType;
   since?: Date;
   until?: Date;
@@ -76,8 +76,8 @@ export const listAuditEvents = async (
     options.exclusionRuleId
       ? eq(t.exclusionRuleId, options.exclusionRuleId)
       : undefined,
-    options.reviewCandidateId
-      ? eq(t.reviewCandidateId, options.reviewCandidateId)
+    options.inventoryItemId
+      ? eq(t.inventoryItemId, options.inventoryItemId)
       : undefined,
     options.eventType ? eq(t.eventType, options.eventType) : undefined,
     options.since ? gte(t.createdAt, options.since) : undefined,

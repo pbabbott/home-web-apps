@@ -13,7 +13,7 @@ const event = (
   sourceId: null,
   jobId: null,
   exclusionRuleId: null,
-  reviewCandidateId: null,
+  inventoryItemId: null,
   eventType,
   actorType: 'human',
   actorId: null,
@@ -68,10 +68,10 @@ describe('describeAuditEvent', () => {
     ).toBe('C:\\x (selective only)');
   });
 
-  it('describes review candidate events', () => {
+  it('describes inventory item events', () => {
     expect(
       describeAuditEvent(
-        event('review_candidate.created', {
+        event('inventory_item.created', {
           path: 'C:\\code\\a',
           recommendation: 'back_up',
           confidence: 'high',
@@ -80,7 +80,7 @@ describe('describeAuditEvent', () => {
     ).toBe('C:\\code\\a: back up (high confidence)');
     expect(
       describeAuditEvent(
-        event('review_candidate.recommendation_changed', {
+        event('inventory_item.recommendation_changed', {
           path: 'C:\\code\\a',
           from: { recommendation: 'needs_review', confidence: 'low' },
           to: { recommendation: 'skip', confidence: 'high' },
@@ -89,7 +89,7 @@ describe('describeAuditEvent', () => {
     ).toBe('C:\\code\\a: needs review → skip');
     expect(
       describeAuditEvent(
-        event('review_candidate.decision_changed', {
+        event('inventory_item.decision_changed', {
           path: 'C:\\code\\a',
           from: 'pending',
           to: 'approved',

@@ -468,17 +468,6 @@ describe('discovery routes', () => {
     });
   });
 
-  it('no longer serves inventory routes', async () => {
-    await supertest(createServer())
-      .post(`/queue-items/${ID}/inventory-items`)
-      .send({ claimToken: TOKEN, items: [] })
-      .expect(404);
-    await supertest(createServer())
-      .get(`/sources/${ID}/inventory-items`)
-      .expect(404);
-    await supertest(createServer()).get(`/inventory-items/${ID}`).expect(404);
-  });
-
   it('logs and returns a generic message on an unexpected error', async () => {
     const err = new Error('connection reset');
     mocked.listSources.mockRejectedValue(err);

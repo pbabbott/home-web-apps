@@ -8,9 +8,9 @@ import {
   listExclusionRulesOperation,
 } from './controllers/discovery/exclusion-rules';
 import {
-  listReviewCandidatesOperation,
-  proposeReviewCandidatesOperation,
-} from './controllers/discovery/review-candidates';
+  listInventoryItemsOperation,
+  proposeInventoryItemsOperation,
+} from './controllers/discovery/inventory-items';
 import { MCP_INSTRUCTIONS } from './mcp-instructions';
 import {
   claimQueueItemOperation,
@@ -31,9 +31,9 @@ import {
   jobIdParamsSchema,
   jobListQuerySchema,
   knownSkipListQuerySchema,
-  proposeReviewCandidatesBodySchema,
+  proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
-  reviewCandidateListQuerySchema,
+  inventoryItemListQuerySchema,
   sourceIdParamsSchema,
   skipQueueItemBodySchema,
 } from './schemas/discovery';
@@ -76,9 +76,9 @@ const queueItemId = queueItemIdParamsSchema.shape.id.describe(
 /**
  * Builds a fresh MCP server exposing the agent-facing subset of the REST
  * routes in server.ts: the discovery work loop, proposing and listing
- * review candidates, plus listing and creating source-scoped exclusion rules.
+ * inventory items, plus listing and creating source-scoped exclusion rules.
  * Source/job creation, job lifecycle (complete, cancel, fail), global rules,
- * editing or deleting rules, approving or rejecting candidates and the audit
+ * editing or deleting rules, approving or rejecting inventory items and the audit
  * log stay human-only REST routes. A new
  * instance is created per-request (see server.ts) since the Streamable HTTP
  * transport is mounted in stateless mode.
@@ -138,25 +138,25 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
-    proposeReviewCandidatesOperation.mcp.name,
+    proposeInventoryItemsOperation.mcp.name,
     {
-      description: proposeReviewCandidatesOperation.mcp.description,
+      description: proposeInventoryItemsOperation.mcp.description,
       inputSchema: {
         id: queueItemId,
-        ...proposeReviewCandidatesBodySchema.shape,
+        ...proposeInventoryItemsBodySchema.shape,
       },
     },
-    ({ id, claimToken, workerId, candidates }) =>
-      run(proposeReviewCandidatesOperation.mcp.name, async () =>
+    ({ id, claimToken, workerId, inventoryItems }) =>
+      run(proposeInventoryItemsOperation.mcp.name, async () =>
         (
-          await discoveryService.proposeCandidates(
+          await discoveryService.proposeInventoryItems(
             id,
             claimToken,
             workerId ?? null,
-            candidates,
+            inventoryItems,
           )
-        ).map(({ candidate, created, changed, coveredBy, covers }) => ({
-          ...candidate,
+        ).map(({ inventoryItem, created, changed, coveredBy, covers }) => ({
+          ...inventoryItem,
           created,
           changed,
           coveredBy,
@@ -181,17 +181,17 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
-    listReviewCandidatesOperation.mcp.name,
+    listInventoryItemsOperation.mcp.name,
     {
-      description: listReviewCandidatesOperation.mcp.description,
+      description: listInventoryItemsOperation.mcp.description,
       inputSchema: {
         sourceId: sourceIdParamsSchema.shape.id.describe('Source id.'),
-        ...reviewCandidateListQuerySchema.shape,
+        ...inventoryItemListQuerySchema.shape,
       },
     },
     ({ sourceId, ...filters }) =>
-      run(listReviewCandidatesOperation.mcp.name, () =>
-        discoveryService.listSourceReviewCandidates(sourceId, filters),
+      run(listInventoryItemsOperation.mcp.name, () =>
+        discoveryService.listSourceInventoryItems(sourceId, filters),
       ),
   );
 

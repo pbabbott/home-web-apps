@@ -1,10 +1,10 @@
 import {
-  candidatesUrl,
+  inventoryItemsUrl,
   changedSinceDecision,
   describeGit,
   parseDecisionFilter,
   parseRecommendation,
-} from '../../src/app/exodus/lib/candidate-display';
+} from '../../src/app/exodus/lib/inventory-display';
 
 describe('parseDecisionFilter', () => {
   it.each(['pending', 'approved', 'rejected', 'all'])('accepts %s', (value) => {
@@ -52,7 +52,7 @@ describe('changedSinceDecision', () => {
     ).toBe(false);
   });
 
-  it('never flags a pending candidate', () => {
+  it('never flags a pending inventory item', () => {
     expect(
       changedSinceDecision({
         decision: 'pending',
@@ -100,16 +100,18 @@ describe('describeGit', () => {
   });
 });
 
-describe('candidatesUrl', () => {
+describe('inventoryItemsUrl', () => {
   const id = '123e4567-e89b-12d3-a456-426614174000';
 
   it('is the bare path for the default view', () => {
-    expect(candidatesUrl({})).toBe('/exodus/candidates');
-    expect(candidatesUrl({ decision: 'pending' })).toBe('/exodus/candidates');
+    expect(inventoryItemsUrl({})).toBe('/exodus/inventory');
+    expect(inventoryItemsUrl({ decision: 'pending' })).toBe(
+      '/exodus/inventory',
+    );
   });
 
   it('keeps only non-default state', () => {
-    const url = candidatesUrl({
+    const url = inventoryItemsUrl({
       source: id,
       decision: 'all',
       recommendation: 'needs_review',

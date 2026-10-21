@@ -2,31 +2,29 @@ import { z } from 'zod';
 import { claimTokenSchema, windowsPathSchema } from './common';
 
 // Kept small so a worst-case batch stays under the shared Express json() body
-// limit of 100kb (evidence alone can reach ~6kb per candidate).
-export const MAX_CANDIDATES_PER_REQUEST = 10;
+// limit of 100kb (evidence alone can reach ~6kb per inventory item).
+export const MAX_INVENTORY_ITEMS_PER_REQUEST = 10;
 
-export const reviewCandidateIdParamsSchema = z.object({ id: z.uuid() });
-export type ReviewCandidateIdParams = z.infer<
-  typeof reviewCandidateIdParamsSchema
->;
+export const inventoryItemIdParamsSchema = z.object({ id: z.uuid() });
+export type InventoryItemIdParams = z.infer<typeof inventoryItemIdParamsSchema>;
 
 const shortText = z.string().trim().min(1).max(300);
 
-export const candidateRecommendationSchema = z
+export const inventoryItemRecommendationSchema = z
   .enum(['back_up', 'skip', 'needs_review'])
   .meta({
     description:
       'back_up: unique or valuable material worth preserving. skip: strong evidence it is irrelevant, reproducible or replaceable. needs_review: not enough evidence for a confident call. A recommendation is never an approval.',
   });
 
-export const candidateConfidenceSchema = z
+export const inventoryItemConfidenceSchema = z
   .enum(['low', 'medium', 'high'])
   .meta({
     description:
       'Not a calibrated probability. high: direct evidence settles it. medium: strong signals with minor unknowns. low: a guess, so the recommendation must be needs_review.',
   });
 
-export const candidateEvidenceSchema = z.object({
+export const inventoryItemEvidenceSchema = z.object({
   contentKinds: z
     .array(
       z.enum([
@@ -83,7 +81,7 @@ export const candidateEvidenceSchema = z.object({
     .optional(),
 });
 
-export const reviewCandidateInputSchema = z
+export const inventoryItemInputSchema = z
   .object({
     rootPath: windowsPathSchema.meta({
       description:
@@ -94,12 +92,12 @@ export const reviewCandidateInputSchema = z
       description: 'Defaults to the last path segment.',
     }),
     summary: z.string().trim().min(1).max(500),
-    recommendation: candidateRecommendationSchema,
-    confidence: candidateConfidenceSchema,
+    recommendation: inventoryItemRecommendationSchema,
+    confidence: inventoryItemConfidenceSchema,
     reason: z.string().trim().min(1).max(500).meta({
       description: 'Why this recommendation.',
     }),
-    evidence: candidateEvidenceSchema,
+    evidence: inventoryItemEvidenceSchema,
   })
   .superRefine((c, ctx) => {
     if (c.confidence === 'low' && c.recommendation !== 'needs_review') {
@@ -129,48 +127,48 @@ export const reviewCandidateInputSchema = z
       });
     }
   });
-export type ReviewCandidateInput = z.infer<typeof reviewCandidateInputSchema>;
+export type InventoryItemInput = z.infer<typeof inventoryItemInputSchema>;
 
-export const proposeReviewCandidatesBodySchema = z.object({
+export const proposeInventoryItemsBodySchema = z.object({
   claimToken: claimTokenSchema,
   workerId: z.string().min(1).optional().meta({
     description: 'Your worker id, recorded as the recommending agent.',
   }),
-  candidates: z
-    .array(reviewCandidateInputSchema)
+  inventoryItems: z
+    .array(inventoryItemInputSchema)
     .min(1)
-    .max(MAX_CANDIDATES_PER_REQUEST),
+    .max(MAX_INVENTORY_ITEMS_PER_REQUEST),
 });
-export type ProposeReviewCandidatesBody = z.infer<
-  typeof proposeReviewCandidatesBodySchema
+export type ProposeInventoryItemsBody = z.infer<
+  typeof proposeInventoryItemsBodySchema
 >;
 
-export const reviewCandidateListQuerySchema = z.object({
+export const inventoryItemListQuerySchema = z.object({
   jobId: z.uuid().optional().meta({
-    description: 'Only candidates last proposed by this job.',
+    description: 'Only inventory items last proposed by this job.',
   }),
-  recommendation: candidateRecommendationSchema.optional(),
+  recommendation: inventoryItemRecommendationSchema.optional(),
   decision: z.enum(['pending', 'approved', 'rejected']).optional(),
   pathPrefix: windowsPathSchema.optional().meta({
-    description: 'Only candidates at or beneath this path.',
+    description: 'Only inventory items at or beneath this path.',
   }),
   after: z.string().min(1).optional().meta({
     description:
-      'Cursor: the normalizedRootPath of the last candidate of the previous page.',
+      'Cursor: the normalizedRootPath of the last inventory item of the previous page.',
   }),
   limit: z.coerce.number().int().min(1).max(500).default(100),
 });
-export type ReviewCandidateListQuery = z.infer<
-  typeof reviewCandidateListQuerySchema
+export type InventoryItemListQuery = z.infer<
+  typeof inventoryItemListQuerySchema
 >;
 
-export const decideReviewCandidateBodySchema = z.object({
+export const decideInventoryItemBodySchema = z.object({
   decision: z.enum(['pending', 'approved', 'rejected']),
   note: z.string().trim().min(1).max(1000).nullable().optional().meta({
     description:
       'Replaces the note; null clears it. When omitted the note is kept if the decision is unchanged and cleared if it changes.',
   }),
 });
-export type DecideReviewCandidateBody = z.infer<
-  typeof decideReviewCandidateBodySchema
+export type DecideInventoryItemBody = z.infer<
+  typeof decideInventoryItemBodySchema
 >;

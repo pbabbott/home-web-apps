@@ -36,11 +36,11 @@ export const listExclusionRules = handle(
 export const createExclusionRuleOperation = {
   summary: 'Create an exclusion rule',
   description:
-    'Precedence: an `exclude_subtree` rule on the path or any ancestor — global or source-specific — always wins; no rule can re-enable it. `selective_only` marks just that path as not a backup candidate and keeps exploring beneath it. A path may have only one rule across a source and the global level (409). Creating a rule never deletes candidates or their history; directories already queued under an `exclude_subtree` rule are skipped when they would next be claimed. Records an audit event; send X-Actor-Type / X-Actor-Id to attribute it.',
+    'Precedence: an `exclude_subtree` rule on the path or any ancestor — global or source-specific — always wins; no rule can re-enable it. `selective_only` marks just that path as not a backup inventory item and keeps exploring beneath it. A path may have only one rule across a source and the global level (409). Creating a rule never deletes inventory items or their history; directories already queued under an `exclude_subtree` rule are skipped when they would next be claimed. Records an audit event; send X-Actor-Type / X-Actor-Id to attribute it.',
   mcp: {
     name: 'create_exclusion_rule',
     description:
-      'Stop exploring, or stop recommending, a path on a source, for example generated output such as a build or node_modules directory. Scope `exclude_subtree`: the path and everything beneath it is skipped from now on, including directories already queued (they are skipped when claimed). Scope `selective_only`: the directory itself is not a backup candidate but you should still explore inside it. Always give a short reason; a human reviews it. Rules are per source (global rules are human-only) and one path has at most one rule, so a duplicate is rejected. This does not delete anything already recorded. You cannot edit or delete rules.',
+      'Stop exploring, or stop recommending, a path on a source, for example generated output such as a build or node_modules directory. Scope `exclude_subtree`: the path and everything beneath it is skipped from now on, including directories already queued (they are skipped when claimed). Scope `selective_only`: the directory itself is not a backup inventory item but you should still explore inside it. Always give a short reason; a human reviews it. Rules are per source (global rules are human-only) and one path has at most one rule, so a duplicate is rejected. This does not delete anything already recorded. You cannot edit or delete rules.',
   },
 } satisfies Operation;
 

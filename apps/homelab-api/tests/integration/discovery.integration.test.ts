@@ -843,10 +843,10 @@ describe('a finished job releases its workers', () => {
   const lateCalls = (item: Item) => [
     () =>
       getRequest()
-        .post(`/queue-items/${item.id}/review-candidates`)
+        .post(`/queue-items/${item.id}/inventory-items`)
         .send({
           claimToken: item.claimToken,
-          candidates: [
+          inventoryItems: [
             {
               rootPath: `${ROOT}\\Late`,
               kind: 'directory',

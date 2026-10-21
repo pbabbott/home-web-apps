@@ -19,13 +19,13 @@ import {
   describeGit,
   RECOMMENDATION_COLOR,
   RECOMMENDATION_LABELS,
-} from '../lib/candidate-display';
+} from '../lib/inventory-display';
 import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
 import { formatDateTime } from '../lib/job-display';
-import { decideReviewCandidate } from '../sources/lib/actions';
+import { decideInventoryItem } from '../sources/lib/actions';
 import type {
-  CandidateDecision,
-  ReviewCandidate,
+  InventoryItemDecision,
+  InventoryItem,
 } from '../sources/lib/homelab-api';
 
 function Section({
@@ -63,18 +63,18 @@ function List({ items, empty }: { items: string[]; empty: string }) {
   );
 }
 
-interface CandidateDetailModalProps {
-  /** The candidate to review; null closes the modal. */
-  candidate: ReviewCandidate | null;
+interface InventoryItemDetailModalProps {
+  /** The inventory item to review; null closes the modal. */
+  inventoryItem: InventoryItem | null;
   onClose: () => void;
   onDecided: () => void;
 }
 
-export function CandidateDetailModal({
-  candidate,
+export function InventoryItemDetailModal({
+  inventoryItem,
   onClose,
   onDecided,
-}: CandidateDetailModalProps) {
+}: InventoryItemDetailModalProps) {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,15 +85,15 @@ export function CandidateDetailModal({
     onClose();
   }
 
-  async function decide(decision: CandidateDecision) {
-    if (!candidate) return;
+  async function decide(decision: InventoryItemDecision) {
+    if (!inventoryItem) return;
 
     setSubmitting(true);
     setError(null);
 
     // An empty box leaves the note out, so the API keeps or clears it by its own rule.
-    const result = await decideReviewCandidate(
-      candidate.id,
+    const result = await decideInventoryItem(
+      inventoryItem.id,
       decision,
       note.trim() || undefined,
     );
@@ -108,50 +108,52 @@ export function CandidateDetailModal({
     onDecided();
   }
 
-  const evidence = candidate?.evidence;
+  const evidence = inventoryItem?.evidence;
 
   return (
     <Modal
-      open={candidate !== null}
+      open={inventoryItem !== null}
       onOpenChange={(open) => {
         if (!open) close();
       }}
     >
       <ModalContent color="secondary">
-        <ModalTitle>{candidate?.displayName}</ModalTitle>
+        <ModalTitle>{inventoryItem?.displayName}</ModalTitle>
         <ModalDescription className="break-all">
-          {candidate?.rootPath}
+          {inventoryItem?.rootPath}
         </ModalDescription>
 
-        {candidate && evidence && (
+        {inventoryItem && evidence && (
           <div className="mt-4 flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge color={candidate.kind === 'file' ? 'dark' : 'secondary'}>
-                {candidate.kind === 'file' ? 'file' : 'folder'}
+              <Badge
+                color={inventoryItem.kind === 'file' ? 'dark' : 'secondary'}
+              >
+                {inventoryItem.kind === 'file' ? 'file' : 'folder'}
               </Badge>
-              <Badge color={RECOMMENDATION_COLOR[candidate.recommendation]}>
-                Agent: {RECOMMENDATION_LABELS[candidate.recommendation]} (
-                {candidate.confidence})
+              <Badge color={RECOMMENDATION_COLOR[inventoryItem.recommendation]}>
+                Agent: {RECOMMENDATION_LABELS[inventoryItem.recommendation]} (
+                {inventoryItem.confidence})
               </Badge>
-              <Badge color={DECISION_COLOR[candidate.decision]}>
-                {DECISION_LABELS[candidate.decision]}
+              <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                {DECISION_LABELS[inventoryItem.decision]}
               </Badge>
-              {changedSinceDecision(candidate) && (
+              {changedSinceDecision(inventoryItem) && (
                 <Badge color="warning">Agent changed its mind</Badge>
               )}
             </div>
 
             <Section title="Summary">
-              <Typography variant="body2">{candidate.summary}</Typography>
+              <Typography variant="body2">{inventoryItem.summary}</Typography>
             </Section>
 
             <Section title="Why the agent recommends this">
               <Typography variant="body2">
-                {candidate.recommendationReason}
+                {inventoryItem.recommendationReason}
               </Typography>
               <Typography variant="small" className="text-neutral-400">
-                {candidate.recommendedBy ?? 'agent'}, updated{' '}
-                {formatDateTime(candidate.recommendedAt)} UTC
+                {inventoryItem.recommendedBy ?? 'agent'}, updated{' '}
+                {formatDateTime(inventoryItem.recommendedAt)} UTC
               </Typography>
             </Section>
 
@@ -190,15 +192,19 @@ export function CandidateDetailModal({
               />
             </Section>
 
-            {candidate.decision !== 'pending' && (
+            {inventoryItem.decision !== 'pending' && (
               <Section title="Decision">
                 <Typography variant="body2">
-                  {DECISION_LABELS[candidate.decision]}
-                  {candidate.decidedBy ? ` by ${candidate.decidedBy}` : ''}
-                  {candidate.decidedAt
-                    ? ` on ${formatDateTime(candidate.decidedAt)} UTC`
+                  {DECISION_LABELS[inventoryItem.decision]}
+                  {inventoryItem.decidedBy
+                    ? ` by ${inventoryItem.decidedBy}`
                     : ''}
-                  {candidate.decisionNote ? `: ${candidate.decisionNote}` : ''}
+                  {inventoryItem.decidedAt
+                    ? ` on ${formatDateTime(inventoryItem.decidedAt)} UTC`
+                    : ''}
+                  {inventoryItem.decisionNote
+                    ? `: ${inventoryItem.decisionNote}`
+                    : ''}
                 </Typography>
               </Section>
             )}
@@ -228,7 +234,7 @@ export function CandidateDetailModal({
           <OutlinedButton size="small" disabled={submitting} onClick={close}>
             Close
           </OutlinedButton>
-          {candidate && candidate.decision !== 'pending' && (
+          {inventoryItem && inventoryItem.decision !== 'pending' && (
             <OutlinedButton
               size="small"
               disabled={submitting}
@@ -237,7 +243,7 @@ export function CandidateDetailModal({
               Reset to pending
             </OutlinedButton>
           )}
-          {candidate?.decision !== 'rejected' && (
+          {inventoryItem?.decision !== 'rejected' && (
             <OutlinedButton
               size="small"
               disabled={submitting}
@@ -246,7 +252,7 @@ export function CandidateDetailModal({
               Reject
             </OutlinedButton>
           )}
-          {candidate?.decision !== 'approved' && (
+          {inventoryItem?.decision !== 'approved' && (
             <Button
               size="small"
               disabled={submitting}

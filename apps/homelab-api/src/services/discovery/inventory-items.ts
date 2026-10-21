@@ -1,20 +1,20 @@
 import {
   DiscoveryError,
-  decideReviewCandidate as decideReviewCandidateRow,
-  findNestedCandidates,
+  decideInventoryItem as decideInventoryItemRow,
+  findNestedInventoryItems,
   getQueueItemById,
-  getReviewCandidateById,
+  getInventoryItemById,
   getSourceById,
-  listReviewCandidates as listReviewCandidateRows,
-  upsertReviewCandidates,
+  listInventoryItems as listInventoryItemRows,
+  upsertInventoryItems,
   type Actor,
-  type CandidateDecision,
-  type CandidateEvidence,
-  type CandidateRecommendation,
-  type NestedCandidate,
-  type ReviewCandidate,
-  type ReviewCandidateWithExclusion,
-  type UpsertedCandidate,
+  type InventoryItemDecision,
+  type InventoryItemEvidence,
+  type InventoryItemRecommendation,
+  type NestedInventoryItem,
+  type InventoryItem,
+  type InventoryItemWithExclusion,
+  type UpsertedInventoryItem,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
 import {
@@ -23,13 +23,13 @@ import {
   windowsPathName,
   windowsPathParent,
 } from '../../lib/windows-path';
-import type { ReviewCandidateInput } from '../../schemas/discovery';
+import type { InventoryItemInput } from '../../schemas/discovery';
 
-export type ProposedCandidate = UpsertedCandidate & {
-  /** Existing candidates whose root is an ancestor of this one. */
-  coveredBy: NestedCandidate[];
-  /** Existing candidates beneath this one (capped). */
-  covers: NestedCandidate[];
+export type ProposedInventoryItem = UpsertedInventoryItem & {
+  /** Existing inventory items whose root is an ancestor of this one. */
+  coveredBy: NestedInventoryItem[];
+  /** Existing inventory items beneath this one (capped). */
+  covers: NestedInventoryItem[];
 };
 
 const ancestorsOf = (normalizedPath: string): string[] => {
@@ -49,19 +49,19 @@ const ancestorsOf = (normalizedPath: string): string[] => {
  * Records the agent's proposals for the directory it holds. Each root path
  * must be that directory or lie beneath it: a worker can only report on what
  * it has claimed. Never touches human decisions. Nesting is allowed; each
- * result reports the candidates it sits inside or contains, for the agent and
+ * result reports the inventory items it sits inside or contains, for the agent and
  * reviewer to judge.
  */
-export async function proposeCandidates(
+export async function proposeInventoryItems(
   queueItemId: string,
   claimToken: string,
   workerId: string | null,
-  candidates: ReviewCandidateInput[],
-): Promise<ProposedCandidate[]> {
+  inventoryItems: InventoryItemInput[],
+): Promise<ProposedInventoryItem[]> {
   const claimed = await getQueueItemById(db, queueItemId);
   if (!claimed) throw new DiscoveryError('not_found', 'queue item not found');
 
-  const normalized = candidates.map((c) => {
+  const normalized = inventoryItems.map((c) => {
     const { path, normalizedPath } = normalizeWindowsPath(c.rootPath);
 
     return {
@@ -74,8 +74,8 @@ export async function proposeCandidates(
       confidence: c.confidence,
       recommendationReason: c.reason,
       // This app compiles without strictNullChecks, which turns the schema's
-      // `T | null` fields optional; the validated shape matches CandidateEvidence.
-      evidence: c.evidence as CandidateEvidence,
+      // `T | null` fields optional; the validated shape matches InventoryItemEvidence.
+      evidence: c.evidence as InventoryItemEvidence,
     };
   });
 
@@ -92,42 +92,42 @@ export async function proposeCandidates(
     );
   }
 
-  const upserted = await upsertReviewCandidates(db, queueItemId, {
+  const upserted = await upsertInventoryItems(db, queueItemId, {
     claimToken,
     workerId,
-    candidates: normalized,
+    inventoryItems: normalized,
   });
 
-  // After the upsert, so candidates proposed together report each other.
+  // After the upsert, so inventory items proposed together report each other.
   return Promise.all(
     upserted.map(async (result) => ({
       ...result,
-      ...(await findNestedCandidates(
+      ...(await findNestedInventoryItems(
         db,
-        result.candidate.sourceId,
-        result.candidate.normalizedRootPath,
-        ancestorsOf(result.candidate.normalizedRootPath),
+        result.inventoryItem.sourceId,
+        result.inventoryItem.normalizedRootPath,
+        ancestorsOf(result.inventoryItem.normalizedRootPath),
       )),
     })),
   );
 }
 
-export async function listSourceReviewCandidates(
+export async function listSourceInventoryItems(
   sourceId: string,
   filters: {
     jobId?: string;
-    recommendation?: CandidateRecommendation;
-    decision?: CandidateDecision;
+    recommendation?: InventoryItemRecommendation;
+    decision?: InventoryItemDecision;
     pathPrefix?: string;
     after?: string;
     limit?: number;
   },
-): Promise<ReviewCandidate[]> {
+): Promise<InventoryItem[]> {
   if (!(await getSourceById(db, sourceId))) {
     throw new DiscoveryError('not_found', 'source not found');
   }
 
-  return listReviewCandidateRows(db, {
+  return listInventoryItemRows(db, {
     sourceId,
     jobId: filters.jobId,
     recommendation: filters.recommendation,
@@ -140,13 +140,13 @@ export async function listSourceReviewCandidates(
   });
 }
 
-export const getReviewCandidate = (
+export const getInventoryItem = (
   id: string,
-): Promise<ReviewCandidateWithExclusion> => getReviewCandidateById(db, id);
+): Promise<InventoryItemWithExclusion> => getInventoryItemById(db, id);
 
-export const decideReviewCandidate = (
+export const decideInventoryItem = (
   id: string,
-  input: { decision: CandidateDecision; note?: string | null },
+  input: { decision: InventoryItemDecision; note?: string | null },
   actor: Actor,
-): Promise<ReviewCandidate> =>
-  decideReviewCandidateRow(db, id, { ...input, actor });
+): Promise<InventoryItem> =>
+  decideInventoryItemRow(db, id, { ...input, actor });

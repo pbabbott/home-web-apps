@@ -19,8 +19,8 @@ jest.mock('../../src/services/discovery', () => {
     retryItem: jest.fn(),
     listExclusionRules: jest.fn(),
     createExclusionRule: jest.fn(),
-    proposeCandidates: jest.fn(),
-    listSourceReviewCandidates: jest.fn(),
+    proposeInventoryItems: jest.fn(),
+    listSourceInventoryItems: jest.fn(),
     listSourceKnownSkips: jest.fn(),
   };
 });
@@ -66,9 +66,9 @@ describe('MCP endpoint (/mcp)', () => {
       'heartbeat_directory',
       'list_discovery_jobs',
       'list_exclusion_rules',
+      'list_inventory_items',
       'list_known_skips',
-      'list_review_candidates',
-      'propose_review_candidates',
+      'propose_inventory_items',
       'skip_directory',
     ]);
   });
@@ -183,16 +183,16 @@ describe('MCP endpoint (/mcp)', () => {
     );
   });
 
-  it('propose_review_candidates passes the worker id and has no decision field', async () => {
-    (discoveryService.proposeCandidates as jest.Mock).mockResolvedValue([
-      { candidate: { id: ID }, created: true, changed: false },
+  it('propose_inventory_items passes the worker id and has no decision field', async () => {
+    (discoveryService.proposeInventoryItems as jest.Mock).mockResolvedValue([
+      { inventoryItem: { id: ID }, created: true, changed: false },
     ]);
 
-    const { isError, body } = await call('propose_review_candidates', {
+    const { isError, body } = await call('propose_inventory_items', {
       id: ID,
       claimToken: TOKEN,
       workerId: 'w1',
-      candidates: [
+      inventoryItems: [
         {
           rootPath: 'C:\\Users\\You\\Documents',
           kind: 'directory',
@@ -214,7 +214,7 @@ describe('MCP endpoint (/mcp)', () => {
 
     expect(isError).toBeFalsy();
     expect(body).toEqual([{ id: ID, created: true, changed: false }]);
-    expect(discoveryService.proposeCandidates).toHaveBeenCalledWith(
+    expect(discoveryService.proposeInventoryItems).toHaveBeenCalledWith(
       ID,
       TOKEN,
       'w1',
@@ -222,15 +222,15 @@ describe('MCP endpoint (/mcp)', () => {
     );
   });
 
-  it('propose_review_candidates rejects low-confidence back_up', async () => {
-    (discoveryService.proposeCandidates as jest.Mock).mockClear();
+  it('propose_inventory_items rejects low-confidence back_up', async () => {
+    (discoveryService.proposeInventoryItems as jest.Mock).mockClear();
 
     const result = await client.callTool({
-      name: 'propose_review_candidates',
+      name: 'propose_inventory_items',
       arguments: {
         id: ID,
         claimToken: TOKEN,
-        candidates: [
+        inventoryItems: [
           {
             rootPath: 'C:\\data',
             kind: 'directory',
@@ -252,16 +252,16 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(discoveryService.proposeCandidates).not.toHaveBeenCalled();
+    expect(discoveryService.proposeInventoryItems).not.toHaveBeenCalled();
   });
 
-  it('has no inventory tool and describes candidates as the only record', async () => {
+  it('has no record_discovered_items tool and describes inventory items as the only record', async () => {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name);
 
     expect(names).not.toContain('record_discovered_items');
     expect(
-      tools.find((t) => t.name === 'propose_review_candidates')?.description,
+      tools.find((t) => t.name === 'propose_inventory_items')?.description,
     ).toMatch(/creates no queue items/);
   });
 
@@ -284,9 +284,9 @@ describe('MCP endpoint (/mcp)', () => {
   });
 
   it('serves the agent playbook as server instructions', () => {
-    expect(client.getInstructions()).toContain('review candidates');
+    expect(client.getInstructions()).toContain('inventory items');
     expect(client.getInstructions()).toContain(
-      'candidates are the only thing you record',
+      'inventory items are the only thing you record',
     );
   });
 

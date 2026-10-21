@@ -1,11 +1,11 @@
 import { HOMELAB_API_URL } from './config';
 
-export type CandidateKind = 'file' | 'directory';
-export type CandidateRecommendation = 'back_up' | 'skip' | 'needs_review';
-export type CandidateConfidence = 'low' | 'medium' | 'high';
-export type CandidateDecision = 'pending' | 'approved' | 'rejected';
+export type InventoryItemKind = 'file' | 'directory';
+export type InventoryItemRecommendation = 'back_up' | 'skip' | 'needs_review';
+export type InventoryItemConfidence = 'low' | 'medium' | 'high';
+export type InventoryItemDecision = 'pending' | 'approved' | 'rejected';
 
-export interface CandidateGitEvidence {
+export interface InventoryItemGitEvidence {
   remoteUrl: string | null;
   remoteVisibility: 'public' | 'private' | 'none' | 'unknown';
   localStateKnown: boolean;
@@ -15,10 +15,10 @@ export interface CandidateGitEvidence {
   ignoredFilesOfNote: boolean | null;
 }
 
-export interface CandidateEvidence {
+export interface InventoryItemEvidence {
   contentKinds: string[];
   /** Null when the path is not a git repository (or was not checked). */
-  git: CandidateGitEvidence | null;
+  git: InventoryItemGitEvidence | null;
   reproducible: 'yes' | 'no' | 'unknown';
   sufficientInformation: boolean;
   observations: string[];
@@ -27,24 +27,24 @@ export interface CandidateEvidence {
   estimatedFileCount?: number;
 }
 
-export interface ReviewCandidate {
+export interface InventoryItem {
   id: string;
   sourceId: string;
-  kind: CandidateKind;
+  kind: InventoryItemKind;
   rootPath: string;
   /** Lowercased path; the cursor for the next page. */
   normalizedRootPath: string;
   displayName: string;
   summary: string;
   /** The agent's view. Never an approval. */
-  recommendation: CandidateRecommendation;
-  confidence: CandidateConfidence;
+  recommendation: InventoryItemRecommendation;
+  confidence: InventoryItemConfidence;
   recommendationReason: string;
-  evidence: CandidateEvidence;
+  evidence: InventoryItemEvidence;
   recommendedAt: string;
   recommendedBy: string | null;
   /** The human's call; separate from the recommendation above. */
-  decision: CandidateDecision;
+  decision: InventoryItemDecision;
   decisionNote: string | null;
   decidedAt: string | null;
   decidedBy: string | null;
@@ -52,19 +52,19 @@ export interface ReviewCandidate {
   lastSeenAt: string;
 }
 
-export interface ReviewCandidateQuery {
-  recommendation?: CandidateRecommendation;
-  decision?: CandidateDecision;
-  /** The `normalizedRootPath` of the last candidate of the previous page. */
+export interface InventoryItemQuery {
+  recommendation?: InventoryItemRecommendation;
+  decision?: InventoryItemDecision;
+  /** The `normalizedRootPath` of the last inventory item of the previous page. */
   after?: string;
   limit?: number;
 }
 
-/** A page of a source's review candidates, ordered by normalized path. */
-export async function getReviewCandidates(
+/** A page of a source's inventory items, ordered by normalized path. */
+export async function getInventoryItems(
   sourceId: string,
-  query: ReviewCandidateQuery,
-): Promise<ReviewCandidate[]> {
+  query: InventoryItemQuery,
+): Promise<InventoryItem[]> {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(query)) {
@@ -72,16 +72,16 @@ export async function getReviewCandidates(
   }
 
   const res = await fetch(
-    `${HOMELAB_API_URL}/sources/${sourceId}/review-candidates?${params}`,
+    `${HOMELAB_API_URL}/sources/${sourceId}/inventory-items?${params}`,
     { cache: 'no-store' },
   );
 
   if (!res.ok) {
     const body = await res.text();
     throw new Error(
-      `homelab-api GET /sources/${sourceId}/review-candidates returned ${res.status}: ${body}`,
+      `homelab-api GET /sources/${sourceId}/inventory-items returned ${res.status}: ${body}`,
     );
   }
 
-  return (await res.json()) as ReviewCandidate[];
+  return (await res.json()) as InventoryItem[];
 }

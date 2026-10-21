@@ -1,13 +1,13 @@
 import { and, asc, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
-  reviewCandidates,
-  type CandidateConfidence,
-  type CandidateDecision,
-  type CandidateEvidence,
-  type CandidateRecommendation,
-  type CandidateKind,
-  type ReviewCandidate,
+  inventoryItems,
+  type InventoryItemConfidence,
+  type InventoryItemDecision,
+  type InventoryItemEvidence,
+  type InventoryItemRecommendation,
+  type InventoryItemKind,
+  type InventoryItem,
 } from '../schema/discovery';
 import { insertAuditEvent, type Actor } from './audit';
 import { activeClaim, claimMissError } from './discovery/claims';
@@ -20,27 +20,27 @@ import {
 import { DiscoveryError, escapeLike, type Tx } from './shared';
 import { discoveryJobs, discoveryQueueItems } from '../schema/discovery';
 
-export type CandidateInput = {
-  kind: CandidateKind;
+export type InventoryItemInput = {
+  kind: InventoryItemKind;
   rootPath: string;
   normalizedRootPath: string;
   displayName: string;
   summary: string;
-  recommendation: CandidateRecommendation;
-  confidence: CandidateConfidence;
+  recommendation: InventoryItemRecommendation;
+  confidence: InventoryItemConfidence;
   recommendationReason: string;
-  evidence: CandidateEvidence;
+  evidence: InventoryItemEvidence;
 };
 
-export type UpsertReviewCandidatesInput = {
+export type UpsertInventoryItemsInput = {
   claimToken: string;
   /** Recorded as `recommendedBy`; the actor is always the agent. */
   workerId: string | null;
-  candidates: CandidateInput[];
+  inventoryItems: InventoryItemInput[];
 };
 
-export type UpsertedCandidate = {
-  candidate: ReviewCandidate;
+export type UpsertedInventoryItem = {
+  inventoryItem: InventoryItem;
   created: boolean;
   /** True when recommendation, confidence, reason or other agent fields changed. */
   changed: boolean;
@@ -71,16 +71,16 @@ const jsonEqual = (a: unknown, b: unknown): boolean =>
  * absent from every `set` below: rediscovery must not reset a human's
  * decision, and a recommendation is never an approval.
  *
- * An audit event is written only when a candidate is created or its
+ * An audit event is written only when an inventory item is created or its
  * recommendation/confidence changes; an identical re-proposal just refreshes
  * `lastJobId`/`lastSeenAt`. Any path under an exclusion rule (excluded
  * subtree, or exactly a `selective_only` path) rejects the whole batch.
  */
-export const upsertReviewCandidates = async (
+export const upsertInventoryItems = async (
   db: Database,
   queueItemId: string,
-  input: UpsertReviewCandidatesInput,
-): Promise<UpsertedCandidate[]> =>
+  input: UpsertInventoryItemsInput,
+): Promise<UpsertedInventoryItem[]> =>
   db.transaction(async (tx) => {
     const [claimed] = await tx
       .select({
@@ -95,7 +95,7 @@ export const upsertReviewCandidates = async (
 
     // One statement cannot touch a row twice; the last occurrence wins.
     const byPath = new Map(
-      input.candidates.map((c) => [c.normalizedRootPath, c]),
+      input.inventoryItems.map((c) => [c.normalizedRootPath, c]),
     );
     // Ordered so overlapping batches lock rows in the same order.
     const ordered = [...byPath.values()].sort((a, b) =>
@@ -119,12 +119,12 @@ export const upsertReviewCandidates = async (
     if (blocked.length > 0) {
       throw new DiscoveryError(
         'conflict',
-        'paths covered by an exclusion rule cannot be review candidates',
+        'paths covered by an exclusion rule cannot be inventory items',
         { blocked },
       );
     }
 
-    const t = reviewCandidates;
+    const t = inventoryItems;
     const inserted = await tx
       .insert(t)
       .values(
@@ -150,12 +150,12 @@ export const upsertReviewCandidates = async (
 
     for (const row of inserted) {
       await insertAuditEvent(tx, {
-        eventType: 'review_candidate.created',
+        eventType: 'inventory_item.created',
         actor: { type: 'openclaw', id: input.workerId },
         sourceId: row.sourceId,
         jobId: claimed.jobId,
         queueItemId,
-        reviewCandidateId: row.id,
+        inventoryItemId: row.id,
         details: {
           path: row.rootPath,
           recommendation: row.recommendation,
@@ -180,12 +180,12 @@ export const upsertReviewCandidates = async (
       .for('update');
     const rowByPath = new Map(existing.map((r) => [r.normalizedRootPath, r]));
 
-    const results: UpsertedCandidate[] = [];
+    const results: UpsertedInventoryItem[] = [];
     for (const c of ordered) {
-      const row = rowByPath.get(c.normalizedRootPath) as ReviewCandidate;
+      const row = rowByPath.get(c.normalizedRootPath) as InventoryItem;
 
       if (createdIds.has(row.id)) {
-        results.push({ candidate: row, created: true, changed: false });
+        results.push({ inventoryItem: row, created: true, changed: false });
         continue;
       }
 
@@ -226,12 +226,12 @@ export const upsertReviewCandidates = async (
 
       if (verdictChanged) {
         await insertAuditEvent(tx, {
-          eventType: 'review_candidate.recommendation_changed',
+          eventType: 'inventory_item.recommendation_changed',
           actor: { type: 'openclaw', id: input.workerId },
           sourceId: row.sourceId,
           jobId: claimed.jobId,
           queueItemId,
-          reviewCandidateId: row.id,
+          inventoryItemId: row.id,
           details: {
             path: row.rootPath,
             from: {
@@ -245,41 +245,41 @@ export const upsertReviewCandidates = async (
         });
       }
 
-      results.push({ candidate: updated, created: false, changed });
+      results.push({ inventoryItem: updated, created: false, changed });
     }
 
     return results;
   });
 
-export type ReviewCandidateWithExclusion = ReviewCandidate & {
+export type InventoryItemWithExclusion = InventoryItem & {
   exclusion: ExclusionResolution;
 };
 
-export const getReviewCandidateById = async (
+export const getInventoryItemById = async (
   db: Database,
   id: string,
-): Promise<ReviewCandidateWithExclusion> => {
-  const [candidate] = await db
+): Promise<InventoryItemWithExclusion> => {
+  const [inventoryItem] = await db
     .select()
-    .from(reviewCandidates)
-    .where(eq(reviewCandidates.id, id));
+    .from(inventoryItems)
+    .where(eq(inventoryItems.id, id));
 
-  if (!candidate)
-    throw new DiscoveryError('not_found', 'review candidate not found');
+  if (!inventoryItem)
+    throw new DiscoveryError('not_found', 'inventory item not found');
 
-  const rules = await listApplicableRules(db, [candidate.sourceId]);
+  const rules = await listApplicableRules(db, [inventoryItem.sourceId]);
 
   return {
-    ...candidate,
+    ...inventoryItem,
     exclusion: resolveExclusion(
-      rulesBySource(rules, candidate.sourceId),
-      candidate.normalizedRootPath,
+      rulesBySource(rules, inventoryItem.sourceId),
+      inventoryItem.normalizedRootPath,
     ),
   };
 };
 
-export type DecideReviewCandidateInput = {
-  decision: CandidateDecision;
+export type DecideInventoryItemInput = {
+  decision: InventoryItemDecision;
   /**
    * Replaces the note. When omitted the note is kept if the decision is
    * unchanged and cleared if it changes (the old note explained the old
@@ -297,20 +297,20 @@ export type DecideReviewCandidateInput = {
  * decision and note is a no-op with no event. Touches only the decision
  * columns.
  */
-export const decideReviewCandidate = async (
+export const decideInventoryItem = async (
   db: Database,
   id: string,
-  input: DecideReviewCandidateInput,
-): Promise<ReviewCandidate> => {
+  input: DecideInventoryItemInput,
+): Promise<InventoryItem> => {
   if (input.actor.type !== 'human') {
     throw new DiscoveryError(
       'conflict',
-      'only a human can approve or reject a review candidate',
+      'only a human can approve or reject an inventory item',
     );
   }
 
   return db.transaction(async (tx) => {
-    const t = reviewCandidates;
+    const t = inventoryItems;
     const [before] = await tx
       .select()
       .from(t)
@@ -318,7 +318,7 @@ export const decideReviewCandidate = async (
       .for('update');
 
     if (!before)
-      throw new DiscoveryError('not_found', 'review candidate not found');
+      throw new DiscoveryError('not_found', 'inventory item not found');
 
     if (input.decision === 'approved') {
       const rules = rulesBySource(
@@ -363,10 +363,10 @@ export const decideReviewCandidate = async (
       .returning();
 
     await insertAuditEvent(tx, {
-      eventType: 'review_candidate.decision_changed',
+      eventType: 'inventory_item.decision_changed',
       actor: input.actor,
       sourceId: before.sourceId,
-      reviewCandidateId: before.id,
+      inventoryItemId: before.id,
       details: {
         path: before.rootPath,
         from: before.decision,
@@ -380,12 +380,12 @@ export const decideReviewCandidate = async (
   });
 };
 
-export type ListReviewCandidatesOptions = {
+export type ListInventoryItemsOptions = {
   sourceId: string;
-  /** Candidates last proposed by this job. */
+  /** Inventory items last proposed by this job. */
   jobId?: string;
-  recommendation?: CandidateRecommendation;
-  decision?: CandidateDecision;
+  recommendation?: InventoryItemRecommendation;
+  decision?: InventoryItemDecision;
   /** The path (normalized) itself and everything beneath it. */
   normalizedPathPrefix?: string;
   /** Keyset cursor: the last normalizedRootPath of the previous page. */
@@ -393,11 +393,11 @@ export type ListReviewCandidatesOptions = {
   limit?: number;
 };
 
-const LIST_CANDIDATES_DEFAULT_LIMIT = 100;
-const LIST_CANDIDATES_MAX_LIMIT = 500;
+const LIST_INVENTORY_ITEMS_DEFAULT_LIMIT = 100;
+const LIST_INVENTORY_ITEMS_MAX_LIMIT = 500;
 
 const subtreeFilter = (normalizedDir: string): SQL => {
-  const t = reviewCandidates;
+  const t = inventoryItems;
   const dir = normalizedDir.endsWith('\\')
     ? normalizedDir.slice(0, -1)
     : normalizedDir;
@@ -405,11 +405,11 @@ const subtreeFilter = (normalizedDir: string): SQL => {
   return sql`(${t.normalizedRootPath} = ${normalizedDir} or ${t.normalizedRootPath} like ${`${escapeLike(dir)}\\%`} escape '!')`;
 };
 
-export const listReviewCandidates = async (
+export const listInventoryItems = async (
   db: Database | Tx,
-  options: ListReviewCandidatesOptions,
-): Promise<ReviewCandidate[]> => {
-  const t = reviewCandidates;
+  options: ListInventoryItemsOptions,
+): Promise<InventoryItem[]> => {
+  const t = inventoryItems;
 
   return db
     .select()
@@ -431,42 +431,45 @@ export const listReviewCandidates = async (
     .orderBy(asc(t.normalizedRootPath))
     .limit(
       Math.min(
-        options.limit ?? LIST_CANDIDATES_DEFAULT_LIMIT,
-        LIST_CANDIDATES_MAX_LIMIT,
+        options.limit ?? LIST_INVENTORY_ITEMS_DEFAULT_LIMIT,
+        LIST_INVENTORY_ITEMS_MAX_LIMIT,
       ),
     );
 };
 
-/** The part of a nearby candidate worth showing next to a proposal. */
-export type NestedCandidate = Pick<
-  ReviewCandidate,
+/** The part of a nearby inventory item worth showing next to a proposal. */
+export type NestedInventoryItem = Pick<
+  InventoryItem,
   'id' | 'kind' | 'rootPath' | 'displayName' | 'recommendation' | 'decision'
 >;
 
 const NESTED_COVERS_LIMIT = 50;
 
 const nestedColumns = {
-  id: reviewCandidates.id,
-  kind: reviewCandidates.kind,
-  rootPath: reviewCandidates.rootPath,
-  displayName: reviewCandidates.displayName,
-  recommendation: reviewCandidates.recommendation,
-  decision: reviewCandidates.decision,
+  id: inventoryItems.id,
+  kind: inventoryItems.kind,
+  rootPath: inventoryItems.rootPath,
+  displayName: inventoryItems.displayName,
+  recommendation: inventoryItems.recommendation,
+  decision: inventoryItems.decision,
 };
 
 /**
- * Other candidates of the source that overlap a path: `coveredBy` are those
+ * Other inventory items of the source that overlap a path: `coveredBy` are those
  * whose root is a proper ancestor (`ancestorPaths` are the normalized
  * ancestors of the path), `covers` those beneath it (capped, ordered by path).
  * Informational only: nesting is allowed and nothing is inherited.
  */
-export const findNestedCandidates = async (
+export const findNestedInventoryItems = async (
   db: Database | Tx,
   sourceId: string,
   normalizedPath: string,
   ancestorPaths: string[],
-): Promise<{ coveredBy: NestedCandidate[]; covers: NestedCandidate[] }> => {
-  const t = reviewCandidates;
+): Promise<{
+  coveredBy: NestedInventoryItem[];
+  covers: NestedInventoryItem[];
+}> => {
+  const t = inventoryItems;
 
   const coveredBy = ancestorPaths.length
     ? await db

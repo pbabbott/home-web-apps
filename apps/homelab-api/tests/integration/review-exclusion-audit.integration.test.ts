@@ -2,7 +2,7 @@ import { db } from '../../src/db';
 import { getRequest } from '../jest.integration.setup';
 
 // Runs against the real local dev Postgres, so everything created here is
-// deleted afterwards. Sources cascade to jobs, queue items, candidates and
+// deleted afterwards. Sources cascade to jobs, queue items, inventory items and
 // source-level rules; global rules and the audit log (which has no foreign
 // keys by design) are removed explicitly.
 const createdSourceIds: string[] = [];
@@ -88,7 +88,7 @@ const claimItem = async (jobId: string): Promise<ClaimedItem> => {
 };
 
 /** A minimal valid proposal; only its path matters to the exclusion tests. */
-const candidate = (path: string) => ({
+const inventoryItem = (path: string) => ({
   rootPath: path,
   kind: 'directory',
   summary: 'x',
@@ -114,8 +114,11 @@ const claimRoot = async (sourceId: string) => {
 
 const propose = (root: ClaimedItem, paths: string[]) =>
   getRequest()
-    .post(`/queue-items/${root.id}/review-candidates`)
-    .send({ claimToken: root.claimToken, candidates: paths.map(candidate) });
+    .post(`/queue-items/${root.id}/inventory-items`)
+    .send({
+      claimToken: root.claimToken,
+      inventoryItems: paths.map(inventoryItem),
+    });
 
 const auditEvents = async (query: Record<string, string | number> = {}) =>
   (await getRequest().get('/audit-events').query(query).expect(200)).body as {
@@ -125,7 +128,7 @@ const auditEvents = async (query: Record<string, string | number> = {}) =>
     actorId: string | null;
     sourceId: string | null;
     jobId: string | null;
-    reviewCandidateId: string | null;
+    inventoryItemId: string | null;
     exclusionRuleId: string | null;
     details: Record<string, any>;
     createdAt: string;
@@ -281,7 +284,7 @@ describe('exclusion precedence', () => {
     await propose(root, [`${base}other\\b.txt`]).expect(200);
   });
 
-  it('treats selective_only as "not a candidate itself, but explore beneath it"', async () => {
+  it('treats selective_only as "not an inventory item itself, but explore beneath it"', async () => {
     const sourceId = await createSource();
     const nodeModules = `${ROOT}\\node_modules`;
     await createRule({ sourceId, path: nodeModules, scope: 'selective_only' });

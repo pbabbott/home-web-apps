@@ -5,9 +5,9 @@ export const AUDIT_EVENT_LABELS: Record<AuditEventType, string> = {
   'exclusion_rule.updated': 'Rule updated',
   'exclusion_rule.deleted': 'Rule removed',
   'queue_items.excluded': 'Queue skipped',
-  'review_candidate.created': 'Candidate proposed',
-  'review_candidate.recommendation_changed': 'Recommendation changed',
-  'review_candidate.decision_changed': 'Candidate decided',
+  'inventory_item.created': 'Inventory item proposed',
+  'inventory_item.recommendation_changed': 'Recommendation changed',
+  'inventory_item.decision_changed': 'Inventory item decided',
 };
 
 /** Own keys only: `in` would also accept `toString` and the like. */
@@ -69,15 +69,15 @@ export function describeAuditEvent(event: AuditEvent): string {
       return `${d.path ?? '?'}: ${scopeWord(d.before?.scope)} → ${scopeWord(d.after?.scope)}`;
     case 'exclusion_rule.deleted':
       return `${d.path ?? '?'} (${scopeWord(d.scope)})`;
-    case 'review_candidate.created':
+    case 'inventory_item.created':
       return `${d.path ?? '?'}: ${recommendationWord(d.recommendation)} (${d.confidence ?? '?'} confidence)`;
-    case 'review_candidate.recommendation_changed': {
+    case 'inventory_item.recommendation_changed': {
       const from = typeof d.from === 'object' ? d.from : undefined;
       const to = typeof d.to === 'object' ? d.to : undefined;
 
       return `${d.path ?? '?'}: ${recommendationWord(from?.recommendation)} → ${recommendationWord(to?.recommendation)}`;
     }
-    case 'review_candidate.decision_changed':
+    case 'inventory_item.decision_changed':
       return `${d.path ?? '?'}: ${decisionWord(d.from)} → ${decisionWord(d.to)}`;
     case 'queue_items.excluded':
       return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped by an exclusion rule`;

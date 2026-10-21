@@ -9,7 +9,7 @@ export async function listAuditEvents(filters: {
   sourceId?: string;
   jobId?: string;
   exclusionRuleId?: string;
-  reviewCandidateId?: string;
+  inventoryItemId?: string;
   eventType?: AuditEventType;
   since?: string;
   until?: string;

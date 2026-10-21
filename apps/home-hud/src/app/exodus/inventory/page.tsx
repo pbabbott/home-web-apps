@@ -1,14 +1,14 @@
 import {
   parseDecisionFilter,
   parseRecommendation,
-} from '../lib/candidate-display';
+} from '../lib/inventory-display';
 import {
-  getReviewCandidates,
+  getInventoryItems,
   getSources,
-  type ReviewCandidate,
+  type InventoryItem,
   type Source,
 } from '../sources/lib/homelab-api';
-import { CandidatesClient } from './CandidatesClient';
+import { InventoryClient } from './InventoryClient';
 
 type PageProps = {
   searchParams: Promise<{
@@ -21,9 +21,7 @@ type PageProps = {
 
 const PAGE_SIZE = 50;
 
-export default async function ExodusCandidatesPage({
-  searchParams,
-}: PageProps) {
+export default async function ExodusInventoryPage({ searchParams }: PageProps) {
   const query = await searchParams;
 
   let sources: Source[] | null = null;
@@ -37,41 +35,39 @@ export default async function ExodusCandidatesPage({
   // A missing or unknown source (a stale or hand-edited URL) falls back to the
   // first one, so the page always lands on something reviewable.
   const source =
-    sources?.find((candidate) => candidate.id === query.source) ??
-    sources?.[0] ??
-    null;
+    sources?.find((s) => s.id === query.source) ?? sources?.[0] ?? null;
 
   const decision = parseDecisionFilter(query.decision);
   const recommendation = parseRecommendation(query.recommendation);
   const after = query.after || undefined;
 
-  let candidates: ReviewCandidate[] | null = null;
+  let inventoryItems: InventoryItem[] | null = null;
 
   if (source) {
     try {
-      candidates = await getReviewCandidates(source.id, {
+      inventoryItems = await getInventoryItems(source.id, {
         decision: decision === 'all' ? undefined : decision,
         recommendation,
         after,
         limit: PAGE_SIZE,
       });
     } catch (err) {
-      console.error('Failed to load review candidates from homelab-api:', err);
+      console.error('Failed to load inventory items from homelab-api:', err);
     }
   }
 
   return (
-    <CandidatesClient
+    <InventoryClient
       sources={sources?.map(({ id, name }) => ({ id, name })) ?? null}
       sourceId={source?.id ?? null}
       decision={decision}
       recommendation={recommendation}
       isFirstPage={!after}
-      candidates={candidates}
+      inventoryItems={inventoryItems}
       // A full page may have more behind it; the cursor is the last row seen.
       nextCursor={
-        candidates && candidates.length === PAGE_SIZE
-          ? candidates[candidates.length - 1].normalizedRootPath
+        inventoryItems && inventoryItems.length === PAGE_SIZE
+          ? inventoryItems[inventoryItems.length - 1].normalizedRootPath
           : null
       }
     />
