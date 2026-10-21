@@ -4,3 +4,4 @@ build:
   repository: homelab-api-base
   target: builder
   push: 'true'
+  buildCache: harbor.local.abbottland.io/build-cache
