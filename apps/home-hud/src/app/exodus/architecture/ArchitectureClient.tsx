@@ -12,6 +12,7 @@ import {
   TableRow,
   Td,
   Th,
+  TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
 import type { McpServerInfo, RestOperation } from '../sources/lib/homelab-api';
@@ -19,6 +20,7 @@ import type { McpServerInfo, RestOperation } from '../sources/lib/homelab-api';
 const ACTORS = [
   {
     title: 'ACTOR: HUMAN',
+    color: 'primary',
     fields: [
       ['INTERFACE', 'home-hud /exodus/*'],
       ['TRANSPORT', 'REST'],
@@ -30,6 +32,7 @@ const ACTORS = [
   },
   {
     title: 'ACTOR: AGENT',
+    color: 'accent-purple',
     fields: [
       ['IDENTITY', 'openclaw'],
       ['TRIGGER', 'cron'],
@@ -41,6 +44,7 @@ const ACTORS = [
   },
   {
     title: 'SERVICE: HOMELAB-API',
+    color: 'secondary',
     fields: [
       ['ENDPOINTS', 'REST, POST /mcp'],
       ['SHARED', 'service layer, audit log'],
@@ -49,6 +53,7 @@ const ACTORS = [
   },
   {
     title: 'STORE: POSTGRES',
+    color: 'accent-falcon',
     fields: [
       ['SCHEMA', 'homelab-db'],
       [
@@ -173,7 +178,11 @@ export function ArchitectureClient({
           </Typography>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {ACTORS.map((actor) => (
-              <Panel key={actor.title} color="default" className="mb-2">
+              <TransparentPanel
+                key={actor.title}
+                color={actor.color}
+                className="mb-2"
+              >
                 <div className="flex flex-col gap-2">
                   <Typography variant="h3" component="h3" className="mb-2">
                     {actor.title}
@@ -199,7 +208,7 @@ export function ArchitectureClient({
                     ))}
                   </div>
                 </div>
-              </Panel>
+              </TransparentPanel>
             ))}
           </div>
           <Panel color="default" className="mb-2">
