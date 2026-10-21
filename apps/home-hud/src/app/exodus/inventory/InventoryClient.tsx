@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Badge,
   Button,
+  Input,
   OutlinedButton,
   Panel,
   ScrollableTable,
@@ -18,40 +19,35 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import {
-  formatBytes,
-  inventoryUrl,
-  parseReview,
-  pathCrumbs,
-  REVIEW_LABELS,
-  type InventoryTypeFilter,
+  inventoryItemsUrl,
+  changedSinceDecision,
+  DECISION_COLOR,
+  DECISION_LABELS,
+  parseDecisionFilter,
+  parseRecommendation,
+  RECOMMENDATION_COLOR,
+  RECOMMENDATION_LABELS,
+  type DecisionFilter,
 } from '../lib/inventory-display';
 import { formatDateTime } from '../lib/job-display';
-import { reviewInventoryItems } from '../sources/lib/actions';
+import { decideInventoryItem } from '../sources/lib/actions';
 import type {
+  InventoryItemDecision,
+  InventoryItemRecommendation,
   InventoryItem,
-  ReviewDisposition,
 } from '../sources/lib/homelab-api';
-
-const REVIEW_BADGE_COLORS = {
-  candidate: 'success',
-  not_needed: 'dark',
-  needs_review: 'warning',
-} as const;
+import { InventoryItemDetailModal } from './InventoryItemDetailModal';
 
 interface InventoryClientProps {
   /** Null if the sources could not be loaded. */
   sources: { id: string; name: string }[] | null;
-  /** The source being browsed; null if there are none. */
+  /** The source being reviewed; null if there are none. */
   sourceId: string | null;
-  /** Where the latest job started; null if the source has never been explored. */
-  rootPath: string | null;
-  currentPath: string | null;
-  recursive: boolean;
-  type: InventoryTypeFilter | undefined;
-  review: ReviewDisposition | undefined;
+  decision: DecisionFilter;
+  recommendation: InventoryItemRecommendation | undefined;
   isFirstPage: boolean;
-  /** Null if the inventory could not be loaded. */
-  items: InventoryItem[] | null;
+  /** Null if the inventory items could not be loaded. */
+  inventoryItems: InventoryItem[] | null;
   nextCursor: string | null;
 }
 
@@ -61,59 +57,46 @@ const selectClass =
 export function InventoryClient({
   sources,
   sourceId,
-  rootPath,
-  currentPath,
-  recursive,
-  type,
-  review,
+  decision,
+  recommendation,
   isFirstPage,
-  items,
+  inventoryItems,
   nextCursor,
 }: InventoryClientProps) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [reviewing, setReviewing] = useState(false);
-  const [reviewError, setReviewError] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // Reason typed per row, keyed by inventory item id.
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
-  const view = {
-    source: sourceId ?? undefined,
-    path: currentPath ?? undefined,
-    recursive,
-    type,
-    review,
-  };
+  const view = { source: sourceId ?? undefined, decision, recommendation };
+  // Looked up by id so the modal shows fresh data after a refresh.
+  const open = inventoryItems?.find((c) => c.id === openId) ?? null;
 
-  // Only items on this page can be selected; a page change drops the rest.
-  const pageIds = new Set(items?.map((item) => item.id));
-  const selectedIds = [...selected].filter((id) => pageIds.has(id));
-  const allSelected =
-    items !== null && items.length > 0 && selectedIds.length === items.length;
+  async function quickDecide(
+    inventoryItem: InventoryItem,
+    next: InventoryItemDecision,
+  ) {
+    setBusyId(inventoryItem.id);
+    setError(null);
 
-  function toggle(id: string) {
-    setSelected((current) => {
-      const next = new Set(current);
-      if (!next.delete(id)) next.add(id);
-      return next;
-    });
-  }
-
-  async function applyReview(disposition: ReviewDisposition) {
-    setReviewing(true);
-    setReviewError(null);
-
-    const result = await reviewInventoryItems(selectedIds, disposition);
-    setReviewing(false);
+    // An empty box leaves the note out, so the API applies its own default.
+    const result = await decideInventoryItem(
+      inventoryItem.id,
+      next,
+      notes[inventoryItem.id]?.trim() || undefined,
+    );
+    setBusyId(null);
 
     if (!result.ok) {
-      setReviewError(result.error);
+      setError(`${inventoryItem.displayName}: ${result.error}`);
       return;
     }
 
-    setSelected(new Set());
+    setNotes(({ [inventoryItem.id]: _sent, ...rest }) => rest);
     router.refresh();
   }
-  const crumbs =
-    rootPath && currentPath ? pathCrumbs(rootPath, currentPath) : [];
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
@@ -122,7 +105,9 @@ export function InventoryClient({
           Inventory
         </Typography>
         <Typography variant="body2" className="text-neutral-400">
-          Files and directories found on each source.
+          Backup units the agent proposes. Its recommendation is advice only:
+          nothing is approved until you approve it, and an approval covers
+          everything beneath the path.
         </Typography>
       </div>
 
@@ -139,7 +124,7 @@ export function InventoryClient({
           >
             Add one
           </Link>{' '}
-          to start collecting an inventory.
+          and run a discovery job to get inventoryItems.
         </Typography>
       ) : (
         <div className="flex flex-wrap items-center gap-4">
@@ -150,7 +135,9 @@ export function InventoryClient({
             <select
               value={sourceId}
               onChange={(e) =>
-                router.push(inventoryUrl({ source: e.target.value }))
+                router.push(
+                  inventoryItemsUrl({ ...view, source: e.target.value }),
+                )
               }
               className={selectClass}
             >
@@ -161,6 +148,55 @@ export function InventoryClient({
               ))}
             </select>
           </label>
+
+          <label className="flex items-center gap-2">
+            <Typography variant="small" className="text-neutral-400">
+              Decision
+            </Typography>
+            <select
+              value={decision}
+              onChange={(e) =>
+                router.push(
+                  inventoryItemsUrl({
+                    ...view,
+                    decision: parseDecisionFilter(e.target.value),
+                  }),
+                )
+              }
+              className={selectClass}
+            >
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="all">All</option>
+            </select>
+          </label>
+
+          <label className="flex items-center gap-2">
+            <Typography variant="small" className="text-neutral-400">
+              Agent says
+            </Typography>
+            <select
+              value={recommendation ?? ''}
+              onChange={(e) =>
+                router.push(
+                  inventoryItemsUrl({
+                    ...view,
+                    recommendation: parseRecommendation(e.target.value),
+                  }),
+                )
+              }
+              className={selectClass}
+            >
+              <option value="">Anything</option>
+              {Object.entries(RECOMMENDATION_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <OutlinedButton
             component={Link}
             href={`/exodus/sources/${sourceId}`}
@@ -172,262 +208,156 @@ export function InventoryClient({
         </div>
       )}
 
-      {sourceId === null ? null : currentPath === null ? (
-        <Typography variant="body2" className="text-neutral-400">
-          Nothing to browse yet. Start a discovery job for this source first.
-        </Typography>
-      ) : (
+      {sourceId !== null && (
         <Panel color="default" className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <nav
-              aria-label="Folder"
-              className="flex flex-wrap items-center gap-1"
-            >
-              {crumbs.map((crumb, index) => (
-                <span key={crumb.path} className="flex items-center gap-1">
-                  {index > 0 && (
-                    <Typography
-                      variant="small"
-                      component="span"
-                      className="text-neutral-500"
-                    >
-                      ›
-                    </Typography>
-                  )}
-                  {index === crumbs.length - 1 ? (
-                    <Typography
-                      variant="small"
-                      component="span"
-                      className="break-all"
-                    >
-                      {crumb.label}
-                    </Typography>
-                  ) : (
-                    <Link
-                      href={inventoryUrl({
-                        ...view,
-                        path: crumb.path,
-                      })}
-                      className="break-all text-primary-400 hover:underline"
-                    >
-                      <Typography variant="small" component="span">
-                        {crumb.label}
-                      </Typography>
-                    </Link>
-                  )}
-                </span>
-              ))}
-            </nav>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2">
-                <Typography variant="small" className="text-neutral-400">
-                  Show
-                </Typography>
-                <select
-                  value={recursive ? 'all' : 'children'}
-                  onChange={(e) =>
-                    router.push(
-                      inventoryUrl({
-                        ...view,
-                        recursive: e.target.value === 'all',
-                      }),
-                    )
-                  }
-                  className={selectClass}
-                >
-                  <option value="children">This folder</option>
-                  <option value="all">Everything beneath it</option>
-                </select>
-              </label>
-
-              <label className="flex items-center gap-2">
-                <Typography variant="small" className="text-neutral-400">
-                  Type
-                </Typography>
-                <select
-                  value={type ?? ''}
-                  onChange={(e) =>
-                    router.push(
-                      inventoryUrl({
-                        ...view,
-                        type:
-                          e.target.value === 'file' ||
-                          e.target.value === 'directory'
-                            ? e.target.value
-                            : undefined,
-                      }),
-                    )
-                  }
-                  className={selectClass}
-                >
-                  <option value="">Files and folders</option>
-                  <option value="file">Files</option>
-                  <option value="directory">Folders</option>
-                </select>
-              </label>
-
-              <label className="flex items-center gap-2">
-                <Typography variant="small" className="text-neutral-400">
-                  Review
-                </Typography>
-                <select
-                  value={review ?? ''}
-                  onChange={(e) =>
-                    router.push(
-                      inventoryUrl({
-                        ...view,
-                        review: parseReview(e.target.value),
-                      }),
-                    )
-                  }
-                  className={selectClass}
-                >
-                  <option value="">All</option>
-                  {Object.entries(REVIEW_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </div>
-
-          {items === null ? (
+          {error && (
             <Typography variant="body2" className="text-error-400">
-              Failed to load inventory from homelab-api. Check that the path is
-              a valid absolute Windows path.
+              {error}
             </Typography>
-          ) : items.length === 0 ? (
-            <Typography variant="body2" className="text-neutral-400">
-              {isFirstPage ? 'Nothing recorded here yet.' : 'No more items.'}
-            </Typography>
-          ) : (
-            <>
-              {selectedIds.length > 0 && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <Typography variant="small" className="text-neutral-400">
-                    {selectedIds.length} selected
-                  </Typography>
-                  <Button
-                    size="small"
-                    disabled={reviewing}
-                    onClick={() => applyReview('candidate')}
-                  >
-                    Mark candidate
-                  </Button>
-                  <OutlinedButton
-                    size="small"
-                    disabled={reviewing}
-                    onClick={() => applyReview('not_needed')}
-                  >
-                    Not needed
-                  </OutlinedButton>
-                  <OutlinedButton
-                    size="small"
-                    disabled={reviewing}
-                    onClick={() => applyReview('needs_review')}
-                  >
-                    Needs review
-                  </OutlinedButton>
-                </div>
-              )}
-              {reviewError && (
-                <Typography variant="body2" className="text-error-400">
-                  {reviewError}
-                </Typography>
-              )}
-              <ScrollableTable className="mb-0">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <Th>
-                        <input
-                          type="checkbox"
-                          aria-label="Select all on this page"
-                          checked={allSelected}
-                          onChange={() =>
-                            setSelected(
-                              allSelected
-                                ? new Set()
-                                : new Set(items.map((item) => item.id)),
-                            )
-                          }
-                        />
-                      </Th>
-                      <Th>{recursive ? 'Path' : 'Name'}</Th>
-                      <Th>Review</Th>
-                      <Th>Type</Th>
-                      <Th>Size</Th>
-                      <Th>Modified (UTC)</Th>
-                      <Th>Last seen (UTC)</Th>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {items.map((item) => (
-                      <TableRow key={item.id}>
-                        <Td>
-                          <input
-                            type="checkbox"
-                            aria-label={`Select ${item.name}`}
-                            checked={selected.has(item.id)}
-                            onChange={() => toggle(item.id)}
-                          />
-                        </Td>
-                        <Td className="break-all">
-                          {item.itemType === 'directory' ? (
-                            <Link
-                              href={inventoryUrl({
-                                ...view,
-                                path: item.path,
-                              })}
-                              className="text-primary-400 hover:underline"
-                            >
-                              {recursive ? item.path : item.name}
-                            </Link>
-                          ) : recursive ? (
-                            item.path
-                          ) : (
-                            item.name
-                          )}
-                        </Td>
-                        <Td>
-                          <Badge
-                            color={REVIEW_BADGE_COLORS[item.reviewDisposition]}
-                          >
-                            {REVIEW_LABELS[item.reviewDisposition]}
-                          </Badge>
-                        </Td>
-                        <Td>
-                          <Badge
-                            color={
-                              item.itemType === 'directory'
-                                ? 'secondary'
-                                : 'dark'
-                            }
-                          >
-                            {item.itemType === 'directory' ? 'folder' : 'file'}
-                          </Badge>
-                        </Td>
-                        <Td>{formatBytes(item.sizeBytes)}</Td>
-                        <Td>{formatDateTime(item.modifiedAt)}</Td>
-                        <Td>{formatDateTime(item.lastSeenAt)}</Td>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollableTable>
-            </>
           )}
 
-          {items !== null && (!isFirstPage || nextCursor) && (
+          {inventoryItems === null ? (
+            <Typography variant="body2" className="text-error-400">
+              Failed to load inventory items from homelab-api.
+            </Typography>
+          ) : inventoryItems.length === 0 ? (
+            <Typography variant="body2" className="text-neutral-400">
+              {!isFirstPage
+                ? 'No more inventory items.'
+                : decision === 'pending' && !recommendation
+                  ? 'Nothing waiting for review.'
+                  : 'No inventory items match these filters.'}
+            </Typography>
+          ) : (
+            <ScrollableTable className="mb-0">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <Th>Path</Th>
+                    <Th>Type</Th>
+                    <Th>Agent says</Th>
+                    <Th>Confidence</Th>
+                    <Th>Decision</Th>
+                    <Th>Updated (UTC)</Th>
+                    <Th>
+                      <span className="sr-only">Actions</span>
+                    </Th>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {inventoryItems.map((inventoryItem) => (
+                    <TableRow key={inventoryItem.id}>
+                      <Td className="break-all">
+                        <button
+                          type="button"
+                          onClick={() => setOpenId(inventoryItem.id)}
+                          className="text-left text-primary-400 hover:underline"
+                        >
+                          {inventoryItem.rootPath}
+                        </button>
+                        <Typography
+                          variant="small"
+                          className="text-neutral-400"
+                        >
+                          {inventoryItem.summary}
+                        </Typography>
+                      </Td>
+                      <Td>
+                        <Badge
+                          color={
+                            inventoryItem.kind === 'file' ? 'dark' : 'secondary'
+                          }
+                        >
+                          {inventoryItem.kind === 'file' ? 'file' : 'folder'}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge
+                          color={
+                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
+                          }
+                        >
+                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
+                        </Badge>
+                      </Td>
+                      <Td>{inventoryItem.confidence}</Td>
+                      <Td>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                            {DECISION_LABELS[inventoryItem.decision]}
+                          </Badge>
+                          {changedSinceDecision(inventoryItem) && (
+                            <Badge color="warning">Agent changed</Badge>
+                          )}
+                        </div>
+                      </Td>
+                      <Td>{formatDateTime(inventoryItem.recommendedAt)}</Td>
+                      <Td>
+                        <div className="flex flex-col gap-2">
+                          {inventoryItem.decision === 'pending' && (
+                            <Input
+                              color="primary"
+                              className="w-full min-w-48"
+                              placeholder="Reason (optional)"
+                              aria-label={`Reason for ${inventoryItem.displayName}`}
+                              maxLength={1000}
+                              disabled={busyId === inventoryItem.id}
+                              value={notes[inventoryItem.id] ?? ''}
+                              onChange={(e) =>
+                                setNotes((prev) => ({
+                                  ...prev,
+                                  [inventoryItem.id]: e.target.value,
+                                }))
+                              }
+                            />
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            <OutlinedButton
+                              size="small"
+                              onClick={() => setOpenId(inventoryItem.id)}
+                            >
+                              Details
+                            </OutlinedButton>
+                            {inventoryItem.decision === 'pending' && (
+                              <>
+                                <Button
+                                  size="small"
+                                  disabled={busyId === inventoryItem.id}
+                                  onClick={() =>
+                                    quickDecide(inventoryItem, 'approved')
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                                <OutlinedButton
+                                  size="small"
+                                  color="error"
+                                  disabled={busyId === inventoryItem.id}
+                                  onClick={() =>
+                                    quickDecide(inventoryItem, 'rejected')
+                                  }
+                                >
+                                  Reject
+                                </OutlinedButton>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </Td>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTable>
+          )}
+
+          {inventoryItems !== null && (!isFirstPage || nextCursor) && (
             <div className="flex items-center justify-between gap-3">
               {isFirstPage ? (
                 <span />
               ) : (
                 <Link
-                  href={inventoryUrl(view)}
+                  href={inventoryItemsUrl(view)}
                   className="text-primary-400 hover:underline"
                 >
                   <Typography variant="small" component="span">
@@ -437,7 +367,7 @@ export function InventoryClient({
               )}
               {nextCursor && (
                 <Link
-                  href={inventoryUrl({ ...view, after: nextCursor })}
+                  href={inventoryItemsUrl({ ...view, after: nextCursor })}
                   className="text-primary-400 hover:underline"
                 >
                   <Typography variant="small" component="span">
@@ -449,6 +379,15 @@ export function InventoryClient({
           )}
         </Panel>
       )}
+
+      <InventoryItemDetailModal
+        inventoryItem={open}
+        onClose={() => setOpenId(null)}
+        onDecided={() => {
+          setOpenId(null);
+          router.refresh();
+        }}
+      />
     </main>
   );
 }

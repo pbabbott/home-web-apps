@@ -18,12 +18,11 @@ jest.mock('../../src/services/discovery', () => {
     claimQueueItem: jest.fn(),
     listSourceQueueItems: jest.fn(),
     listJobQueueItems: jest.fn(),
-    recordInventory: jest.fn(),
-    listSourceInventory: jest.fn(),
     listSourceJobs: jest.fn(),
     listAllJobs: jest.fn(),
     heartbeat: jest.fn(),
     completeItem: jest.fn(),
+    listSourceKnownSkips: jest.fn(),
     failItem: jest.fn(),
     skipItem: jest.fn(),
     retryItem: jest.fn(),
@@ -271,7 +270,12 @@ describe('discovery routes', () => {
         .send({ claimToken: TOKEN, discoveredPaths: ['C:\\a\\b'] })
         .expect(200);
 
-      expect(mocked.completeItem).toHaveBeenCalledWith(ID, TOKEN, ['C:\\a\\b']);
+      expect(mocked.completeItem).toHaveBeenCalledWith(
+        ID,
+        TOKEN,
+        ['C:\\a\\b'],
+        { summary: undefined, skipped: [], skippedGroups: [] },
+      );
       expect(res.body.children).toEqual([{ id: TOKEN, created: true }]);
     });
 
@@ -432,154 +436,35 @@ describe('discovery routes', () => {
     });
   });
 
-  describe('POST /queue-items/:id/inventory-items', () => {
-    const file = {
-      path: 'C:\\Users\\You\\report.pdf',
-      itemType: 'file',
-      sizeBytes: 1024,
-      modifiedAt: '2026-10-17T12:00:00Z',
-    };
-
-    it('passes validated items to the service and flags created', async () => {
-      mocked.recordInventory.mockResolvedValue([
-        { item: { id: ID }, created: true },
-      ] as never);
-
-      const res = await supertest(createServer())
-        .post(`/queue-items/${ID}/inventory-items`)
-        .send({ claimToken: TOKEN, items: [file] })
-        .expect(200);
-
-      expect(mocked.recordInventory).toHaveBeenCalledWith(ID, TOKEN, [file]);
-      expect(res.body).toEqual([{ id: ID, created: true }]);
-    });
-
-    it.each([
-      ['missing claimToken', { items: [file] }],
-      ['empty items', { claimToken: TOKEN, items: [] }],
-      ['too many items', { claimToken: TOKEN, items: Array(201).fill(file) }],
-      [
-        'relative path',
-        { claimToken: TOKEN, items: [{ ...file, path: 'docs\\a.txt' }] },
-      ],
-      [
-        'unknown itemType',
-        { claimToken: TOKEN, items: [{ ...file, itemType: 'symlink' }] },
-      ],
-      [
-        'negative size',
-        { claimToken: TOKEN, items: [{ ...file, sizeBytes: -1 }] },
-      ],
-      [
-        'fractional size',
-        { claimToken: TOKEN, items: [{ ...file, sizeBytes: 1.5 }] },
-      ],
-      [
-        'bad modifiedAt',
-        { claimToken: TOKEN, items: [{ ...file, modifiedAt: 'yesterday' }] },
-      ],
-    ])('rejects %s', async (_label, body) => {
-      await supertest(createServer())
-        .post(`/queue-items/${ID}/inventory-items`)
-        .send(body)
-        .expect(400);
-
-      expect(mocked.recordInventory).not.toHaveBeenCalled();
-    });
-
-    it('accepts items without size or modifiedAt', async () => {
-      mocked.recordInventory.mockResolvedValue([]);
+  describe('GET /sources/:id/known-skips', () => {
+    it('passes the path prefix and defaults the limit', async () => {
+      mocked.listSourceKnownSkips.mockResolvedValue([]);
 
       await supertest(createServer())
-        .post(`/queue-items/${ID}/inventory-items`)
-        .send({
-          claimToken: TOKEN,
-          items: [{ path: 'C:\\Users\\You\\Docs', itemType: 'directory' }],
-        })
-        .expect(200);
-    });
-
-    it('maps a lost claim to 409 and an unknown item to 404', async () => {
-      mocked.recordInventory.mockRejectedValueOnce(
-        new service.DiscoveryError('conflict', 'claim is no longer valid'),
-      );
-      mocked.recordInventory.mockRejectedValueOnce(
-        new service.DiscoveryError('not_found', 'queue item not found'),
-      );
-
-      const send = () =>
-        supertest(createServer())
-          .post(`/queue-items/${ID}/inventory-items`)
-          .send({ claimToken: TOKEN, items: [file] });
-
-      await send().expect(409);
-      await send().expect(404);
-    });
-
-    it('returns the offending paths when outside the claimed directory', async () => {
-      mocked.recordInventory.mockRejectedValue(
-        new service.DiscoveryError('conflict', 'paths are not inside', {
-          paths: ['D:\\x'],
-        }),
-      );
-
-      const res = await supertest(createServer())
-        .post(`/queue-items/${ID}/inventory-items`)
-        .send({ claimToken: TOKEN, items: [file] })
-        .expect(409);
-
-      expect(res.body.paths).toEqual(['D:\\x']);
-    });
-  });
-
-  describe('GET /sources/:id/inventory-items', () => {
-    it('defaults limit and passes filters through', async () => {
-      mocked.listSourceInventory.mockResolvedValue([]);
-
-      await supertest(createServer())
-        .get(`/sources/${ID}/inventory-items`)
-        .query({
-          jobId: TOKEN,
-          itemType: 'file',
-          parentPath: 'C:\\Users\\You',
-          pathPrefix: 'C:\\Users',
-        })
+        .get(`/sources/${ID}/known-skips`)
+        .query({ pathPrefix: 'C:\\Users\\You' })
         .expect(200);
 
-      expect(mocked.listSourceInventory).toHaveBeenCalledWith(ID, {
-        jobId: TOKEN,
-        itemType: 'file',
-        parentPath: 'C:\\Users\\You',
-        pathPrefix: 'C:\\Users',
-        limit: 500,
+      expect(mocked.listSourceKnownSkips).toHaveBeenCalledWith(ID, {
+        pathPrefix: 'C:\\Users\\You',
+        limit: 200,
       });
     });
 
-    it('coerces limit from the query string', async () => {
-      mocked.listSourceInventory.mockResolvedValue([]);
-
+    it('rejects a bad path or limit, and maps an unknown source to 404', async () => {
       await supertest(createServer())
-        .get(`/sources/${ID}/inventory-items`)
-        .query({ limit: '25', after: 'c:\\a' })
-        .expect(200);
-
-      expect(mocked.listSourceInventory).toHaveBeenCalledWith(ID, {
-        after: 'c:\\a',
-        limit: 25,
-      });
-    });
-
-    it.each([
-      ['itemType', { itemType: 'symlink' }],
-      ['jobId', { jobId: 'nope' }],
-      ['parentPath', { parentPath: 'relative\\dir' }],
-      ['limit above max', { limit: '1001' }],
-      ['limit zero', { limit: '0' }],
-    ])('rejects a bad %s', async (_label, query) => {
-      await supertest(createServer())
-        .get(`/sources/${ID}/inventory-items`)
-        .query(query)
+        .get(`/sources/${ID}/known-skips?pathPrefix=relative`)
         .expect(400);
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips?limit=1001`)
+        .expect(400);
+
+      mocked.listSourceKnownSkips.mockRejectedValue(
+        new service.DiscoveryError('not_found', 'source not found'),
+      );
+      await supertest(createServer())
+        .get(`/sources/${ID}/known-skips`)
+        .expect(404);
     });
   });
 

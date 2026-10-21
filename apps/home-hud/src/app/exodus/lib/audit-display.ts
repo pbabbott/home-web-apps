@@ -1,17 +1,13 @@
-import { REVIEW_LABELS } from './inventory-display';
-import type {
-  AuditEvent,
-  AuditEventType,
-  ReviewDisposition,
-} from '../sources/lib/homelab-api';
+import type { AuditEvent, AuditEventType } from '../sources/lib/homelab-api';
 
 export const AUDIT_EVENT_LABELS: Record<AuditEventType, string> = {
   'exclusion_rule.created': 'Rule created',
   'exclusion_rule.updated': 'Rule updated',
   'exclusion_rule.deleted': 'Rule removed',
-  'inventory_item.review_changed': 'Reviewed',
-  'inventory_item.review_bulk_changed': 'Bulk review',
   'queue_items.excluded': 'Queue skipped',
+  'inventory_item.created': 'Inventory item proposed',
+  'inventory_item.recommendation_changed': 'Recommendation changed',
+  'inventory_item.decision_changed': 'Inventory item decided',
 };
 
 /** Own keys only: `in` would also accept `toString` and the like. */
@@ -35,10 +31,17 @@ const SCOPE_WORDS: Record<string, string> = {
 const scopeWord = (scope: unknown): string =>
   typeof scope === 'string' ? (SCOPE_WORDS[scope] ?? scope) : '?';
 
-const reviewWord = (value: unknown): string =>
-  typeof value === 'string' && hasKey(REVIEW_LABELS, value)
-    ? REVIEW_LABELS[value as ReviewDisposition]
-    : '?';
+const RECOMMENDATION_WORDS: Record<string, string> = {
+  back_up: 'back up',
+  skip: 'skip',
+  needs_review: 'needs review',
+};
+
+const recommendationWord = (value: unknown): string =>
+  typeof value === 'string' ? (RECOMMENDATION_WORDS[value] ?? value) : '?';
+
+const decisionWord = (value: unknown): string =>
+  typeof value === 'string' ? value : '?';
 
 /** The `details` shapes the API writes; every field may be missing. */
 interface AuditDetails {
@@ -48,10 +51,10 @@ interface AuditDetails {
   reason?: string;
   before?: { scope?: string };
   after?: { scope?: string };
-  from?: string;
-  to?: string;
-  disposition?: string;
-  changed?: unknown[];
+  recommendation?: string;
+  confidence?: string;
+  from?: string | { recommendation?: string; confidence?: string };
+  to?: string | { recommendation?: string; confidence?: string };
   count?: number;
 }
 
@@ -66,13 +69,16 @@ export function describeAuditEvent(event: AuditEvent): string {
       return `${d.path ?? '?'}: ${scopeWord(d.before?.scope)} → ${scopeWord(d.after?.scope)}`;
     case 'exclusion_rule.deleted':
       return `${d.path ?? '?'} (${scopeWord(d.scope)})`;
-    case 'inventory_item.review_changed':
-      return `${d.path ?? '?'}: ${reviewWord(d.from)} → ${reviewWord(d.to)}`;
-    case 'inventory_item.review_bulk_changed': {
-      const changed = Array.isArray(d.changed) ? d.changed.length : 0;
+    case 'inventory_item.created':
+      return `${d.path ?? '?'}: ${recommendationWord(d.recommendation)} (${d.confidence ?? '?'} confidence)`;
+    case 'inventory_item.recommendation_changed': {
+      const from = typeof d.from === 'object' ? d.from : undefined;
+      const to = typeof d.to === 'object' ? d.to : undefined;
 
-      return `${changed} item${changed === 1 ? '' : 's'} → ${reviewWord(d.disposition)}`;
+      return `${d.path ?? '?'}: ${recommendationWord(from?.recommendation)} → ${recommendationWord(to?.recommendation)}`;
     }
+    case 'inventory_item.decision_changed':
+      return `${d.path ?? '?'}: ${decisionWord(d.from)} → ${decisionWord(d.to)}`;
     case 'queue_items.excluded':
       return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped by an exclusion rule`;
   }

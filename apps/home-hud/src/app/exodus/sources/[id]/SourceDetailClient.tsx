@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { OutlinedButton, Typography } from '@abbottland/fui-components';
 import type { Host } from '../../../infra/hosts/lib/homelab-api';
-import { inventoryUrl } from '../../lib/inventory-display';
+import { inventoryItemsUrl } from '../../lib/inventory-display';
 import {
   isActiveJob,
   type Source,
@@ -75,12 +75,12 @@ export function SourceDetailClient({
         </Typography>
         <OutlinedButton
           component={Link}
-          href={inventoryUrl({ source: source.id })}
+          href={inventoryItemsUrl({ source: source.id })}
           color="accent-falcon"
           size="small"
           className="self-start"
         >
-          Browse inventory →
+          Inventory items →
         </OutlinedButton>
       </div>
 

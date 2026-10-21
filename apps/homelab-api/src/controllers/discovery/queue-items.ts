@@ -9,6 +9,7 @@ import type {
   HeartbeatQueueItemBody,
   JobIdParams,
   JobQueueItemListQuery,
+  KnownSkipListQuery,
   QueueItemIdParams,
   QueueItemListQuery,
   SkipQueueItemBody,
@@ -21,6 +22,7 @@ export const listSourceQueueItemsOperation = {
   summary: 'List a source’s queue items',
   description:
     'Newest 500 at most, oldest first. Filter by status=failed to inspect permanent failures.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const listSourceQueueItems = handle(
@@ -35,10 +37,12 @@ export const listSourceQueueItems = handle(
 );
 
 // Does: list queue items for one job, with a status filter.
-// Who: human (no UI caller yet). Agents read queueCounts via get_discovery_job.
+// Who: human (home-hud job detail page). Agents read queueCounts via
+// get_discovery_job.
 export const listJobQueueItemsOperation = {
   summary: 'List a job’s queue items',
   description: 'At most 500, oldest first. Filter with status.',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const listJobQueueItems = handle(
@@ -51,12 +55,13 @@ export const listJobQueueItems = handle(
 );
 
 // Does: enqueue directory paths for a job; idempotent per path (`created` flag).
-// Who: human, to seed or add work. No MCP tool: agents add work through
+// Who: human (home-hud job detail page), to add work to a running job. No MCP tool: agents add work through
 // complete_directory's discoveredPaths.
 export const enqueueQueueItemsOperation = {
   summary: 'Enqueue directories for a job',
   description:
     'Paths are normalized (slashes, case, trailing separators) and deduplicated per job; already-queued paths are returned with created=false. Every path must be inside the job’s root.',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const enqueueQueueItems = handle(
@@ -80,7 +85,7 @@ export const claimQueueItemOperation = {
   mcp: {
     name: 'claim_directory',
     description:
-      'Claim the next directory to explore in a job. Returns { item } with a claimToken (required by every later call on that directory), or { item: null, reason } when nothing is claimable: queue_empty means the job can be completed by a human, retry_backoff means queued directories are waiting out a retry delay, and in_progress means other workers still hold leases; for the last two, try again at retryAt. The claim is a lease; extend it with heartbeat_directory.',
+      'Lease the next directory of a job. Returns { id, path, reason, claimToken } (claimToken is required by every later call on it), or { idle, next } where next is `stop` (queue empty) or `wait` (retry at retryAt).',
   },
 } satisfies Operation;
 
@@ -102,7 +107,7 @@ export const heartbeatQueueItemOperation = {
   mcp: {
     name: 'heartbeat_directory',
     description:
-      'Extend the lease on a claimed directory so a long-running exploration is not reclaimed by another worker.',
+      'Extend the lease on a claimed directory (default 5 minutes) so a long exploration is not reclaimed.',
   },
 } satisfies Operation;
 
@@ -121,13 +126,13 @@ export const heartbeatQueueItem = handle(
 // (`discoveredPaths`) in one transaction.
 // Who: agent (complete_directory). This is what drives the tree walk.
 export const completeQueueItemOperation = {
-  summary: 'Complete a claimed directory and enqueue the children found in it',
+  summary: 'Complete a claimed directory and enqueue the follow-ups it needs',
   description:
-    'The completion and the discoveredPaths enqueue happen in one transaction, so subdirectories are never lost to a crash in between.',
+    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped` and `skippedGroups` are stored on the item as its result. Follow-ups under an exclusion rule are skipped immediately.',
   mcp: {
     name: 'complete_directory',
     description:
-      'Mark a claimed directory as explored. Child directories found are enqueued atomically via discoveredPaths.',
+      'Finish a claimed directory. discoveredPaths: subdirectories to explore later; skipped / skippedGroups: entries deliberately not explored; summary: one line. Returns what was queued, and what was auto-excluded by a rule.',
   },
 } satisfies Operation;
 
@@ -135,11 +140,13 @@ export const completeQueueItem = handle(
   'POST /queue-items/:id/complete',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, discoveredPaths } = req.body as CompleteQueueItemBody;
+    const { claimToken, discoveredPaths, summary, skipped, skippedGroups } =
+      req.body as CompleteQueueItemBody;
     const { item, children } = await discoveryService.completeItem(
       id,
       claimToken,
       discoveredPaths,
+      { summary, skipped, skippedGroups },
     );
     res.status(200).json({
       ...item,
@@ -161,7 +168,7 @@ export const failQueueItemOperation = {
   mcp: {
     name: 'fail_directory',
     description:
-      'Report an error exploring a claimed directory. Retryable failures are requeued behind an exponential backoff until attempts run out; retryable=false fails it permanently.',
+      'Report that a claimed directory could not be explored. Retryable failures are requeued with backoff until attempts run out; retryable=false fails it permanently.',
   },
 } satisfies Operation;
 
@@ -182,8 +189,7 @@ export const skipQueueItemOperation = {
   summary: 'Skip a claimed directory',
   mcp: {
     name: 'skip_directory',
-    description:
-      'Mark a claimed directory as intentionally skipped (e.g. a system directory), with a reason.',
+    description: 'Mark the whole claimed directory as skipped, with a reason.',
   },
 } satisfies Operation;
 
@@ -200,16 +206,12 @@ export const skipQueueItem = handle(
 
 // Does: requeue a permanently failed directory for one more attempt. No
 // claimToken: it acts on a failed item nobody holds a lease on.
-// Who: human (home-hud retry button) and agent (retry_directory).
+// Who: human only (home-hud retry button). Deliberately not an MCP tool.
 export const retryQueueItemOperation = {
   summary: 'Retry a failed item',
   description:
     'Requeues a failed item for exactly one more attempt; attemptCount and lastError are kept. Only allowed while the item’s job is pending or running; a finished job’s failures are retried by starting a new job.',
-  mcp: {
-    name: 'retry_directory',
-    description:
-      'Requeue a permanently failed directory for exactly one more attempt.',
-  },
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const retryQueueItem = handle(
@@ -217,5 +219,29 @@ export const retryQueueItem = handle(
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
     res.status(200).json(await discoveryService.retryItem(id));
+  },
+);
+
+// Does: list paths earlier jobs of a source chose not to explore.
+// Who: agent (list_known_skips) and human (REST).
+export const listKnownSkipsOperation = {
+  summary: 'List paths earlier jobs chose not to explore',
+  description:
+    'Derived from the `skipped` lists stored on the source’s queue items, newest reason per path (case-insensitive), ordered by path. These are per-run judgments, not exclusion rules: a later run may revisit one, and nothing here blocks exploring or proposing a path. Filter with `pathPrefix` (default limit 200, max 1000).',
+  mcp: {
+    name: 'list_known_skips',
+    description:
+      'Paths earlier runs of this source deliberately did not explore, with reason and date. A `pattern` entry covers the matching direct children of its `path`.',
+  },
+} satisfies Operation;
+
+export const listKnownSkips = handle(
+  'GET /sources/:id/known-skips',
+  async (req, res) => {
+    const { id } = req.params as SourceIdParams;
+    const filters = req.query as unknown as KnownSkipListQuery;
+    res
+      .status(200)
+      .json(await discoveryService.listSourceKnownSkips(id, filters));
   },
 );

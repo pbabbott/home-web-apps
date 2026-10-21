@@ -40,6 +40,7 @@ const SCOPE_LABELS = {
 export function RulesClient({ sources, rules }: RulesClientProps) {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<ExclusionRule | null>(null);
   const [toDelete, setToDelete] = useState<ExclusionRule | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -132,15 +133,23 @@ export function RulesClient({ sources, rules }: RulesClientProps) {
                     <Td>{rule.reason ?? '—'}</Td>
                     <Td>{formatDateTime(rule.createdAt)}</Td>
                     <Td>
-                      <OutlinedButton
-                        size="small"
-                        onClick={() => {
-                          setDeleteError(null);
-                          setToDelete(rule);
-                        }}
-                      >
-                        Remove
-                      </OutlinedButton>
+                      <div className="flex gap-2">
+                        <OutlinedButton
+                          size="small"
+                          onClick={() => setEditing(rule)}
+                        >
+                          Edit
+                        </OutlinedButton>
+                        <OutlinedButton
+                          size="small"
+                          onClick={() => {
+                            setDeleteError(null);
+                            setToDelete(rule);
+                          }}
+                        >
+                          Remove
+                        </OutlinedButton>
+                      </div>
                     </Td>
                   </TableRow>
                 ))}
@@ -154,7 +163,18 @@ export function RulesClient({ sources, rules }: RulesClientProps) {
         open={addOpen}
         onOpenChange={setAddOpen}
         sources={sources ?? []}
-        onCreated={() => router.refresh()}
+        onSaved={() => router.refresh()}
+      />
+
+      <AddRuleModal
+        key={editing?.id ?? 'edit'}
+        open={editing !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        sources={sources ?? []}
+        rule={editing}
+        onSaved={() => router.refresh()}
       />
 
       <Modal

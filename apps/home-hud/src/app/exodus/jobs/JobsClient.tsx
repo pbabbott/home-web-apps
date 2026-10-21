@@ -119,9 +119,14 @@ export function JobsClient({
                   return (
                     <TableRow key={job.id}>
                       <Td>
-                        <Badge color={JOB_STATUS_COLOR[job.status]}>
-                          {job.status}
-                        </Badge>
+                        <Link
+                          href={`/exodus/jobs/${job.id}`}
+                          className="hover:underline"
+                        >
+                          <Badge color={JOB_STATUS_COLOR[job.status]}>
+                            {job.status}
+                          </Badge>
+                        </Link>
                       </Td>
                       <Td>
                         <Link
@@ -132,7 +137,14 @@ export function JobsClient({
                         </Link>
                       </Td>
                       <Td>{host ? host.name : '—'}</Td>
-                      <Td className="break-all">{job.rootPath}</Td>
+                      <Td className="break-all">
+                        <Link
+                          href={`/exodus/jobs/${job.id}`}
+                          className="text-primary-400 hover:underline"
+                        >
+                          {job.rootPath}
+                        </Link>
+                      </Td>
                       <Td>{formatDateTime(job.createdAt)}</Td>
                       <Td>{formatDateTime(job.finishedAt)}</Td>
                     </TableRow>

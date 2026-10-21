@@ -27,6 +27,7 @@ export const sourcesPaths = {
   '/sources': {
     get: {
       summary: listSourcesOperation.summary,
+      'x-home-hud': listSourcesOperation.hud,
       responses: {
         '200': {
           description: 'The sources',
@@ -38,6 +39,7 @@ export const sourcesPaths = {
     },
     post: {
       summary: createSourceOperation.summary,
+      'x-home-hud': createSourceOperation.hud,
       requestBody: {
         content: {
           'application/json': { schema: createSourceBodySchema },
@@ -58,6 +60,8 @@ export const sourcesPaths = {
   '/sources/{id}/discovery-jobs': {
     get: {
       summary: listSourceJobsOperation.summary,
+      tags: ['Discovery Jobs'],
+      'x-home-hud': listSourceJobsOperation.hud,
       description: listSourceJobsOperation.description,
       requestParams: { path: sourceIdParamsSchema },
       responses: {
@@ -73,6 +77,8 @@ export const sourcesPaths = {
     },
     post: {
       summary: createDiscoveryJobOperation.summary,
+      tags: ['Discovery Jobs'],
+      'x-home-hud': createDiscoveryJobOperation.hud,
       description: createDiscoveryJobOperation.description,
       requestParams: { path: sourceIdParamsSchema },
       requestBody: {

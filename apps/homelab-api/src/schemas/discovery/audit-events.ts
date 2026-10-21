@@ -3,18 +3,17 @@ import { z } from 'zod';
 export const auditEventListQuerySchema = z.object({
   sourceId: z.uuid().optional(),
   jobId: z.uuid().optional(),
-  inventoryItemId: z.uuid().optional().meta({
-    description: 'Includes bulk reviews that changed this item.',
-  }),
   exclusionRuleId: z.uuid().optional(),
+  inventoryItemId: z.uuid().optional(),
   eventType: z
     .enum([
       'exclusion_rule.created',
       'exclusion_rule.updated',
       'exclusion_rule.deleted',
-      'inventory_item.review_changed',
-      'inventory_item.review_bulk_changed',
       'queue_items.excluded',
+      'inventory_item.created',
+      'inventory_item.recommendation_changed',
+      'inventory_item.decision_changed',
     ])
     .optional(),
   since: z.iso.datetime({ offset: true }).optional(),

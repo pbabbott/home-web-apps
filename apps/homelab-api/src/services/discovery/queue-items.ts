@@ -7,6 +7,7 @@ import {
   getQueueItemById,
   getSourceById,
   heartbeatQueueItem,
+  listKnownSkips as listKnownSkipRows,
   listQueueItems as listQueueItemRows,
   retryQueueItem,
   skipQueueItem,
@@ -14,12 +15,18 @@ import {
   type DiscoveryJob,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
+  type KnownSkip,
   type QueuePath,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { isWithinPath } from '../../lib/windows-path';
+import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
-import { toQueuePath } from './paths';
+import {
+  assertWithinClaimedDirectory,
+  toFollowUpPath,
+  toQueuePath,
+  type FollowUpInput,
+} from './paths';
 
 export type QueueItemWithCreated = {
   item: DiscoveryQueueItem;
@@ -80,18 +87,48 @@ export const heartbeat = (
 export async function completeItem(
   id: string,
   claimToken: string,
-  discoveredPaths: string[],
+  discoveredPaths: FollowUpInput[],
+  outcome: {
+    summary?: string;
+    skipped?: { path: string; reason: string }[];
+    skippedGroups?: { pattern: string; count?: number; reason: string }[];
+  } = {},
 ) {
-  const queuePaths = discoveredPaths.map(toQueuePath);
+  const queuePaths = discoveredPaths.map(toFollowUpPath);
+  const skipped = (outcome.skipped ?? []).map((s) => ({
+    ...normalizeWindowsPath(s.path),
+    reason: s.reason,
+  }));
 
-  if (queuePaths.length > 0) {
+  if (queuePaths.length > 0 || skipped.length > 0) {
     const item = await getQueueItemById(db, id);
     if (!item) throw new DiscoveryError('not_found', 'queue item not found');
 
     assertWithinJobRoot(await requireJob(item.jobId), queuePaths);
+
+    assertWithinClaimedDirectory(item, skipped, {
+      allowSelf: false,
+      subject: 'skipped paths',
+    });
   }
 
-  return completeQueueItem(db, id, { claimToken, discoveredPaths: queuePaths });
+  const skippedGroups = outcome.skippedGroups ?? [];
+  const hasResult =
+    outcome.summary !== undefined ||
+    skipped.length > 0 ||
+    skippedGroups.length > 0;
+
+  return completeQueueItem(db, id, {
+    claimToken,
+    discoveredPaths: queuePaths,
+    result: hasResult
+      ? {
+          ...(outcome.summary ? { summary: outcome.summary } : {}),
+          skipped: skipped.map((s) => ({ path: s.path, reason: s.reason })),
+          ...(skippedGroups.length > 0 ? { skippedGroups } : {}),
+        }
+      : undefined,
+  });
 }
 
 export const failItem = (
@@ -113,4 +150,25 @@ export async function listJobQueueItems(
   await requireJob(jobId);
 
   return listQueueItemRows(db, { jobId, ...filters });
+}
+
+/**
+ * Paths earlier jobs of the source chose not to explore, newest reason per
+ * path. A per-run judgment the agent may revisit, not an exclusion rule.
+ */
+export async function listSourceKnownSkips(
+  sourceId: string,
+  filters: { pathPrefix?: string; limit?: number },
+): Promise<KnownSkip[]> {
+  if (!(await getSourceById(db, sourceId))) {
+    throw new DiscoveryError('not_found', 'source not found');
+  }
+
+  return listKnownSkipRows(db, {
+    sourceId,
+    normalizedPathPrefix: filters.pathPrefix
+      ? normalizeWindowsPath(filters.pathPrefix).normalizedPath
+      : undefined,
+    limit: filters.limit,
+  });
 }

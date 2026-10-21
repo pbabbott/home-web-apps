@@ -3,52 +3,62 @@ import { actorOf } from '../../lib/actor';
 import { handle } from './handle';
 import type { Operation } from '../operation';
 import type {
+  DecideInventoryItemBody,
+  ProposeInventoryItemsBody,
+  QueueItemIdParams,
   InventoryItemIdParams,
   InventoryItemListQuery,
-  QueueItemIdParams,
-  RecordInventoryItemsBody,
-  ReviewInventoryItemBody,
-  ReviewInventoryItemsBody,
   SourceIdParams,
 } from '../../schemas/discovery';
 import { MAX_INVENTORY_ITEMS_PER_REQUEST } from '../../schemas/discovery';
 
-// Does: upsert the files and directories found inside a claimed directory, in
-// batches.
-// Who: agent (record_discovered_items).
-export const recordInventoryItemsOperation = {
-  summary: 'Record the files and directories found in a claimed directory',
-  description:
-    'Upserts by source + normalized path (case-insensitive), so repeating a call or re-exploring after a crash updates the existing rows. Size and modifiedAt are refreshed when provided and kept when omitted. Every path must lie beneath the claimed directory. Send up to 200 items per call (the request body limit is 100kb); chunk larger directories.',
+// Does: create or update the agent's recommendation for backup units found in
+// a claimed directory.
+// Who: agent (propose_inventory_items).
+export const proposeInventoryItemsOperation = {
+  summary: 'Propose inventory items for a claimed directory',
+  description: `An inventory item is a proposed backup unit, usually a directory (one repository or photo folder, not one per file or subfolder) and occasionally a standalone file. It creates no queue items. Upserts by source + normalized root path, so repeating a call or rediscovering in a later job updates the same inventory item instead of duplicating it. Each root path must be the claimed directory or lie inside it. Writes only the agent's fields (recommendation, confidence, reason, evidence); it never touches a human decision, and a recommendation is never an approval. Audit events are written only when an inventory item is created or its recommendation/confidence changes. Guardrails (400): back_up/skip need medium or high confidence (low means needs_review); a git repository can only be skipped when its local state is known and clean. Nesting is allowed, but each result lists coveredBy (existing inventory items whose root is an ancestor) and covers (existing inventory items beneath it), with their decision; nothing is inherited, so check them and avoid proposing a repository's internal folders. A path covered by an exclusion rule rejects the batch (409). Up to ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call.`,
   mcp: {
-    name: 'record_discovered_items',
-    description: `Record files and subdirectories found inside a claimed directory in one batch. Maximum ${MAX_INVENTORY_ITEMS_PER_REQUEST} items per call; a larger batch is rejected outright, so for a bigger directory split the entries into chunks of at most ${MAX_INVENTORY_ITEMS_PER_REQUEST} and call this once per chunk (re-sending an item is safe). Paths must lie inside the claimed directory. Does not enqueue subdirectories: pass them as discoveredPaths to complete_directory.`,
+    name: 'propose_inventory_items',
+    description: `Recommend backup units from the directory you claimed: a repo or project root, a data folder, or one file (max ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call). Re-proposing a path updates your recommendation, never a human's decision. Queues nothing. A path under an exclusion rule rejects the batch. Results list coveredBy / covers (existing items containing or inside it); a non-empty coveredBy means probably not a separate unit.`,
   },
 } satisfies Operation;
 
-export const recordInventoryItems = handle(
+export const proposeInventoryItems = handle(
   'POST /queue-items/:id/inventory-items',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, items } = req.body as RecordInventoryItemsBody;
-    const results = await discoveryService.recordInventory(
+    const { claimToken, inventoryItems } =
+      req.body as ProposeInventoryItemsBody;
+    const results = await discoveryService.proposeInventoryItems(
       id,
       claimToken,
-      items,
+      inventoryItems,
     );
-    res
-      .status(200)
-      .json(results.map(({ item, created }) => ({ ...item, created })));
+    res.status(200).json(
+      results.map(({ inventoryItem, created, changed, coveredBy, covers }) => ({
+        ...inventoryItem,
+        created,
+        changed,
+        coveredBy,
+        covers,
+      })),
+    );
   },
 );
 
-// Does: page through a source's inventory (files and directories), ordered by
-// normalizedPath, with filters.
-// Who: human (home-hud inventory browser). No MCP tool.
-export const listSourceInventoryItemsOperation = {
+// Does: page through a source's inventory items with filters.
+// Who: human (REST) and agent (list_inventory_items).
+export const listInventoryItemsOperation = {
   summary: 'List a source’s inventory items',
   description:
-    'Files and directories found by any job of the source, ordered by normalizedPath. Up to `limit` (default 500, max 1000) per page; pass the last normalizedPath as `after` for the next page. Filter by last-seen job, type, review disposition, direct parent, or path prefix.',
+    'Ordered by normalizedRootPath. Up to `limit` (default 100, max 500) per page; pass the last normalizedRootPath as `after` for the next page. Filter by last-proposing job, recommendation, decision, or path prefix.',
+  mcp: {
+    name: 'list_inventory_items',
+    description:
+      'Inventory items already recorded for a source, with human decisions. Filter by recommendation, decision, jobId or pathPrefix; pass `next` back as `after` for more.',
+  },
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
 export const listSourceInventoryItems = handle(
@@ -58,16 +68,18 @@ export const listSourceInventoryItems = handle(
     const filters = req.query as unknown as InventoryItemListQuery;
     res
       .status(200)
-      .json(await discoveryService.listSourceInventory(id, filters));
+      .json(await discoveryService.listSourceInventoryItems(id, filters));
   },
 );
 
 // Does: fetch one inventory item, with how exclusion rules currently treat it.
-// Who: human (home-hud inventory browser). No MCP tool.
+// Who: human (home-hud inventory details modal). No MCP tool: the agent lists
+// inventory items with list_inventory_items.
 export const getInventoryItemOperation = {
   summary: 'Get an inventory item',
   description:
-    'Includes `exclusion`: `none`, `selective` (the item itself cannot be a candidate) or `excluded` (an exclude_subtree rule covers it), with the deciding rule ids.',
+    'Includes `exclusion`: `none`, `selective` or `excluded`, with the deciding rule ids. An excluded or selective path cannot be approved.',
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
 export const getInventoryItem = handle(
@@ -78,39 +90,22 @@ export const getInventoryItem = handle(
   },
 );
 
-// Does: record a human's review decision about one item.
-// Who: human (home-hud inventory browser). No MCP tool.
-export const reviewInventoryItemOperation = {
-  summary: 'Set an inventory item’s review disposition',
+// Does: record a human's approval or rejection.
+// Who: human only (REST). Deliberately no MCP tool.
+export const decideInventoryItemOperation = {
+  summary: 'Approve or reject an inventory item',
   description:
-    'Sets `candidate`, `not_needed` or `needs_review`, with an optional note. Touches only the review columns, never queue state or filesystem facts, and rediscovery never resets it. An item covered by an exclusion rule cannot be marked `candidate` (409, with the blocking rule ids). Repeating the current decision changes nothing and records no audit event. Send X-Actor-Type / X-Actor-Id to attribute the decision.',
+    'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). Approval is refused for paths under an exclusion rule. An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow and changes nothing else. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
-export const reviewInventoryItem = handle(
-  'PATCH /inventory-items/:id/review',
+export const decideInventoryItem = handle(
+  'PATCH /inventory-items/:id/decision',
   async (req, res) => {
     const { id } = req.params as InventoryItemIdParams;
-    const body = req.body as ReviewInventoryItemBody;
+    const body = req.body as DecideInventoryItemBody;
     res
       .status(200)
-      .json(await discoveryService.reviewInventoryItem(id, body, actorOf(res)));
-  },
-);
-
-// Does: apply one review decision to many items at once.
-// Who: human (home-hud inventory browser, multi-select). No MCP tool.
-export const reviewInventoryItemsOperation = {
-  summary: 'Apply a review disposition to several inventory items',
-  description:
-    'All or nothing: an unknown id (404, listing `missingIds`) or an item that may not be a candidate (409, listing `blocked`) fails the whole request and changes nothing. Up to 200 ids. Records one audit event listing the changed items and their prior dispositions.',
-} satisfies Operation;
-
-export const reviewInventoryItems = handle(
-  'POST /inventory-items/review',
-  async (req, res) => {
-    const body = req.body as ReviewInventoryItemsBody;
-    res
-      .status(200)
-      .json(await discoveryService.reviewInventoryItems(body, actorOf(res)));
+      .json(await discoveryService.decideInventoryItem(id, body, actorOf(res)));
   },
 );

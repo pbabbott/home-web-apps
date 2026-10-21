@@ -59,23 +59,23 @@ pnpm test:int   # needs `pnpm dev:deps`; runs against the real local Postgres
 
 Exodus is the one-time migration of files from Windows machines to the NAS (full write-up, including design decisions and what is not built yet: [`docs/exodus.md`](../../docs/exodus/README.md)). An agent explores each machine directory by directory, possibly across many cron runs that start with no memory of the last, so the queue in Postgres is the only state: whatever is not written there is lost.
 
-Three tables (`packages/homelab-db/src/schema/discovery.ts`):
+Tables (`packages/homelab-db/src/schema/discovery.ts`; design in [`docs/exodus/inventory.md`](../../docs/exodus/inventory.md)):
 
 - `sources` — a machine being inventoried (`name`, `sourceType`, and an optional `hostId` → `hosts.id`, so join to `hosts` for the machine's name/IP). A host with a source can't be deleted (`DELETE /hosts/:id` returns 409).
 - `discovery_jobs` — one run over a source, rooted at `rootPath`. Status: `pending` → `running` → `completed` | `failed` | `cancelled`. A source can have only one `pending`/`running` job at a time.
 - `discovery_queue_items` — one directory to explore within a job (the job owns the lifecycle; the item tracks only its own work). Status: `queued` → `in_progress` → `completed` | `skipped` | `failed`. Unique per `(job, normalizedPath)`.
-- `inventory_items` — a file or directory found while exploring a source. Unique per `(source, normalizedPath)`, so rediscovery by any job updates the same row.
+- `inventory_items` — the agent's proposed backup unit (project, personal-data folder, standalone file) with `recommendation` (`back_up` | `skip` | `needs_review`), `confidence` (`low` | `medium` | `high`), reason and evidence, plus the human `decision` (`pending` | `approved` | `rejected`). Unique per `(source, normalizedRootPath)`; rediscovery updates the agent fields and never the decision.
 
 ### Agent workflow
 
-1. A human registers the machine (`POST /sources`) and starts a job (`POST /sources/:id/discovery-jobs` with `rootPath`). The root is queued, and recorded as an inventory directory, automatically.
-2. Each cron run loops: `POST /discovery-jobs/:id/queue-items/claim` → inspect the directory → `POST /queue-items/:id/inventory-items` with the files and directories found (up to 200 per call, chunk larger directories) → `POST /queue-items/:id/complete` with the child directories as `discoveredPaths` (completed and enqueued in one transaction) → repeat. A claim always answers `200`: `{ item }` when it got one, or `{ item: null, reason, retryAt, queueCounts }` when not. `queue_empty` means stop and complete the job; `retry_backoff` and `in_progress` mean ask again at `retryAt`.
+1. A human registers the machine (`POST /sources`) and starts a job (`POST /sources/:id/discovery-jobs` with `rootPath`). The root is queued automatically.
+2. Each cron run loops: `POST /discovery-jobs/:id/queue-items/claim` → inspect that one directory (the API grants no filesystem access; the agent uses its own read-only access) → for each thing found, **skip** it (list it in `skipped` with a reason, or many similar direct entries by name pattern in `skippedGroups`), **explore** it (a `discoveredPaths` follow-up with a `reason`), or **propose** it with `POST /queue-items/:id/inventory-items` (≤10 per call; a repository is one inventory item, never its subfolders) → `POST /queue-items/:id/complete` with the follow-ups, `skipped` and a `summary` (completed and enqueued in one transaction) → repeat. A claim always answers `200`: `{ item }` when it got one, or `{ item: null, reason, retryAt, queueCounts }` when not. `queue_empty` means stop and complete the job; `retry_backoff` and `in_progress` mean ask again at `retryAt`.
 3. Every call on a claimed item must send its `claimToken`. The claim is a lease (default 5 minutes, max 1 hour): `POST /queue-items/:id/heartbeat` extends it. If the agent crashes, the lease expires and the next claim picks the item up again; `attemptCount` and `lastError` are kept. Once the job is completed, cancelled or failed, a worker still holding an item gets `409` on every call, and cancel/fail return its in-progress items to `queued`.
-4. A human watches via `GET /discovery-jobs/:id` (includes `queueCounts`), inspects problems with `GET /sources/:id/queue-items?status=failed`, and finishes with `POST /discovery-jobs/:id/complete`.
+4. A human watches via `GET /discovery-jobs/:id` (includes `queueCounts`), inspects problems with `GET /sources/:id/queue-items?status=failed`, finishes with `POST /discovery-jobs/:id/complete`, and approves or rejects inventory items with `PATCH /inventory-items/:id/decision` (human actor only; agent recommendations never decide).
 
 ### MCP
 
-The agent's work loop and exclusion rules are also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, finishing/cancelling/failing a job, global rules, editing or deleting rules, review and the audit log stay REST-only for humans. Rules the agent creates are attributed to actor `openclaw` (with its optional `workerId`) in the audit log.
+The agent's work loop, inventory item proposals and exclusion rules are also exposed as MCP tools over stateless Streamable HTTP at `POST /mcp` (`GET`/`DELETE` return `405`), so an MCP client can drive discovery without hand-rolling REST calls. Only these routes are exposed; creating sources and jobs, enqueueing arbitrary paths, finishing/cancelling/failing a job, global rules, editing or deleting rules, approving or rejecting inventory items and the audit log stay REST-only for humans. The server also sends the agent playbook as MCP `instructions`, and tool results are compact projections of the REST rows (`src/mcp-results.ts`), not the rows themselves. Rules the agent creates are attributed to actor `openclaw` (with its optional `workerId`) in the audit log.
 
 | MCP tool                  | REST route                                   |
 | ------------------------- | -------------------------------------------- |
@@ -83,11 +83,12 @@ The agent's work loop and exclusion rules are also exposed as MCP tools over sta
 | `get_discovery_job`       | `GET /discovery-jobs/:id`                    |
 | `claim_directory`         | `POST /discovery-jobs/:id/queue-items/claim` |
 | `heartbeat_directory`     | `POST /queue-items/:id/heartbeat`            |
-| `record_discovered_items` | `POST /queue-items/:id/inventory-items`      |
+| `propose_inventory_items` | `POST /queue-items/:id/inventory-items`      |
+| `list_known_skips`        | `GET /sources/:id/known-skips`               |
+| `list_inventory_items`    | `GET /sources/:id/inventory-items`           |
 | `complete_directory`      | `POST /queue-items/:id/complete`             |
 | `fail_directory`          | `POST /queue-items/:id/fail`                 |
 | `skip_directory`          | `POST /queue-items/:id/skip`                 |
-| `retry_directory`         | `POST /queue-items/:id/retry`                |
 | `list_exclusion_rules`    | `GET /exclusion-rules`                       |
 | `create_exclusion_rule`   | `POST /exclusion-rules` (source-scoped only) |
 
@@ -98,8 +99,11 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 - **Paths** are normalized to backslashes with no trailing separator and compared case-insensitively on directory boundaries (`C:\Users\You` does not contain `C:\Users\YouOther`). Only absolute `X:\…` and UNC paths are accepted, and every enqueued path must be inside the job's root.
 - **Failures:** `POST /queue-items/:id/fail` requeues a retryable failure behind an exponential backoff (30s, 60s, … capped at 1h) until `maxAttempts` (3) is used up, then marks it `failed`; `retryable: false` fails it immediately. `POST /queue-items/:id/retry` lets a human requeue a `failed` item for exactly one more attempt, but only while its job is still pending or running; to explore a finished job's failures again, start a new job.
 - **Finishing:** a job completes once nothing is `queued` or `in_progress` (expired leases are reclaimed first, and an item still in retry backoff counts as queued). Permanently `failed` items do **not** block completion — the job finishes with failures, visible as `queueCounts.failed`.
-- **The queue is per job.** A new job explores from its root again; what earlier jobs found is kept in `inventory_items`, which are deduplicated per source and updated (size, mtime, last-seen) rather than duplicated on rediscovery.
-- **Inventory:** recorded paths must be inside the claimed directory. A missing size or mtime keeps the stored value. List with `GET /sources/:id/inventory-items` (`jobId`, `itemType`, `parentPath`, `pathPrefix`, keyset `after`/`limit`).
+- **The queue is per job.** A new job explores from its root again; what earlier jobs found is kept in `inventory_items`, which are deduplicated per source and updated rather than duplicated on rediscovery.
+- **Inventory items:** a proposal's path must be the claimed directory or inside it. Guardrails (400): `back_up`/`skip` need `medium` or `high` confidence, and a git repository is only skippable with known-clean local state. Paths under an exclusion rule are 409. List with `GET /sources/:id/inventory-items` (`jobId`, `recommendation`, `decision`, `pathPrefix`, keyset `after`/`limit`). Confidence is `high` = direct evidence settles it, `medium` = strong signals with minor unknowns, `low` = a guess (must be `needs_review`).
+- **Known skips:** `GET /sources/:id/known-skips` lists paths earlier jobs chose not to explore and name patterns (`pattern`, `count`, with `path` the directory) (from their stored `skipped` and `skippedGroups`).
+- **Mixed directories (Downloads):** never propose the folder itself. Each keeper is its own `kind: file` item, junk goes in `skippedGroups`, archives are not extracted, and a large directory is heartbeated and proposed in batches of 10. See [Exodus inventory](../../docs/exodus/inventory.md#mixed-directories-downloads). A per-run judgment the agent may revisit, not an exclusion rule.
+- **Exclusions at enqueue:** follow-ups under an `exclude_subtree` rule are `skipped` as soon as they are queued, and each claim rechecks.
 
 ## Seeding hosts from a remote environment
 

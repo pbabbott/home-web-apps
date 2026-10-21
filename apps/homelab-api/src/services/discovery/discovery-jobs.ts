@@ -13,7 +13,7 @@ import {
   type QueueCounts,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { toInventoryPath, toQueuePath } from './paths';
+import { toQueuePath } from './paths';
 
 export type DiscoveryJobWithCounts = DiscoveryJob & {
   /** This job's item counts by status; `failed` > 0 means "finished with failures". */
@@ -39,11 +39,7 @@ export async function createDiscoveryJob(
   rootPath: string,
 ): Promise<DiscoveryJobWithCounts> {
   const root = toQueuePath(rootPath);
-  const job = await createDiscoveryJobRow(db, {
-    sourceId,
-    root,
-    rootInventory: toInventoryPath({ path: rootPath, itemType: 'directory' }),
-  });
+  const job = await createDiscoveryJobRow(db, { sourceId, root });
 
   return withCounts(job);
 }

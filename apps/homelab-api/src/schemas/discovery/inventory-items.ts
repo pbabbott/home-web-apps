@@ -1,88 +1,173 @@
 import { z } from 'zod';
 import { claimTokenSchema, windowsPathSchema } from './common';
 
-// Kept small so a worst-case batch (260-char paths) stays under the shared
-// Express json() body limit of 100kb.
-export const MAX_INVENTORY_ITEMS_PER_REQUEST = 200;
+// Kept small so a worst-case batch stays under the shared Express json() body
+// limit of 100kb (evidence alone can reach ~6kb per inventory item).
+export const MAX_INVENTORY_ITEMS_PER_REQUEST = 10;
 
-export const recordInventoryItemsBodySchema = z.object({
-  claimToken: claimTokenSchema,
-  items: z
+export const inventoryItemIdParamsSchema = z.object({ id: z.uuid() });
+export type InventoryItemIdParams = z.infer<typeof inventoryItemIdParamsSchema>;
+
+const shortText = z.string().trim().min(1).max(300);
+
+export const inventoryItemRecommendationSchema = z
+  .enum(['back_up', 'skip', 'needs_review'])
+  .meta({
+    description:
+      'back_up: unique or valuable. skip: strong evidence it is irrelevant or reproducible. needs_review: not enough evidence.',
+  });
+
+export const inventoryItemConfidenceSchema = z
+  .enum(['low', 'medium', 'high'])
+  .meta({
+    description:
+      'Not a probability. high: direct evidence. medium: strong signals, minor unknowns. low: a guess (needs_review only).',
+  });
+
+export const inventoryItemEvidenceSchema = z.object({
+  contentKinds: z
     .array(
-      z.object({
-        path: windowsPathSchema.meta({
-          description:
-            'Absolute path of a file or directory inside the claimed directory.',
-        }),
-        itemType: z.enum(['file', 'directory']),
-        sizeBytes: z
-          .number()
-          .int()
-          .min(0)
-          .max(Number.MAX_SAFE_INTEGER)
-          .optional(),
-        modifiedAt: z.iso.datetime({ offset: true }).optional().meta({
-          description: 'Last-modified time on the source machine.',
-        }),
-      }),
+      z.enum([
+        'source_code',
+        'personal_documents',
+        'media',
+        'configuration',
+        'application_data',
+        'generated_artifacts',
+        'installed_software',
+        'installers',
+        'archives',
+        'other',
+      ]),
     )
+    .max(8),
+  git: z
+    .object({
+      remoteUrl: z.string().max(500).nullable(),
+      remoteVisibility: z.enum(['public', 'private', 'none', 'unknown']),
+      localStateKnown: z.boolean().meta({
+        description:
+          'True only when git status and the upstream comparison actually ran.',
+      }),
+      uncommittedChanges: z.boolean().nullable(),
+      untrackedFiles: z.boolean().nullable(),
+      unpushedCommits: z.boolean().nullable(),
+      ignoredFilesOfNote: z.boolean().nullable(),
+    })
+    .nullable()
+    .meta({
+      description:
+        'null when the path is not a git repository (or was not checked). Inside, null means not determined.',
+    }),
+  reproducible: z.enum(['yes', 'no', 'unknown']),
+  sufficientInformation: z.boolean().meta({
+    description: 'Whether the agent had enough information to be confident.',
+  }),
+  observations: z.array(shortText).max(10).meta({
+    description: 'Verified facts only; no speculation.',
+  }),
+  openQuestions: z.array(shortText).max(5).meta({
+    description: 'What further inspection would resolve the uncertainty.',
+  }),
+  estimatedSizeBytes: z
+    .number()
+    .int()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+  estimatedFileCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+});
+
+export const inventoryItemInputSchema = z
+  .object({
+    rootPath: windowsPathSchema.meta({
+      description:
+        'The backup unit: a directory (project, document collection) or a standalone file. Must be the claimed directory or lie inside it.',
+    }),
+    kind: z.enum(['file', 'directory']),
+    displayName: z.string().trim().min(1).max(200).optional().meta({
+      description: 'Defaults to the last path segment.',
+    }),
+    summary: z.string().trim().min(1).max(500),
+    recommendation: inventoryItemRecommendationSchema,
+    confidence: inventoryItemConfidenceSchema,
+    reason: z.string().trim().min(1).max(500).meta({
+      description: 'Why this recommendation.',
+    }),
+    evidence: inventoryItemEvidenceSchema,
+  })
+  .superRefine((c, ctx) => {
+    if (c.confidence === 'low' && c.recommendation !== 'needs_review') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['confidence'],
+        message:
+          'low confidence requires recommendation needs_review; use back_up or skip only with medium or high confidence',
+      });
+    }
+
+    const git = c.evidence.git;
+    if (
+      c.recommendation === 'skip' &&
+      git &&
+      (!git.localStateKnown ||
+        git.uncommittedChanges !== false ||
+        git.untrackedFiles !== false ||
+        git.unpushedCommits !== false ||
+        git.ignoredFilesOfNote === true)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['recommendation'],
+        message:
+          'a git repository can only be skipped when its local state is known and shows no uncommitted changes, untracked files, unpushed commits or notable ignored files; a public remote alone does not make it disposable (use needs_review)',
+      });
+    }
+  });
+export type InventoryItemInput = z.infer<typeof inventoryItemInputSchema>;
+
+export const proposeInventoryItemsBodySchema = z.object({
+  claimToken: claimTokenSchema,
+  inventoryItems: z
+    .array(inventoryItemInputSchema)
     .min(1)
     .max(MAX_INVENTORY_ITEMS_PER_REQUEST),
 });
-export type RecordInventoryItemsBody = z.infer<
-  typeof recordInventoryItemsBodySchema
+export type ProposeInventoryItemsBody = z.infer<
+  typeof proposeInventoryItemsBodySchema
 >;
 
 export const inventoryItemListQuerySchema = z.object({
   jobId: z.uuid().optional().meta({
-    description: 'Only items last seen by this job.',
+    description: 'Only inventory items last proposed by this job.',
   }),
-  itemType: z.enum(['file', 'directory']).optional(),
-  reviewDisposition: z
-    .enum(['candidate', 'not_needed', 'needs_review'])
-    .optional(),
-  parentPath: windowsPathSchema.optional().meta({
-    description: 'Only direct children of this directory.',
-  }),
+  recommendation: inventoryItemRecommendationSchema.optional(),
+  decision: z.enum(['pending', 'approved', 'rejected']).optional(),
   pathPrefix: windowsPathSchema.optional().meta({
-    description: 'Only items at or beneath this path prefix.',
+    description: 'Only inventory items at or beneath this path.',
   }),
   after: z.string().min(1).optional().meta({
     description:
-      'Cursor: the normalizedPath of the last item of the previous page.',
+      'Cursor: the normalizedRootPath of the last inventory item of the previous page.',
   }),
-  limit: z.coerce.number().int().min(1).max(1000).default(500),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
 });
 export type InventoryItemListQuery = z.infer<
   typeof inventoryItemListQuerySchema
 >;
 
-export const MAX_REVIEW_ITEMS_PER_REQUEST = 200;
-
-export const inventoryItemIdParamsSchema = z.object({ id: z.uuid() });
-export type InventoryItemIdParams = z.infer<typeof inventoryItemIdParamsSchema>;
-
-const reviewDispositionSchema = z.enum([
-  'candidate',
-  'not_needed',
-  'needs_review',
-]);
-
-export const reviewInventoryItemBodySchema = z.object({
-  disposition: reviewDispositionSchema,
+export const decideInventoryItemBodySchema = z.object({
+  decision: z.enum(['pending', 'approved', 'rejected']),
   note: z.string().trim().min(1).max(1000).nullable().optional().meta({
     description:
-      'Replaces the note; null clears it. When omitted the note is kept if the disposition is unchanged and cleared if it changes.',
+      'Replaces the note; null clears it. When omitted the note is kept if the decision is unchanged and cleared if it changes.',
   }),
 });
-export type ReviewInventoryItemBody = z.infer<
-  typeof reviewInventoryItemBodySchema
->;
-
-export const reviewInventoryItemsBodySchema =
-  reviewInventoryItemBodySchema.extend({
-    ids: z.array(z.uuid()).min(1).max(MAX_REVIEW_ITEMS_PER_REQUEST),
-  });
-export type ReviewInventoryItemsBody = z.infer<
-  typeof reviewInventoryItemsBodySchema
+export type DecideInventoryItemBody = z.infer<
+  typeof decideInventoryItemBodySchema
 >;

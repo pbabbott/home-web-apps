@@ -2,7 +2,7 @@ import { db } from '../../src/db';
 import { getRequest } from '../jest.integration.setup';
 
 // Runs against the real local dev Postgres, so everything created here is
-// deleted afterwards. Sources cascade to jobs, queue items, inventory and
+// deleted afterwards. Sources cascade to jobs, queue items, inventory items and
 // source-level rules; global rules and the audit log (which has no foreign
 // keys by design) are removed explicitly.
 const createdSourceIds: string[] = [];
@@ -87,44 +87,38 @@ const claimItem = async (jobId: string): Promise<ClaimedItem> => {
   return res.body.item;
 };
 
-const recordFiles = (
-  item: ClaimedItem,
-  items: { path: string; itemType: 'file' | 'directory'; sizeBytes?: number }[],
-) =>
-  getRequest()
-    .post(`/queue-items/${item.id}/inventory-items`)
-    .send({ claimToken: item.claimToken, items })
-    .expect(200);
+/** A minimal valid proposal; only its path matters to the exclusion tests. */
+const inventoryItem = (path: string) => ({
+  rootPath: path,
+  kind: 'directory',
+  summary: 'x',
+  recommendation: 'needs_review',
+  confidence: 'low',
+  reason: 'x',
+  evidence: {
+    contentKinds: [],
+    git: null,
+    reproducible: 'unknown',
+    sufficientInformation: false,
+    observations: [],
+    openQuestions: [],
+  },
+});
 
-/** Runs a job over ROOT that records `items`, and returns them by path. */
-const discover = async (
-  sourceId: string,
-  items: { path: string; itemType: 'file' | 'directory'; sizeBytes?: number }[],
-) => {
+/** Starts a job over ROOT and claims its root directory. */
+const claimRoot = async (sourceId: string) => {
   const job = await startJob(sourceId);
-  const root = await claimItem(job.id);
-  await recordFiles(root, items);
-  await getRequest()
-    .post(`/queue-items/${root.id}/complete`)
-    .send({ claimToken: root.claimToken, discoveredPaths: [] })
-    .expect(200);
 
-  const listed = await getRequest()
-    .get(`/sources/${sourceId}/inventory-items`)
-    .expect(200);
-  const byPath = new Map<string, { id: string; [key: string]: unknown }>(
-    listed.body.map((i: { path: string; id: string }) => [i.path, i]),
-  );
-
-  return { job, byPath };
+  return { job, root: await claimItem(job.id) };
 };
 
-const review = (
-  id: string,
-  body: object,
-  headers: Record<string, string> = {},
-) =>
-  getRequest().patch(`/inventory-items/${id}/review`).set(headers).send(body);
+const propose = (root: ClaimedItem, paths: string[]) =>
+  getRequest()
+    .post(`/queue-items/${root.id}/inventory-items`)
+    .send({
+      claimToken: root.claimToken,
+      inventoryItems: paths.map(inventoryItem),
+    });
 
 const auditEvents = async (query: Record<string, string | number> = {}) =>
   (await getRequest().get('/audit-events').query(query).expect(200)).body as {
@@ -275,83 +269,32 @@ describe('exclusion precedence', () => {
       scope: 'selective_only',
     });
 
-    const { byPath } = await discover(sourceId, [
-      { path: `${base}\\Temp\\a.tmp`, itemType: 'file' },
-      { path: `${base}other\\b.txt`, itemType: 'file' },
+    const { root } = await claimRoot(sourceId);
+
+    const excluded = await propose(root, [`${base}\\Temp\\a.tmp`]).expect(409);
+    expect(excluded.body.blocked).toEqual([
+      {
+        path: `${base}\\Temp\\a.tmp`,
+        state: 'excluded',
+        ruleIds: [globalRule.id],
+      },
     ]);
 
-    const excluded = await getRequest()
-      .get(`/inventory-items/${byPath.get(`${base}\\Temp\\a.tmp`)!.id}`)
-      .expect(200);
-    expect(excluded.body.exclusion).toEqual({
-      state: 'excluded',
-      ruleIds: [globalRule.id],
-    });
-
     // `win-x` is not a directory-boundary prefix of `win-xother`.
-    const sibling = await getRequest()
-      .get(`/inventory-items/${byPath.get(`${base}other\\b.txt`)!.id}`)
-      .expect(200);
-    expect(sibling.body.exclusion).toEqual({ state: 'none', ruleIds: [] });
+    await propose(root, [`${base}other\\b.txt`]).expect(200);
   });
 
-  it('treats selective_only as "not a candidate itself, but explore beneath it"', async () => {
+  it('treats selective_only as "not an inventory item itself, but explore beneath it"', async () => {
     const sourceId = await createSource();
     const nodeModules = `${ROOT}\\node_modules`;
     await createRule({ sourceId, path: nodeModules, scope: 'selective_only' });
 
-    const { byPath } = await discover(sourceId, [
-      { path: nodeModules, itemType: 'directory' },
-      { path: `${nodeModules}\\notes.md`, itemType: 'file' },
-    ]);
+    const { root } = await claimRoot(sourceId);
 
-    const dir = byPath.get(nodeModules)!;
-    const file = byPath.get(`${nodeModules}\\notes.md`)!;
+    const self = await propose(root, [nodeModules]).expect(409);
+    expect(self.body.blocked[0]).toMatchObject({ state: 'selective' });
 
-    const detail = await getRequest()
-      .get(`/inventory-items/${dir.id}`)
-      .expect(200);
-    expect(detail.body.exclusion.state).toBe('selective');
-
-    await review(dir.id, { disposition: 'candidate' }).expect(409);
-    await review(file.id, { disposition: 'candidate' }).expect(200);
-  });
-
-  it('blocks candidate on excluded items but still allows rejecting them', async () => {
-    const sourceId = await createSource();
-    const dirPath = `${ROOT}\\old-client`;
-    const rule = await createRule({
-      sourceId,
-      path: dirPath,
-      scope: 'exclude_subtree',
-    });
-    const { byPath } = await discover(sourceId, [
-      { path: `${dirPath}\\main.ts`, itemType: 'file' },
-    ]);
-    const item = byPath.get(`${dirPath}\\main.ts`)!;
-
-    const blocked = await review(item.id, { disposition: 'candidate' }).expect(
-      409,
-    );
-    expect(blocked.body.blocked).toEqual([
-      { id: item.id, state: 'excluded', ruleIds: [rule.id] },
-    ]);
-
-    await review(item.id, { disposition: 'not_needed' }).expect(200);
-  });
-
-  it('does not delete inventory when a rule is created', async () => {
-    const sourceId = await createSource();
-    const dirPath = `${ROOT}\\cache`;
-    const { byPath } = await discover(sourceId, [
-      { path: `${dirPath}\\x.bin`, itemType: 'file' },
-    ]);
-
-    await createRule({ sourceId, path: dirPath, scope: 'exclude_subtree' });
-
-    await getRequest()
-      .get(`/inventory-items/${byPath.get(`${dirPath}\\x.bin`)!.id}`)
-      .expect(200);
+    await propose(root, [`${nodeModules}\\notes.md`]).expect(200);
   });
 });
 
@@ -470,269 +413,6 @@ describe('exclusion enforcement at claim time', () => {
     await getRequest().delete(`/exclusion-rules/${rule.id}`).expect(204);
 
     expect((await claimItem(job.id)).path).toBe(dir);
-  });
-});
-
-describe('review', () => {
-  it('sets a disposition with a note, an actor and a timestamp', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, [
-      {
-        path: `${ROOT}\\Documents\\taxes.pdf`,
-        itemType: 'file',
-        sizeBytes: 10,
-      },
-    ]);
-    const item = byPath.get(`${ROOT}\\Documents\\taxes.pdf`)!;
-    expect(item.reviewDisposition).toBe('needs_review');
-
-    const res = await review(
-      item.id,
-      { disposition: 'candidate', note: 'tax records' },
-      { 'X-Actor-Id': 'brandon' },
-    ).expect(200);
-
-    expect(res.body).toMatchObject({
-      reviewDisposition: 'candidate',
-      reviewNote: 'tax records',
-      reviewedBy: 'brandon',
-    });
-    expect(res.body.reviewedAt).toEqual(expect.any(String));
-
-    const events = await auditEvents({ inventoryItemId: item.id });
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({
-      eventType: 'inventory_item.review_changed',
-      actorType: 'human',
-      actorId: 'brandon',
-      sourceId,
-      inventoryItemId: item.id,
-      details: { from: 'needs_review', to: 'candidate', note: 'tax records' },
-    });
-  });
-
-  it('keeps the note on a repeat and clears it when the decision changes', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, [
-      { path: `${ROOT}\\a.txt`, itemType: 'file' },
-    ]);
-    const { id } = byPath.get(`${ROOT}\\a.txt`)!;
-
-    await review(id, { disposition: 'candidate', note: 'keep' }).expect(200);
-    const same = await review(id, { disposition: 'candidate' }).expect(200);
-    expect(same.body.reviewNote).toBe('keep');
-    expect(await auditEvents({ inventoryItemId: id })).toHaveLength(1);
-
-    const changed = await review(id, { disposition: 'not_needed' }).expect(200);
-    expect(changed.body.reviewNote).toBeNull();
-    expect(await auditEvents({ inventoryItemId: id })).toHaveLength(2);
-  });
-
-  it('404s for a missing item and 400s for a bad disposition without auditing', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, [
-      { path: `${ROOT}\\a.txt`, itemType: 'file' },
-    ]);
-    const { id } = byPath.get(`${ROOT}\\a.txt`)!;
-
-    await review('123e4567-e89b-12d3-a456-426614174000', {
-      disposition: 'candidate',
-    }).expect(404);
-    await review(id, { disposition: 'maybe' }).expect(400);
-    await review(
-      id,
-      { disposition: 'candidate' },
-      { 'X-Actor-Type': 'robot' },
-    ).expect(400);
-
-    expect(await auditEvents({ sourceId })).toHaveLength(0);
-    const after = await getRequest().get(`/inventory-items/${id}`).expect(200);
-    expect(after.body.reviewDisposition).toBe('needs_review');
-  });
-
-  it('survives rediscovery: filesystem facts refresh, the decision does not reset', async () => {
-    const sourceId = await createSource();
-    const taxes = `${ROOT}\\Documents\\taxes.pdf`;
-    const first = await discover(sourceId, [
-      { path: taxes, itemType: 'file', sizeBytes: 100 },
-    ]);
-    const { id } = first.byPath.get(taxes)!;
-    await review(id, { disposition: 'candidate', note: 'keep' }).expect(200);
-
-    // A later job finds the file again with new metadata.
-    await getRequest()
-      .post(`/discovery-jobs/${first.job.id}/complete`)
-      .expect(200);
-    const second = await startJob(sourceId);
-    const root = await claimItem(second.id);
-    const res = await recordFiles(root, [
-      { path: taxes.toUpperCase(), itemType: 'file', sizeBytes: 250 },
-    ]);
-
-    expect(res.body[0]).toMatchObject({
-      id,
-      created: false,
-      sizeBytes: 250,
-      reviewDisposition: 'candidate',
-      reviewNote: 'keep',
-    });
-    const detail = await getRequest().get(`/inventory-items/${id}`).expect(200);
-    expect(detail.body).toMatchObject({
-      reviewDisposition: 'candidate',
-      sizeBytes: 250,
-      lastJobId: second.id,
-    });
-  });
-
-  it('never changes queue-item status', async () => {
-    const sourceId = await createSource();
-    const { job, byPath } = await discover(sourceId, [
-      { path: `${ROOT}\\a.txt`, itemType: 'file' },
-    ]);
-    const snapshot = async () =>
-      (
-        await getRequest()
-          .get(`/discovery-jobs/${job.id}/queue-items`)
-          .expect(200)
-      ).body;
-    const before = await snapshot();
-
-    await review(byPath.get(`${ROOT}\\a.txt`)!.id, {
-      disposition: 'not_needed',
-    }).expect(200);
-
-    expect(await snapshot()).toEqual(before);
-  });
-
-  it('filters the inventory list by review disposition', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, [
-      { path: `${ROOT}\\a.txt`, itemType: 'file' },
-      { path: `${ROOT}\\b.txt`, itemType: 'file' },
-    ]);
-    await review(byPath.get(`${ROOT}\\a.txt`)!.id, {
-      disposition: 'candidate',
-    }).expect(200);
-
-    const list = async (reviewDisposition: string) =>
-      (
-        await getRequest()
-          .get(`/sources/${sourceId}/inventory-items`)
-          .query({ reviewDisposition })
-          .expect(200)
-      ).body.map((i: { path: string }) => i.path);
-
-    expect(await list('candidate')).toEqual([`${ROOT}\\a.txt`]);
-    // The job's root directory is recorded too, and also awaits review.
-    expect(await list('needs_review')).toEqual([ROOT, `${ROOT}\\b.txt`]);
-    expect(await list('not_needed')).toEqual([]);
-  });
-});
-
-describe('bulk review', () => {
-  const forty = Array.from({ length: 40 }, (_, i) => ({
-    path: `${ROOT}\\photos\\img-${String(i).padStart(2, '0')}.jpg`,
-    itemType: 'file' as const,
-  }));
-
-  it('applies one decision to 40 items with a single bounded audit event', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, forty);
-    const ids = forty.map((f) => byPath.get(f.path)!.id);
-
-    const res = await getRequest()
-      .post('/inventory-items/review')
-      .set('X-Actor-Id', 'brandon')
-      .send({ ids, disposition: 'candidate' })
-      .expect(200);
-
-    expect(res.body).toMatchObject({ changedCount: 40, unchangedCount: 0 });
-    expect(
-      res.body.items.every(
-        (i: { reviewDisposition: string }) =>
-          i.reviewDisposition === 'candidate',
-      ),
-    ).toBe(true);
-
-    const events = await auditEvents({
-      eventType: 'inventory_item.review_bulk_changed',
-      sourceId,
-    });
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ actorId: 'brandon', sourceId });
-    expect(events[0].details).toMatchObject({
-      disposition: 'candidate',
-      requestedCount: 40,
-      unchangedCount: 0,
-    });
-    expect(events[0].details.changed).toHaveLength(40);
-    expect(events[0].details.changed[0]).toEqual({
-      id: expect.any(String),
-      from: 'needs_review',
-    });
-
-    // Any one of the items finds the bulk event by inventoryItemId.
-    expect(await auditEvents({ inventoryItemId: ids[7] })).toHaveLength(1);
-
-    // Repeating changes nothing and records nothing more.
-    const again = await getRequest()
-      .post('/inventory-items/review')
-      .send({ ids, disposition: 'candidate' })
-      .expect(200);
-    expect(again.body).toMatchObject({ changedCount: 0, unchangedCount: 40 });
-    expect(await auditEvents({ sourceId })).toHaveLength(1);
-  });
-
-  it('is all or nothing when an id is missing', async () => {
-    const sourceId = await createSource();
-    const { byPath } = await discover(sourceId, forty.slice(0, 3));
-    const ids = forty.slice(0, 3).map((f) => byPath.get(f.path)!.id);
-    const missing = '123e4567-e89b-12d3-a456-426614174000';
-
-    const res = await getRequest()
-      .post('/inventory-items/review')
-      .send({ ids: [...ids, missing], disposition: 'not_needed' })
-      .expect(404);
-
-    expect(res.body.missingIds).toEqual([missing]);
-    for (const id of ids) {
-      const item = await getRequest().get(`/inventory-items/${id}`).expect(200);
-      expect(item.body.reviewDisposition).toBe('needs_review');
-    }
-    expect(await auditEvents({ sourceId })).toHaveLength(0);
-  });
-
-  it('is all or nothing when one item may not be a candidate', async () => {
-    const sourceId = await createSource();
-    const bad = `${ROOT}\\blocked`;
-    const rule = await createRule({
-      sourceId,
-      path: bad,
-      scope: 'exclude_subtree',
-    });
-    const { byPath } = await discover(sourceId, [
-      { path: `${ROOT}\\ok.txt`, itemType: 'file' },
-      { path: `${bad}\\no.txt`, itemType: 'file' },
-    ]);
-    const ok = byPath.get(`${ROOT}\\ok.txt`)!.id;
-    const no = byPath.get(`${bad}\\no.txt`)!.id;
-
-    const res = await getRequest()
-      .post('/inventory-items/review')
-      .send({ ids: [ok, no], disposition: 'candidate' })
-      .expect(409);
-
-    expect(res.body.blocked).toEqual([
-      { id: no, state: 'excluded', ruleIds: [rule.id] },
-    ]);
-    const item = await getRequest().get(`/inventory-items/${ok}`).expect(200);
-    expect(item.body.reviewDisposition).toBe('needs_review');
-    expect(
-      await auditEvents({
-        sourceId,
-        eventType: 'inventory_item.review_bulk_changed',
-      }),
-    ).toHaveLength(0);
   });
 });
 

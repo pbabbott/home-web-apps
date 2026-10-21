@@ -1,10 +1,11 @@
-import { and, asc, desc, eq, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 import type { Database } from '../../client';
 import {
   discoveryJobs,
   discoveryQueueItems,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
+  type QueueItemResult,
 } from '../../schema/discovery';
 import { skipExcludedQueueItems } from '../exclusion-rules';
 import { DiscoveryError } from '../shared';
@@ -106,12 +107,50 @@ export const enqueueQueueItems = async (
       throw new DiscoveryError('conflict', `job is ${job.status}`);
     }
 
-    return insertQueuePaths(tx, {
+    const inserted = await insertQueuePaths(tx, {
       jobId: job.id,
       paths: input.paths,
       priority: input.priority,
     });
+
+    return refreshAfterExclusion(tx, job, inserted);
   });
+
+/**
+ * Applies exclusion rules to freshly queued paths in the same transaction, so
+ * work under an `exclude_subtree` rule is `skipped` the moment it is queued
+ * rather than waiting for the next claim. Claim rechecks too, because rules
+ * can change after work was queued. Returns the rows as they now stand.
+ */
+const refreshAfterExclusion = async (
+  tx: Tx,
+  job: { id: string; sourceId: string },
+  queued: { item: DiscoveryQueueItem; created: boolean }[],
+): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> => {
+  if (queued.length === 0) return queued;
+
+  const skipped = await skipExcludedQueueItems(tx, {
+    jobId: job.id,
+    sourceId: job.sourceId,
+  });
+  if (skipped === 0) return queued;
+
+  const rows = await tx
+    .select()
+    .from(discoveryQueueItems)
+    .where(
+      and(
+        eq(discoveryQueueItems.jobId, job.id),
+        inArray(
+          discoveryQueueItems.id,
+          queued.map((q) => q.item.id),
+        ),
+      ),
+    );
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  return queued.map((q) => ({ ...q, item: byId.get(q.item.id) ?? q.item }));
+};
 
 export type ClaimQueueItemInput = {
   jobId: string;
@@ -275,6 +314,8 @@ export type CompleteQueueItemInput = {
   claimToken: string;
   /** Child directories found while inspecting this one. */
   discoveredPaths?: QueuePath[];
+  /** What the worker concluded, including paths it saw but chose not to queue. */
+  result?: QueueItemResult;
 };
 
 /**
@@ -310,6 +351,7 @@ export const completeQueueItem = async (
       .update(discoveryQueueItems)
       .set({
         status: 'completed',
+        ...(input.result ? { result: input.result } : {}),
         completedAt: sql`now()`,
         updatedAt: sql`now()`,
       })
@@ -318,12 +360,16 @@ export const completeQueueItem = async (
 
     if (!item) throw await claimMissError(tx, id);
 
-    const children = await insertQueuePaths(tx, {
+    const inserted = await insertQueuePaths(tx, {
       jobId: item.jobId,
       paths: input.discoveredPaths ?? [],
     });
+    const [job] = await tx
+      .select({ id: discoveryJobs.id, sourceId: discoveryJobs.sourceId })
+      .from(discoveryJobs)
+      .where(eq(discoveryJobs.id, item.jobId));
 
-    return { item, children };
+    return { item, children: await refreshAfterExclusion(tx, job, inserted) };
   });
 
 export type FailQueueItemInput = {

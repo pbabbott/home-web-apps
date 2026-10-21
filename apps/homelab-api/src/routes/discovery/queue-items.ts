@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { validateBody, validateParams } from '@abbottland/express';
-import { recordInventoryItems } from '../../controllers/discovery/inventory-items';
 import {
   completeQueueItem,
   failQueueItem,
@@ -13,7 +12,6 @@ import {
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
   queueItemIdParamsSchema,
-  recordInventoryItemsBodySchema,
   skipQueueItemBodySchema,
 } from '../../schemas/discovery';
 
@@ -24,12 +22,6 @@ queueItemsRouter.post(
   validateParams(queueItemIdParamsSchema),
   validateBody(heartbeatQueueItemBodySchema),
   heartbeatQueueItem,
-);
-queueItemsRouter.post(
-  '/queue-items/:id/inventory-items',
-  validateParams(queueItemIdParamsSchema),
-  validateBody(recordInventoryItemsBodySchema),
-  recordInventoryItems,
 );
 queueItemsRouter.post(
   '/queue-items/:id/complete',

@@ -71,6 +71,13 @@
       "when": 1792342873406,
       "tag": "0009_exclusion_review_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792375656611,
+      "tag": "0010_inventory_items",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { createServer } from '../../src/server';
 import * as discoveryService from '../../src/services/discovery';
+import { completeQueueItemBodySchema } from '../../src/schemas/discovery';
 
 jest.mock('../../src/services/discovery', () => {
   const actual = jest.requireActual('../../src/services/discovery');
@@ -13,13 +14,15 @@ jest.mock('../../src/services/discovery', () => {
     getDiscoveryJob: jest.fn(),
     claimQueueItem: jest.fn(),
     heartbeat: jest.fn(),
-    recordInventory: jest.fn(),
     completeItem: jest.fn(),
     failItem: jest.fn(),
     skipItem: jest.fn(),
     retryItem: jest.fn(),
     listExclusionRules: jest.fn(),
     createExclusionRule: jest.fn(),
+    proposeInventoryItems: jest.fn(),
+    listSourceInventoryItems: jest.fn(),
+    listSourceKnownSkips: jest.fn(),
   };
 });
 
@@ -64,8 +67,9 @@ describe('MCP endpoint (/mcp)', () => {
       'heartbeat_directory',
       'list_discovery_jobs',
       'list_exclusion_rules',
-      'record_discovered_items',
-      'retry_directory',
+      'list_inventory_items',
+      'list_known_skips',
+      'propose_inventory_items',
       'skip_directory',
     ]);
   });
@@ -121,9 +125,21 @@ describe('MCP endpoint (/mcp)', () => {
     });
   });
 
-  it('claim_directory applies the lease default and returns the service result', async () => {
+  it('claim_directory applies the lease default and returns a compact item', async () => {
     (discoveryService.claimQueueItem as jest.Mock).mockResolvedValue({
-      item: { id: ID },
+      item: {
+        id: ID,
+        path: 'C:\\Users\\You',
+        normalizedPath: 'c:\\users\\you',
+        reason: null,
+        claimToken: TOKEN,
+        claimedBy: 'w1',
+        leaseExpiresAt: '2026-10-21T10:05:00.000Z',
+        attemptCount: 1,
+        maxAttempts: 3,
+        lastError: null,
+        createdAt: '2026-10-21T10:00:00.000Z',
+      },
     });
 
     const { isError, body } = await call('claim_directory', {
@@ -132,14 +148,53 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(isError).toBeFalsy();
-    expect(body).toEqual({ item: { id: ID } });
+    expect(body).toEqual({
+      id: ID,
+      path: 'C:\\Users\\You',
+      claimToken: TOKEN,
+      leaseExpiresAt: '2026-10-21T10:05:00.000Z',
+      attempt: '1/3',
+    });
     expect(discoveryService.claimQueueItem).toHaveBeenCalledWith(ID, 'w1', 300);
   });
 
-  it('complete_directory flattens children like the REST route', async () => {
+  it.each([
+    ['queue_empty', 'stop', null],
+    ['retry_backoff', 'wait', '2026-10-21T10:10:00.000Z'],
+    ['in_progress', 'wait', '2026-10-21T10:05:00.000Z'],
+  ])(
+    'claim_directory idle %s tells the agent to %s',
+    async (reason, next, retryAt) => {
+      const queueCounts = { queued: 0, in_progress: 0 };
+      (discoveryService.claimQueueItem as jest.Mock).mockResolvedValue({
+        item: null,
+        reason,
+        retryAt,
+        queueCounts,
+      });
+
+      const { body } = await call('claim_directory', {
+        jobId: ID,
+        workerId: 'w1',
+      });
+
+      expect(body).toEqual({
+        idle: reason,
+        next,
+        ...(retryAt ? { retryAt } : {}),
+        queueCounts,
+      });
+    },
+  );
+
+  it('complete_directory reports queued, excluded and already queued children', async () => {
     (discoveryService.completeItem as jest.Mock).mockResolvedValue({
       item: { id: ID, status: 'completed' },
-      children: [{ item: { id: 'c1' }, created: true }],
+      children: [
+        { item: { path: 'C:\\a', status: 'queued' }, created: true },
+        { item: { path: 'C:\\b', status: 'skipped' }, created: true },
+        { item: { path: 'C:\\c', status: 'queued' }, created: false },
+      ],
     });
 
     const { body } = await call('complete_directory', {
@@ -149,9 +204,251 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(body).toEqual({
-      id: ID,
       status: 'completed',
-      children: [{ id: 'c1', created: true }],
+      queued: ['C:\\a'],
+      excluded: ['C:\\b'],
+      alreadyQueued: 1,
+    });
+  });
+
+  it('complete_directory passes follow-up reasons, summary and skipped paths', async () => {
+    (discoveryService.completeItem as jest.Mock).mockResolvedValue({
+      item: { id: ID },
+      children: [],
+    });
+
+    await call('complete_directory', {
+      id: ID,
+      claimToken: TOKEN,
+      discoveredPaths: [{ path: 'C:\\code', reason: 'likely repos' }],
+      summary: 'root assessed',
+      skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+    });
+
+    expect(discoveryService.completeItem).toHaveBeenCalledWith(
+      ID,
+      TOKEN,
+      [{ path: 'C:\\code', reason: 'likely repos' }],
+      {
+        summary: 'root assessed',
+        skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
+        skippedGroups: [],
+      },
+    );
+  });
+
+  it('complete_directory passes pattern skips and rejects bad patterns', async () => {
+    (discoveryService.completeItem as jest.Mock).mockClear();
+    (discoveryService.completeItem as jest.Mock).mockResolvedValue({
+      item: { id: ID },
+      children: [],
+    });
+    const group = { pattern: '*.msi', count: 212, reason: 'installers' };
+
+    await call('complete_directory', {
+      id: ID,
+      claimToken: TOKEN,
+      skippedGroups: [group],
+    });
+    expect(discoveryService.completeItem).toHaveBeenCalledWith(ID, TOKEN, [], {
+      summary: undefined,
+      skipped: [],
+      skippedGroups: [group],
+    });
+
+    for (const pattern of ['*', 'installer.msi', '*\\*.msi', 'a/*.msi']) {
+      expect(
+        completeQueueItemBodySchema.safeParse({
+          claimToken: TOKEN,
+          skippedGroups: [{ pattern, reason: 'x' }],
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it('propose_inventory_items has no decision field', async () => {
+    (discoveryService.proposeInventoryItems as jest.Mock).mockResolvedValue([
+      {
+        inventoryItem: {
+          id: ID,
+          rootPath: 'C:\\Users\\You\\Documents',
+          decision: 'pending',
+          evidence: { observations: ['big'] },
+        },
+        created: true,
+        changed: false,
+        coveredBy: [
+          {
+            id: 'p1',
+            kind: 'directory',
+            rootPath: 'C:\\Users\\You',
+            displayName: 'You',
+            recommendation: 'back_up',
+            decision: 'approved',
+          },
+        ],
+        covers: [],
+      },
+    ]);
+
+    const { isError, body } = await call('propose_inventory_items', {
+      id: ID,
+      claimToken: TOKEN,
+      inventoryItems: [
+        {
+          rootPath: 'C:\\Users\\You\\Documents',
+          kind: 'directory',
+          summary: 'Personal documents',
+          recommendation: 'back_up',
+          confidence: 'high',
+          reason: 'Documents folder',
+          evidence: {
+            contentKinds: ['personal_documents'],
+            git: null,
+            reproducible: 'no',
+            sufficientInformation: true,
+            observations: [],
+            openQuestions: [],
+          },
+        },
+      ],
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual([
+      {
+        id: ID,
+        rootPath: 'C:\\Users\\You\\Documents',
+        created: true,
+        changed: false,
+        decision: 'pending',
+        coveredBy: [
+          {
+            rootPath: 'C:\\Users\\You',
+            kind: 'directory',
+            decision: 'approved',
+          },
+        ],
+        covers: [],
+      },
+    ]);
+    expect(discoveryService.proposeInventoryItems).toHaveBeenCalledWith(
+      ID,
+      TOKEN,
+      expect.any(Array),
+    );
+  });
+
+  it('propose_inventory_items rejects low-confidence back_up', async () => {
+    (discoveryService.proposeInventoryItems as jest.Mock).mockClear();
+
+    const result = await client.callTool({
+      name: 'propose_inventory_items',
+      arguments: {
+        id: ID,
+        claimToken: TOKEN,
+        inventoryItems: [
+          {
+            rootPath: 'C:\\data',
+            kind: 'directory',
+            summary: 's',
+            recommendation: 'back_up',
+            confidence: 'low',
+            reason: 'r',
+            evidence: {
+              contentKinds: [],
+              git: null,
+              reproducible: 'unknown',
+              sufficientInformation: false,
+              observations: [],
+              openQuestions: [],
+            },
+          },
+        ],
+      },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(discoveryService.proposeInventoryItems).not.toHaveBeenCalled();
+  });
+
+  it('has no record_discovered_items tool and describes inventory items as the only record', async () => {
+    const { tools } = await client.listTools();
+    const names = tools.map((t) => t.name);
+
+    expect(names).not.toContain('record_discovered_items');
+    expect(
+      tools.find((t) => t.name === 'propose_inventory_items')?.description,
+    ).toMatch(/queues nothing/i);
+  });
+
+  it('list_known_skips passes the source and filters through', async () => {
+    (discoveryService.listSourceKnownSkips as jest.Mock).mockResolvedValue([
+      { path: 'C:\\Windows', reason: 'operating system' },
+    ]);
+
+    const { isError, body } = await call('list_known_skips', {
+      sourceId: ID,
+      pathPrefix: 'C:\\',
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual([{ path: 'C:\\Windows', reason: 'operating system' }]);
+    expect(discoveryService.listSourceKnownSkips).toHaveBeenCalledWith(ID, {
+      pathPrefix: 'C:\\',
+      limit: 200,
+    });
+  });
+
+  it('serves the agent playbook as server instructions', () => {
+    expect(client.getInstructions()).toContain('inventory items');
+    expect(client.getInstructions()).toContain('claim_directory');
+  });
+
+  it('keeps the playbook and tool descriptions short', async () => {
+    expect(client.getInstructions().length).toBeLessThanOrEqual(4000);
+
+    const { tools } = await client.listTools();
+    for (const tool of tools) {
+      expect(tool.description.length).toBeLessThanOrEqual(400);
+    }
+  });
+
+  it('list_inventory_items returns compact items and a cursor on a full page', async () => {
+    (discoveryService.listSourceInventoryItems as jest.Mock).mockResolvedValue([
+      {
+        id: ID,
+        rootPath: 'C:\\a',
+        normalizedRootPath: 'c:\\a',
+        kind: 'directory',
+        recommendation: 'back_up',
+        confidence: 'high',
+        decision: 'pending',
+        decisionNote: null,
+        summary: 'docs',
+        evidence: {},
+        decidedBy: null,
+      },
+    ]);
+
+    const { body } = await call('list_inventory_items', {
+      sourceId: ID,
+      limit: 1,
+    });
+
+    expect(body).toEqual({
+      items: [
+        {
+          id: ID,
+          rootPath: 'C:\\a',
+          kind: 'directory',
+          recommendation: 'back_up',
+          confidence: 'high',
+          decision: 'pending',
+          summary: 'docs',
+        },
+      ],
+      next: 'c:\\a',
     });
   });
 

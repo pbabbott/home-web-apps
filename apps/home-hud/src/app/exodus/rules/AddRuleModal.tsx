@@ -15,8 +15,14 @@ import {
   OutlinedButton,
   Typography,
 } from '@abbottland/fui-components';
-import { createExclusionRule } from '../sources/lib/actions';
-import type { ExclusionRuleScope } from '../sources/lib/homelab-api';
+import {
+  createExclusionRule,
+  updateExclusionRule,
+} from '../sources/lib/actions';
+import type {
+  ExclusionRule,
+  ExclusionRuleScope,
+} from '../sources/lib/homelab-api';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -39,27 +45,36 @@ interface AddRuleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sources: { id: string; name: string }[];
-  onCreated: () => void;
+  /**
+   * The rule to edit. Only scope and reason can change: the path and what the
+   * rule applies to are fixed. Remount (via `key`) to switch rules.
+   */
+  rule?: ExclusionRule | null;
+  onSaved: () => void;
 }
 
 export function AddRuleModal({
   open,
   onOpenChange,
   sources,
-  onCreated,
+  rule = null,
+  onSaved,
 }: AddRuleModalProps) {
-  const [sourceId, setSourceId] = useState('');
-  const [path, setPath] = useState('');
-  const [scope, setScope] = useState<ExclusionRuleScope>('exclude_subtree');
-  const [reason, setReason] = useState('');
+  const editing = rule !== null;
+  const [sourceId, setSourceId] = useState(rule?.sourceId ?? '');
+  const [path, setPath] = useState(rule?.path ?? '');
+  const [scope, setScope] = useState<ExclusionRuleScope>(
+    rule?.scope ?? 'exclude_subtree',
+  );
+  const [reason, setReason] = useState(rule?.reason ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function resetForm() {
-    setSourceId('');
-    setPath('');
-    setScope('exclude_subtree');
-    setReason('');
+    setSourceId(rule?.sourceId ?? '');
+    setPath(rule?.path ?? '');
+    setScope(rule?.scope ?? 'exclude_subtree');
+    setReason(rule?.reason ?? '');
     setError(null);
   }
 
@@ -68,12 +83,17 @@ export function AddRuleModal({
     setSubmitting(true);
     setError(null);
 
-    const result = await createExclusionRule({
-      sourceId: sourceId || undefined,
-      path: path.trim(),
-      scope,
-      reason: reason.trim() || undefined,
-    });
+    const result = rule
+      ? await updateExclusionRule(rule.id, {
+          scope,
+          reason: reason.trim() || null,
+        })
+      : await createExclusionRule({
+          sourceId: sourceId || undefined,
+          path: path.trim(),
+          scope,
+          reason: reason.trim() || undefined,
+        });
     setSubmitting(false);
 
     if (!result.ok) {
@@ -83,7 +103,7 @@ export function AddRuleModal({
 
     resetForm();
     onOpenChange(false);
-    onCreated();
+    onSaved();
   }
 
   return (
@@ -95,10 +115,13 @@ export function AddRuleModal({
       }}
     >
       <ModalContent color="secondary">
-        <ModalTitle>Add Exclusion Rule</ModalTitle>
+        <ModalTitle>
+          {editing ? 'Edit Exclusion Rule' : 'Add Exclusion Rule'}
+        </ModalTitle>
         <ModalDescription>
-          Stop discovery from going into a path, or from recommending it. Adding
-          a rule never deletes anything already recorded.
+          {editing
+            ? 'Change the scope or reason. The path and what the rule applies to are fixed: remove the rule and add a new one to change them. Inventory items already recorded are not touched.'
+            : 'Stop discovery from going into a path, or from recommending it. Adding a rule never deletes anything already recorded.'}
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -110,6 +133,7 @@ export function AddRuleModal({
                   size="small"
                   color="primary"
                   className="w-full"
+                  disabled={editing}
                 >
                   {sources.find((source) => source.id === sourceId)?.name ??
                     'All sources (global)'}
@@ -136,6 +160,7 @@ export function AddRuleModal({
               color="primary"
               className="w-full"
               required
+              disabled={editing}
               value={path}
               onChange={(e) => setPath(e.target.value)}
               placeholder="C:\Users\You\node_modules"
@@ -195,7 +220,13 @@ export function AddRuleModal({
               Cancel
             </OutlinedButton>
             <Button type="submit" size="small" disabled={submitting}>
-              {submitting ? 'Adding…' : 'Add Rule'}
+              {submitting
+                ? editing
+                  ? 'Saving…'
+                  : 'Adding…'
+                : editing
+                  ? 'Save'
+                  : 'Add Rule'}
             </Button>
           </div>
         </form>

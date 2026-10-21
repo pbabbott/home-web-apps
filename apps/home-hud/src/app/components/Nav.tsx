@@ -24,6 +24,7 @@ const EXODUS_MENU_ITEMS = [
   { href: '/exodus/inventory', label: 'Inventory' },
   { href: '/exodus/rules', label: 'Exclusion Rules' },
   { href: '/exodus/audit', label: 'Audit Log' },
+  { href: '/exodus/architecture', label: 'Architecture' },
 ];
 
 const INFRA_MENU_ITEMS = [

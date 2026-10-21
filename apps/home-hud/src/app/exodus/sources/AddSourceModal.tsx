@@ -82,7 +82,7 @@ export function AddSourceModal({
       <ModalContent color="secondary">
         <ModalTitle>Add Source</ModalTitle>
         <ModalDescription>
-          Register a machine to inventory for the exodus migration. Link it to a
+          Register a machine to explore for the exodus migration. Link it to a
           host registered under Infra / Hosts, or leave it unlinked.
         </ModalDescription>
 

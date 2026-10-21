@@ -8,7 +8,8 @@ import type { AuditEventListQuery } from '../../schemas/discovery';
 export const listAuditEventsOperation = {
   summary: 'List audit events',
   description:
-    'Changes to exclusion rules and review decisions, newest first. Up to `limit` (default 100, max 500) per page; pass the last event’s id as `before` for the next page. Read-only: events are only ever appended by the operations they describe.',
+    'Changes to exclusion rules, inventory items (created, recommendation changed, decision changed), newest first. Up to `limit` (default 100, max 500) per page; pass the last event’s id as `before` for the next page. Read-only: events are only ever appended by the operations they describe.',
+  hud: '/exodus/audit',
 } satisfies Operation;
 
 export const listAuditEvents = handle('GET /audit-events', async (req, res) => {

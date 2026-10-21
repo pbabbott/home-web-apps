@@ -1,45 +1,76 @@
 import { HOMELAB_API_URL } from './config';
 
-export type InventoryItemType = 'file' | 'directory';
+export type InventoryItemKind = 'file' | 'directory';
+export type InventoryItemRecommendation = 'back_up' | 'skip' | 'needs_review';
+export type InventoryItemConfidence = 'low' | 'medium' | 'high';
+export type InventoryItemDecision = 'pending' | 'approved' | 'rejected';
 
-export type ReviewDisposition = 'candidate' | 'not_needed' | 'needs_review';
+export interface InventoryItemGitEvidence {
+  remoteUrl: string | null;
+  remoteVisibility: 'public' | 'private' | 'none' | 'unknown';
+  localStateKnown: boolean;
+  uncommittedChanges: boolean | null;
+  untrackedFiles: boolean | null;
+  unpushedCommits: boolean | null;
+  ignoredFilesOfNote: boolean | null;
+}
+
+export interface InventoryItemEvidence {
+  contentKinds: string[];
+  /** Null when the path is not a git repository (or was not checked). */
+  git: InventoryItemGitEvidence | null;
+  reproducible: 'yes' | 'no' | 'unknown';
+  sufficientInformation: boolean;
+  observations: string[];
+  openQuestions: string[];
+  estimatedSizeBytes?: number;
+  estimatedFileCount?: number;
+}
 
 export interface InventoryItem {
   id: string;
-  itemType: InventoryItemType;
-  path: string;
+  sourceId: string;
+  kind: InventoryItemKind;
+  rootPath: string;
   /** Lowercased path; the cursor for the next page. */
-  normalizedPath: string;
-  parentPath: string | null;
-  name: string;
-  extension: string | null;
-  sizeBytes: number | null;
-  modifiedAt: string | null;
+  normalizedRootPath: string;
+  displayName: string;
+  summary: string;
+  /** The agent's view. Never an approval. */
+  recommendation: InventoryItemRecommendation;
+  confidence: InventoryItemConfidence;
+  recommendationReason: string;
+  evidence: InventoryItemEvidence;
+  recommendedAt: string;
+  recommendedBy: string | null;
+  /** The human's call; separate from the recommendation above. */
+  decision: InventoryItemDecision;
+  decisionNote: string | null;
+  decidedAt: string | null;
+  decidedBy: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
-  /** The human's decision; separate from the filesystem facts above. */
-  reviewDisposition: ReviewDisposition;
-  reviewedAt: string | null;
-  reviewedBy: string | null;
-  reviewNote: string | null;
 }
 
-export interface InventoryQuery {
-  reviewDisposition?: ReviewDisposition;
-  /** Only direct children of this directory. */
-  parentPath?: string;
-  /** Items at or beneath this path. */
-  pathPrefix?: string;
-  itemType?: InventoryItemType;
-  /** The `normalizedPath` of the last item of the previous page. */
+export type ExclusionState = 'none' | 'selective' | 'excluded';
+
+/** An inventory item plus how exclusion rules currently treat its path. */
+export interface InventoryItemWithExclusion extends InventoryItem {
+  exclusion: { state: ExclusionState; ruleIds: string[] };
+}
+
+export interface InventoryItemQuery {
+  recommendation?: InventoryItemRecommendation;
+  decision?: InventoryItemDecision;
+  /** The `normalizedRootPath` of the last inventory item of the previous page. */
   after?: string;
   limit?: number;
 }
 
-/** A page of a source's inventory, ordered by normalized path. */
+/** A page of a source's inventory items, ordered by normalized path. */
 export async function getInventoryItems(
   sourceId: string,
-  query: InventoryQuery,
+  query: InventoryItemQuery,
 ): Promise<InventoryItem[]> {
   const params = new URLSearchParams();
 

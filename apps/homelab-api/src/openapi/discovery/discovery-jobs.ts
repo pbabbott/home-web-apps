@@ -23,6 +23,8 @@ export const discoveryJobsPaths = {
   '/discovery-jobs': {
     get: {
       summary: listDiscoveryJobsOperation.summary,
+      'x-home-hud': listDiscoveryJobsOperation.hud,
+      'x-mcp-tool': listDiscoveryJobsOperation.mcp.name,
       description: listDiscoveryJobsOperation.description,
       requestParams: { query: jobListQuerySchema },
       responses: {
@@ -41,6 +43,8 @@ export const discoveryJobsPaths = {
   '/discovery-jobs/{id}': {
     get: {
       summary: getDiscoveryJobOperation.summary,
+      'x-home-hud': getDiscoveryJobOperation.hud,
+      'x-mcp-tool': getDiscoveryJobOperation.mcp.name,
       requestParams: { path: jobIdParamsSchema },
       responses: {
         '200': {
@@ -57,6 +61,7 @@ export const discoveryJobsPaths = {
   '/discovery-jobs/{id}/complete': {
     post: {
       summary: completeDiscoveryJobOperation.summary,
+      'x-home-hud': completeDiscoveryJobOperation.hud,
       description: completeDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       responses: {
@@ -75,6 +80,7 @@ export const discoveryJobsPaths = {
   '/discovery-jobs/{id}/cancel': {
     post: {
       summary: cancelDiscoveryJobOperation.summary,
+      'x-home-hud': cancelDiscoveryJobOperation.hud,
       description: cancelDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       responses: {
@@ -93,6 +99,7 @@ export const discoveryJobsPaths = {
   '/discovery-jobs/{id}/fail': {
     post: {
       summary: failDiscoveryJobOperation.summary,
+      'x-home-hud': failDiscoveryJobOperation.hud,
       description: failDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {

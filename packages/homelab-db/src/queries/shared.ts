@@ -18,3 +18,7 @@ export class DiscoveryError extends Error {
     this.name = 'DiscoveryError';
   }
 }
+
+/** Escapes LIKE wildcards (with `!` as the escape character) so a prefix is matched literally. */
+export const escapeLike = (value: string): string =>
+  value.replace(/[!%_]/g, '!$&');

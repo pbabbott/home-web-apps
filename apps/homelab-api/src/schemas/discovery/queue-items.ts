@@ -42,15 +42,74 @@ export type HeartbeatQueueItemBody = z.infer<
   typeof heartbeatQueueItemBodySchema
 >;
 
+const followUpSchema = z.object({
+  path: windowsPathSchema,
+  reason: z.string().trim().min(1).max(300).optional().meta({
+    description:
+      'Why it is worth exploring. Shown to whoever claims it, who has no memory of this session.',
+  }),
+  priority: z.number().int().optional().meta({
+    description: 'Higher priority items are claimed first. Default 0.',
+  }),
+});
+
+const MAX_SKIPPED_PER_REQUEST = 100;
+const MAX_SKIPPED_GROUPS_PER_REQUEST = 50;
+
+const skippedGroupSchema = z.object({
+  pattern: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .refine((p) => /[*?]/.test(p) && /[^*?]/.test(p), {
+      message:
+        'must be a name pattern with a wildcard (* or ?) and some literal text, e.g. *.msi; to skip the whole directory use skip_directory',
+    })
+    .refine((p) => !/[\\/]/.test(p), {
+      message:
+        'matches one directory level only: no path separators, just the entry name pattern',
+    })
+    .meta({ example: '*.msi' }),
+  count: z.number().int().min(0).max(2147483647).optional().meta({
+    description: 'How many entries matched, if you counted.',
+  }),
+  reason: z.string().trim().min(1).max(300),
+});
+
 export const completeQueueItemBodySchema = z.object({
   claimToken: claimTokenSchema,
   discoveredPaths: z
-    .array(windowsPathSchema)
+    .array(z.union([windowsPathSchema, followUpSchema]))
     .max(MAX_PATHS_PER_REQUEST)
     .default([])
     .meta({
       description:
-        'Child directories found inside this one; enqueued atomically with the completion.',
+        'Subdirectories to explore later: paths or { path, reason?, priority? }.',
+    }),
+  summary: z.string().trim().min(1).max(1000).optional().meta({
+    description: 'What was concluded about this directory.',
+  }),
+  skipped: z
+    .array(
+      z.object({
+        path: windowsPathSchema,
+        reason: z.string().trim().min(1).max(300),
+      }),
+    )
+    .max(MAX_SKIPPED_PER_REQUEST)
+    .default([])
+    .meta({
+      description:
+        'Paths inside this directory deliberately not explored, with why.',
+    }),
+  skippedGroups: z
+    .array(skippedGroupSchema)
+    .max(MAX_SKIPPED_GROUPS_PER_REQUEST)
+    .default([])
+    .meta({
+      description:
+        'Many similar direct entries skipped by name pattern instead of listing each. Not recursive.',
     }),
 });
 export type CompleteQueueItemBody = z.infer<typeof completeQueueItemBodySchema>;
@@ -75,3 +134,12 @@ export const jobQueueItemListQuerySchema = z.object({
   status: queueItemListQuerySchema.shape.status,
 });
 export type JobQueueItemListQuery = z.infer<typeof jobQueueItemListQuerySchema>;
+
+export const knownSkipListQuerySchema = z.object({
+  pathPrefix: windowsPathSchema.optional().meta({
+    description:
+      'Only skips at or beneath this path, e.g. the job root, so unrelated parts of the source are left out.',
+  }),
+  limit: z.coerce.number().int().min(1).max(1000).default(200),
+});
+export type KnownSkipListQuery = z.infer<typeof knownSkipListQuerySchema>;

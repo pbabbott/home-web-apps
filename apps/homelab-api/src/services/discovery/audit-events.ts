@@ -8,8 +8,8 @@ import { db } from '../../db';
 export async function listAuditEvents(filters: {
   sourceId?: string;
   jobId?: string;
-  inventoryItemId?: string;
   exclusionRuleId?: string;
+  inventoryItemId?: string;
   eventType?: AuditEventType;
   since?: string;
   until?: string;

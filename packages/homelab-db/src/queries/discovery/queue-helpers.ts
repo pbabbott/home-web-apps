@@ -9,7 +9,14 @@ import type { Tx } from '../shared';
 
 // -- queue helpers ----------------------------------------------------------
 
-export type QueuePath = { path: string; normalizedPath: string };
+export type QueuePath = {
+  path: string;
+  normalizedPath: string;
+  /** Overrides the batch priority for this path. */
+  priority?: number;
+  /** Why the path is worth exploring, for whoever claims it later. */
+  reason?: string;
+};
 
 export type QueueCounts = Record<DiscoveryQueueItemStatus, number>;
 
@@ -66,7 +73,8 @@ export const insertQueuePaths = async (
         jobId: input.jobId,
         path: p.path,
         normalizedPath: p.normalizedPath,
-        priority: input.priority ?? 0,
+        priority: p.priority ?? input.priority ?? 0,
+        reason: p.reason ?? null,
       })),
     )
     .onConflictDoNothing({

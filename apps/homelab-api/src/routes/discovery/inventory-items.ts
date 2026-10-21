@@ -1,24 +1,38 @@
 import { Router } from 'express';
-import { validateBody, validateParams } from '@abbottland/express';
 import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '@abbottland/express';
+import {
+  decideInventoryItem,
   getInventoryItem,
-  reviewInventoryItem,
-  reviewInventoryItems,
+  listSourceInventoryItems,
+  proposeInventoryItems,
 } from '../../controllers/discovery/inventory-items';
 import { parseActor } from '../../lib/actor';
 import {
+  decideInventoryItemBodySchema,
+  proposeInventoryItemsBodySchema,
+  queueItemIdParamsSchema,
   inventoryItemIdParamsSchema,
-  reviewInventoryItemBodySchema,
-  reviewInventoryItemsBodySchema,
+  inventoryItemListQuerySchema,
+  sourceIdParamsSchema,
 } from '../../schemas/discovery';
 
 export const inventoryItemsRouter = Router();
 
 inventoryItemsRouter.post(
-  '/inventory-items/review',
-  parseActor,
-  validateBody(reviewInventoryItemsBodySchema),
-  reviewInventoryItems,
+  '/queue-items/:id/inventory-items',
+  validateParams(queueItemIdParamsSchema),
+  validateBody(proposeInventoryItemsBodySchema),
+  proposeInventoryItems,
+);
+inventoryItemsRouter.get(
+  '/sources/:id/inventory-items',
+  validateParams(sourceIdParamsSchema),
+  validateQuery(inventoryItemListQuerySchema),
+  listSourceInventoryItems,
 );
 inventoryItemsRouter.get(
   '/inventory-items/:id',
@@ -26,9 +40,9 @@ inventoryItemsRouter.get(
   getInventoryItem,
 );
 inventoryItemsRouter.patch(
-  '/inventory-items/:id/review',
+  '/inventory-items/:id/decision',
   parseActor,
   validateParams(inventoryItemIdParamsSchema),
-  validateBody(reviewInventoryItemBodySchema),
-  reviewInventoryItem,
+  validateBody(decideInventoryItemBodySchema),
+  decideInventoryItem,
 );

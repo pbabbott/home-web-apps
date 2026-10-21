@@ -1,137 +1,120 @@
-import type { ReviewDisposition } from '../sources/lib/homelab-api';
+import type { BadgeColor } from '@abbottland/fui-components';
+import type {
+  InventoryItemDecision,
+  InventoryItemGitEvidence,
+  InventoryItemRecommendation,
+  InventoryItem,
+} from '../sources/lib/homelab-api';
 
-export type InventoryTypeFilter = 'file' | 'directory';
-
-export const REVIEW_LABELS: Record<ReviewDisposition, string> = {
-  candidate: 'Candidate',
-  not_needed: 'Not needed',
+export const RECOMMENDATION_LABELS: Record<
+  InventoryItemRecommendation,
+  string
+> = {
+  back_up: 'Back up',
+  skip: 'Skip',
   needs_review: 'Needs review',
 };
 
-/** A review filter from a URL parameter; anything else means "all". */
-export function parseReview(
+export const RECOMMENDATION_COLOR: Record<
+  InventoryItemRecommendation,
+  BadgeColor
+> = {
+  back_up: 'success',
+  skip: 'dark',
+  needs_review: 'warning',
+};
+
+export const DECISION_LABELS: Record<InventoryItemDecision, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
+
+export const DECISION_COLOR: Record<InventoryItemDecision, BadgeColor> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'error',
+};
+
+/** What the decision filter shows: the three decisions, or everything. */
+export type DecisionFilter = InventoryItemDecision | 'all';
+
+/** A decision filter from a URL parameter. Absent or unknown means the review queue: pending. */
+export function parseDecisionFilter(value: string | undefined): DecisionFilter {
+  return value === 'approved' ||
+    value === 'rejected' ||
+    value === 'all' ||
+    value === 'pending'
+    ? value
+    : 'pending';
+}
+
+/** A recommendation filter from a URL parameter; anything else means "all". */
+export function parseRecommendation(
   value: string | undefined,
-): ReviewDisposition | undefined {
-  return value === 'candidate' ||
-    value === 'not_needed' ||
-    value === 'needs_review'
+): InventoryItemRecommendation | undefined {
+  return value === 'back_up' || value === 'skip' || value === 'needs_review'
     ? value
     : undefined;
 }
 
-export interface Crumb {
-  label: string;
-  path: string;
-}
-
-const UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-/** Human size with binary units, e.g. `1.5 KB`; an em dash when unknown (directories). */
-export function formatBytes(bytes: number | null): string {
-  if (bytes === null) return '—';
-
-  let value = bytes;
-  let unit = 0;
-
-  while (value >= 1024 && unit < UNITS.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-
-  return unit === 0 ? `${value} B` : `${value.toFixed(1)} ${UNITS[unit]}`;
-}
-
 /**
- * Single backslashes and no trailing separator (a drive root keeps its `\`).
- * Mirrors the API's normalization closely enough to compare and walk paths;
- * the API stays the authority on what is valid.
+ * True when the agent changed its recommendation after a human decided, so the
+ * decision may deserve another look. A pending inventory item has nothing to revisit.
  */
-export function tidyPath(path: string): string {
-  const slashed = path.trim().replace(/\//g, '\\');
-  const unc = slashed.startsWith('\\\\');
-  const collapsed =
-    (unc ? '\\\\' : '') + slashed.slice(unc ? 2 : 0).replace(/\\+/g, '\\');
-
-  return collapsed.length > 1 &&
-    collapsed.endsWith('\\') &&
-    !/^[A-Za-z]:\\$/.test(collapsed)
-    ? collapsed.slice(0, -1)
-    : collapsed;
-}
-
-/** True if `child` is `parent` or beneath it, comparing case-insensitively on directory boundaries. */
-export function isWithinPath(parent: string, child: string): boolean {
-  const p = tidyPath(parent).toLowerCase();
-  const c = tidyPath(child).toLowerCase();
-
-  if (c === p) return true;
-
-  return c.startsWith(p.endsWith('\\') ? p : `${p}\\`);
-}
-
-/** The drive (`C:\`) or share (`\\server\share`) a path starts at, or null if neither. */
-function pathHead(path: string): string | null {
+export function changedSinceDecision(
+  inventoryItem: Pick<
+    InventoryItem,
+    'decision' | 'decidedAt' | 'recommendedAt'
+  >,
+): boolean {
   return (
-    path.match(/^[A-Za-z]:\\/)?.[0] ??
-    path.match(/^\\\\[^\\]+\\[^\\]+/)?.[0] ??
-    null
+    inventoryItem.decision !== 'pending' &&
+    inventoryItem.decidedAt !== null &&
+    Date.parse(inventoryItem.recommendedAt) >
+      Date.parse(inventoryItem.decidedAt)
   );
 }
 
-/**
- * Clickable trail for `path`. When the path is inside `rootPath` the trail
- * starts at the root (there is nothing above it to see); otherwise it starts
- * at the drive or share.
- */
-export function pathCrumbs(rootPath: string, path: string): Crumb[] {
-  const current = tidyPath(path);
-  const root = tidyPath(rootPath);
-  const start = isWithinPath(root, current) ? root : pathHead(current);
+const flag = (label: string, value: boolean | null): string =>
+  `${label}: ${value === null ? 'unknown' : value ? 'yes' : 'no'}`;
 
-  if (start === null) return [{ label: current, path: current }];
-
-  const crumbs: Crumb[] = [{ label: start, path: start }];
-  const rest = current
-    .slice(start.length)
-    .split('\\')
-    .filter((segment) => segment !== '');
-
-  let walked = start;
-  for (const segment of rest) {
-    walked = walked.endsWith('\\') ? walked + segment : `${walked}\\${segment}`;
-    crumbs.push({ label: segment, path: walked });
-  }
-
-  return crumbs;
+/** One short line per git fact, so unknowns are visible rather than implied. */
+export function describeGit(git: InventoryItemGitEvidence): string[] {
+  return [
+    `Remote: ${git.remoteUrl ?? 'none'} (${git.remoteVisibility})`,
+    `Local state checked: ${git.localStateKnown ? 'yes' : 'no'}`,
+    flag('Uncommitted changes', git.uncommittedChanges),
+    flag('Untracked files', git.untrackedFiles),
+    flag('Unpushed commits', git.unpushedCommits),
+    flag('Notable ignored files', git.ignoredFilesOfNote),
+  ];
 }
 
-export interface InventoryView {
-  /** Source whose inventory is shown. */
+export interface InventoryItemView {
+  /** Source whose inventory items are shown. */
   source?: string;
-  /** Directory being browsed; the page falls back to the job root when absent. */
-  path?: string;
-  /** List every descendant instead of only direct children. */
-  recursive?: boolean;
-  type?: InventoryTypeFilter;
-  review?: ReviewDisposition;
+  /** Defaults to pending, so it is omitted from the URL. */
+  decision?: DecisionFilter;
+  recommendation?: InventoryItemRecommendation;
   /** Keyset cursor from the previous page. */
   after?: string;
 }
 
-const INVENTORY_PATH = '/exodus/inventory';
+const INVENTORY_ITEMS_PATH = '/exodus/inventory';
 
 /** Page URL for a view; defaults are left out so URLs stay short and shareable. */
-export function inventoryUrl(view: InventoryView): string {
+export function inventoryItemsUrl(view: InventoryItemView): string {
   const params = new URLSearchParams();
 
   if (view.source) params.set('source', view.source);
-  if (view.path) params.set('path', view.path);
-  if (view.recursive) params.set('recursive', '1');
-  if (view.type) params.set('type', view.type);
-  if (view.review) params.set('review', view.review);
+  if (view.decision && view.decision !== 'pending') {
+    params.set('decision', view.decision);
+  }
+  if (view.recommendation) params.set('recommendation', view.recommendation);
   if (view.after) params.set('after', view.after);
 
   const query = params.toString();
 
-  return query ? `${INVENTORY_PATH}?${query}` : INVENTORY_PATH;
+  return query ? `${INVENTORY_ITEMS_PATH}?${query}` : INVENTORY_ITEMS_PATH;
 }

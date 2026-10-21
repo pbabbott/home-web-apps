@@ -3,10 +3,11 @@ import { handle } from './handle';
 import type { Operation } from '../operation';
 import type { CreateSourceBody } from '../../schemas/discovery';
 
-// Does: register a source (a machine to inventory).
+// Does: register a source (a machine to explore).
 // Who: human (home-hud add-source modal). No MCP tool.
 export const createSourceOperation = {
-  summary: 'Register a source (a machine to inventory)',
+  summary: 'Register a source (a machine to explore)',
+  hud: '/exodus/sources',
 } satisfies Operation;
 
 export const createSource = handle('POST /sources', async (req, res) => {
@@ -18,6 +19,7 @@ export const createSource = handle('POST /sources', async (req, res) => {
 // Who: human (home-hud sources page). No MCP tool.
 export const listSourcesOperation = {
   summary: 'List sources',
+  hud: '/exodus/sources',
 } satisfies Operation;
 
 export const listSources = handle('GET /sources', async (_req, res) => {

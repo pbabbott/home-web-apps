@@ -13,7 +13,7 @@ export const createExclusionRuleBodySchema = z.object({
   path: windowsPathSchema,
   scope: exclusionRuleScopeSchema.meta({
     description:
-      '`exclude_subtree`: skip the path and everything beneath it. `selective_only`: the path is not a backup candidate itself, but its contents are still explored.',
+      '`exclude_subtree`: skip the path and everything beneath it. `selective_only`: the path is not a backup inventory item itself, but its contents are still explored.',
   }),
   reason: z.string().trim().min(1).max(500).optional(),
 });
