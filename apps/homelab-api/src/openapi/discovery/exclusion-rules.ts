@@ -67,6 +67,7 @@ export const exclusionRulesPaths = {
   '/exclusion-rules/{id}': {
     patch: {
       summary: updateExclusionRuleOperation.summary,
+      'x-home-hud': updateExclusionRuleOperation.hud,
       description: updateExclusionRuleOperation.description,
       requestParams: {
         path: exclusionRuleIdParamsSchema,

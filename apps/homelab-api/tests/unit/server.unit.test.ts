@@ -46,6 +46,9 @@ describe('GET /openapi.json', () => {
     ).toBe('/exodus/inventory');
     expect(
       res.body.paths['/discovery-jobs/{id}/queue-items'].post['x-home-hud'],
+    ).toBe('/exodus/jobs/[id]');
+    expect(
+      res.body.paths['/discovery-jobs/{id}/queue-items'].post['x-mcp-tool'],
     ).toBeUndefined();
     expect(
       res.body.paths['/inventory-items/{id}/decision'].patch['x-mcp-tool'],

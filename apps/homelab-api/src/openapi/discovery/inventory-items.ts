@@ -119,6 +119,7 @@ export const inventoryItemsPaths = {
   '/inventory-items/{id}': {
     get: {
       summary: getInventoryItemOperation.summary,
+      'x-home-hud': getInventoryItemOperation.hud,
       description: getInventoryItemOperation.description,
       requestParams: { path: inventoryItemIdParamsSchema },
       responses: {

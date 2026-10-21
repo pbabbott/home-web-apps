@@ -126,11 +126,12 @@ export const cancelDiscoveryJob = handle(
 );
 
 // Does: mark a pending or running job failed, releasing in-progress leases.
-// Who: human (no UI caller yet). No MCP tool.
+// Who: human (home-hud source detail page, Mark Failed). No MCP tool.
 export const failDiscoveryJobOperation = {
   summary: 'Mark a pending or running job failed',
   description:
     'Releases leases the same way as cancel: in-progress items return to queued with no claim and a worker still holding one gets 409.',
+  hud: '/exodus/sources/[id]',
 } satisfies Operation;
 
 export const failDiscoveryJob = handle(

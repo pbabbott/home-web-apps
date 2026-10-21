@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   Badge,
   Panel,
@@ -38,7 +39,14 @@ export function JobHistoryPanel({ jobs }: { jobs: DiscoveryJob[] }) {
                     {job.status}
                   </Badge>
                 </Td>
-                <Td className="break-all">{job.rootPath}</Td>
+                <Td className="break-all">
+                  <Link
+                    href={`/exodus/jobs/${job.id}`}
+                    className="text-primary-400 hover:underline"
+                  >
+                    {job.rootPath}
+                  </Link>
+                </Td>
                 <Td>{formatDateTime(job.createdAt)}</Td>
                 <Td>{formatDateTime(job.finishedAt)}</Td>
               </TableRow>

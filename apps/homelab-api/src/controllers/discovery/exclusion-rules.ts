@@ -57,11 +57,12 @@ export const createExclusionRule = handle(
 );
 
 // Does: change a rule's scope or reason. The path is fixed.
-// Who: human (no UI caller yet). No MCP tool.
+// Who: human (home-hud rules page, Edit). No MCP tool.
 export const updateExclusionRuleOperation = {
   summary: 'Update an exclusion rule’s scope or reason',
   description:
     'The path cannot change: delete the rule and create a new one. Records an audit event with before/after values; a request that changes nothing records none.',
+  hud: '/exodus/rules',
 } satisfies Operation;
 
 export const updateExclusionRule = handle(

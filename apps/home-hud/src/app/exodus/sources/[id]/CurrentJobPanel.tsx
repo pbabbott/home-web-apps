@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Badge,
   Button,
+  Input,
   Modal,
   ModalContent,
   ModalDescription,
@@ -13,7 +15,11 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
-import { cancelDiscoveryJob, completeDiscoveryJob } from '../lib/actions';
+import {
+  cancelDiscoveryJob,
+  completeDiscoveryJob,
+  failDiscoveryJob,
+} from '../lib/actions';
 import {
   isActiveJob,
   type DiscoveryJobWithCounts,
@@ -43,6 +49,8 @@ export function CurrentJobPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
+  const [failOpen, setFailOpen] = useState(false);
+  const [failReason, setFailReason] = useState('');
 
   async function run(
     action: (jobId: string) => Promise<{ ok: boolean; error?: string }>,
@@ -60,6 +68,8 @@ export function CurrentJobPanel({
     }
 
     setConfirmCancelOpen(false);
+    setFailOpen(false);
+    setFailReason('');
     onChanged();
   }
 
@@ -84,11 +94,25 @@ export function CurrentJobPanel({
               >
                 Mark Complete
               </OutlinedButton>
+              <OutlinedButton
+                size="small"
+                color="error"
+                disabled={busy}
+                onClick={() => {
+                  setError(null);
+                  setFailOpen(true);
+                }}
+              >
+                Mark Failed
+              </OutlinedButton>
               <Button
                 size="small"
                 color="error"
                 disabled={busy}
-                onClick={() => setConfirmCancelOpen(true)}
+                onClick={() => {
+                  setError(null);
+                  setConfirmCancelOpen(true);
+                }}
               >
                 Cancel Job
               </Button>
@@ -117,6 +141,16 @@ export function CurrentJobPanel({
             {' (UTC)'}
           </Typography>
 
+          <OutlinedButton
+            component={Link}
+            href={`/exodus/jobs/${job.id}`}
+            color="accent-falcon"
+            size="small"
+            className="self-start"
+          >
+            View directories →
+          </OutlinedButton>
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {COUNT_TILES.map(({ status, label }) => (
               <CountTile
@@ -143,11 +177,64 @@ export function CurrentJobPanel({
         </>
       )}
 
-      {error && (
+      {error && !confirmCancelOpen && !failOpen && (
         <Typography variant="body2" className="text-error-400">
           {error}
         </Typography>
       )}
+
+      <Modal open={failOpen} onOpenChange={setFailOpen}>
+        <ModalContent color="secondary">
+          <ModalTitle>Mark this job failed?</ModalTitle>
+          <ModalDescription>
+            Use this when the run itself is broken (machine unreachable, agent
+            misbehaving). Cancel is for stopping a healthy run. In-progress
+            directories are released; the reason is shown on the job.
+          </ModalDescription>
+          <form
+            className="mt-4 flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void run((jobId) => failDiscoveryJob(jobId, failReason.trim()));
+            }}
+          >
+            <label className="flex flex-col gap-1">
+              <Typography variant="small" className="text-neutral-400">
+                Reason
+              </Typography>
+              <Input
+                required
+                value={failReason}
+                onChange={(e) => setFailReason(e.target.value)}
+                placeholder="source machine offline"
+              />
+            </label>
+            {error && (
+              <Typography variant="body2" className="text-error-400">
+                {error}
+              </Typography>
+            )}
+            <div className="flex justify-end gap-3">
+              <OutlinedButton
+                type="button"
+                size="small"
+                disabled={busy}
+                onClick={() => setFailOpen(false)}
+              >
+                Keep Running
+              </OutlinedButton>
+              <Button
+                type="submit"
+                size="small"
+                color="error"
+                disabled={busy || !failReason.trim()}
+              >
+                {busy ? 'Failing…' : 'Mark Failed'}
+              </Button>
+            </div>
+          </form>
+        </ModalContent>
+      </Modal>
 
       <Modal open={confirmCancelOpen} onOpenChange={setConfirmCancelOpen}>
         <ModalContent color="secondary">

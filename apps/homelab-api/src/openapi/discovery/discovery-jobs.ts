@@ -99,6 +99,7 @@ export const discoveryJobsPaths = {
   '/discovery-jobs/{id}/fail': {
     post: {
       summary: failDiscoveryJobOperation.summary,
+      'x-home-hud': failDiscoveryJobOperation.hud,
       description: failDiscoveryJobOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {

@@ -37,10 +37,12 @@ export const listSourceQueueItems = handle(
 );
 
 // Does: list queue items for one job, with a status filter.
-// Who: human (no UI caller yet). Agents read queueCounts via get_discovery_job.
+// Who: human (home-hud job detail page). Agents read queueCounts via
+// get_discovery_job.
 export const listJobQueueItemsOperation = {
   summary: 'List a job’s queue items',
   description: 'At most 500, oldest first. Filter with status.',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const listJobQueueItems = handle(
@@ -53,12 +55,13 @@ export const listJobQueueItems = handle(
 );
 
 // Does: enqueue directory paths for a job; idempotent per path (`created` flag).
-// Who: human, to seed or add work. No MCP tool: agents add work through
+// Who: human (home-hud job detail page), to add work to a running job. No MCP tool: agents add work through
 // complete_directory's discoveredPaths.
 export const enqueueQueueItemsOperation = {
   summary: 'Enqueue directories for a job',
   description:
     'Paths are normalized (slashes, case, trailing separators) and deduplicated per job; already-queued paths are returned with created=false. Every path must be inside the job’s root.',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const enqueueQueueItems = handle(

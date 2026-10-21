@@ -74,11 +74,13 @@ export const listSourceInventoryItems = handle(
 );
 
 // Does: fetch one inventory item, with how exclusion rules currently treat it.
-// Who: human. No MCP tool.
+// Who: human (home-hud inventory details modal). No MCP tool: the agent lists
+// inventory items with list_inventory_items.
 export const getInventoryItemOperation = {
   summary: 'Get an inventory item',
   description:
     'Includes `exclusion`: `none`, `selective` or `excluded`, with the deciding rule ids. An excluded or selective path cannot be approved.',
+  hud: '/exodus/inventory',
 } satisfies Operation;
 
 export const getInventoryItem = handle(

@@ -52,6 +52,13 @@ export interface InventoryItem {
   lastSeenAt: string;
 }
 
+export type ExclusionState = 'none' | 'selective' | 'excluded';
+
+/** An inventory item plus how exclusion rules currently treat its path. */
+export interface InventoryItemWithExclusion extends InventoryItem {
+  exclusion: { state: ExclusionState; ruleIds: string[] };
+}
+
 export interface InventoryItemQuery {
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;

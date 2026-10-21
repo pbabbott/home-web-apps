@@ -95,6 +95,7 @@ export const queueItemsPaths = {
   '/discovery-jobs/{id}/queue-items': {
     get: {
       summary: listJobQueueItemsOperation.summary,
+      'x-home-hud': listJobQueueItemsOperation.hud,
       description: listJobQueueItemsOperation.description,
       requestParams: {
         path: jobIdParamsSchema,
@@ -115,6 +116,7 @@ export const queueItemsPaths = {
     },
     post: {
       summary: enqueueQueueItemsOperation.summary,
+      'x-home-hud': enqueueQueueItemsOperation.hud,
       description: enqueueQueueItemsOperation.description,
       requestParams: { path: jobIdParamsSchema },
       requestBody: {

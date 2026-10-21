@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Badge,
   Button,
@@ -22,8 +23,12 @@ import {
 } from '../lib/inventory-display';
 import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
 import { formatDateTime } from '../lib/job-display';
-import { decideInventoryItem } from '../sources/lib/actions';
+import {
+  decideInventoryItem,
+  getInventoryItemDetail,
+} from '../sources/lib/actions';
 import type {
+  ExclusionState,
   InventoryItemDecision,
   InventoryItem,
 } from '../sources/lib/homelab-api';
@@ -78,6 +83,29 @@ export function InventoryItemDetailModal({
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exclusion, setExclusion] = useState<ExclusionState | null>(null);
+  const [exclusionError, setExclusionError] = useState<string | null>(null);
+
+  // The list rows don't say how exclusion rules treat a path, so ask the API
+  // once the modal opens; it refuses to approve an excluded path anyway.
+  const itemId = inventoryItem?.id;
+  useEffect(() => {
+    setExclusion(null);
+    setExclusionError(null);
+    if (!itemId) return;
+
+    let cancelled = false;
+    void getInventoryItemDetail(itemId).then((result) => {
+      if (cancelled) return;
+
+      if (result.ok) setExclusion(result.data.exclusion.state);
+      else setExclusionError(result.error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [itemId]);
 
   function close() {
     setNote('');
@@ -142,6 +170,25 @@ export function InventoryItemDetailModal({
                 <Badge color="warning">Agent changed its mind</Badge>
               )}
             </div>
+
+            {exclusion && exclusion !== 'none' && (
+              <Typography variant="body2" className="text-warning-400">
+                {exclusion === 'excluded'
+                  ? 'An exclusion rule covers this path, so it cannot be approved. '
+                  : 'A selective-only rule marks this exact path as not a backup unit, so it cannot be approved. '}
+                <Link
+                  href="/exodus/rules"
+                  className="text-primary-400 hover:underline"
+                >
+                  View rules
+                </Link>
+              </Typography>
+            )}
+            {exclusionError && (
+              <Typography variant="small" className="text-neutral-400">
+                Could not check exclusion rules: {exclusionError}
+              </Typography>
+            )}
 
             <Section title="Summary">
               <Typography variant="body2">{inventoryItem.summary}</Typography>
@@ -255,7 +302,7 @@ export function InventoryItemDetailModal({
           {inventoryItem?.decision !== 'approved' && (
             <Button
               size="small"
-              disabled={submitting}
+              disabled={submitting || (exclusion ?? 'none') !== 'none'}
               onClick={() => decide('approved')}
             >
               Approve
