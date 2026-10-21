@@ -83,29 +83,39 @@ export function InventoryItemDetailModal({
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [exclusion, setExclusion] = useState<ExclusionState | null>(null);
-  const [exclusionError, setExclusionError] = useState<string | null>(null);
+  // Keyed by item id so a stale answer for a previous item is ignored.
+  const [exclusionResult, setExclusionResult] = useState<{
+    itemId: string;
+    state: ExclusionState | null;
+    error: string | null;
+  } | null>(null);
 
   // The list rows don't say how exclusion rules treat a path, so ask the API
   // once the modal opens; it refuses to approve an excluded path anyway.
   const itemId = inventoryItem?.id;
   useEffect(() => {
-    setExclusion(null);
-    setExclusionError(null);
     if (!itemId) return;
 
     let cancelled = false;
     void getInventoryItemDetail(itemId).then((result) => {
       if (cancelled) return;
 
-      if (result.ok) setExclusion(result.data.exclusion.state);
-      else setExclusionError(result.error);
+      setExclusionResult(
+        result.ok
+          ? { itemId, state: result.data.exclusion.state, error: null }
+          : { itemId, state: null, error: result.error },
+      );
     });
 
     return () => {
       cancelled = true;
     };
   }, [itemId]);
+
+  const currentExclusion =
+    exclusionResult?.itemId === itemId ? exclusionResult : null;
+  const exclusion = currentExclusion?.state ?? null;
+  const exclusionError = currentExclusion?.error ?? null;
 
   function close() {
     setNote('');

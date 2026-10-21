@@ -38,7 +38,7 @@ type OpenApiDoc = {
 };
 
 /** The page font renders curly apostrophes poorly; the API text uses them. */
-const straighten = (text: string): string => text.replaceAll('’', "'");
+const straighten = (text: string): string => text.replaceAll('’', '\u0027');
 
 const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'];
 
