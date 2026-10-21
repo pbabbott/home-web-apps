@@ -96,7 +96,7 @@ const proposal = (path: string, overrides: Record<string, unknown> = {}) => ({
 const propose = (item: ClaimedItem, inventoryItems: object[]) =>
   getRequest()
     .post(`/queue-items/${item.id}/inventory-items`)
-    .send({ claimToken: item.claimToken, workerId: 'w1', inventoryItems });
+    .send({ claimToken: item.claimToken, inventoryItems });
 
 const listInventoryItems = async (
   sourceId: string,

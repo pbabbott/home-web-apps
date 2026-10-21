@@ -18,12 +18,12 @@ import {
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
 import {
-  isWithinPath,
   normalizeWindowsPath,
   windowsPathName,
   windowsPathParent,
 } from '../../lib/windows-path';
 import type { InventoryItemInput } from '../../schemas/discovery';
+import { assertWithinClaimedDirectory } from './paths';
 
 export type ProposedInventoryItem = UpsertedInventoryItem & {
   /** Existing inventory items whose root is an ancestor of this one. */
@@ -55,7 +55,6 @@ const ancestorsOf = (normalizedPath: string): string[] => {
 export async function proposeInventoryItems(
   queueItemId: string,
   claimToken: string,
-  workerId: string | null,
   inventoryItems: InventoryItemInput[],
 ): Promise<ProposedInventoryItem[]> {
   const claimed = await getQueueItemById(db, queueItemId);
@@ -79,22 +78,17 @@ export async function proposeInventoryItems(
     };
   });
 
-  const outside = normalized.filter(
-    (c) =>
-      c.normalizedRootPath !== claimed.normalizedPath &&
-      !isWithinPath(claimed.normalizedPath, c.normalizedRootPath),
+  assertWithinClaimedDirectory(
+    claimed,
+    normalized.map((c) => ({
+      path: c.rootPath,
+      normalizedPath: c.normalizedRootPath,
+    })),
+    { allowSelf: true, subject: 'paths' },
   );
-  if (outside.length > 0) {
-    throw new DiscoveryError(
-      'conflict',
-      `paths are not inside the claimed directory ${claimed.path}`,
-      { paths: outside.map((c) => c.rootPath) },
-    );
-  }
 
   const upserted = await upsertInventoryItems(db, queueItemId, {
     claimToken,
-    workerId,
     inventoryItems: normalized,
   });
 

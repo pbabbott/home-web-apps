@@ -28,12 +28,11 @@ export const proposeInventoryItems = handle(
   'POST /queue-items/:id/inventory-items',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, workerId, inventoryItems } =
+    const { claimToken, inventoryItems } =
       req.body as ProposeInventoryItemsBody;
     const results = await discoveryService.proposeInventoryItems(
       id,
       claimToken,
-      workerId ?? null,
       inventoryItems,
     );
     res.status(200).json(

@@ -162,13 +162,12 @@ export const createMcpServer = (): McpServer => {
         ...proposeInventoryItemsBodySchema.shape,
       },
     },
-    ({ id, claimToken, workerId, inventoryItems }) =>
+    ({ id, claimToken, inventoryItems }) =>
       run(proposeInventoryItemsOperation.mcp.name, async () =>
         proposeResult(
           await discoveryService.proposeInventoryItems(
             id,
             claimToken,
-            workerId ?? null,
             inventoryItems,
           ),
         ),

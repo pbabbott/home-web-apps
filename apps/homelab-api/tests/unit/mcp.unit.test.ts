@@ -266,7 +266,7 @@ describe('MCP endpoint (/mcp)', () => {
     }
   });
 
-  it('propose_inventory_items passes the worker id and has no decision field', async () => {
+  it('propose_inventory_items has no decision field', async () => {
     (discoveryService.proposeInventoryItems as jest.Mock).mockResolvedValue([
       {
         inventoryItem: {
@@ -294,7 +294,6 @@ describe('MCP endpoint (/mcp)', () => {
     const { isError, body } = await call('propose_inventory_items', {
       id: ID,
       claimToken: TOKEN,
-      workerId: 'w1',
       inventoryItems: [
         {
           rootPath: 'C:\\Users\\You\\Documents',
@@ -336,7 +335,6 @@ describe('MCP endpoint (/mcp)', () => {
     expect(discoveryService.proposeInventoryItems).toHaveBeenCalledWith(
       ID,
       TOKEN,
-      'w1',
       expect.any(Array),
     );
   });

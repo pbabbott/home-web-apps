@@ -71,7 +71,7 @@ const skippedGroupSchema = z.object({
         'matches one directory level only: no path separators, just the entry name pattern',
     })
     .meta({ example: '*.msi' }),
-  count: z.number().int().min(0).optional().meta({
+  count: z.number().int().min(0).max(2147483647).optional().meta({
     description: 'How many entries matched, if you counted.',
   }),
   reason: z.string().trim().min(1).max(300),

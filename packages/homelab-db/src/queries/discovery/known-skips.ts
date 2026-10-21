@@ -34,6 +34,10 @@ const LIST_KNOWN_SKIPS_MAX_LIMIT = 1000;
  * revisit, never a persisted rule. A path skipped more than once (case
  * insensitively) appears once, with the newest reason; a pattern skip is
  * keyed by directory and pattern. Ordered by path, then pattern.
+ *
+ * Scans every queue item of the source with no supporting index; fine while
+ * job history stays small (one operator's NAS). Revisit with an index on
+ * `result` or by materializing skips on completion if history grows large.
  */
 export const listKnownSkips = async (
   db: Database,

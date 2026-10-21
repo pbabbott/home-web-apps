@@ -293,6 +293,7 @@ export function InventoryItemDetailModal({
           {inventoryItem?.decision !== 'rejected' && (
             <OutlinedButton
               size="small"
+              color="error"
               disabled={submitting}
               onClick={() => decide('rejected')}
             >

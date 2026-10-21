@@ -1,6 +1,8 @@
 import { and, asc, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
+  discoveryJobs,
+  discoveryQueueItems,
   inventoryItems,
   type InventoryItemConfidence,
   type InventoryItemDecision,
@@ -18,7 +20,6 @@ import {
   type ExclusionResolution,
 } from './exclusion-rules';
 import { DiscoveryError, escapeLike, type Tx } from './shared';
-import { discoveryJobs, discoveryQueueItems } from '../schema/discovery';
 
 export type InventoryItemInput = {
   kind: InventoryItemKind;
@@ -34,8 +35,6 @@ export type InventoryItemInput = {
 
 export type UpsertInventoryItemsInput = {
   claimToken: string;
-  /** Recorded as `recommendedBy`; the actor is always the agent. */
-  workerId: string | null;
   inventoryItems: InventoryItemInput[];
 };
 
@@ -86,12 +85,16 @@ export const upsertInventoryItems = async (
       .select({
         jobId: discoveryQueueItems.jobId,
         sourceId: discoveryJobs.sourceId,
+        claimedBy: discoveryQueueItems.claimedBy,
       })
       .from(discoveryQueueItems)
       .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
       .where(activeClaim(queueItemId, input.claimToken));
 
     if (!claimed) throw await claimMissError(tx, queueItemId);
+
+    // The claiming worker is the agent; it is recorded as `recommendedBy`.
+    const workerId = claimed.claimedBy;
 
     // One statement cannot touch a row twice; the last occurrence wins.
     const byPath = new Map(
@@ -141,7 +144,7 @@ export const upsertInventoryItems = async (
           confidence: c.confidence,
           recommendationReason: c.recommendationReason,
           evidence: c.evidence,
-          recommendedBy: input.workerId,
+          recommendedBy: workerId,
         })),
       )
       .onConflictDoNothing({ target: [t.sourceId, t.normalizedRootPath] })
@@ -151,7 +154,7 @@ export const upsertInventoryItems = async (
     for (const row of inserted) {
       await insertAuditEvent(tx, {
         eventType: 'inventory_item.created',
-        actor: { type: 'openclaw', id: input.workerId },
+        actor: { type: 'openclaw', id: workerId },
         sourceId: row.sourceId,
         jobId: claimed.jobId,
         queueItemId,
@@ -218,7 +221,7 @@ export const upsertInventoryItems = async (
               }
             : {}),
           ...(verdictChanged || reasonChanged
-            ? { recommendedAt: sql`now()`, recommendedBy: input.workerId }
+            ? { recommendedAt: sql`now()`, recommendedBy: workerId }
             : {}),
         })
         .where(eq(t.id, row.id))
@@ -227,7 +230,7 @@ export const upsertInventoryItems = async (
       if (verdictChanged) {
         await insertAuditEvent(tx, {
           eventType: 'inventory_item.recommendation_changed',
-          actor: { type: 'openclaw', id: input.workerId },
+          actor: { type: 'openclaw', id: workerId },
           sourceId: row.sourceId,
           jobId: claimed.jobId,
           queueItemId,

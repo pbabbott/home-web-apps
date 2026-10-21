@@ -133,9 +133,6 @@ export type InventoryItemInput = z.infer<typeof inventoryItemInputSchema>;
 
 export const proposeInventoryItemsBodySchema = z.object({
   claimToken: claimTokenSchema,
-  workerId: z.string().min(1).optional().meta({
-    description: 'Your worker id, recorded as the recommending agent.',
-  }),
   inventoryItems: z
     .array(inventoryItemInputSchema)
     .min(1)

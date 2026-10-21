@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Badge,
   Button,
+  Input,
   OutlinedButton,
   Panel,
   ScrollableTable,
@@ -66,6 +67,8 @@ export function InventoryClient({
   const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Reason typed per row, keyed by inventory item id.
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   const view = { source: sourceId ?? undefined, decision, recommendation };
   // Looked up by id so the modal shows fresh data after a refresh.
@@ -78,7 +81,12 @@ export function InventoryClient({
     setBusyId(inventoryItem.id);
     setError(null);
 
-    const result = await decideInventoryItem(inventoryItem.id, next);
+    // An empty box leaves the note out, so the API applies its own default.
+    const result = await decideInventoryItem(
+      inventoryItem.id,
+      next,
+      notes[inventoryItem.id]?.trim() || undefined,
+    );
     setBusyId(null);
 
     if (!result.ok) {
@@ -86,6 +94,7 @@ export function InventoryClient({
       return;
     }
 
+    setNotes(({ [inventoryItem.id]: _sent, ...rest }) => rest);
     router.refresh();
   }
 
@@ -284,35 +293,55 @@ export function InventoryClient({
                       </Td>
                       <Td>{formatDateTime(inventoryItem.recommendedAt)}</Td>
                       <Td>
-                        <div className="flex flex-wrap gap-2">
-                          <OutlinedButton
-                            size="small"
-                            onClick={() => setOpenId(inventoryItem.id)}
-                          >
-                            Details
-                          </OutlinedButton>
+                        <div className="flex flex-col gap-2">
                           {inventoryItem.decision === 'pending' && (
-                            <>
-                              <Button
-                                size="small"
-                                disabled={busyId === inventoryItem.id}
-                                onClick={() =>
-                                  quickDecide(inventoryItem, 'approved')
-                                }
-                              >
-                                Approve
-                              </Button>
-                              <OutlinedButton
-                                size="small"
-                                disabled={busyId === inventoryItem.id}
-                                onClick={() =>
-                                  quickDecide(inventoryItem, 'rejected')
-                                }
-                              >
-                                Reject
-                              </OutlinedButton>
-                            </>
+                            <Input
+                              color="primary"
+                              className="w-full min-w-48"
+                              placeholder="Reason (optional)"
+                              aria-label={`Reason for ${inventoryItem.displayName}`}
+                              maxLength={1000}
+                              disabled={busyId === inventoryItem.id}
+                              value={notes[inventoryItem.id] ?? ''}
+                              onChange={(e) =>
+                                setNotes((prev) => ({
+                                  ...prev,
+                                  [inventoryItem.id]: e.target.value,
+                                }))
+                              }
+                            />
                           )}
+                          <div className="flex flex-wrap gap-2">
+                            <OutlinedButton
+                              size="small"
+                              onClick={() => setOpenId(inventoryItem.id)}
+                            >
+                              Details
+                            </OutlinedButton>
+                            {inventoryItem.decision === 'pending' && (
+                              <>
+                                <Button
+                                  size="small"
+                                  disabled={busyId === inventoryItem.id}
+                                  onClick={() =>
+                                    quickDecide(inventoryItem, 'approved')
+                                  }
+                                >
+                                  Approve
+                                </Button>
+                                <OutlinedButton
+                                  size="small"
+                                  color="error"
+                                  disabled={busyId === inventoryItem.id}
+                                  onClick={() =>
+                                    quickDecide(inventoryItem, 'rejected')
+                                  }
+                                >
+                                  Reject
+                                </OutlinedButton>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </Td>
                     </TableRow>

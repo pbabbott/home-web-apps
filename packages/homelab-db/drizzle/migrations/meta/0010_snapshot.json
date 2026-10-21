@@ -1,5 +1,5 @@
 {
-  "id": "de2284b0-b698-4a5c-984a-9a1a2b425ed8",
+  "id": "a2b52bae-9ed4-4584-afe9-f812d868e2d5",
   "prevId": "42812348-ce12-4093-8e89-79b0fcf29f19",
   "version": "7",
   "dialect": "postgresql",
@@ -69,8 +69,8 @@
       "uniqueConstraints": {
         "hosts_instance_unique": {
           "name": "hosts_instance_unique",
-          "nullsNotDistinct": false,
-          "columns": ["instance"]
+          "columns": ["instance"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -106,20 +106,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "inventory_item_id": {
-          "name": "inventory_item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "exclusion_rule_id": {
           "name": "exclusion_rule_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "review_candidate_id": {
-          "name": "review_candidate_id",
+        "inventory_item_id": {
+          "name": "inventory_item_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -175,9 +169,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "audit_events_source_idx": {
           "name": "audit_events_source_idx",
@@ -196,9 +190,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "audit_events_job_idx": {
           "name": "audit_events_job_idx",
@@ -217,30 +211,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
-        },
-        "audit_events_inventory_item_idx": {
-          "name": "audit_events_inventory_item_idx",
-          "columns": [
-            {
-              "expression": "inventory_item_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": false,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "audit_events_rule_idx": {
           "name": "audit_events_rule_idx",
@@ -259,15 +232,15 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
-        "audit_events_review_candidate_idx": {
-          "name": "audit_events_review_candidate_idx",
+        "audit_events_inventory_item_idx": {
+          "name": "audit_events_inventory_item_idx",
           "columns": [
             {
-              "expression": "review_candidate_id",
+              "expression": "inventory_item_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -280,9 +253,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -374,21 +347,21 @@
             }
           ],
           "isUnique": true,
-          "where": "\"discovery_jobs\".\"status\" in ('pending', 'running')",
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "where": "\"discovery_jobs\".\"status\" in ('pending', 'running')",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "discovery_jobs_source_id_sources_id_fk": {
           "name": "discovery_jobs_source_id_sources_id_fk",
           "tableFrom": "discovery_jobs",
-          "tableTo": "sources",
           "columnsFrom": ["source_id"],
+          "tableTo": "sources",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -537,9 +510,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "discovery_queue_items_claim_idx": {
           "name": "discovery_queue_items_claim_idx",
@@ -570,20 +543,20 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "discovery_queue_items_job_id_discovery_jobs_id_fk": {
           "name": "discovery_queue_items_job_id_discovery_jobs_id_fk",
           "tableFrom": "discovery_queue_items",
-          "tableTo": "discovery_jobs",
           "columnsFrom": ["job_id"],
+          "tableTo": "discovery_jobs",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -670,28 +643,28 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "exclusion_rules_source_id_sources_id_fk": {
           "name": "exclusion_rules_source_id_sources_id_fk",
           "tableFrom": "exclusion_rules",
-          "tableTo": "sources",
           "columnsFrom": ["source_id"],
+          "tableTo": "sources",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "exclusion_rules_owner_path_unique": {
           "name": "exclusion_rules_owner_path_unique",
-          "nullsNotDistinct": true,
-          "columns": ["source_id", "normalized_path"]
+          "columns": ["source_id", "normalized_path"],
+          "nullsNotDistinct": true
         }
       },
       "policies": {},
@@ -727,242 +700,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "item_type": {
-          "name": "item_type",
-          "type": "inventory_item_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "path": {
-          "name": "path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "normalized_path": {
-          "name": "normalized_path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "parent_path": {
-          "name": "parent_path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "normalized_parent_path": {
-          "name": "normalized_parent_path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "extension": {
-          "name": "extension",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "size_bytes": {
-          "name": "size_bytes",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "modified_at": {
-          "name": "modified_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "first_seen_at": {
-          "name": "first_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "last_seen_at": {
-          "name": "last_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "inventory_items_source_path_unique": {
-          "name": "inventory_items_source_path_unique",
-          "columns": [
-            {
-              "expression": "source_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "normalized_path",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "inventory_items_parent_idx": {
-          "name": "inventory_items_parent_idx",
-          "columns": [
-            {
-              "expression": "source_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "normalized_parent_path",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "inventory_items_last_job_idx": {
-          "name": "inventory_items_last_job_idx",
-          "columns": [
-            {
-              "expression": "last_job_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "inventory_items_type_idx": {
-          "name": "inventory_items_type_idx",
-          "columns": [
-            {
-              "expression": "source_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "item_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "inventory_items_source_id_sources_id_fk": {
-          "name": "inventory_items_source_id_sources_id_fk",
-          "tableFrom": "inventory_items",
-          "tableTo": "sources",
-          "columnsFrom": ["source_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "inventory_items_first_job_id_discovery_jobs_id_fk": {
-          "name": "inventory_items_first_job_id_discovery_jobs_id_fk",
-          "tableFrom": "inventory_items",
-          "tableTo": "discovery_jobs",
-          "columnsFrom": ["first_job_id"],
-          "columnsTo": ["id"],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "inventory_items_last_job_id_discovery_jobs_id_fk": {
-          "name": "inventory_items_last_job_id_discovery_jobs_id_fk",
-          "tableFrom": "inventory_items",
-          "tableTo": "discovery_jobs",
-          "columnsFrom": ["last_job_id"],
-          "columnsTo": ["id"],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "inventory_items_size_check": {
-          "name": "inventory_items_size_check",
-          "value": "\"inventory_items\".\"size_bytes\" is null or \"inventory_items\".\"size_bytes\" >= 0"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.review_candidates": {
-      "name": "review_candidates",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "source_id": {
-          "name": "source_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "first_job_id": {
-          "name": "first_job_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_job_id": {
-          "name": "last_job_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "kind": {
           "name": "kind",
-          "type": "inventory_item_type",
+          "type": "inventory_item_kind",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -993,14 +733,14 @@
         },
         "recommendation": {
           "name": "recommendation",
-          "type": "candidate_recommendation",
+          "type": "inventory_item_recommendation",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
         "confidence": {
           "name": "confidence",
-          "type": "candidate_confidence",
+          "type": "inventory_item_confidence",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -1032,7 +772,7 @@
         },
         "decision": {
           "name": "decision",
-          "type": "candidate_decision",
+          "type": "inventory_item_decision",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
@@ -1086,8 +826,8 @@
         }
       },
       "indexes": {
-        "review_candidates_source_path_unique": {
-          "name": "review_candidates_source_path_unique",
+        "inventory_items_source_path_unique": {
+          "name": "inventory_items_source_path_unique",
           "columns": [
             {
               "expression": "source_id",
@@ -1103,12 +843,12 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
-        "review_candidates_decision_idx": {
-          "name": "review_candidates_decision_idx",
+        "inventory_items_decision_idx": {
+          "name": "inventory_items_decision_idx",
           "columns": [
             {
               "expression": "source_id",
@@ -1124,12 +864,12 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
-        "review_candidates_recommendation_idx": {
-          "name": "review_candidates_recommendation_idx",
+        "inventory_items_recommendation_idx": {
+          "name": "inventory_items_recommendation_idx",
           "columns": [
             {
               "expression": "source_id",
@@ -1145,12 +885,12 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
-        "review_candidates_last_job_idx": {
-          "name": "review_candidates_last_job_idx",
+        "inventory_items_last_job_idx": {
+          "name": "inventory_items_last_job_idx",
           "columns": [
             {
               "expression": "last_job_id",
@@ -1160,47 +900,47 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
-        "review_candidates_source_id_sources_id_fk": {
-          "name": "review_candidates_source_id_sources_id_fk",
-          "tableFrom": "review_candidates",
-          "tableTo": "sources",
+        "inventory_items_source_id_sources_id_fk": {
+          "name": "inventory_items_source_id_sources_id_fk",
+          "tableFrom": "inventory_items",
           "columnsFrom": ["source_id"],
+          "tableTo": "sources",
           "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
-        "review_candidates_first_job_id_discovery_jobs_id_fk": {
-          "name": "review_candidates_first_job_id_discovery_jobs_id_fk",
-          "tableFrom": "review_candidates",
-          "tableTo": "discovery_jobs",
+        "inventory_items_first_job_id_discovery_jobs_id_fk": {
+          "name": "inventory_items_first_job_id_discovery_jobs_id_fk",
+          "tableFrom": "inventory_items",
           "columnsFrom": ["first_job_id"],
-          "columnsTo": ["id"],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "review_candidates_last_job_id_discovery_jobs_id_fk": {
-          "name": "review_candidates_last_job_id_discovery_jobs_id_fk",
-          "tableFrom": "review_candidates",
           "tableTo": "discovery_jobs",
-          "columnsFrom": ["last_job_id"],
           "columnsTo": ["id"],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
+        },
+        "inventory_items_last_job_id_discovery_jobs_id_fk": {
+          "name": "inventory_items_last_job_id_discovery_jobs_id_fk",
+          "tableFrom": "inventory_items",
+          "columnsFrom": ["last_job_id"],
+          "tableTo": "discovery_jobs",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "review_candidates_decided_check": {
-          "name": "review_candidates_decided_check",
-          "value": "\"review_candidates\".\"decision\" = 'pending' or \"review_candidates\".\"decided_at\" is not null"
+        "inventory_items_decided_check": {
+          "name": "inventory_items_decided_check",
+          "value": "\"inventory_items\".\"decision\" = 'pending' or \"inventory_items\".\"decided_at\" is not null"
         }
       },
       "isRLSEnabled": false
@@ -1256,19 +996,19 @@
         "sources_host_id_hosts_id_fk": {
           "name": "sources_host_id_hosts_id_fk",
           "tableFrom": "sources",
-          "tableTo": "hosts",
           "columnsFrom": ["host_id"],
+          "tableTo": "hosts",
           "columnsTo": ["id"],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "restrict"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "sources_name_unique": {
           "name": "sources_name_unique",
-          "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": ["name"],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1292,18 +1032,23 @@
       "schema": "public",
       "values": ["human", "openclaw", "system"]
     },
-    "public.candidate_confidence": {
-      "name": "candidate_confidence",
+    "public.inventory_item_confidence": {
+      "name": "inventory_item_confidence",
       "schema": "public",
       "values": ["low", "medium", "high"]
     },
-    "public.candidate_decision": {
-      "name": "candidate_decision",
+    "public.inventory_item_decision": {
+      "name": "inventory_item_decision",
       "schema": "public",
       "values": ["pending", "approved", "rejected"]
     },
-    "public.candidate_recommendation": {
-      "name": "candidate_recommendation",
+    "public.inventory_item_kind": {
+      "name": "inventory_item_kind",
+      "schema": "public",
+      "values": ["file", "directory"]
+    },
+    "public.inventory_item_recommendation": {
+      "name": "inventory_item_recommendation",
       "schema": "public",
       "values": ["back_up", "skip", "needs_review"]
     },
@@ -1322,11 +1067,6 @@
       "schema": "public",
       "values": ["selective_only", "exclude_subtree"]
     },
-    "public.inventory_item_type": {
-      "name": "inventory_item_type",
-      "schema": "public",
-      "values": ["file", "directory"]
-    },
     "public.source_type": {
       "name": "source_type",
       "schema": "public",
@@ -1334,10 +1074,10 @@
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

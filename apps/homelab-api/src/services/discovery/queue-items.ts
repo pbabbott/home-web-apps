@@ -21,7 +21,12 @@ import {
 import { db } from '../../db';
 import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
-import { toFollowUpPath, toQueuePath, type FollowUpInput } from './paths';
+import {
+  assertWithinClaimedDirectory,
+  toFollowUpPath,
+  toQueuePath,
+  type FollowUpInput,
+} from './paths';
 
 export type QueueItemWithCreated = {
   item: DiscoveryQueueItem;
@@ -101,18 +106,10 @@ export async function completeItem(
 
     assertWithinJobRoot(await requireJob(item.jobId), queuePaths);
 
-    const outside = skipped.filter(
-      (s) =>
-        s.normalizedPath === item.normalizedPath ||
-        !isWithinPath(item.normalizedPath, s.normalizedPath),
-    );
-    if (outside.length > 0) {
-      throw new DiscoveryError(
-        'conflict',
-        `skipped paths are not inside the claimed directory ${item.path}`,
-        { paths: outside.map((s) => s.path) },
-      );
-    }
+    assertWithinClaimedDirectory(item, skipped, {
+      allowSelf: false,
+      subject: 'skipped paths',
+    });
   }
 
   const skippedGroups = outcome.skippedGroups ?? [];

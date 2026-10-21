@@ -76,21 +76,7 @@
       "idx": 10,
       "version": "7",
       "when": 1792375656611,
-      "tag": "0010_review_candidates",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1792414437480,
-      "tag": "0011_remove_inventory",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1792547253033,
-      "tag": "0012_rename_review_candidates_to_inventory",
+      "tag": "0010_inventory_items",
       "breakpoints": true
     }
   ]

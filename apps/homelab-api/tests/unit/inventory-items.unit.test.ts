@@ -57,7 +57,7 @@ const withGit = (git: unknown, overrides: Record<string, unknown> = {}) =>
 const propose = (inventoryItems: unknown[]) =>
   supertest(createServer())
     .post(`/queue-items/${ID}/inventory-items`)
-    .send({ claimToken: TOKEN, workerId: 'w1', inventoryItems });
+    .send({ claimToken: TOKEN, inventoryItems });
 
 describe('inventory item routes', () => {
   let consoleErrorSpy: jest.SpyInstance;
@@ -83,7 +83,6 @@ describe('inventory item routes', () => {
       expect(mocked.proposeInventoryItems).toHaveBeenCalledWith(
         ID,
         TOKEN,
-        'w1',
         expect.any(Array),
       );
     });
@@ -182,7 +181,7 @@ describe('inventory item routes', () => {
 
       await propose([inventoryItem({ decision: 'approved' })]).expect(200);
 
-      const sent = mocked.proposeInventoryItems.mock.calls[0][3][0];
+      const sent = mocked.proposeInventoryItems.mock.calls[0][2][0];
       expect(sent).not.toHaveProperty('decision');
     });
 
