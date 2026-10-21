@@ -4,3 +4,4 @@ build:
   repository: video-worker-base
   target: builder
   push: 'true'
+  buildCache: harbor.local.abbottland.io/build-cache
