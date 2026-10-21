@@ -156,10 +156,12 @@ export const createMcpServer = (): McpServer => {
             workerId ?? null,
             candidates,
           )
-        ).map(({ candidate, created, changed }) => ({
+        ).map(({ candidate, created, changed, coveredBy, covers }) => ({
           ...candidate,
           created,
           changed,
+          coveredBy,
+          covers,
         })),
       ),
   );

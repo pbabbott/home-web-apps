@@ -1,6 +1,7 @@
 import {
   DiscoveryError,
   decideReviewCandidate as decideReviewCandidateRow,
+  findNestedCandidates,
   getQueueItemById,
   getReviewCandidateById,
   getSourceById,
@@ -10,6 +11,7 @@ import {
   type CandidateDecision,
   type CandidateEvidence,
   type CandidateRecommendation,
+  type NestedCandidate,
   type ReviewCandidate,
   type ReviewCandidateWithExclusion,
   type UpsertedCandidate,
@@ -19,20 +21,43 @@ import {
   isWithinPath,
   normalizeWindowsPath,
   windowsPathName,
+  windowsPathParent,
 } from '../../lib/windows-path';
 import type { ReviewCandidateInput } from '../../schemas/discovery';
+
+export type ProposedCandidate = UpsertedCandidate & {
+  /** Existing candidates whose root is an ancestor of this one. */
+  coveredBy: NestedCandidate[];
+  /** Existing candidates beneath this one (capped). */
+  covers: NestedCandidate[];
+};
+
+const ancestorsOf = (normalizedPath: string): string[] => {
+  const ancestors: string[] = [];
+  for (
+    let parent = windowsPathParent(normalizedPath);
+    parent !== null;
+    parent = windowsPathParent(parent)
+  ) {
+    ancestors.push(parent);
+  }
+
+  return ancestors;
+};
 
 /**
  * Records the agent's proposals for the directory it holds. Each root path
  * must be that directory or lie beneath it: a worker can only report on what
- * it has claimed. Never touches human decisions.
+ * it has claimed. Never touches human decisions. Nesting is allowed; each
+ * result reports the candidates it sits inside or contains, for the agent and
+ * reviewer to judge.
  */
 export async function proposeCandidates(
   queueItemId: string,
   claimToken: string,
   workerId: string | null,
   candidates: ReviewCandidateInput[],
-): Promise<UpsertedCandidate[]> {
+): Promise<ProposedCandidate[]> {
   const claimed = await getQueueItemById(db, queueItemId);
   if (!claimed) throw new DiscoveryError('not_found', 'queue item not found');
 
@@ -67,11 +92,24 @@ export async function proposeCandidates(
     );
   }
 
-  return upsertReviewCandidates(db, queueItemId, {
+  const upserted = await upsertReviewCandidates(db, queueItemId, {
     claimToken,
     workerId,
     candidates: normalized,
   });
+
+  // After the upsert, so candidates proposed together report each other.
+  return Promise.all(
+    upserted.map(async (result) => ({
+      ...result,
+      ...(await findNestedCandidates(
+        db,
+        result.candidate.sourceId,
+        result.candidate.normalizedRootPath,
+        ancestorsOf(result.candidate.normalizedRootPath),
+      )),
+    })),
+  );
 }
 
 export async function listSourceReviewCandidates(

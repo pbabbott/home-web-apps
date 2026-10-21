@@ -16,7 +16,7 @@ Per path choose one action:
 3. Propose a candidate: it is a coherent backup unit. Call propose_review_candidates.
 
 Candidates:
-- A git repository or project root is ONE candidate. Never propose or enqueue its internal folders (src, lib, tests...). A standalone file may be a candidate if it is independently worth keeping.
+- A git repository or project root is ONE candidate. Never propose or enqueue its internal folders (src, lib, tests...). A standalone file may be a candidate if it is independently worth keeping. Each propose result lists coveredBy / covers (existing candidates that contain or sit inside it): if coveredBy is non-empty, reconsider whether it really is a separate unit.
 - recommendation: back_up (unique or valuable), skip (strong evidence it is reproducible or irrelevant), needs_review (not enough evidence). Your recommendation is never an approval; humans decide.
 - confidence is NOT a probability. high = direct evidence settles it; medium = strong signals with minor unknowns; low = a guess, and low must be needs_review.
 - evidence holds only facts you observed. Put unknowns and what would resolve them in openQuestions. Set sufficientInformation honestly.

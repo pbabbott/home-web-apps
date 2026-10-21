@@ -29,7 +29,29 @@ const candidateSchema = reviewCandidateSelectSchema.extend({
   evidence: candidateEvidenceSchema,
 });
 
+const nestedCandidateSchema = candidateSchema
+  .pick({
+    id: true,
+    kind: true,
+    rootPath: true,
+    displayName: true,
+    recommendation: true,
+    decision: true,
+  })
+  .meta({
+    description:
+      'An existing candidate overlapping the proposed path, with its human decision.',
+  });
+
 const upsertedCandidateSchema = candidateSchema.extend({
+  coveredBy: z.array(nestedCandidateSchema).meta({
+    description:
+      'Existing candidates whose root is an ancestor of this one (nearest last). Informational: nothing is inherited.',
+  }),
+  covers: z.array(nestedCandidateSchema).meta({
+    description:
+      'Existing candidates beneath this one, ordered by path, at most 50.',
+  }),
   created: z.boolean().meta({
     description: 'true if this proposal created the candidate.',
   }),

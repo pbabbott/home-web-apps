@@ -99,6 +99,7 @@ export {
   getReviewCandidateById,
   decideReviewCandidate,
   listReviewCandidates,
+  findNestedCandidates,
 } from './queries/review-candidates';
 export type {
   CandidateInput,
@@ -107,6 +108,7 @@ export type {
   ReviewCandidateWithExclusion,
   DecideReviewCandidateInput,
   ListReviewCandidatesOptions,
+  NestedCandidate,
 } from './queries/review-candidates';
 
 export {

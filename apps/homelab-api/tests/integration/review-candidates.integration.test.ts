@@ -1014,3 +1014,64 @@ describe('known skips across jobs', () => {
     expect(done.body.children[0].status).toBe('queued');
   });
 });
+
+describe('nested candidates', () => {
+  it('reports the candidates a proposal sits inside or contains', async () => {
+    const sourceId = await createSource();
+    const { job, item } = await startAndClaim(sourceId);
+
+    const first = await propose(item, [
+      proposal(`${ROOT}\\repo`),
+      proposal(`${ROOT}\\repo2`),
+    ]).expect(200);
+    expect(first.body[0].coveredBy).toEqual([]);
+    expect(first.body[0].covers).toEqual([]);
+
+    const res = await propose(item, [
+      proposal(`${ROOT}\\REPO\\packages\\app`),
+    ]).expect(200);
+    const parent = first.body[0];
+    expect(res.body[0].covers).toEqual([]);
+    expect(res.body[0].coveredBy).toEqual([
+      expect.objectContaining({
+        id: parent.id,
+        rootPath: parent.rootPath,
+        decision: 'pending',
+      }),
+    ]);
+
+    // Re-proposing the parent now reports the child, but not repo2.
+    const again = await propose(item, [proposal(`${ROOT}\\repo`)]).expect(200);
+    expect(again.body[0].covers).toEqual([
+      expect.objectContaining({ id: res.body[0].id }),
+    ]);
+    expect(again.body[0].coveredBy).toEqual([]);
+
+    await finish(job, item);
+  });
+
+  it('reports batch siblings to each other and includes the ancestor decision', async () => {
+    const sourceId = await createSource();
+    const { item } = await startAndClaim(sourceId);
+    const parent = (
+      await propose(item, [proposal(`${ROOT}\\mono`)]).expect(200)
+    ).body[0];
+    await decide(parent.id, { decision: 'approved' }).expect(200);
+
+    const res = await propose(item, [
+      proposal(`${ROOT}\\mono\\a`),
+      proposal(`${ROOT}\\mono\\a\\b`),
+    ]).expect(200);
+
+    expect(res.body[0].coveredBy).toEqual([
+      expect.objectContaining({ id: parent.id, decision: 'approved' }),
+    ]);
+    expect(res.body[0].covers).toEqual([
+      expect.objectContaining({ id: res.body[1].id }),
+    ]);
+    expect(res.body[1].coveredBy.map((c: { id: string }) => c.id)).toEqual([
+      parent.id,
+      res.body[0].id,
+    ]);
+  });
+});

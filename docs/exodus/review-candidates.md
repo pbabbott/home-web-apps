@@ -99,7 +99,18 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 - Approval is refused (409 + `ruleIds`) when an exclusion rule covers the path. Rejecting is always allowed.
 - Any explicit change is allowed and audited, including reversing or resetting to `pending`.
 - Repeating the current decision and note is a no-op with no event. An omitted note is kept when the decision is unchanged and cleared when it changes.
-- An approval normally covers the candidate's subtree, so internal folders need no separate approval. A nested candidate can still exist, but there is no inheritance or override logic yet.
+- An approval normally covers the candidate's subtree, so internal folders need no separate approval. A nested candidate can still exist (a subproject can be a legitimate separate unit), so nesting is allowed but made visible: see [Nested candidates](#nested-candidates).
+
+## Nested candidates
+
+Proposing a path inside an existing candidate (or above one) is **not rejected**: the agent cannot reliably tell a monorepo subproject from a repository's `src\`, and a hard rule would hang on agent-claimed `evidence.git`. Instead each result of `propose_review_candidates` carries:
+
+- `coveredBy` — existing candidates of the source whose root is a proper ancestor (any decision), farthest first.
+- `covers` — existing candidates beneath it (any decision), ordered by path, at most 50.
+
+Each entry has `id`, `kind`, `rootPath`, `displayName`, `recommendation` and `decision`. The agent is told to reconsider when `coveredBy` is non-empty; a reviewer sees the same overlap. Matching is case-insensitive on path-segment boundaries (`C:\code\app` does not cover `C:\code\app2`). Batch siblings are reported to each other because the lookup runs after the upsert.
+
+Intended rule for the future copy workflow (not implemented; nothing is inherited today): a path is covered when any ancestor candidate is approved; a nested `rejected` candidate is a carve-out from that approval; a nested `approved` candidate inside an approved ancestor is redundant, so the copy workflow dedupes.
 
 ## Rediscovery
 
@@ -143,6 +154,6 @@ This API grants no filesystem access. The agent needs its own read-only access t
 ## Limits and follow-ups
 
 - Guardrails check the shape of the evidence, not whether it is true.
-- No inheritance or override semantics between nested candidates.
+- No inheritance or override semantics between nested candidates; overlap is only reported (see [Nested candidates](#nested-candidates)).
 - The review UI ([`/exodus/candidates`](./ui.md)) handles one candidate at a time, with no bulk approve and no free-text search. There is no copy workflow yet; it will read approved candidates from `GET /sources/:id/review-candidates?decision=approved`.
 - `retry_directory` is still callable by the agent (see [Decisions](./decisions.md)).

@@ -88,6 +88,24 @@ describe('review candidate routes', () => {
       );
     });
 
+    it('passes coveredBy and covers through', async () => {
+      const nested = [{ id: ID, rootPath: 'C:\\code' }];
+      mocked.proposeCandidates.mockResolvedValue([
+        {
+          candidate: { id: ID },
+          created: true,
+          changed: false,
+          coveredBy: nested,
+          covers: [],
+        },
+      ] as never);
+
+      const res = await propose([candidate()]).expect(200);
+
+      expect(res.body[0].coveredBy).toEqual(nested);
+      expect(res.body[0].covers).toEqual([]);
+    });
+
     it('rejects low confidence for back_up and skip but allows needs_review', async () => {
       await propose([candidate({ confidence: 'low' })]).expect(400);
       await propose([

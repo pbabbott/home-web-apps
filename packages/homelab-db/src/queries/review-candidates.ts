@@ -436,3 +436,63 @@ export const listReviewCandidates = async (
       ),
     );
 };
+
+/** The part of a nearby candidate worth showing next to a proposal. */
+export type NestedCandidate = Pick<
+  ReviewCandidate,
+  'id' | 'kind' | 'rootPath' | 'displayName' | 'recommendation' | 'decision'
+>;
+
+const NESTED_COVERS_LIMIT = 50;
+
+const nestedColumns = {
+  id: reviewCandidates.id,
+  kind: reviewCandidates.kind,
+  rootPath: reviewCandidates.rootPath,
+  displayName: reviewCandidates.displayName,
+  recommendation: reviewCandidates.recommendation,
+  decision: reviewCandidates.decision,
+};
+
+/**
+ * Other candidates of the source that overlap a path: `coveredBy` are those
+ * whose root is a proper ancestor (`ancestorPaths` are the normalized
+ * ancestors of the path), `covers` those beneath it (capped, ordered by path).
+ * Informational only: nesting is allowed and nothing is inherited.
+ */
+export const findNestedCandidates = async (
+  db: Database | Tx,
+  sourceId: string,
+  normalizedPath: string,
+  ancestorPaths: string[],
+): Promise<{ coveredBy: NestedCandidate[]; covers: NestedCandidate[] }> => {
+  const t = reviewCandidates;
+
+  const coveredBy = ancestorPaths.length
+    ? await db
+        .select(nestedColumns)
+        .from(t)
+        .where(
+          and(
+            eq(t.sourceId, sourceId),
+            inArray(t.normalizedRootPath, ancestorPaths),
+          ),
+        )
+        .orderBy(asc(t.normalizedRootPath))
+    : [];
+
+  const covers = await db
+    .select(nestedColumns)
+    .from(t)
+    .where(
+      and(
+        eq(t.sourceId, sourceId),
+        subtreeFilter(normalizedPath),
+        sql`${t.normalizedRootPath} <> ${normalizedPath}`,
+      ),
+    )
+    .orderBy(asc(t.normalizedRootPath))
+    .limit(NESTED_COVERS_LIMIT);
+
+  return { coveredBy, covers };
+};
