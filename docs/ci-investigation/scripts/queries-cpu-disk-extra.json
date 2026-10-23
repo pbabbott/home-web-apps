@@ -1,0 +1,11 @@
+{
+  "worker_cpu_usersys_pct": "100*sum by (instance)(rate(node_cpu_seconds_total{instance=~'192.168.6.2[5-7]:9100',mode=~'user|system|softirq|irq|nice'}[2m]))/count by (instance)(node_cpu_seconds_total{instance=~'192.168.6.2[5-7]:9100',mode='idle'})",
+  "host_cpu_usersys_pct": "100*sum(rate(node_cpu_seconds_total{instance='192.168.4.192:9100',mode=~'user|system|softirq|irq|nice'}[2m]))/16",
+  "vm_disk_wMBs_by_instance": "sum by (instance)(rate(node_disk_written_bytes_total{device=~'sd[a-c]|vd[a-c]'}[2m]))/1e6",
+  "vm_disk_wMBs_worker_dev": "rate(node_disk_written_bytes_total{instance=~'192.168.6.2[5-7]:9100',device=~'sd[a-c]'}[2m])/1e6",
+  "vm_disk_wlat_worker_dev": "rate(node_disk_write_time_seconds_total{instance=~'192.168.6.2[5-7]:9100',device=~'sd[a-c]'}[2m])/rate(node_disk_writes_completed_total{instance=~'192.168.6.2[5-7]:9100',device=~'sd[a-c]'}[2m])*1000",
+  "vm_disk_discard_MBs": "sum by (instance)(rate(node_disk_discarded_sectors_total[2m]))*512/1e6",
+  "host_nvme_discard_MBs": "rate(node_disk_discarded_sectors_total{instance='192.168.4.192:9100',device='nvme0n1'}[2m])*512/1e6",
+  "host_nvme_flush_per_s": "rate(node_disk_flush_requests_total{instance='192.168.4.192:9100',device='nvme0n1'}[2m])",
+  "ns_fs_writes_MBs": "sum by (namespace)(rate(container_fs_writes_bytes_total[2m]))/1e6"
+}

@@ -18,7 +18,7 @@ Consequences:
 
 - A 64 GB DDR5 kit alone would take **40–50% of the $2,600 budget**. The mini PCs in the [candidate list](./2026-10-22-second-node-buying-guide.md#candidates-web-research-2026-10-22) also use DDR5 SO-DIMM (I did not price those), so their totals are likely inflated the same way.
 - **DDR4 is cheap by comparison**, so an AM4 platform saves the most. ELDERWAND is a Ryzen 7 5800X with DDR4 and is already fast.
-- You do not have to fill the RAM now. A board with two slots can start at 32 GB and be replaced later (the criteria only require that the board _supports_ 64 GB). Worker VMs used 3–6 GB of their 15 GB, so 32 GB hosts several workers. I did not price 32 GB kits.
+- You do not have to fill the RAM now. A board with two slots can start at 32 GB and be replaced later (the criteria only require that the board _supports_ 64 GB). Worker VMs used 3–6.5 GB at p90 (peak 11.6 GB) of their 15 GB, so 32 GB hosts several workers. I did not price 32 GB kits.
 
 ## 1a. Decision: start with 32 GB, keep a high ceiling (2026-10-22)
 

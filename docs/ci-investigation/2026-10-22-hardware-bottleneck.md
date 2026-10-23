@@ -14,7 +14,7 @@ Question: after the repo-side cache fixes, CI still takes 40–60 min. Which res
 3. **Memory and network are not limits** for CI. The Proxmox host itself has almost no free RAM (about 2 GB), which leaves no page cache for the disk.
 4. **Two infra settings probably multiply the disk load** (online `discard` in the workers and LVM-thin zeroing). Both are cheap to test. The effect size is not measured.
 5. **The hardware has one M.2 slot**, so the disk can be replaced but not supplemented. The two hardware paths are a better drive in the same box, or a separate CI machine.
-6. ELDERWAND runs the same jobs 4–11× faster. It is a Corsair a7200 prebuilt: Ryzen 7 5800X (8C/16T, the same core count as the Beelink), 16 GB RAM, one 1 TB NVMe of unlisted model, 1 GbE ([specs](https://www.corsair.com/us/en/p/gaming-computers/cs-9050009-na/vengeance-a7200-gaming-pc-r7-5800x-rtx-3070-1tb-m-2-16gb-ddr4-3200-cs-9050009-na), as sold). So the gap is probably not CPU count or RAM but the storage path: bare metal, no VM/LVM-thin layers, no shared disk. See the [buying guide](./2026-10-22-second-node-buying-guide.md#reference-what-elderwand-is). Purchase goals and criteria: [hardware purchase criteria](./2026-10-22-hardware-purchase-criteria.md).
+6. ELDERWAND runs the same jobs 4–11× faster. It is a Corsair a7200 prebuilt: Ryzen 7 5800X (8C/16T, the same core count as the Beelink), 16 GB RAM, one 1 TB Corsair MP400 NVMe (QLC, PCIe 3.0, confirmed by you), 1 GbE ([specs](https://www.corsair.com/us/en/p/gaming-computers/cs-9050009-na/vengeance-a7200-gaming-pc-r7-5800x-rtx-3070-1tb-m-2-16gb-ddr4-3200-cs-9050009-na), as sold). Its runner runs **inside WSL** (confirmed by you), and its drive is a **QLC drive of the same class as the P3 Plus** (the MP400 is older and rated slower: Phison E12S, Micron QLC, PCIe 3.0 x4, sustained writes down to about 120 MB/s once the SLC cache is full). So the gap is probably not CPU count, RAM or drive quality but **contention and the storage stack**: one runner on one drive, no LVM-thin or online `discard`, no 13 pods sharing a disk with etcd and services. This is an inference, not measured; it makes limiting concurrency on the current host a cheap first experiment. Also confirmed 2026-10-23: only 2 jobs run at once on ELDERWAND, its drive is about 81% full, and its WSL disk is on that same drive. Caution: if a drive's total throughput is roughly fixed, capping concurrency speeds each job but may not shorten the whole run; see the buying guide's ELDERWAND section and measure both per-job and total time. See the [buying guide](./2026-10-22-second-node-buying-guide.md#reference-what-elderwand-is). Purchase goals and criteria: [hardware purchase criteria](./2026-10-22-hardware-purchase-criteria.md).
 
 ## Evidence
 
@@ -88,15 +88,15 @@ Do one at a time. After each, push a fresh commit (a re-run of the same SHA skip
 
 **Targets after a good change:** `nvme0n1` write latency avg under 5 ms; guest `sda` write latency under 10 ms; `nvme0n1` discards near 0 during runs; worker IO PSI under 0.15; no 20-minute step timeouts.
 
-| #   | Change                                                                                                                                                                                                            | Where                                      | Risk                                   | Expected effect (unmeasured)                 |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------------- |
-| 1   | Remove `discard` from the root mount options on the 3 workers; keep the weekly `fstrim.timer`. Source of the fstab entry is not found yet (research task 6).                                                      | Workers' `/etc/fstab` or provisioning code | Low                                    | Discard traffic to about 0 during runs       |
-| 2   | Turn off thin-pool zeroing: `lvchange -Z n pve/data` (also `vg_fast/data`). Stale blocks may be readable by another VM on this host; acceptable for a one-owner homelab.                                          | Proxmox host                               | Low                                    | Fewer small writes after discards            |
-| 3   | Lower concurrency: ARC `maxRunners` 9→4 (dind) and 8→4 (amd64); `max-parallel: 6`→3 in `.github/workflows/ci.yml` (docker-build matrix, line 192).                                                                | ARC values (gitops), `ci.yml`              | Low, may lengthen the queue            | Shorter slow tail, fewer timeouts            |
-| 4   | Raise or remove CPU limits: `runner` and `dind` 1→3 CPU, or keep requests only.                                                                                                                                   | ARC values                                 | Low (noisy-neighbour on services)      | Less throttling at p90                       |
-| 5   | Give the host RAM back: workers 15→12 GB (they sit at 9–12 GB free). Then optionally add a scratch virtual disk per worker (`cache=unsafe`, no `discard`) for `/var/lib/kubelet` emptyDirs and `/var/lib/docker`. | Proxmox VM config, worker mounts           | Medium (data on scratch is disposable) | Host page cache absorbs flushes              |
-| 6   | Optional: `emptyDir: {medium: Memory}` for the runner `work` volume. Needs pod memory limit increases.                                                                                                            | ARC values                                 | Medium                                 | Removes workspace IO. Try on one job first   |
-| 7   | Move heavy jobs (docker-build, UI tests) to ELDERWAND-class hardware by giving it a dedicated label.                                                                                                              | `ci.yml` `runs-on`, runner labels          | Low                                    | Immediate: those jobs ran 4–11× faster there |
+| #   | Change                                                                                                                                                                                                                                                                                      | Where                                      | Risk                                   | Expected effect (unmeasured)                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------------------- | -------------------------------------------- |
+| 1   | Remove `discard` from the root mount options on the 3 workers; keep the weekly `fstrim.timer`. Source of the fstab entry is not found yet (research task 6).                                                                                                                                | Workers' `/etc/fstab` or provisioning code | Low                                    | Discard traffic to about 0 during runs       |
+| 2   | Turn off thin-pool zeroing: `lvchange -Z n pve/data` (also `vg_fast/data`). Stale blocks may be readable by another VM on this host; acceptable for a one-owner homelab.                                                                                                                    | Proxmox host                               | Low                                    | Fewer small writes after discards            |
+| 3   | Lower concurrency: ARC `maxRunners` 9→4 (dind) and 8→4 (amd64); `max-parallel: 6`→3 in `.github/workflows/ci.yml` (docker-build matrix, line 192).                                                                                                                                          | ARC values (gitops), `ci.yml`              | Low, may lengthen the queue            | Shorter slow tail, fewer timeouts            |
+| 4   | Raise or remove CPU limits: `runner` and `dind` 1→3 CPU, or keep requests only.                                                                                                                                                                                                             | ARC values                                 | Low (noisy-neighbour on services)      | Less throttling at p90                       |
+| 5   | Give the host RAM back: workers 15→13 GB (p90 use is 3–6.5 GB but the CI peak reached 11.6 GB, so 12 GB is too tight; see the memory section). Then optionally add a scratch virtual disk per worker (`cache=unsafe`, no `discard`) for `/var/lib/kubelet` emptyDirs and `/var/lib/docker`. | Proxmox VM config, worker mounts           | Medium (data on scratch is disposable) | Host page cache absorbs flushes              |
+| 6   | Optional: `emptyDir: {medium: Memory}` for the runner `work` volume. Needs pod memory limit increases.                                                                                                                                                                                      | ARC values                                 | Medium                                 | Removes workspace IO. Try on one job first   |
+| 7   | Move heavy jobs (docker-build, UI tests) to ELDERWAND-class hardware by giving it a dedicated label.                                                                                                                                                                                        | `ci.yml` `runs-on`, runner labels          | Low                                    | Immediate: those jobs ran 4–11× faster there |
 
 Steps 1–2 are the best first experiment: no purchase, no downtime beyond a worker remount, and they act on a measured traffic source.
 
@@ -123,9 +123,9 @@ Check these off later. Model numbers are from memory or drive catalogues: **veri
    - [ ] For each: price per TB, endurance (TBW), sustained write once cache is full, 4K QD1 sync write latency, idle and load temperature, PLP yes/no
 3. **Identify the exact Beelink model** (`dmidecode -s system-version`, or read the label under the case) and look up its M.2 slot(s), PCIe generation, and whether a second NVMe is possible via a spare socket or the PCIe x8-size slot.
    - [ ] model, [ ] slot list, [ ] drive-height and heatsink limits
-4. **Confirm ELDERWAND's parts.** CPU, RAM and board are known from the Corsair page (Ryzen 7 5800X, 16 GB, MSI B550-A PRO); the NVMe model is not. ELDERWAND runs Windows 11, so use the PowerShell commands in [Test commands](#test-commands-copy-and-paste).
-   - [x] CPU, [x] RAM, [ ] drive model(s), [ ] how many jobs run on it at once
-   - [ ] **Where the runner actually runs.** GitHub lists ELDERWAND's OS as `Linux`, but the machine runs Windows 11. The runner is therefore probably inside WSL2 or a VM, which puts a virtual disk (`ext4.vhdx`) between jobs and the NVMe. Section A5 shows how to check. This changes what "bare metal" means above.
+4. **Confirm ELDERWAND's parts.** CPU, RAM and board are known from the Corsair page (Ryzen 7 5800X, 16 GB, MSI B550-A PRO); the NVMe is a Corsair MP400 1 TB (QLC) and the runner is in WSL (you confirmed both on 2026-10-23). ELDERWAND runs Windows 11, so use the PowerShell commands in [Test commands](#test-commands-copy-and-paste).
+   - [x] CPU, [x] RAM, [x] drive model (MP400 1 TB, QLC), [x] runner is in WSL, [x] 2 jobs run at once, [x] drive is 752 GB used / 177 GB free of 930 GB (about 81% full), [x] the WSL disk sits on that same drive
+   - [x] **Where the runner actually runs:** WSL (confirmed). Original note: GitHub lists ELDERWAND's OS as `Linux`, but the machine runs Windows 11. The runner is therefore probably inside WSL2 or a VM, which puts a virtual disk (`ext4.vhdx`) between jobs and the NVMe. Section A5 shows how to check. This changes what "bare metal" means above.
    - This sets the target spec for path B and shows how much of the 4–11× is disk vs CPU.
 5. **Run a controlled `fio` benchmark** in an idle window. Commands for ELDERWAND (Windows), a Proxmox worker VM and the Proxmox host are in [Test commands](#test-commands-copy-and-paste). Run the host test only in an idle window; it loads the shared disk.
    - [ ] 4 KiB random write, QD32, 60 s
@@ -314,6 +314,87 @@ How to read it:
 - T3 last 60 s far below first 30 s: the SLC cache ran out. Compare the two drives' drop point.
 - T2 is the best single number for CI-like work (many small flushes). A PLP drive should be far below the QLC drive here.
 
+## Thermal detail for the current host (2026-10-23)
+
+Measured with Prometheus (`k10temp`, the CPU sensor) and read-only `ssh` to the host. Not applied: nothing was changed.
+
+| Measure                                    | Value                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------ |
+| During the 19 CI windows (avg / p90 / max) | 86.7 / 92.5 / 93.1 °C                                                          |
+| Last 7 days (min / p10 / avg / max)        | 72 / 74.5 / 78 / 93.4 °C                                                       |
+| Time above 85 °C / above 90 °C (7 days)    | about 10% / about 5%                                                           |
+| Right now at about 11% CPU busy            | 78 °C                                                                          |
+| Clock during CI (avg)                      | about 3.8 GHz (maximum the CPU reports: 4.46 GHz)                              |
+| Governor                                   | `performance` with `amd_pstate` active, so clocks are held high even when idle |
+| NVMe temperature (7-day avg / max)         | 54 / 61 °C (warning threshold on the drive: 83 °C)                             |
+| iGPU (avg / max during CI)                 | 74 / 79 °C                                                                     |
+
+**What the concern is:**
+
+1. **The idle floor is high.** The CPU never drops below 72 °C in a week and sits at 78 °C with the machine nearly idle. A healthy mini PC idles in the 40s to 50s °C (typical range, not measured here). That suggests poor cooling (dust, dried paste, restricted airflow, a hot location), the `performance` governor, or both.
+2. **CI pushes it to the edge.** It reaches 93 °C. The 5800H's maximum junction temperature is 105 °C (from memory; verify on AMD's spec page). Close to that limit, the CPU lowers its clocks to protect itself. The 3.8 GHz average clock against a 4.46 GHz maximum fits mild limiting, but this is not proven: the host exposes no throttle counter for this CPU in Prometheus.
+3. **No sign of a failure yet.** Nothing is at the limit continuously, 22 days of uptime, and the NVMe stays well under its warning threshold.
+4. **Heat is a slow cost.** Constant 75–90 °C shortens the life of fans, paste and capacitors, raises fan noise, and warms the NVMe, RAM and the neighbouring VMs' host. It is a 24/7 box that also runs your services.
+5. **It affects the purchase.** A new mini PC in a similar case could do the same. That is why sustained-load thermals are a Must (M6), and why the MS-A2's conflicting heat reports matter.
+
+**Cheap things to try before or alongside buying (all untested, all reversible):**
+
+- Open the case, clean the fan and heatsink, and check the paste. A 22-day uptime with a 72 °C floor points here first.
+- Make sure the box has clear airflow and is not stacked or enclosed.
+- Set the CPU to a more efficient mode (for example `powersave` governor with a balanced energy preference, or a lower TDP limit in the BIOS) and see how much of the idle floor it removes, and whether CI time changes.
+- Watch `sensors` during a CI run after each change.
+
+## Memory use by VM (2026-10-23)
+
+"Used" is `MemTotal - MemAvailable` inside each machine, which leaves out reclaimable page cache. Prometheus: last 30 days (5 min step), last 7 days (1 min step) and the 19 CI windows (1 min step). Values in GiB.
+
+| Machine                 | Provisioned   | 30 days: avg / p90 / max | 7 days: p90 / p99 / max | During CI: avg / p90 / p99 / max | Peak vs provisioned |
+| ----------------------- | ------------- | ------------------------ | ----------------------- | -------------------------------- | ------------------- |
+| worker-1                | 15            | 4.5 / 5.4 / 8.5          | 5.4 / 5.9 / 9.0         | 4.9 / 5.8 / 7.7 / 8.3            | 60%                 |
+| worker-2                | 15            | 4.1 / 4.9 / 8.9          | 4.9 / 6.3 / 10.4        | 5.0 / 6.5 / 9.2 / **11.6**       | **77%**             |
+| worker-3                | 15            | 2.9 / 3.2 / 7.2          | 3.1 / 4.9 / 8.6         | 3.4 / 4.6 / 6.7 / 8.6            | 57%                 |
+| k8s controller          | 6             | 2.6 / 2.9 / 3.0          | 2.9 / 3.0 / 3.1         | 2.6 / 2.9 / 2.9 / 2.9            | 50%                 |
+| marauders-map           | 10            | 4.3 / 6.1 / 9.6          | 6.1 / 6.5 / 9.7         | 5.5 / 5.9 / 6.6 / 7.0            | **97%** (7 days)    |
+| Proxmox host `chimaera` | 64 (physical) | 54.3 / 57.1 / 59.2       | 57.0 / 58.9 / 59.3      | 57.7 / 58.9 / 59.1 / 59.3        | 93%                 |
+
+**Are the VMs way over provisioned?** For the three workers, at the typical level, yes. At p90 they use 21–43% of their 15 GB, and their averages are 3–5 GB. At peak they are not that far over: the highest values were 8.5–11.6 GB, and worker-2 reached 77% of its allocation during a CI run. So a worker needs about 12 GB of headroom for the worst minute, not 5.
+
+- **Workers:** p90 is **3.2–6.5 GB**; p99 is 4.4–9.2 GB; max 8.5–11.6 GB. Cutting them to 12 GB would leave under 0.5 GB of margin on the worst observed minute. 13 GB is the lowest I would try, and the saving is only 6 GB in total. Page cache matters too: the disk is the bottleneck, so spare RAM used as cache helps, and the "used" figure leaves it out. Moving load to a second node is a better lever than shaving the workers.
+- **Controller:** uses about half of its 6 GB (max 3.1). It could drop to 4–5 GB, saving 1–2 GB, with little risk, but etcd and the API server are not worth squeezing.
+- **marauders-map is not over provisioned.** Its 7-day max reached 9.7 of 10 GB (p90 6.1). Leave it alone, or give it more.
+- **Host:** 54 GB used on average (92% at p90 in CI), even though the guests together use only about 19 GB (sum of the five VM averages). The rest is memory the guests hold, mostly cached file data, that the host sees as used because ballooning is off (`balloon: 0`) and nothing hands it back. This is why the host reports about 2 GB available. Your VMs are allocated 61 GB on a 64 GB machine, which is the real issue.
+
+**What this means for the new node:**
+
+- **The CI workload is small.** Three workers at their p90 need about 15 GB combined; at their observed peaks about 30 GB (8.3 + 11.6 + 8.6, which rarely coincide). A new node with **32 GB** hosts workers comfortably; **96 GB is a hedge, not a need** for CI alone.
+- Size workers by their peak (about 12 GB), and leave 8 GB or more for the Proxmox host and its cache.
+
+**Limits of this check:** the metrics are guest memory, not pod memory. I did not compare Kubernetes pod requests and limits with actual use (the runner pods have 3 Gi limits). The 30-day window may not cover your heaviest job. The first 30 days of retention returned about 940 samples, so Prometheus has at least that much history.
+
+### Memory recommendations for the current host (2026-10-23, none applied)
+
+Evidence gathered for the host `chimaera` (read-only `ssh` and Prometheus):
+
+| Measure                         | Value                                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Physical RAM / visible to Linux | 64 GB / **59.8 GiB** (`MemTotal` 61,203 MB). About 4 GB is not visible; probably reserved for the iGPU, **not verified** |
+| Allocated to running VMs        | **61 GiB** (3 × 15 + 6 + 10), more than Linux can see: already overcommitted                                             |
+| Available memory (7 days)       | minimum 0.66 GiB; 8.6 GB at the time of checking (`free -m`)                                                             |
+| Host page cache                 | about 0.5 GiB: almost no caching for the disk that is the bottleneck                                                     |
+| Swap                            | 1.4–1.6 GiB used of 8 GB; light activity (max 35 pages/s in, 17 out). `vm.swappiness` = 60                               |
+| Memory pressure (PSI), 7 days   | 0.0 (no stalls)                                                                                                          |
+| OOM kills, 30 days              | **`marauders-map`: 20**. Workers, controller and host: 0. The counter may include container-limit kills inside the VM    |
+| KSM                             | enabled (`/sys/kernel/mm/ksm/run` = 1)                                                                                   |
+| Ballooning                      | off on all VMs (`balloon: 0`)                                                                                            |
+
+Recommendations, in order:
+
+1. **Raise `marauders-map` from 10 GB to about 12 GB.** It peaked at 9.7 GB in 7 days. Check its kernel log first (`journalctl -k | grep -i oom`) to see whether the kills were whole-VM or container-limit kills.
+2. **Trim the three workers from 15 GB to 13 GB each.** p90 use is 3–6.5 GB, but the worst CI minute reached 11.6 GB, so 12 GB is too tight. One worker at a time: `kubectl drain`, resize, boot, `kubectl uncordon`, and wait for the Longhorn volumes to be healthy before the next one. Worker-1 also hosts the shared caches (`actions-cache-server`, `turborepo-remote-cache`). The controller can stay at 6 GB (could be 5 GB; little to gain).
+3. **After 1 and 2** allocation is about 56 GiB and the host keeps about 4 GiB. If the BIOS has a UMA frame-buffer or iGPU memory setting, lowering it could free another 2–3 GB (the host is headless). Check this; it is an inference.
+4. **Leave ballooning off.** It sits badly with Kubernetes nodes.
+5. **If the CI workers move to the new node, most of this goes away:** the workers' 39 GB frees up. Do not over-engineer step 2 if that is weeks away. Do step 1 regardless.
+
 ## PromQL used (re-runnable)
 
 Run as `query_range`, `step=60`, over each CI window. Host is `instance="192.168.4.192:9100"`, workers `192.168.6.25–27:9100`.
@@ -362,5 +443,5 @@ sum by (namespace) (rate(container_fs_writes_bytes_total[2m])) / 1e6
 - Statistics pool every minute sample from 19 run windows; a window is `createdAt` to `updatedAt`, or the last hour for runs with re-attempts. Idle time inside a window (queueing, skipped jobs) lowers averages, so p90 is the better view of load.
 - Only worker-1 was checked for the `/` mount options and `fstrim.timer`. Workers 2 and 3 are assumed identical (research task 6).
 - Guest and host latency are not on the same footing: the guest figure includes virtualisation and LVM-thin delay.
-- CPU temperature is the hottest `node_hwmon_temp_celsius` series, which may not be the CPU package sensor.
+- CPU temperature is the `k10temp` series (chip `pci0000:00_0000:00:18_3`), confirmed 2026-10-23 as the CPU sensor. The other series are the `amdgpu` iGPU (74 °C avg, 79 max) and the NVMe (54 °C avg, 61 max).
 - Scratch helper used for the numbers: a Python script in the session scratchpad. Not committed.
