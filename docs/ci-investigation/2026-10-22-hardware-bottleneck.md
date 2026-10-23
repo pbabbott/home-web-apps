@@ -395,6 +395,71 @@ Recommendations, in order:
 4. **Leave ballooning off.** It sits badly with Kubernetes nodes.
 5. **If the CI workers move to the new node, most of this goes away:** the workers' 39 GB frees up. Do not over-engineer step 2 if that is weeks away. Do step 1 regardless.
 
+## ELDERWAND WSL fio results (run by you, 2026-10-23)
+
+Run inside WSL2 on ELDERWAND with the commands above (single run per test, nothing else changed). Raw log: `~/fio-wsl-20261023-0822.txt` on ELDERWAND.
+
+| Item                              | Value                                                                                                                                                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Environment                       | WSL2 kernel 6.18.54.1; root is ext4 on a virtual disk (`/dev/sdd`, vhdx), mounted with `discard`; **8 GB RAM, 4 vCPUs** in WSL                                                                                  |
+| T1: 4k random write, QD32, 60 s   | **15.8k IOPS, 61.6 MiB/s**; clat avg 2.02 ms, p99 14.5 ms, p99.9 236 ms, **max 4.29 s**; about 87% of writes under 1 ms                                                                                         |
+| T2: 4k write + fsync, QD1, 60 s   | **258 IOPS** (about 3.9 ms per write+fsync); clat avg 417 µs, p99 5.67 ms, p99.9 34 ms. fio's own "sync" latency line (about 119 ns) is implausible; ignore it                                                  |
+| T3: 1 MiB sequential write, 5 min | **98.5 MiB/s overall**: 131 MiB/s in the first 15 s, decaying to about 75 MiB/s (low about 55 MiB/s at 255 s). Write latency 60–79 ms avg, p99 170–230 ms, max 414 ms. No sharp cliff, a slow fall of about 40% |
+| T4: `fstrim -v /`                 | 893.5 GiB trimmed in 1.53 s, no error                                                                                                                                                                           |
+
+**Reading.** The same drive that makes CI fast on ELDERWAND delivers only about 100 MiB/s sustained and about 260 durable (fsync) writes per second from inside WSL. That is **not fast raw storage**. For comparison, the current host's drive averaged 42 MB/s of writes during CI at 22 ms latency (peaks 291 MB/s). The same `fio` run on a worker VM and the Proxmox host has not been done, so a like-for-like comparison is still missing.
+
+**What this changes (hypotheses, not proven):**
+
+1. **ELDERWAND is fast per job because of how little shares the drive, not because the drive is fast.** If a drive delivers roughly 100 MiB/s in total, two jobs get about 50 each and nine jobs about 11 each, a 4.5× ratio, in line with the 4–11× seen. This supports the earlier caution: capping concurrency may speed each job without shortening the run much.
+2. **Caching may matter more than the drive.** The 87% of 4k writes completing in under 1 ms means writes are being absorbed by a cache (WSL's page cache and Windows' own write-back caching of the virtual disk). Your cluster does the opposite, from what the configs show:
+   - Proxmox VM disks have no `cache=` setting, so the default `cache=none` applies: guest writes go straight to the NVMe, and the host has only about 0.5 GiB of page cache anyway (host RAM is overcommitted).
+   - The runner pods have 3 Gi memory limits (`runner` and `dind` each), and page cache counts against a container's limit, so heavy writers hit the limit and are forced to write back and wait.
+   - Many CI steps (tar extraction, `pnpm` linking, Docker layer unpack) do not call `fsync`, so a big cache would absorb them.
+3. **Raw drive tier is a weaker lever than I assumed.** A QLC drive that is 81% full, behind a virtual disk, still ran CI fast. A better drive still helps with sustained writes and flush latency (T2 is the weak figure here, 3.9 ms), but cache and contention probably matter more.
+
+**Cheap tests this suggests (none applied):**
+
+- Run the **same `fio` script on a worker VM** and on the Proxmox host in an idle window. Compare T1/T2/T3 with the table above. If the P3 Plus gives similar or better numbers, drive speed is not the difference.
+- Raise the runner/`dind` memory limits (3 Gi) on one runner set and compare job times.
+- Set `cache=writeback` (or `unsafe` for a scratch disk) on one worker's disks in Proxmox and compare. Free host RAM first, or there is nothing for it to cache in.
+- Cap concurrency, and record per-job and total run time.
+
+**Tension with the memory plan.** The memory recommendations above shrink worker VMs. If caching is the lever, trimming guest RAM and freeing host RAM pull in different directions: free host RAM helps `cache=writeback`; guest RAM only helps if the pod limits are raised. Do the tests first, then decide.
+
+**Limits of this run:** one run each, no variance; `direct=1` bypasses WSL's page cache but not Windows' host caching of the virtual disk; reads, mixed workloads and higher job counts were not tested; the Windows-side test (same physical drive, outside WSL) has not been run, so the cost of the virtual disk layer is unknown.
+
+## Worker-1 VM fio results (run 2026-10-23, 09:25 CDT)
+
+Run by Claude over `ssh` on `tf-prod-k8s-worker-1` after an automatic idle check (host NVMe under 10% busy, worker IO pressure under 0.05, no `ci.yml` run active, three checks in a row). The VM: 4 vCPU, 15 GB RAM, ext4 on a QEMU virtual disk (60 GB LVM-thin volume on the P3 Plus), mounted with `discard`, 26 GB free. Same commands as the ELDERWAND run except T3, which used a **15 GB file** (wrote 58.8 GiB in 300 s by rewriting it), because the disk is small. `fio` was installed on the worker with `apt-get install fio` (it is still installed). Raw log: `results/fio-worker1-20261023.txt`. One run per test.
+
+| Test                              | ELDERWAND WSL (MP400)                                | Worker-1 VM (P3 Plus)                                                                      |
+| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| T1 4k randwrite QD32 IOPS / MiB/s | 15.8k / 61.6                                         | **32.3k / 126**                                                                            |
+| T1 clat avg / p99 / p99.9 / max   | 2.02 ms / 14.5 ms / 236 ms / 4.29 s                  | **0.97 ms / 2.1 ms / 6.5 ms / 152 ms**                                                     |
+| T2 write+fsync QD1 IOPS           | 258                                                  | 199                                                                                        |
+| T2 clat avg / p99                 | 417 µs / 5.67 ms                                     | 177 µs / 0.64 ms                                                                           |
+| T2 fsync latency (fio "sync")     | not trustworthy in that log; about 3.4 ms implied    | avg **4.96 ms**, p99 7.6 ms                                                                |
+| T3 sequential 1 MiB, 5 min        | 98.5 MiB/s overall; 131 falling to about 75 MiB/s    | **200 MiB/s overall** (58.8 GiB written), but see the shape below                          |
+| T4 delete then `fstrim -v /`      | 1.53 s (893.5 GiB reported, nearly all already free) | **17 min 4 s** for 28.4 GiB; host NVMe 98% busy and worker IO pressure about 0.9 during it |
+
+**T3 shape on the worker (MiB/s per 15 s, derived from the cumulative status lines, about ±3):**
+
+| t (s) | 15  | 30  | 45    | 60  | 75    | 90  | 105 | 120 | 135 | 150 | 165 | 180 | 195 | 210 | 225 | 240 | 255 | 270 | 285 | 300 |
+| ----- | --- | --- | ----- | --- | ----- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| MiB/s | 64  | 626 | 1,167 | 457 | 1,044 | 61  | 55  | 48  | 55  | 48  | 41  | 48  | 34  | 34  | 41  | 48  | 41  | 20  | 41  | 41  |
+
+About 49 GiB went in during the first 75 s at hundreds of MiB/s to about 1.1 GiB/s, then throughput collapsed to **about 35–55 MiB/s** (last 60 s average about 32 MiB/s) for the rest of the run. Write latency in the final summary: p99 325 ms, p99.99 2.26 s.
+
+**What these results show:**
+
+1. **The P3 Plus is not slow when idle.** On T1 and T3 (overall) the worker VM beats ELDERWAND's WSL disk about 2×, and T1's latency tail is far better (p99.9 6.5 ms against 236 ms). T2 (durable writes) is slightly lower (199 against 258 IOPS). So the 4–11× CI gap is **not explained by ELDERWAND having a faster drive.** This confirms the earlier inference.
+2. **The SLC-cache cliff is now demonstrated, for this drive:** about 49 GiB of fast writes, then about 40 MiB/s. That matches the "fast start, then slow and saturated" pattern seen in every CI run and the earlier Prometheus data (CI writes about 44 MB/s on average, so roughly 100+ GB per 45-minute run). It also means a drive that sustains writes without a cliff (TLC with DRAM, or a data-centre drive) would remove the tail. The MP400 is the same QLC class and would show a cliff too, but ELDERWAND has only 2 jobs writing, so it hits it less.
+3. **Teardown is expensive on this stack.** Deleting about 30 GB of fresh data and trimming took 17 minutes at 98% host-disk utilisation, against 1.5 s on WSL. Runner pods delete GBs of emptyDir data when they end, and the workers mount with online `discard`, so a similar load may land during CI. Supports the discard / LVM-thin hypotheses. In contrast the weekly `fstrim` (Mondays about 00:30–01:40 CDT) took 17 seconds on 19 Oct, because online discard had already trimmed most space.
+4. **Revised ranking of causes (hypotheses, not proven):** (a) the SLC cliff when CI writes more than about 49 GiB in a burst, (b) contention from many concurrent jobs, (c) discard/teardown cost on LVM-thin, (d) caching (pod memory limits, `cache=none`, little host cache). A better sustained-write drive addresses (a) directly; fewer concurrent jobs, `discard` removal and cache changes address the others. My earlier remark that drive tier is "a weaker lever" is **withdrawn**: the cliff is real, and a sustained-write drive is worth having.
+
+**Limits:** one run each; sequential 1 MiB writes are not the CI pattern (small files, mixed reads); I did not test with the CI mix or at CI concurrency; the guest sees a virtual disk and the host's own caches; the worker had 26 GB free, so the T3 file was 15 GB; the SLC size depends on how full and how recently written the drive is. T4's 17 minutes also loaded the shared host disk for the whole time.
+
 ## PromQL used (re-runnable)
 
 Run as `query_range`, `step=60`, over each CI window. Host is `instance="192.168.4.192:9100"`, workers `192.168.6.25–27:9100`.
