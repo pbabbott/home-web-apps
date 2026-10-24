@@ -18,6 +18,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
+import { Icon } from '@abbottland/fui-icons';
 import {
   inventoryItemsUrl,
   changedSinceDecision,
@@ -234,14 +235,11 @@ export function InventoryClient({
                 <TableHead>
                   <TableRow>
                     <Th>Path</Th>
-                    <Th>Type</Th>
+                    <Th>Approval</Th>
                     <Th>Agent says</Th>
                     <Th>Confidence</Th>
                     <Th>Decision</Th>
                     <Th>Updated</Th>
-                    <Th>
-                      <span className="sr-only">Actions</span>
-                    </Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -253,46 +251,36 @@ export function InventoryClient({
                           onClick={() => setOpenId(inventoryItem.id)}
                           className="text-left text-primary-400 hover:underline"
                         >
+                          <Icon
+                            name={
+                              inventoryItem.kind === 'file'
+                                ? 'radix-file'
+                                : 'folder'
+                            }
+                            title={
+                              inventoryItem.kind === 'file' ? 'File' : 'Folder'
+                            }
+                            className="mr-1.5 inline-block align-text-bottom text-neutral-400"
+                          />
                           {inventoryItem.rootPath}
                         </button>
-                        <Typography
-                          variant="small"
-                          className="text-neutral-400"
-                        >
+                        <div>
+                          <span className="text-neutral-400">What: </span>
                           {inventoryItem.summary}
-                        </Typography>
-                      </Td>
-                      <Td>
-                        <Badge
-                          color={
-                            inventoryItem.kind === 'file' ? 'dark' : 'secondary'
-                          }
-                        >
-                          {inventoryItem.kind === 'file' ? 'file' : 'folder'}
-                        </Badge>
-                      </Td>
-                      <Td>
-                        <Badge
-                          color={
-                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
-                          }
-                        >
-                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
-                        </Badge>
-                      </Td>
-                      <Td>{inventoryItem.confidence}</Td>
-                      <Td>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <Badge color={DECISION_COLOR[inventoryItem.decision]}>
-                            {DECISION_LABELS[inventoryItem.decision]}
-                          </Badge>
-                          {changedSinceDecision(inventoryItem) && (
-                            <Badge color="warning">Agent changed</Badge>
-                          )}
                         </div>
-                      </Td>
-                      <Td>
-                        <LocalDateTime iso={inventoryItem.recommendedAt} />
+                        <div>
+                          <span className="text-neutral-400">Why: </span>
+                          {inventoryItem.recommendationReason}
+                        </div>
+                        <div>
+                          <Icon
+                            name="radix-eye-open"
+                            title="Looks like"
+                            className="mr-1.5 inline-block align-text-bottom text-neutral-400"
+                          />
+                          {inventoryItem.evidence.contentKinds.join(', ') ||
+                            'unclassified'}
+                        </div>
                       </Td>
                       <Td>
                         <div className="flex flex-col gap-2">
@@ -314,12 +302,6 @@ export function InventoryClient({
                             />
                           )}
                           <div className="flex flex-wrap gap-2">
-                            <OutlinedButton
-                              size="small"
-                              onClick={() => setOpenId(inventoryItem.id)}
-                            >
-                              Details
-                            </OutlinedButton>
                             {inventoryItem.decision === 'pending' && (
                               <>
                                 <Button
@@ -345,6 +327,29 @@ export function InventoryClient({
                             )}
                           </div>
                         </div>
+                      </Td>
+                      <Td>
+                        <Badge
+                          color={
+                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
+                          }
+                        >
+                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
+                        </Badge>
+                      </Td>
+                      <Td>{inventoryItem.confidence}</Td>
+                      <Td>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                            {DECISION_LABELS[inventoryItem.decision]}
+                          </Badge>
+                          {changedSinceDecision(inventoryItem) && (
+                            <Badge color="warning">Agent changed</Badge>
+                          )}
+                        </div>
+                      </Td>
+                      <Td>
+                        <LocalDateTime iso={inventoryItem.recommendedAt} />
                       </Td>
                     </TableRow>
                   ))}

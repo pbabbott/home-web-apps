@@ -42,7 +42,7 @@ function Section({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <Typography variant="small" className="text-neutral-400">
+      <Typography variant="body1" className="text-neutral-400">
         {title}
       </Typography>
       {children}
@@ -155,7 +155,7 @@ export function InventoryItemDetailModal({
         if (!open) close();
       }}
     >
-      <ModalContent color="secondary">
+      <ModalContent color="secondary" className="max-w-4xl">
         <ModalTitle>{inventoryItem?.displayName}</ModalTitle>
         <ModalDescription className="break-all">
           {inventoryItem?.rootPath}
@@ -208,7 +208,7 @@ export function InventoryItemDetailModal({
               <Typography variant="body2">
                 {inventoryItem.recommendationReason}
               </Typography>
-              <Typography variant="small" className="text-neutral-400">
+              <Typography variant="body2" className="text-neutral-400">
                 {inventoryItem.recommendedBy ?? 'agent'}, updated{' '}
                 <LocalDateTime iso={inventoryItem.recommendedAt} />
               </Typography>
@@ -270,7 +270,7 @@ export function InventoryItemDetailModal({
             )}
 
             <label className="flex flex-col gap-1">
-              <Typography variant="small" className="text-neutral-400">
+              <Typography variant="body1" className="text-neutral-400">
                 Note (optional)
               </Typography>
               <Input
