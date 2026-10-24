@@ -14,6 +14,9 @@ import {
   TableBody,
   TableHead,
   TableRow,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   Td,
   Th,
   Typography,
@@ -25,10 +28,12 @@ import {
   DECISION_COLOR,
   DECISION_LABELS,
   parseDecisionFilter,
+  parseLayout,
   parseRecommendation,
   RECOMMENDATION_COLOR,
   RECOMMENDATION_LABELS,
   type DecisionFilter,
+  type InventoryLayout,
 } from '../lib/inventory-display';
 import { LocalDateTime } from '../lib/LocalDateTime';
 import { decideInventoryItem } from '../sources/lib/actions';
@@ -37,6 +42,7 @@ import type {
   InventoryItemRecommendation,
   InventoryItem,
 } from '../sources/lib/homelab-api';
+import { InventoryItemCard } from './InventoryItemCard';
 import { InventoryItemDetailModal } from './InventoryItemDetailModal';
 
 interface InventoryClientProps {
@@ -46,6 +52,7 @@ interface InventoryClientProps {
   sourceId: string | null;
   decision: DecisionFilter;
   recommendation: InventoryItemRecommendation | undefined;
+  layout: InventoryLayout;
   isFirstPage: boolean;
   /** Null if the inventory items could not be loaded. */
   inventoryItems: InventoryItem[] | null;
@@ -60,6 +67,7 @@ export function InventoryClient({
   sourceId,
   decision,
   recommendation,
+  layout,
   isFirstPage,
   inventoryItems,
   nextCursor,
@@ -71,7 +79,12 @@ export function InventoryClient({
   // Reason typed per row, keyed by inventory item id.
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  const view = { source: sourceId ?? undefined, decision, recommendation };
+  const view = {
+    source: sourceId ?? undefined,
+    decision,
+    recommendation,
+    layout,
+  };
   // Looked up by id so the modal shows fresh data after a refresh.
   const open = inventoryItems?.find((c) => c.id === openId) ?? null;
 
@@ -100,7 +113,7 @@ export function InventoryClient({
   }
 
   return (
-    <main className="flex flex-col gap-6 bg-neutral-800 p-8">
+    <main className="flex flex-col gap-6 bg-neutral-800 p-4 sm:p-8">
       <div className="flex flex-col gap-2">
         <Typography variant="h1" component="h1">
           Inventory
@@ -111,6 +124,23 @@ export function InventoryClient({
           everything beneath the path.
         </Typography>
       </div>
+
+      {sourceId !== null && (
+        <Tabs
+          value={layout}
+          onValueChange={(value) =>
+            router.push(
+              inventoryItemsUrl({ ...view, layout: parseLayout(value) }),
+            )
+          }
+          className="self-start"
+        >
+          <TabsList aria-label="Inventory layout">
+            <TabsTrigger value="table">Table</TabsTrigger>
+            <TabsTrigger value="cards">Cards</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {sources === null ? (
         <Typography variant="body2" className="text-error-400">
@@ -129,8 +159,8 @@ export function InventoryClient({
         </Typography>
       ) : (
         <div className="flex flex-wrap items-center gap-4">
-          <label className="flex items-center gap-2">
-            <Typography variant="small" className="text-neutral-400">
+          <label className="flex w-full items-center gap-2 sm:w-auto">
+            <Typography variant="body2" className="text-neutral-400">
               Source
             </Typography>
             <select
@@ -140,7 +170,7 @@ export function InventoryClient({
                   inventoryItemsUrl({ ...view, source: e.target.value }),
                 )
               }
-              className={selectClass}
+              className={`${selectClass} min-w-0 flex-1 sm:flex-none`}
             >
               {sources.map((source) => (
                 <option key={source.id} value={source.id}>
@@ -150,8 +180,8 @@ export function InventoryClient({
             </select>
           </label>
 
-          <label className="flex items-center gap-2">
-            <Typography variant="small" className="text-neutral-400">
+          <label className="flex w-full items-center gap-2 sm:w-auto">
+            <Typography variant="body2" className="text-neutral-400">
               Decision
             </Typography>
             <select
@@ -164,7 +194,7 @@ export function InventoryClient({
                   }),
                 )
               }
-              className={selectClass}
+              className={`${selectClass} min-w-0 flex-1 sm:flex-none`}
             >
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
@@ -173,8 +203,8 @@ export function InventoryClient({
             </select>
           </label>
 
-          <label className="flex items-center gap-2">
-            <Typography variant="small" className="text-neutral-400">
+          <label className="flex w-full items-center gap-2 sm:w-auto">
+            <Typography variant="body2" className="text-neutral-400">
               Agent says
             </Typography>
             <select
@@ -187,7 +217,7 @@ export function InventoryClient({
                   }),
                 )
               }
-              className={selectClass}
+              className={`${selectClass} min-w-0 flex-1 sm:flex-none`}
             >
               <option value="">Anything</option>
               {Object.entries(RECOMMENDATION_LABELS).map(([value, label]) => (
@@ -229,6 +259,21 @@ export function InventoryClient({
                   ? 'Nothing waiting for review.'
                   : 'No inventory items match these filters.'}
             </Typography>
+          ) : layout === 'cards' ? (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {inventoryItems.map((inventoryItem) => (
+                <InventoryItemCard
+                  key={inventoryItem.id}
+                  inventoryItem={inventoryItem}
+                  note={notes[inventoryItem.id] ?? ''}
+                  onNoteChange={(note) =>
+                    setNotes((prev) => ({ ...prev, [inventoryItem.id]: note }))
+                  }
+                  busy={busyId === inventoryItem.id}
+                  onDecide={(next) => quickDecide(inventoryItem, next)}
+                />
+              ))}
+            </div>
           ) : (
             <ScrollableTable className="mb-0">
               <Table size="small">
@@ -237,7 +282,6 @@ export function InventoryClient({
                     <Th>Path</Th>
                     <Th>Approval</Th>
                     <Th>Agent says</Th>
-                    <Th>Confidence</Th>
                     <Th>Decision</Th>
                     <Th>Updated</Th>
                   </TableRow>
@@ -329,15 +373,26 @@ export function InventoryClient({
                         </div>
                       </Td>
                       <Td>
-                        <Badge
-                          color={
-                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
-                          }
-                        >
-                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
-                        </Badge>
+                        <div className="flex flex-col items-start gap-1">
+                          <Badge
+                            color={
+                              RECOMMENDATION_COLOR[inventoryItem.recommendation]
+                            }
+                          >
+                            {
+                              RECOMMENDATION_LABELS[
+                                inventoryItem.recommendation
+                              ]
+                            }
+                          </Badge>
+                          <Typography
+                            variant="small"
+                            className="text-neutral-400"
+                          >
+                            ({inventoryItem.confidence})
+                          </Typography>
+                        </div>
                       </Td>
-                      <Td>{inventoryItem.confidence}</Td>
                       <Td>
                         <div className="flex flex-wrap items-center gap-1">
                           <Badge color={DECISION_COLOR[inventoryItem.decision]}>

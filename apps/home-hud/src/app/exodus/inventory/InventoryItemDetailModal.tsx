@@ -17,12 +17,9 @@ import {
   changedSinceDecision,
   DECISION_COLOR,
   DECISION_LABELS,
-  describeGit,
   RECOMMENDATION_COLOR,
   RECOMMENDATION_LABELS,
 } from '../lib/inventory-display';
-import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
-import { LocalDateTime } from '../lib/LocalDateTime';
 import {
   decideInventoryItem,
   getInventoryItemDetail,
@@ -32,41 +29,7 @@ import type {
   InventoryItemDecision,
   InventoryItem,
 } from '../sources/lib/homelab-api';
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Typography variant="body1" className="text-neutral-400">
-        {title}
-      </Typography>
-      {children}
-    </div>
-  );
-}
-
-function List({ items, empty }: { items: string[]; empty: string }) {
-  return items.length === 0 ? (
-    <Typography variant="body2" className="text-neutral-400">
-      {empty}
-    </Typography>
-  ) : (
-    <ul className="flex list-disc flex-col gap-1 pl-5">
-      {items.map((item) => (
-        <li key={item}>
-          <Typography variant="body2" component="span" className="break-words">
-            {item}
-          </Typography>
-        </li>
-      ))}
-    </ul>
-  );
-}
+import { InventoryItemDetails } from './InventoryItemDetails';
 
 interface InventoryItemDetailModalProps {
   /** The inventory item to review; null closes the modal. */
@@ -146,8 +109,6 @@ export function InventoryItemDetailModal({
     onDecided();
   }
 
-  const evidence = inventoryItem?.evidence;
-
   return (
     <Modal
       open={inventoryItem !== null}
@@ -161,7 +122,7 @@ export function InventoryItemDetailModal({
           {inventoryItem?.rootPath}
         </ModalDescription>
 
-        {inventoryItem && evidence && (
+        {inventoryItem && (
           <div className="mt-4 flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
             <div className="flex flex-wrap items-center gap-2">
               <Badge
@@ -200,74 +161,7 @@ export function InventoryItemDetailModal({
               </Typography>
             )}
 
-            <Section title="Summary">
-              <Typography variant="body2">{inventoryItem.summary}</Typography>
-            </Section>
-
-            <Section title="Why the agent recommends this">
-              <Typography variant="body2">
-                {inventoryItem.recommendationReason}
-              </Typography>
-              <Typography variant="body2" className="text-neutral-400">
-                {inventoryItem.recommendedBy ?? 'agent'}, updated{' '}
-                <LocalDateTime iso={inventoryItem.recommendedAt} />
-              </Typography>
-            </Section>
-
-            <Section title="Observations">
-              <List items={evidence.observations} empty="None recorded." />
-            </Section>
-
-            {evidence.openQuestions.length > 0 && (
-              <Section title="Still unknown">
-                <List items={evidence.openQuestions} empty="" />
-              </Section>
-            )}
-
-            {evidence.git && (
-              <Section title="Git">
-                <List items={describeGit(evidence.git)} empty="" />
-              </Section>
-            )}
-
-            <Section title="Other">
-              <List
-                items={[
-                  `Looks like: ${evidence.contentKinds.join(', ') || 'unclassified'}`,
-                  `Reproducible elsewhere: ${evidence.reproducible}`,
-                  `Enough information: ${evidence.sufficientInformation ? 'yes' : 'no'}`,
-                  ...(evidence.estimatedSizeBytes !== undefined
-                    ? [
-                        `Estimated size: ${formatBytes(evidence.estimatedSizeBytes)}`,
-                      ]
-                    : []),
-                  ...(evidence.estimatedFileCount !== undefined
-                    ? [`Estimated files: ${evidence.estimatedFileCount}`]
-                    : []),
-                ]}
-                empty=""
-              />
-            </Section>
-
-            {inventoryItem.decision !== 'pending' && (
-              <Section title="Decision">
-                <Typography variant="body2">
-                  {DECISION_LABELS[inventoryItem.decision]}
-                  {inventoryItem.decidedBy
-                    ? ` by ${inventoryItem.decidedBy}`
-                    : ''}
-                  {inventoryItem.decidedAt && (
-                    <>
-                      {' on '}
-                      <LocalDateTime iso={inventoryItem.decidedAt} />
-                    </>
-                  )}
-                  {inventoryItem.decisionNote
-                    ? `: ${inventoryItem.decisionNote}`
-                    : ''}
-                </Typography>
-              </Section>
-            )}
+            <InventoryItemDetails inventoryItem={inventoryItem} />
 
             <label className="flex flex-col gap-1">
               <Typography variant="body1" className="text-neutral-400">
