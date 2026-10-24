@@ -18,10 +18,13 @@ export function RelativeTime({ iso }: { iso: string | null }) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
-    setNow(Date.now());
+    const first = setTimeout(() => setNow(Date.now()), 0);
     const timer = setInterval(() => setNow(Date.now()), RELATIVE_TICK_MS);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
   }, [iso]);
 
   return <>{now === null ? '—' : formatRelativeTime(iso, now)}</>;

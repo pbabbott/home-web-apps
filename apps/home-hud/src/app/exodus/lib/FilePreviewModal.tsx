@@ -31,7 +31,13 @@ export function FilePreviewModal({
   path,
 }: FilePreviewModalProps) {
   const kind = previewKind(path);
-  const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
+  const key = `${sourceId}:${path}`;
+  const [result, setResult] = useState<{ key: string; value: Loaded } | null>(
+    null,
+  );
+  // A result for a previous file reads as loading until the new fetch lands.
+  const loaded: Loaded =
+    result?.key === key ? result.value : { status: 'loading' };
 
   useEffect(() => {
     if (!open || !kind) return;
@@ -39,7 +45,7 @@ export function FilePreviewModal({
     const controller = new AbortController();
     let objectUrl: string | null = null;
 
-    setLoaded({ status: 'loading' });
+    const setLoaded = (value: Loaded) => setResult({ key, value });
 
     // fetch, not <img src>: a failed preview needs its message shown, which an
     // img/iframe cannot report.
@@ -81,7 +87,7 @@ export function FilePreviewModal({
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [open, kind, sourceId, path]);
+  }, [open, kind, sourceId, path, key]);
 
   return (
     <Modal open={open} onOpenChange={onOpenChange}>

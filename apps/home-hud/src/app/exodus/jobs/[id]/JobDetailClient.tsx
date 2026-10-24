@@ -412,7 +412,11 @@ export function JobDetailClient({
 
   // Set after mount: lease expiry compared against the server's clock at render
   // time would not match what the browser computes during hydration.
-  useEffect(() => setNow(Date.now()), [items]);
+  useEffect(() => {
+    const timer = setTimeout(() => setNow(Date.now()), 0);
+
+    return () => clearTimeout(timer);
+  }, [items]);
 
   // From the server, so a status filter on the table cannot hide stuck claims.
   const phase = active ? jobPhase(job.queueCounts, job.staleClaims) : null;
