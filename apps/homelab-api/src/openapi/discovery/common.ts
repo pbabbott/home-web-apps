@@ -43,7 +43,7 @@ export const queueSummaryShape = {
   queueCounts: queueCountsSchema,
   staleClaims: z.number().meta({
     description:
-      'In-progress items whose lease has expired. They are only returned to the queue by the next claim, so this is how a stuck run shows up between ticks.',
+      'In-progress items whose lease has expired; always 0 for a finished job. They are only returned to the queue by the next claim, so this is how a stuck run shows up between ticks.',
   }),
   lastActivityAt: z.string().nullable().meta({
     format: 'date-time',

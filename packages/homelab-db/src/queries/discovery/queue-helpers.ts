@@ -236,6 +236,8 @@ export const getQueueSummaries = async (
       summary.queueCounts,
       summary.staleClaims,
     );
+    // A lapsed lease only matters while the job can still be claimed from.
+    if (summary.phase === null) summary.staleClaims = 0;
   }
 
   return result;

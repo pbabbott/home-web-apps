@@ -747,6 +747,24 @@ describe('job summary: phase, stale claims, activity', () => {
     expect((await getJob(job.id)).phase).toBeNull();
   });
 
+  it('reports no stale claims once the job is finished', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    await expireLease(item.id);
+    expect((await getJob(job.id)).staleClaims).toBe(1);
+
+    // Bypasses the cancel route so the lapsed lease is left behind.
+    await db.$client.query(
+      "update discovery_jobs set status = 'cancelled' where id = $1",
+      [job.id],
+    );
+    expect(await getJob(job.id)).toMatchObject({
+      phase: null,
+      staleClaims: 0,
+    });
+  });
+
   it('remembers the last worker after a failure and reports summaries in lists', async () => {
     const sourceId = await createSource();
     const job = await startJob(sourceId);
