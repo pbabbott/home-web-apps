@@ -1,4 +1,3 @@
-import { getHosts, type Host } from '../../infra/hosts/lib/homelab-api';
 import {
   getAllDiscoveryJobs,
   getSources,
@@ -26,14 +25,12 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
   // hand-edited URL, so treat it as "no filter" instead of an error page.
   const requestedSourceId = isUuid(sourceParam) ? sourceParam : undefined;
 
-  const [sourcesResult, hostsResult, jobsResult] = await Promise.allSettled([
+  const [sourcesResult, jobsResult] = await Promise.allSettled([
     getSources(),
-    getHosts(),
     getAllDiscoveryJobs(requestedSourceId),
   ]);
 
   let sources: Source[] | null = null;
-  let hosts: Host[] | null = null;
   let jobs: DiscoveryJobWithSource[] | null = null;
 
   if (sourcesResult.status === 'fulfilled') {
@@ -43,12 +40,6 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
       'Failed to load sources from homelab-api:',
       sourcesResult.reason,
     );
-  }
-
-  if (hostsResult.status === 'fulfilled') {
-    hosts = hostsResult.value;
-  } else {
-    console.error('Failed to load hosts from homelab-api:', hostsResult.reason);
   }
 
   if (jobsResult.status === 'fulfilled') {
@@ -71,7 +62,6 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
     <JobsClient
       jobs={jobs}
       sources={sources}
-      hosts={hosts}
       selectedSourceId={selectedSourceId}
       hasActiveJob={jobs?.some(isActiveJob) ?? false}
     />

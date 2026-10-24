@@ -15,7 +15,6 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import type { Host } from '../../infra/hosts/lib/homelab-api';
 import { JOB_STATUS_COLOR, formatDateTime } from '../lib/job-display';
 import type {
   Source,
@@ -32,7 +31,6 @@ function buildUrl(sourceId: string | null): string {
 interface JobsClientProps {
   jobs: DiscoveryJobWithSource[] | null;
   sources: Source[] | null;
-  hosts: Host[] | null;
   selectedSourceId: string | null;
   hasActiveJob: boolean;
 }
@@ -40,7 +38,6 @@ interface JobsClientProps {
 export function JobsClient({
   jobs,
   sources,
-  hosts,
   selectedSourceId,
   hasActiveJob,
 }: JobsClientProps) {
@@ -52,8 +49,6 @@ export function JobsClient({
     const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [hasActiveJob, router]);
-
-  const hostsById = new Map((hosts ?? []).map((host) => [host.id, host]));
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
@@ -102,9 +97,9 @@ export function JobsClient({
             <Table size="small">
               <TableHead>
                 <TableRow>
+                  <Th>ID</Th>
                   <Th>Status</Th>
                   <Th>Source</Th>
-                  <Th>Host</Th>
                   <Th>Root</Th>
                   <Th>Created (UTC)</Th>
                   <Th>Finished (UTC)</Th>
@@ -112,10 +107,6 @@ export function JobsClient({
               </TableHead>
               <TableBody>
                 {jobs.map((job) => {
-                  const host = job.hostId
-                    ? hostsById.get(job.hostId)
-                    : undefined;
-
                   return (
                     <TableRow key={job.id}>
                       <Td>
@@ -123,10 +114,19 @@ export function JobsClient({
                           href={`/exodus/jobs/${job.id}`}
                           className="hover:underline"
                         >
-                          <Badge color={JOB_STATUS_COLOR[job.status]}>
-                            {job.status}
-                          </Badge>
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            className="text-primary-400"
+                          >
+                            {job.id.slice(0, 8)}
+                          </Typography>
                         </Link>
+                      </Td>
+                      <Td>
+                        <Badge color={JOB_STATUS_COLOR[job.status]}>
+                          {job.status}
+                        </Badge>
                       </Td>
                       <Td>
                         <Link
@@ -136,7 +136,6 @@ export function JobsClient({
                           {job.sourceName}
                         </Link>
                       </Td>
-                      <Td>{host ? host.name : '—'}</Td>
                       <Td className="break-all">
                         <Link
                           href={`/exodus/jobs/${job.id}`}
