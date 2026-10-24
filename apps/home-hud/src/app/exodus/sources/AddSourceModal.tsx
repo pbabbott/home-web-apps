@@ -18,7 +18,7 @@ import { createSource } from './lib/actions';
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <Typography variant="small" className="text-neutral-400">
+      <Typography variant="body2" className="text-neutral-400">
         {label}
       </Typography>
       {children}

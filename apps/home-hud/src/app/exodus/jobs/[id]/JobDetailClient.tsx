@@ -194,7 +194,7 @@ function QueueDirectoryPanel({
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <Typography variant="small" className="text-neutral-400">
+          <Typography variant="body2" className="text-neutral-400">
             Paths
           </Typography>
           <textarea
@@ -207,7 +207,7 @@ function QueueDirectoryPanel({
           />
         </label>
         <label className="flex flex-col gap-1 sm:w-48">
-          <Typography variant="small" className="text-neutral-400">
+          <Typography variant="body2" className="text-neutral-400">
             Priority (optional, higher first)
           </Typography>
           <Input

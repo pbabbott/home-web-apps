@@ -64,7 +64,7 @@ export function JobsClient({
           </Typography>
 
           <label className="flex items-center gap-2">
-            <Typography variant="small" className="text-neutral-400">
+            <Typography variant="body2" className="text-neutral-400">
               Source
             </Typography>
             <select

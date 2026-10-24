@@ -156,7 +156,7 @@ export function CurrentJobPanel({
             size="small"
             className="self-start"
           >
-            View directories →
+            View job details →
           </OutlinedButton>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -207,7 +207,7 @@ export function CurrentJobPanel({
             }}
           >
             <label className="flex flex-col gap-1">
-              <Typography variant="small" className="text-neutral-400">
+              <Typography variant="body2" className="text-neutral-400">
                 Reason
               </Typography>
               <Input
