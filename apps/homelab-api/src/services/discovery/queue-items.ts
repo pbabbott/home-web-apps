@@ -1,14 +1,18 @@
 import {
   DiscoveryError,
+  claimNextAcrossJobs,
   claimNextQueueItem,
   completeQueueItem,
   enqueueQueueItems,
   failQueueItem,
+  getQueueCounts,
   getQueueItemById,
   getSourceById,
   heartbeatQueueItem,
   listKnownSkips as listKnownSkipRows,
   listQueueItems as listQueueItemRows,
+  releaseQueueItem,
+  retryFailedQueueItems,
   retryQueueItem,
   skipQueueItem,
   type ClaimQueueItemResult,
@@ -66,6 +70,13 @@ export const claimQueueItem = (
   leaseSeconds: number,
 ): Promise<ClaimQueueItemResult> =>
   claimNextQueueItem(db, { jobId, workerId, leaseSeconds });
+
+export const claimAnyQueueItem = (
+  workerId: string,
+  leaseSeconds: number,
+  sourceId?: string,
+): Promise<ClaimQueueItemResult> =>
+  claimNextAcrossJobs(db, { workerId, leaseSeconds, sourceId });
 
 export async function listSourceQueueItems(
   sourceId: string,
@@ -140,6 +151,14 @@ export const failItem = (
 
 export const skipItem = (id: string, claimToken: string, reason: string) =>
   skipQueueItem(db, id, { claimToken, reason });
+
+export const jobQueueCounts = (jobId: string) => getQueueCounts(db, jobId);
+
+export const releaseItem = (id: string, claimToken: string) =>
+  releaseQueueItem(db, id, { claimToken });
+
+export const retryFailedItems = (jobId: string) =>
+  retryFailedQueueItems(db, jobId);
 
 export const retryItem = (id: string) => retryQueueItem(db, id);
 

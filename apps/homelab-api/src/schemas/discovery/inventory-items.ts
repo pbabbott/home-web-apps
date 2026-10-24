@@ -171,3 +171,21 @@ export const decideInventoryItemBodySchema = z.object({
 export type DecideInventoryItemBody = z.infer<
   typeof decideInventoryItemBodySchema
 >;
+
+export const promoteInventoryItemBodySchema = z.object({
+  path: windowsPathSchema.meta({
+    description:
+      'A path inside the queue item’s directory, usually one listed in its `skipped`.',
+  }),
+  kind: z.enum(['file', 'directory']),
+  displayName: shortText.optional(),
+  note: z.string().trim().min(1).max(1000).optional().meta({
+    description: 'Stored as the decision note.',
+  }),
+  skipReason: z.string().trim().min(1).max(1000).optional().meta({
+    description: 'Why the agent skipped it; kept for the audit trail.',
+  }),
+});
+export type PromoteInventoryItemBody = z.infer<
+  typeof promoteInventoryItemBodySchema
+>;

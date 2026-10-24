@@ -1,5 +1,6 @@
 import {
   parseDecisionFilter,
+  parseLayout,
   parseRecommendation,
 } from '../lib/inventory-display';
 import {
@@ -15,6 +16,7 @@ type PageProps = {
     source?: string;
     decision?: string;
     recommendation?: string;
+    view?: string;
     after?: string;
   }>;
 };
@@ -39,6 +41,7 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
 
   const decision = parseDecisionFilter(query.decision);
   const recommendation = parseRecommendation(query.recommendation);
+  const layout = parseLayout(query.view);
   const after = query.after || undefined;
 
   let inventoryItems: InventoryItem[] | null = null;
@@ -62,6 +65,7 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
       sourceId={source?.id ?? null}
       decision={decision}
       recommendation={recommendation}
+      layout={layout}
       isFirstPage={!after}
       inventoryItems={inventoryItems}
       // A full page may have more behind it; the cursor is the last row seen.

@@ -9,6 +9,7 @@ erDiagram
     discovery_jobs ||--o{ discovery_queue_items : "job_id (CASCADE)"
     sources |o--o{ exclusion_rules : "source_id (CASCADE)"
     sources ||--o{ inventory_items : "source_id (CASCADE)"
+    sources ||--o| source_connections : "source_id (CASCADE)"
     discovery_jobs |o--o{ inventory_items : "first_job_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "last_job_id (SET NULL)"
 
@@ -28,6 +29,20 @@ erDiagram
         text name UK
         uuid host_id FK "nullable"
         source_type source_type "windows"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    source_connections {
+        uuid source_id PK, FK
+        source_connection_type connection_type "smb"
+        text username
+        text domain "nullable"
+        text secret_ciphertext "encrypted by the API, never returned"
+        jsonb settings "shareMappings"
+        timestamptz last_tested_at "nullable"
+        boolean last_test_ok "nullable"
+        text last_test_error "nullable"
         timestamptz created_at
         timestamptz updated_at
     }
@@ -59,6 +74,7 @@ erDiagram
         jsonb result "nullable, summary + paths skipped without queueing"
         timestamptz available_at
         text claimed_by "nullable"
+        text last_claimed_by "nullable, kept after release/expiry/failure"
         uuid claim_token "nullable"
         timestamptz lease_expires_at "nullable"
         timestamptz created_at
@@ -128,4 +144,5 @@ erDiagram
 - **Normalized paths** are lowercased, so Windows paths compare case-insensitively.
 - **Catalogue removal (migration `0011`).** The old per-path `inventory_items` catalogue and `audit_events.inventory_item_id` were dropped, the legacy `inventory_item.review_*` audit events were deleted, and the `inventory_item_type` enum was renamed `candidate_kind`.
 - **Rename (migration `0012`).** `review_candidates` became `inventory_items`; the `candidate_*` enums became `inventory_item_*`; `audit_events.review_candidate_id` became `inventory_item_id`; `review_candidate.*` audit event types became `inventory_item.*`. Constraints and indexes were renamed to match; no data moved.
+- **Source connections (migration file `0012_source_connections`).** At most one per source (`source_id` is the primary key), cascading with the source. It holds the credentials the API uses to read files for preview. `secret_ciphertext` is AES-256-GCM output produced by `homelab-api`; this package never sees the key or the plaintext. Saving a connection clears the last test result.
 - **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory items. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory items. Deleting a host that a source references is blocked (`RESTRICT`).

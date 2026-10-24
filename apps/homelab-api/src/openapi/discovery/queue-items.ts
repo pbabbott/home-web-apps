@@ -7,6 +7,7 @@ import {
   queueItemWithCreatedSchema,
 } from './common';
 import {
+  claimAnyQueueItemOperation,
   claimQueueItemOperation,
   completeQueueItemOperation,
   enqueueQueueItemsOperation,
@@ -15,10 +16,13 @@ import {
   listJobQueueItemsOperation,
   listKnownSkipsOperation,
   listSourceQueueItemsOperation,
+  releaseQueueItemOperation,
+  retryFailedQueueItemsOperation,
   retryQueueItemOperation,
   skipQueueItemOperation,
 } from '../../controllers/discovery/queue-items';
 import {
+  claimAnyQueueItemBodySchema,
   claimQueueItemBodySchema,
   completeQueueItemBodySchema,
   enqueueQueueItemsBodySchema,
@@ -29,6 +33,7 @@ import {
   knownSkipListQuerySchema,
   queueItemIdParamsSchema,
   queueItemListQuerySchema,
+  releaseQueueItemBodySchema,
   skipQueueItemBodySchema,
   sourceIdParamsSchema,
 } from '../../schemas/discovery';
@@ -138,6 +143,27 @@ export const queueItemsPaths = {
         '409': conflictResponse(
           'The job is finished, or a path is outside the job root',
         ),
+      },
+    },
+  },
+  '/queue-items/claim': {
+    post: {
+      summary: claimAnyQueueItemOperation.summary,
+      'x-mcp-tool': claimAnyQueueItemOperation.mcp.name,
+      description: claimAnyQueueItemOperation.description,
+      requestBody: {
+        content: {
+          'application/json': { schema: claimAnyQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The claimed item, or why there is nothing to claim',
+          content: {
+            'application/json': { schema: claimResultSchema },
+          },
+        },
+        '400': validationErrorResponse,
       },
     },
   },
@@ -264,6 +290,53 @@ export const queueItemsPaths = {
         '409': conflictResponse(
           'Wrong token, lease expired, or not in progress',
         ),
+      },
+    },
+  },
+  '/queue-items/{id}/release': {
+    post: {
+      summary: releaseQueueItemOperation.summary,
+      'x-mcp-tool': releaseQueueItemOperation.mcp.name,
+      description: releaseQueueItemOperation.description,
+      requestParams: { path: queueItemIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: releaseQueueItemBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The requeued item',
+          content: {
+            'application/json': { schema: discoveryQueueItemSelectSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'Wrong token, lease expired, or not in progress',
+        ),
+      },
+    },
+  },
+  '/discovery-jobs/{id}/retry-failed': {
+    post: {
+      summary: retryFailedQueueItemsOperation.summary,
+      'x-home-hud': retryFailedQueueItemsOperation.hud,
+      description: retryFailedQueueItemsOperation.description,
+      requestParams: { path: jobIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The requeued items',
+          content: {
+            'application/json': {
+              schema: z.array(discoveryQueueItemSelectSchema),
+            },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('discovery job'),
+        '409': conflictResponse('The job is finished'),
       },
     },
   },

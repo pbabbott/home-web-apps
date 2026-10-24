@@ -490,6 +490,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['video', 'camera', 'stream', 'media', 'record'],
   },
   {
+    id: 'radix-magnifying-glass',
+    label: 'Magnifying glass',
+    slug: 'MagnifyingGlassIcon',
+    source: 'radix',
+    keywords: ['search', 'find', 'zoom', 'preview', 'spyglass', 'lookup'],
+  },
+  {
     id: 'radix-eye-open',
     label: 'Eye',
     slug: 'EyeOpenIcon',
@@ -509,6 +516,20 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'ChevronLeftIcon',
     source: 'radix',
     keywords: ['back', 'previous', 'left', 'navigate', 'return'],
+  },
+  {
+    id: 'radix-chevron-right',
+    label: 'Chevron Right',
+    slug: 'ChevronRightIcon',
+    source: 'radix',
+    keywords: ['next', 'right', 'forward', 'navigate', 'expand'],
+  },
+  {
+    id: 'radix-chevron-down',
+    label: 'Chevron Down',
+    slug: 'ChevronDownIcon',
+    source: 'radix',
+    keywords: ['down', 'dropdown', 'collapse', 'expand', 'open'],
   },
 ];
 

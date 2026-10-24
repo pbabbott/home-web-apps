@@ -1179,3 +1179,137 @@ describe('nested inventory items', () => {
     ]);
   });
 });
+
+describe('promoting a skipped path', () => {
+  const DOWNLOADS = 'C:\\Users\\Me\\Downloads';
+  const KEEPER = `${DOWNLOADS}\\tax-return.pdf`;
+
+  const queueOf = async (jobId: string) =>
+    (await getRequest().get(`/discovery-jobs/${jobId}/queue-items`).expect(200))
+      .body as Record<string, any>[];
+
+  const promote = (
+    item: ClaimedItem,
+    body: object,
+    headers: Record<string, string> = { 'X-Actor-Id': 'brandon' },
+  ) =>
+    getRequest()
+      .post(`/queue-items/${item.id}/promote`)
+      .set(headers)
+      .send(body);
+
+  /** Claims Downloads and completes it with the keeper wrongly skipped. */
+  const skipKeeper = async (sourceId: string) => {
+    const { job, item } = await startAndClaim(sourceId, DOWNLOADS);
+    await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        skipped: [{ path: KEEPER, reason: 'looked like a download' }],
+      })
+      .expect(200);
+
+    return { job, item };
+  };
+
+  it('creates an approved inventory item and one promoted audit event', async () => {
+    const sourceId = await createSource();
+    const { item } = await skipKeeper(sourceId);
+
+    const res = await promote(item, {
+      path: KEEPER,
+      kind: 'file',
+      note: 'my taxes',
+      skipReason: 'looked like a download',
+    }).expect(201);
+
+    expect(res.body).toMatchObject({
+      rootPath: KEEPER,
+      kind: 'file',
+      displayName: 'tax-return.pdf',
+      recommendation: 'back_up',
+      decision: 'approved',
+      decisionNote: 'my taxes',
+      decidedBy: 'brandon',
+    });
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
+
+    const events = await inventoryItemEvents(res.body.id);
+    expect(events.map((e) => e.eventType)).toEqual(['inventory_item.promoted']);
+    expect(events[0]).toMatchObject({
+      actorType: 'human',
+      actorId: 'brandon',
+      details: { path: KEEPER, skipReason: 'looked like a download' },
+    });
+  });
+
+  it('only a human may promote', async () => {
+    const sourceId = await createSource();
+    const { item } = await skipKeeper(sourceId);
+
+    await promote(
+      item,
+      { path: KEEPER, kind: 'file' },
+      { 'X-Actor-Type': 'openclaw', 'X-Actor-Id': 'agent' },
+    ).expect(409);
+
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
+  });
+
+  it('refuses a path that already has an inventory item, changing nothing', async () => {
+    const sourceId = await createSource();
+    const { item } = await skipKeeper(sourceId);
+    const first = await promote(item, { path: KEEPER, kind: 'file' }).expect(
+      201,
+    );
+
+    const again = await promote(item, {
+      path: KEEPER.toLowerCase(),
+      kind: 'file',
+    }).expect(409);
+
+    expect(again.body).toMatchObject({
+      inventoryItemId: first.body.id,
+    });
+    expect(await listInventoryItems(sourceId)).toHaveLength(1);
+  });
+
+  it('refuses a path under an exclusion rule', async () => {
+    const sourceId = await createSource();
+    const { item } = await skipKeeper(sourceId);
+    await createRule({
+      sourceId,
+      path: DOWNLOADS,
+      scope: 'exclude_subtree',
+    });
+
+    const res = await promote(item, { path: KEEPER, kind: 'file' }).expect(409);
+
+    expect(res.body.blocked).toHaveLength(1);
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
+  });
+
+  it('refuses a path outside, or equal to, the queue item’s directory', async () => {
+    const sourceId = await createSource();
+    const { item } = await skipKeeper(sourceId);
+
+    await promote(item, {
+      path: 'C:\\Users\\Me\\Documents\\a.pdf',
+      kind: 'file',
+    }).expect(409);
+    await promote(item, { path: DOWNLOADS, kind: 'directory' }).expect(409);
+
+    expect(await listInventoryItems(sourceId)).toHaveLength(0);
+  });
+
+  it('leaves the agent’s skip record untouched', async () => {
+    const sourceId = await createSource();
+    const { job, item } = await skipKeeper(sourceId);
+
+    await promote(item, { path: KEEPER, kind: 'file' }).expect(201);
+
+    expect((await queueOf(job.id))[0].result.skipped).toEqual([
+      { path: KEEPER, reason: 'looked like a download' },
+    ]);
+  });
+});

@@ -25,14 +25,30 @@ export interface DiscoveryJob {
   finishedAt: string | null;
 }
 
-export interface DiscoveryJobWithCounts extends DiscoveryJob {
+export type JobPhase =
+  | 'work_remaining'
+  | 'stuck_claims'
+  | 'awaiting_completion';
+
+/** What homelab-api adds to every job it returns: the queue at a glance. */
+export interface JobQueueSummary {
   queueCounts: QueueCounts;
+  /** In-progress items whose lease expired; the next claim reclaims them. */
+  staleClaims: number;
+  /** Latest change to any of the job's items: the agent's pulse. */
+  lastActivityAt: string | null;
+  /** workerId of the most recently changed claimed item. */
+  lastWorker: string | null;
+  /** Active jobs only; null once finished. */
+  phase: JobPhase | null;
 }
+
+export interface DiscoveryJobWithCounts extends DiscoveryJob, JobQueueSummary {}
 
 /** A source's jobs, newest first. */
 export async function getDiscoveryJobs(
   sourceId: string,
-): Promise<DiscoveryJob[]> {
+): Promise<DiscoveryJobWithCounts[]> {
   const res = await fetch(
     `${HOMELAB_API_URL}/sources/${sourceId}/discovery-jobs`,
     { cache: 'no-store' },
@@ -45,7 +61,7 @@ export async function getDiscoveryJobs(
     );
   }
 
-  return (await res.json()) as DiscoveryJob[];
+  return (await res.json()) as DiscoveryJobWithCounts[];
 }
 
 export async function getDiscoveryJob(
@@ -65,7 +81,7 @@ export async function getDiscoveryJob(
   return (await res.json()) as DiscoveryJobWithCounts;
 }
 
-export interface DiscoveryJobWithSource extends DiscoveryJob {
+export interface DiscoveryJobWithSource extends DiscoveryJob, JobQueueSummary {
   sourceName: string;
   /** The host the job's source is linked to, if any. */
   hostId: string | null;

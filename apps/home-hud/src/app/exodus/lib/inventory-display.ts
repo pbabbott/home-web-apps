@@ -1,4 +1,4 @@
-import type { BadgeColor } from '@abbottland/fui-components';
+import type { BadgeColor, CardColor } from '@abbottland/fui-components';
 import type {
   InventoryItemDecision,
   InventoryItemGitEvidence,
@@ -36,6 +36,13 @@ export const DECISION_COLOR: Record<InventoryItemDecision, BadgeColor> = {
   rejected: 'error',
 };
 
+/** Card colors follow the human decision: pending work stands out, decided work reads as done. */
+export const DECISION_CARD_COLOR: Record<InventoryItemDecision, CardColor> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'error',
+};
+
 /** What the decision filter shows: the three decisions, or everything. */
 export type DecisionFilter = InventoryItemDecision | 'all';
 
@@ -56,6 +63,14 @@ export function parseRecommendation(
   return value === 'back_up' || value === 'skip' || value === 'needs_review'
     ? value
     : undefined;
+}
+
+/** How the inventory items are laid out: a dense table or roomy cards. */
+export type InventoryLayout = 'table' | 'cards';
+
+/** A layout from a URL parameter. Absent or unknown means the table. */
+export function parseLayout(value: string | undefined): InventoryLayout {
+  return value === 'cards' ? 'cards' : 'table';
 }
 
 /**
@@ -97,6 +112,8 @@ export interface InventoryItemView {
   /** Defaults to pending, so it is omitted from the URL. */
   decision?: DecisionFilter;
   recommendation?: InventoryItemRecommendation;
+  /** Defaults to the table, so it is omitted from the URL. */
+  layout?: InventoryLayout;
   /** Keyset cursor from the previous page. */
   after?: string;
 }
@@ -112,6 +129,7 @@ export function inventoryItemsUrl(view: InventoryItemView): string {
     params.set('decision', view.decision);
   }
   if (view.recommendation) params.set('recommendation', view.recommendation);
+  if (view.layout && view.layout !== 'table') params.set('view', view.layout);
   if (view.after) params.set('after', view.after);
 
   const query = params.toString();

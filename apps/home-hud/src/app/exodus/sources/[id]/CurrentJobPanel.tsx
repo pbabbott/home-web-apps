@@ -14,7 +14,8 @@ import {
   Panel,
   Typography,
 } from '@abbottland/fui-components';
-import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
+import { LocalDateTime } from '../../lib/LocalDateTime';
+import { JOB_STATUS_COLOR, jobPhase } from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
   completeDiscoveryJob,
@@ -34,6 +35,15 @@ const COUNT_TILES: { status: QueueItemStatus; label: string }[] = [
   { status: 'skipped', label: 'Skipped' },
   { status: 'failed', label: 'Failed' },
 ];
+
+/** Discovery is drained: finishing is the next step, and failures are worth naming. */
+function completeLabel(job: DiscoveryJobWithCounts): string {
+  const failed = job.queueCounts.failed;
+
+  return job.phase === 'awaiting_completion' && failed > 0
+    ? `Complete with ${failed} failed`
+    : 'Mark Complete';
+}
 
 export function CurrentJobPanel({
   job,
@@ -87,13 +97,23 @@ export function CurrentJobPanel({
         <div className="flex items-center gap-2">
           {job && isActiveJob(job) && (
             <>
-              <OutlinedButton
-                size="small"
-                disabled={busy}
-                onClick={() => void run(completeDiscoveryJob)}
-              >
-                Mark Complete
-              </OutlinedButton>
+              {job.phase === 'awaiting_completion' ? (
+                <Button
+                  size="small"
+                  disabled={busy}
+                  onClick={() => void run(completeDiscoveryJob)}
+                >
+                  {completeLabel(job)}
+                </Button>
+              ) : (
+                <OutlinedButton
+                  size="small"
+                  disabled={busy}
+                  onClick={() => void run(completeDiscoveryJob)}
+                >
+                  {completeLabel(job)}
+                </OutlinedButton>
+              )}
               <OutlinedButton
                 size="small"
                 color="error"
@@ -132,13 +152,30 @@ export function CurrentJobPanel({
         </Typography>
       ) : (
         <>
+          {isActiveJob(job) && (
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge color={jobPhase(job.queueCounts, job.staleClaims).color}>
+                {jobPhase(job.queueCounts, job.staleClaims).label}
+              </Badge>
+              <Typography variant="body2">
+                {jobPhase(job.queueCounts, job.staleClaims).detail}
+              </Typography>
+            </div>
+          )}
           <Typography variant="body2" className="break-all text-neutral-400">
             {job.rootPath}
-            {job.startedAt ? ` · started ${formatDateTime(job.startedAt)}` : ''}
-            {job.finishedAt
-              ? ` · finished ${formatDateTime(job.finishedAt)}`
-              : ''}
-            {' (UTC)'}
+            {job.startedAt && (
+              <>
+                {' · started '}
+                <LocalDateTime iso={job.startedAt} />
+              </>
+            )}
+            {job.finishedAt && (
+              <>
+                {' · finished '}
+                <LocalDateTime iso={job.finishedAt} />
+              </>
+            )}
           </Typography>
 
           <OutlinedButton
@@ -148,7 +185,7 @@ export function CurrentJobPanel({
             size="small"
             className="self-start"
           >
-            View directories →
+            View job details →
           </OutlinedButton>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -199,7 +236,7 @@ export function CurrentJobPanel({
             }}
           >
             <label className="flex flex-col gap-1">
-              <Typography variant="small" className="text-neutral-400">
+              <Typography variant="body2" className="text-neutral-400">
                 Reason
               </Typography>
               <Input

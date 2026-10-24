@@ -158,6 +158,58 @@ describe('sources', () => {
       .expect(409);
   });
 
+  it('renames a source, relinks and unlinks its host', async () => {
+    const hostId = await createHost();
+    const created = await getRequest()
+      .post('/sources')
+      .send({ name: 'exodus-test-edit' })
+      .expect(201);
+    createdSourceIds.push(created.body.id);
+    const url = `/sources/${created.body.id}`;
+
+    const renamed = await getRequest()
+      .patch(url)
+      .send({ name: 'exodus-test-edited', hostId })
+      .expect(200);
+    expect(renamed.body).toMatchObject({
+      name: 'exodus-test-edited',
+      hostId,
+      sourceType: 'windows',
+    });
+
+    const unlinked = await getRequest()
+      .patch(url)
+      .send({ hostId: null })
+      .expect(200);
+    expect(unlinked.body).toMatchObject({
+      name: 'exodus-test-edited',
+      hostId: null,
+    });
+  });
+
+  it('rejects an edit to a duplicate name, a missing host or source, or an empty body', async () => {
+    const id = await createSource();
+    const other = await getRequest()
+      .post('/sources')
+      .send({ name: 'exodus-test-edit-other' })
+      .expect(201);
+    createdSourceIds.push(other.body.id);
+
+    await getRequest()
+      .patch(`/sources/${id}`)
+      .send({ name: 'exodus-test-edit-other' })
+      .expect(409);
+    await getRequest()
+      .patch(`/sources/${id}`)
+      .send({ hostId: '123e4567-e89b-42d3-a456-426614174000' })
+      .expect(404);
+    await getRequest()
+      .patch('/sources/123e4567-e89b-42d3-a456-426614174000')
+      .send({ name: 'exodus-test-ghost' })
+      .expect(404);
+    await getRequest().patch(`/sources/${id}`).send({}).expect(400);
+  });
+
   it('creates a source without a host', async () => {
     const res = await getRequest()
       .post('/sources')
@@ -492,7 +544,8 @@ describe('Example 3: recover abandoned work', () => {
     expect(reclaimed).toMatchObject({
       id: abandoned.id,
       attemptCount: 2,
-      lastError: 'lease expired',
+      lastError: 'lease expired (worker crashed-worker, attempt 1/3)',
+      lastClaimedBy: 'worker-b',
     });
     expect(reclaimed.claimToken).not.toBe(abandoned.claimToken);
   });
@@ -553,8 +606,269 @@ describe('Example 3: recover abandoned work', () => {
     expect(failed).toMatchObject({
       id: item.id,
       attemptCount: 1,
-      lastError: 'lease expired',
+      lastError:
+        'lease expired on final attempt (worker worker-a, attempt 1/1)',
+      lastClaimedBy: 'worker-a',
     });
+  });
+});
+
+describe('release a claim', () => {
+  const release = (item: Item, claimToken = item.claimToken) =>
+    getRequest().post(`/queue-items/${item.id}/release`).send({ claimToken });
+
+  it('requeues at once and refunds the attempt', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id, 'worker-a');
+
+    const res = await release(item).expect(200);
+    expect(res.body).toMatchObject({
+      status: 'queued',
+      attemptCount: 0,
+      claimedBy: null,
+      claimToken: null,
+      lastClaimedBy: 'worker-a',
+      lastError: 'released by worker-a',
+    });
+
+    const again = await claimOk(job.id, 'worker-b');
+    expect(again).toMatchObject({ id: item.id, attemptCount: 1 });
+  });
+
+  it('rejects a wrong token and a repeated release', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+
+    await release(item, '123e4567-e89b-12d3-a456-426614174000').expect(409);
+    await release(item).expect(200);
+    await release(item).expect(409);
+  });
+});
+
+describe('claim from any active job', () => {
+  // Scoped to a source by default: the dev database may hold real active jobs.
+  const claimAny = (body: { sourceId?: string; workerId?: string }) =>
+    getRequest()
+      .post('/queue-items/claim')
+      .send({ workerId: 'worker-a', ...body });
+
+  it('stops at once when the source has no active job', async () => {
+    const sourceId = await createSource();
+
+    const res = await claimAny({ sourceId }).expect(200);
+    expect(res.body).toMatchObject({ item: null, reason: 'queue_empty' });
+  });
+
+  it('claims with the job and the queue left after the claim', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+
+    const res = await claimAny({ sourceId }).expect(200);
+    expect(res.body).toMatchObject({
+      job: { id: job.id, sourceId, rootPath: ROOT },
+      queueCounts: { queued: 0, in_progress: 1 },
+    });
+    expect(res.body.item.claimToken).toBeTruthy();
+
+    const waiting = await claimAny({ sourceId, workerId: 'worker-b' });
+    expect(waiting.body).toMatchObject({ item: null, reason: 'in_progress' });
+
+    await complete(res.body.item).expect(200);
+    const drained = await claimAny({ sourceId, workerId: 'worker-b' });
+    expect(drained.body).toMatchObject({ item: null, reason: 'queue_empty' });
+  });
+
+  it('waits, with retryAt, when work is only backing off', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    await fail(await claimOk(job.id), 'EBUSY').expect(200);
+
+    const res = await claimAny({ sourceId }).expect(200);
+    expect(res.body).toMatchObject({ item: null, reason: 'retry_backoff' });
+    expect(Date.parse(res.body.retryAt)).toBeGreaterThan(Date.now());
+  });
+
+  it('walks past a drained job to one with work', async () => {
+    // Unscoped, so it must be the only active work: the dev database is
+    // sample data, so cancel whatever else is active.
+    await db.$client.query(
+      "update discovery_jobs set status = 'cancelled', finished_at = now() where status in ('pending', 'running')",
+    );
+
+    const drained = await startJob(await createSource());
+    await complete(await claimOk(drained.id)).expect(200);
+    const busy = await startJob(await createSource());
+
+    const res = await claimAny({}).expect(200);
+    expect(res.body.job.id).toBe(busy.id);
+  });
+});
+
+describe('job summary: phase, stale claims, activity', () => {
+  it('walks work_remaining -> stuck_claims -> work_remaining -> awaiting_completion', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    expect(await getJob(job.id)).toMatchObject({
+      phase: 'work_remaining',
+      staleClaims: 0,
+      lastWorker: null,
+    });
+
+    const item = await claimOk(job.id, 'crashed-worker');
+    expect(await getJob(job.id)).toMatchObject({
+      phase: 'work_remaining',
+      lastWorker: 'crashed-worker',
+    });
+
+    // Lease lapsed but nobody has claimed since: visible, not yet reclaimed.
+    await expireLease(item.id);
+    expect(await getJob(job.id)).toMatchObject({
+      phase: 'stuck_claims',
+      staleClaims: 1,
+      queueCounts: { in_progress: 1 },
+    });
+
+    // The next claim reclaims it.
+    const again = await claimOk(job.id, 'worker-b');
+    expect(await getJob(job.id)).toMatchObject({
+      phase: 'work_remaining',
+      staleClaims: 0,
+      lastWorker: 'worker-b',
+    });
+
+    await complete(again).expect(200);
+    const done = await getJob(job.id);
+    expect(done.phase).toBe('awaiting_completion');
+    expect(Date.parse(done.lastActivityAt)).toBeLessThanOrEqual(Date.now());
+
+    await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+    expect((await getJob(job.id)).phase).toBeNull();
+  });
+
+  it('reports no stale claims once the job is finished', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    await expireLease(item.id);
+    expect((await getJob(job.id)).staleClaims).toBe(1);
+
+    // Bypasses the cancel route so the lapsed lease is left behind.
+    await db.$client.query(
+      "update discovery_jobs set status = 'cancelled' where id = $1",
+      [job.id],
+    );
+    expect(await getJob(job.id)).toMatchObject({
+      phase: null,
+      staleClaims: 0,
+    });
+  });
+
+  it('remembers the last worker after a failure and reports summaries in lists', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    await fail(await claimOk(job.id, 'worker-a'), 'boom', false).expect(200);
+
+    const [listed] = (
+      await getRequest().get(`/sources/${sourceId}/discovery-jobs`).expect(200)
+    ).body;
+    expect(listed).toMatchObject({
+      id: job.id,
+      phase: 'awaiting_completion',
+      lastWorker: 'worker-a',
+      queueCounts: { failed: 1 },
+    });
+
+    const all = (
+      await getRequest().get('/discovery-jobs').query({ sourceId }).expect(200)
+    ).body;
+    expect(all[0]).toMatchObject({ id: job.id, phase: 'awaiting_completion' });
+  });
+});
+
+describe('retry all failed items of a job', () => {
+  const retryFailed = (jobId: string) =>
+    getRequest().post(`/discovery-jobs/${jobId}/retry-failed`);
+
+  it('requeues every failed item with one more attempt each', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    await complete(await claimOk(job.id), [`${ROOT}\\A`, `${ROOT}\\B`]).expect(
+      200,
+    );
+    await fail(await claimOk(job.id), 'boom', false).expect(200);
+    await fail(await claimOk(job.id), 'boom', false).expect(200);
+    expect(await jobItems(job.id, 'failed')).toHaveLength(2);
+
+    const res = await retryFailed(job.id).expect(200);
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0]).toMatchObject({
+      status: 'queued',
+      attemptCount: 1,
+      maxAttempts: 2,
+      lastError: 'boom',
+    });
+    expect(await jobItems(job.id, 'failed')).toHaveLength(0);
+
+    // Nothing failed any more: still fine.
+    expect((await retryFailed(job.id).expect(200)).body).toEqual([]);
+  });
+
+  it('conflicts on a finished job and 404s on an unknown one', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    await getRequest().post(`/discovery-jobs/${job.id}/cancel`).expect(200);
+
+    await retryFailed(job.id).expect(409);
+    await retryFailed('123e4567-e89b-12d3-a456-426614174000').expect(404);
+  });
+});
+
+describe('retrying complete and skip', () => {
+  it('answers a repeated complete with the same token without duplicating children', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    const child = `${ROOT}\\Docs`;
+
+    const first = await complete(item, [child]).expect(200);
+    expect(first.body.children).toMatchObject([{ created: true }]);
+
+    const again = await complete(item, [child]).expect(200);
+    expect(again.body).toMatchObject({ id: item.id, status: 'completed' });
+    expect(again.body.children).toMatchObject([{ created: false }]);
+    expect(await jobItems(job.id)).toHaveLength(2);
+  });
+
+  it('answers a repeated skip with the same token', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    const skip = (claimToken: string | null) =>
+      getRequest()
+        .post(`/queue-items/${item.id}/skip`)
+        .send({ claimToken, reason: 'system directory' });
+
+    await skip(item.claimToken).expect(200);
+    const again = await skip(item.claimToken).expect(200);
+    expect(again.body.status).toBe('skipped');
+  });
+
+  it('still conflicts for another token or a different outcome', async () => {
+    const sourceId = await createSource();
+    const job = await startJob(sourceId);
+    const item = await claimOk(job.id);
+    await complete(item).expect(200);
+
+    await complete({
+      ...item,
+      claimToken: '123e4567-e89b-12d3-a456-426614174000',
+    }).expect(409);
+    await getRequest()
+      .post(`/queue-items/${item.id}/skip`)
+      .send({ claimToken: item.claimToken, reason: 'x' })
+      .expect(409);
   });
 });
 

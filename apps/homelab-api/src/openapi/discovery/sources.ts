@@ -11,16 +11,15 @@ import {
 import {
   createSourceOperation,
   listSourcesOperation,
+  updateSourceOperation,
 } from '../../controllers/discovery/sources';
 import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
   sourceIdParamsSchema,
+  updateSourceBodySchema,
 } from '../../schemas/discovery';
-import {
-  discoveryJobSelectSchema,
-  sourceSelectSchema,
-} from '@abbottland/homelab-db';
+import { sourceSelectSchema } from '@abbottland/homelab-db';
 import { z } from 'zod';
 
 export const sourcesPaths = {
@@ -57,6 +56,28 @@ export const sourcesPaths = {
       },
     },
   },
+  '/sources/{id}': {
+    patch: {
+      summary: updateSourceOperation.summary,
+      'x-home-hud': updateSourceOperation.hud,
+      description: updateSourceOperation.description,
+      requestParams: { path: sourceIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: updateSourceBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The updated source',
+          content: { 'application/json': { schema: sourceSelectSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('source or host'),
+        '409': conflictResponse('A source with this name already exists'),
+      },
+    },
+  },
   '/sources/{id}/discovery-jobs': {
     get: {
       summary: listSourceJobsOperation.summary,
@@ -68,7 +89,7 @@ export const sourcesPaths = {
         '200': {
           description: 'The jobs',
           content: {
-            'application/json': { schema: z.array(discoveryJobSelectSchema) },
+            'application/json': { schema: z.array(discoveryJobResponseSchema) },
           },
         },
         '400': validationErrorResponse,

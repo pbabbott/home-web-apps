@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { parseActor } from '../../lib/actor';
 import {
   validateBody,
   validateParams,
@@ -12,13 +13,27 @@ import {
   listKnownSkips,
   listSourceQueueItems,
 } from '../../controllers/discovery/queue-items';
-import { createSource, listSources } from '../../controllers/discovery/sources';
+import {
+  deleteSourceConnection,
+  getSourceConnection,
+  previewSourceFile,
+  saveSourceConnection,
+  testSourceConnection,
+} from '../../controllers/discovery/source-connections';
+import {
+  createSource,
+  listSources,
+  updateSource,
+} from '../../controllers/discovery/sources';
 import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
   knownSkipListQuerySchema,
+  previewQuerySchema,
+  saveSourceConnectionBodySchema,
   queueItemListQuerySchema,
   sourceIdParamsSchema,
+  updateSourceBodySchema,
 } from '../../schemas/discovery';
 
 export const sourcesRouter = Router();
@@ -28,6 +43,12 @@ sourcesRouter.post(
   '/sources',
   validateBody(createSourceBodySchema),
   createSource,
+);
+sourcesRouter.patch(
+  '/sources/:id',
+  validateParams(sourceIdParamsSchema),
+  validateBody(updateSourceBodySchema),
+  updateSource,
 );
 sourcesRouter.post(
   '/sources/:id/discovery-jobs',
@@ -51,4 +72,33 @@ sourcesRouter.get(
   validateParams(sourceIdParamsSchema),
   validateQuery(knownSkipListQuerySchema),
   listKnownSkips,
+);
+sourcesRouter.get(
+  '/sources/:id/connection',
+  validateParams(sourceIdParamsSchema),
+  getSourceConnection,
+);
+sourcesRouter.put(
+  '/sources/:id/connection',
+  parseActor,
+  validateParams(sourceIdParamsSchema),
+  validateBody(saveSourceConnectionBodySchema),
+  saveSourceConnection,
+);
+sourcesRouter.delete(
+  '/sources/:id/connection',
+  parseActor,
+  validateParams(sourceIdParamsSchema),
+  deleteSourceConnection,
+);
+sourcesRouter.post(
+  '/sources/:id/connection/test',
+  validateParams(sourceIdParamsSchema),
+  testSourceConnection,
+);
+sourcesRouter.get(
+  '/sources/:id/preview',
+  validateParams(sourceIdParamsSchema),
+  validateQuery(previewQuerySchema),
+  previewSourceFile,
 );

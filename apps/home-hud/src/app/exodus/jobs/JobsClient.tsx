@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
   Badge,
+  OutlinedButton,
   Panel,
   ScrollableTable,
   Table,
@@ -15,8 +16,13 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import type { Host } from '../../infra/hosts/lib/homelab-api';
-import { JOB_STATUS_COLOR, formatDateTime } from '../lib/job-display';
+import {
+  JOB_STATUS_COLOR,
+  formatDuration,
+  needsAttention,
+} from '../lib/job-display';
+import { JobActivity, JobPhaseBadge, JobProgress } from '../lib/JobSummary';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import type {
   Source,
   DiscoveryJobWithSource,
@@ -25,26 +31,34 @@ import type {
 /** While any job is active the page re-fetches this often, so progress shows without a manual reload. */
 const ACTIVE_REFRESH_MS = 5000;
 
-function buildUrl(sourceId: string | null): string {
-  return sourceId ? `/exodus/jobs?source=${sourceId}` : '/exodus/jobs';
+function buildUrl(sourceId: string | null, attentionOnly: boolean): string {
+  const params = new URLSearchParams();
+  if (sourceId) params.set('source', sourceId);
+  if (attentionOnly) params.set('attention', '1');
+  const query = params.toString();
+
+  return query ? `/exodus/jobs?${query}` : '/exodus/jobs';
 }
 
 interface JobsClientProps {
   jobs: DiscoveryJobWithSource[] | null;
   sources: Source[] | null;
-  hosts: Host[] | null;
   selectedSourceId: string | null;
+  /** Show only active jobs a person should look at (see `needsAttention`). */
+  attentionOnly: boolean;
   hasActiveJob: boolean;
 }
 
 export function JobsClient({
   jobs,
   sources,
-  hosts,
   selectedSourceId,
+  attentionOnly,
   hasActiveJob,
 }: JobsClientProps) {
   const router = useRouter();
+  const attentionCount = jobs?.filter(needsAttention).length ?? 0;
+  const shown = attentionOnly ? (jobs?.filter(needsAttention) ?? null) : jobs;
 
   useEffect(() => {
     if (!hasActiveJob) return;
@@ -52,8 +66,6 @@ export function JobsClient({
     const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [hasActiveJob, router]);
-
-  const hostsById = new Map((hosts ?? []).map((host) => [host.id, host]));
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
@@ -68,13 +80,15 @@ export function JobsClient({
           </Typography>
 
           <label className="flex items-center gap-2">
-            <Typography variant="small" className="text-neutral-400">
+            <Typography variant="body2" className="text-neutral-400">
               Source
             </Typography>
             <select
               value={selectedSourceId ?? ''}
               disabled={sources === null}
-              onChange={(e) => router.push(buildUrl(e.target.value || null))}
+              onChange={(e) =>
+                router.push(buildUrl(e.target.value || null, attentionOnly))
+              }
               className="border border-neutral-300 bg-neutral-600 px-2 py-1.5 text-neutral-50 focus:outline-none focus:ring-0"
             >
               <option value="">All sources</option>
@@ -87,35 +101,55 @@ export function JobsClient({
           </label>
         </div>
 
-        {jobs === null ? (
+        <div className="flex flex-wrap gap-2">
+          <OutlinedButton
+            component={Link}
+            href={buildUrl(selectedSourceId, false)}
+            size="small"
+            color={attentionOnly ? 'secondary' : 'primary'}
+          >
+            All jobs
+          </OutlinedButton>
+          <OutlinedButton
+            component={Link}
+            href={buildUrl(selectedSourceId, true)}
+            size="small"
+            color={attentionOnly ? 'primary' : 'secondary'}
+          >
+            Needs attention ({attentionCount})
+          </OutlinedButton>
+        </div>
+
+        {shown === null ? (
           <Typography variant="body2" className="text-error-400">
             Failed to load discovery jobs from homelab-api.
           </Typography>
-        ) : jobs.length === 0 ? (
+        ) : shown.length === 0 ? (
           <Typography variant="body2" className="text-neutral-400">
-            {selectedSourceId
-              ? 'No discovery jobs for this source.'
-              : 'No discovery jobs yet.'}
+            {attentionOnly
+              ? 'No active job needs attention.'
+              : selectedSourceId
+                ? 'No discovery jobs for this source.'
+                : 'No discovery jobs yet.'}
           </Typography>
         ) : (
           <ScrollableTable className="mb-0">
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <Th>Status</Th>
-                  <Th>Source</Th>
-                  <Th>Host</Th>
+                  <Th>ID</Th>
                   <Th>Root</Th>
-                  <Th>Created (UTC)</Th>
-                  <Th>Finished (UTC)</Th>
+                  <Th>Status</Th>
+                  <Th>Progress</Th>
+                  <Th>Last activity</Th>
+                  <Th>Source</Th>
+                  <Th>Created</Th>
+                  <Th>Finished</Th>
+                  <Th>Duration</Th>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {jobs.map((job) => {
-                  const host = job.hostId
-                    ? hostsById.get(job.hostId)
-                    : undefined;
-
+                {shown.map((job) => {
                   return (
                     <TableRow key={job.id}>
                       <Td>
@@ -123,10 +157,36 @@ export function JobsClient({
                           href={`/exodus/jobs/${job.id}`}
                           className="hover:underline"
                         >
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            className="text-primary-400"
+                          >
+                            {job.id.slice(0, 8)}
+                          </Typography>
+                        </Link>
+                      </Td>
+                      <Td className="break-all">
+                        <Link
+                          href={`/exodus/jobs/${job.id}`}
+                          className="text-primary-400 hover:underline"
+                        >
+                          {job.rootPath}
+                        </Link>
+                      </Td>
+                      <Td>
+                        <div className="flex flex-wrap items-center gap-2">
                           <Badge color={JOB_STATUS_COLOR[job.status]}>
                             {job.status}
                           </Badge>
-                        </Link>
+                          <JobPhaseBadge job={job} />
+                        </div>
+                      </Td>
+                      <Td>
+                        <JobProgress job={job} />
+                      </Td>
+                      <Td>
+                        <JobActivity job={job} />
                       </Td>
                       <Td>
                         <Link
@@ -136,17 +196,13 @@ export function JobsClient({
                           {job.sourceName}
                         </Link>
                       </Td>
-                      <Td>{host ? host.name : '—'}</Td>
-                      <Td className="break-all">
-                        <Link
-                          href={`/exodus/jobs/${job.id}`}
-                          className="text-primary-400 hover:underline"
-                        >
-                          {job.rootPath}
-                        </Link>
+                      <Td>
+                        <LocalDateTime iso={job.createdAt} />
                       </Td>
-                      <Td>{formatDateTime(job.createdAt)}</Td>
-                      <Td>{formatDateTime(job.finishedAt)}</Td>
+                      <Td>
+                        <LocalDateTime iso={job.finishedAt} />
+                      </Td>
+                      <Td>{formatDuration(job.createdAt, job.finishedAt)}</Td>
                     </TableRow>
                   );
                 })}

@@ -5,6 +5,7 @@ import type { Operation } from '../operation';
 import type {
   DecideInventoryItemBody,
   ProposeInventoryItemsBody,
+  PromoteInventoryItemBody,
   QueueItemIdParams,
   InventoryItemIdParams,
   InventoryItemListQuery,
@@ -107,5 +108,28 @@ export const decideInventoryItem = handle(
     res
       .status(200)
       .json(await discoveryService.decideInventoryItem(id, body, actorOf(res)));
+  },
+);
+
+// Does: let a human turn a path the agent skipped into an approved inventory
+// item.
+// Who: human only (REST). Deliberately no MCP tool.
+export const promoteInventoryItemOperation = {
+  summary: 'Promote a skipped path to an approved inventory item',
+  description:
+    'Corrects an agent skip. The path must be inside the queue item’s directory (usually one listed in its `skipped`). Creates an inventory item that is already `approved` (promoting is the human’s approval) with a `back_up` recommendation, and writes an `inventory_item.promoted` audit event. The queue item’s `result` is left as the agent wrote it. Only a human actor may promote (409 otherwise). Refused with 409 when the path already has an inventory item (`inventoryItemId` in the details, nothing is overwritten), when an exclusion rule covers it, or when it is outside the directory. Lists `coveredBy` / `covers` like a proposal.',
+  hud: '/exodus/jobs',
+} satisfies Operation;
+
+export const promoteInventoryItem = handle(
+  'POST /queue-items/:id/promote',
+  async (req, res) => {
+    const { id } = req.params as QueueItemIdParams;
+    const body = req.body as PromoteInventoryItemBody;
+    res
+      .status(201)
+      .json(
+        await discoveryService.promoteInventoryItem(id, body, actorOf(res)),
+      );
   },
 );

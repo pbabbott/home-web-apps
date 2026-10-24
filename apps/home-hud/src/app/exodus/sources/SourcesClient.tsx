@@ -17,13 +17,9 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import { AddSourceModal } from './AddSourceModal';
 import type { Source } from './lib/homelab-api';
-
-/** Date only, in UTC — deterministic so server and client renders match. */
-function formatDate(iso: string): string {
-  return iso.slice(0, 10);
-}
 
 interface SourcesClientProps {
   sources: Source[] | null;
@@ -95,7 +91,9 @@ export function SourcesClient({ sources, hosts }: SourcesClientProps) {
                       <Td>
                         <Badge color="dark">{source.sourceType}</Badge>
                       </Td>
-                      <Td>{formatDate(source.createdAt)}</Td>
+                      <Td>
+                        <LocalDateTime iso={source.createdAt} dateOnly />
+                      </Td>
                     </TableRow>
                   );
                 })}
@@ -115,7 +113,7 @@ export function SourcesClient({ sources, hosts }: SourcesClientProps) {
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         hosts={hosts ?? []}
-        onCreated={() => router.refresh()}
+        onSaved={() => router.refresh()}
       />
     </main>
   );

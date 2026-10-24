@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Fragment, useEffect, useState, type FormEvent } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
+import { Icon } from '@abbottland/fui-icons';
 import {
   Badge,
   Button,
@@ -21,14 +28,30 @@ import {
 import {
   JOB_STATUS_COLOR,
   QUEUE_STATUS_COLOR,
-  describeSkippedGroup,
   describeSkips,
-  formatDateTime,
+  formatDuration,
+  isStaleClaim,
   jobDetailUrl,
+  jobPhase,
   parsePathLines,
+  relativeToDirectory,
 } from '../../lib/job-display';
+import {
+  JobActivity,
+  JobProgress,
+  QueueItemMessage,
+  WorkerName,
+} from '../../lib/JobSummary';
+import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
-import { enqueueQueueItems } from '../../sources/lib/actions';
+import { PreviewButton } from '../../lib/PreviewButton';
+import { PromoteSkippedModal } from './PromoteSkippedModal';
+import {
+  enqueueQueueItems,
+  listInventoryPathsUnder,
+  retryFailedQueueItems,
+  retryQueueItem,
+} from '../../sources/lib/actions';
 import {
   JOB_QUEUE_ITEMS_LIMIT,
   isActiveJob,
@@ -48,10 +71,10 @@ const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
   { status: 'failed', label: 'Failed' },
 ];
 
-function Detail({ title, children }: { title: string; children: string }) {
+function Detail({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <Typography variant="caption" className="text-neutral-400">
+      <Typography variant="body1" className="text-neutral-400">
         {title}
       </Typography>
       <Typography variant="body2" className="break-words">
@@ -61,9 +84,61 @@ function Detail({ title, children }: { title: string; children: string }) {
   );
 }
 
-function QueueItemDetails({ item }: { item: QueueItem }) {
+/** Copies `text`; clipboard access can be denied (insecure origin, no permission), so failure is shown, not thrown. */
+function CopyButton({ text }: { text: string }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setState('copied');
+    } catch {
+      setState('failed');
+    }
+  }
+
+  return (
+    <OutlinedButton size="small" color="secondary" onClick={() => void copy()}>
+      {state === 'copied'
+        ? 'Copied'
+        : state === 'failed'
+          ? 'Copy failed'
+          : 'Copy'}
+    </OutlinedButton>
+  );
+}
+
+function QueueItemDetails({
+  item,
+  sourceId,
+}: {
+  item: QueueItem;
+  sourceId: string;
+}) {
   const result = item.result;
   const hasNothing = !item.reason && !result && !item.lastError;
+  // Lowercased paths already in the inventory beneath this directory.
+  const [inventoried, setInventoried] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  // `path` is absent when the user types one in.
+  const [promoting, setPromoting] = useState<{
+    path?: string;
+    reason?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!result) return;
+
+    let cancelled = false;
+    void listInventoryPathsUnder(sourceId, item.path).then((found) => {
+      if (!cancelled && found.ok) setInventoried(new Set(found.data));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceId, item.path, result]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -71,44 +146,134 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
       {result?.summary && (
         <Detail title="What the agent concluded">{result.summary}</Detail>
       )}
-      {item.lastError && <Detail title="Last error">{item.lastError}</Detail>}
+      {item.lastError && (
+        <Detail title="Last error">
+          <span className="flex flex-wrap items-start gap-3">
+            <QueueItemMessage lastError={item.lastError} />
+            <CopyButton text={item.lastError} />
+          </span>
+        </Detail>
+      )}
 
       {result?.skippedGroups && result.skippedGroups.length > 0 && (
         <div className="flex flex-col gap-1">
-          <Typography variant="caption" className="text-neutral-400">
+          <Typography variant="body1" className="text-neutral-400">
             Skipped by pattern
           </Typography>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
-            {result.skippedGroups.map((group) => (
-              <li key={group.pattern}>
-                <Typography variant="body2" component="span">
-                  {describeSkippedGroup(group)}: {group.reason}
-                </Typography>
-              </li>
-            ))}
-          </ul>
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Pattern</Th>
+                  <Th color="secondary">Count</Th>
+                  <Th color="secondary">Reason</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {result.skippedGroups.map((group) => (
+                  <TableRow key={group.pattern}>
+                    <Td color="secondary" className="break-all">
+                      {group.pattern}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {group.count ?? '—'}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {group.reason}
+                    </Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
         </div>
       )}
 
       {result && result.skipped.length > 0 && (
         <div className="flex flex-col gap-1">
-          <Typography variant="caption" className="text-neutral-400">
+          <Typography variant="body1" className="text-neutral-400">
             Skipped paths
           </Typography>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
-            {result.skipped.map((skip) => (
-              <li key={skip.path}>
-                <Typography
-                  variant="body2"
-                  component="span"
-                  className="break-all"
-                >
-                  {skip.path}: {skip.reason}
-                </Typography>
-              </li>
-            ))}
-          </ul>
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Inventory</Th>
+                  <Th color="secondary">Path</Th>
+                  <Th color="secondary">Reason</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {result.skipped.map((skip) => (
+                  <TableRow key={skip.path}>
+                    <Td color="secondary">
+                      <div className="flex items-center gap-2">
+                        <PreviewButton sourceId={sourceId} path={skip.path} />
+                        {inventoried.has(skip.path.toLowerCase()) ? (
+                          <Link
+                            href="/exodus/inventory"
+                            className="text-neutral-400 underline"
+                          >
+                            In inventory
+                          </Link>
+                        ) : (
+                          <OutlinedButton
+                            size="small"
+                            color="secondary"
+                            onClick={() =>
+                              setPromoting({
+                                path: skip.path,
+                                reason: skip.reason,
+                              })
+                            }
+                          >
+                            Promote
+                          </OutlinedButton>
+                        )}
+                      </div>
+                    </Td>
+                    <Td color="secondary" className="break-all">
+                      {relativeToDirectory(item.path, skip.path)}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {skip.reason}
+                    </Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
         </div>
+      )}
+
+      {result && (
+        <div>
+          <OutlinedButton
+            size="small"
+            color="secondary"
+            onClick={() => setPromoting({})}
+          >
+            Promote a path…
+          </OutlinedButton>
+        </div>
+      )}
+
+      {promoting && (
+        <PromoteSkippedModal
+          key={promoting.path ?? 'typed'}
+          open
+          onOpenChange={(next) => {
+            if (!next) setPromoting(null);
+          }}
+          queueItem={item}
+          path={promoting.path}
+          skipReason={promoting.reason}
+          onPromoted={(path) =>
+            setInventoried((current) =>
+              new Set(current).add(path.toLowerCase()),
+            )
+          }
+        />
       )}
 
       {hasNothing && (
@@ -176,7 +341,7 @@ function QueueDirectoryPanel({
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <Typography variant="small" className="text-neutral-400">
+          <Typography variant="body2" className="text-neutral-400">
             Paths
           </Typography>
           <textarea
@@ -189,7 +354,7 @@ function QueueDirectoryPanel({
           />
         </label>
         <label className="flex flex-col gap-1 sm:w-48">
-          <Typography variant="small" className="text-neutral-400">
+          <Typography variant="body2" className="text-neutral-400">
             Priority (optional, higher first)
           </Typography>
           <Input
@@ -240,13 +405,60 @@ export function JobDetailClient({
   const router = useRouter();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const active = isActiveJob(job);
+  const [now, setNow] = useState<number | null>(null);
+  const [retrying, setRetrying] = useState<string | 'all' | null>(null);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [retryNotice, setRetryNotice] = useState<string | null>(null);
+
+  // Set after mount: lease expiry compared against the server's clock at render
+  // time would not match what the browser computes during hydration.
+  useEffect(() => {
+    const timer = setTimeout(() => setNow(Date.now()), 0);
+
+    return () => clearTimeout(timer);
+  }, [items]);
+
+  // From the server, so a status filter on the table cannot hide stuck claims.
+  const phase = active ? jobPhase(job.queueCounts, job.staleClaims) : null;
+
+  async function retry(target: string | 'all') {
+    setRetrying(target);
+    setRetryError(null);
+    setRetryNotice(null);
+    let requeued = 1;
+    let failure: string | null = null;
+
+    if (target === 'all') {
+      const result = await retryFailedQueueItems(job.id);
+      if (result.ok) requeued = result.data.length;
+      else failure = result.error;
+    } else {
+      const result = await retryQueueItem(target);
+      if (!result.ok) failure = result.error;
+    }
+    setRetrying(null);
+
+    if (failure !== null) {
+      setRetryError(failure);
+      return;
+    }
+
+    setRetryNotice(
+      `Requeued ${requeued} ${requeued === 1 ? 'directory' : 'directories'}; each gets one more attempt.`,
+    );
+    router.refresh();
+  }
+
+  // The list is ordered by last change, so a refresh moves rows under the
+  // reader; hold it still while any row is open.
+  const paused = expanded.size > 0;
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || paused) return;
 
     const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
-  }, [active, router]);
+  }, [active, paused, router]);
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -275,30 +487,60 @@ export function JobDetailClient({
           </Typography>
           <Badge color={JOB_STATUS_COLOR[job.status]}>{job.status}</Badge>
         </div>
-        <Typography variant="body2" className="text-neutral-400">
-          {sourceName ? (
-            <Link
-              href={`/exodus/sources/${job.sourceId}`}
-              className="text-primary-400 hover:underline"
-            >
-              {sourceName}
-            </Link>
-          ) : (
-            'Unknown source'
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
+          <div className="flex flex-col gap-0.5">
+            <Typography variant="caption" className="text-neutral-400">
+              Source
+            </Typography>
+            <Typography variant="body2">
+              {sourceName ? (
+                <Link
+                  href={`/exodus/sources/${job.sourceId}`}
+                  className="text-primary-400 hover:underline"
+                >
+                  {sourceName}
+                </Link>
+              ) : (
+                'Unknown source'
+              )}
+            </Typography>
+          </div>
+          <Detail title="Created">
+            <LocalDateTime iso={job.createdAt} />
+          </Detail>
+          <Detail title="Progress">
+            <JobProgress job={job} />
+          </Detail>
+          {active && (
+            <Detail title="Last activity">
+              <JobActivity job={job} />
+            </Detail>
           )}
-          {' · created '}
-          {formatDateTime(job.createdAt)}
-          {job.finishedAt
-            ? ` · finished ${formatDateTime(job.finishedAt)}`
-            : ''}
-          {' (UTC)'}
-        </Typography>
+          {active && job.staleClaims > 0 && (
+            <Detail title="Expired leases">{job.staleClaims}</Detail>
+          )}
+          <Detail title="Finished">
+            <LocalDateTime iso={job.finishedAt} />
+          </Detail>
+          <Detail title="Duration">
+            {formatDuration(job.createdAt, job.finishedAt)}
+          </Detail>
+        </div>
         {job.error && (
           <Typography variant="body2" className="text-error-400">
             {job.error}
           </Typography>
         )}
       </div>
+
+      {phase && (
+        <Panel color="default" className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge color={phase.color}>{phase.label}</Badge>
+            <Typography variant="body2">{phase.detail}</Typography>
+          </div>
+        </Panel>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {STATUS_FILTERS.map(({ status: s, label }) => (
@@ -320,6 +562,18 @@ export function JobDetailClient({
             Directories
           </Typography>
           <div className="flex flex-wrap gap-2">
+            {active && job.queueCounts.failed > 0 && (
+              <OutlinedButton
+                size="small"
+                color="warning"
+                disabled={retrying !== null}
+                onClick={() => void retry('all')}
+              >
+                {retrying === 'all'
+                  ? 'Retrying…'
+                  : `Retry all failed (${job.queueCounts.failed})`}
+              </OutlinedButton>
+            )}
             <OutlinedButton
               component={Link}
               href={jobDetailUrl(job.id)}
@@ -342,6 +596,27 @@ export function JobDetailClient({
           </div>
         </div>
 
+        {retryError && (
+          <Typography variant="body2" className="text-error-400">
+            {retryError}
+          </Typography>
+        )}
+        {retryNotice && (
+          <Typography
+            variant="body2"
+            role="status"
+            className="text-success-400"
+          >
+            {retryNotice}
+          </Typography>
+        )}
+        {active && expanded.size > 0 && (
+          <Typography variant="body2" className="text-neutral-400">
+            Auto-refresh is paused while a directory is open. Close it to
+            resume.
+          </Typography>
+        )}
+
         {items === null ? (
           <Typography variant="body2" className="text-error-400">
             Failed to load directories from homelab-api.
@@ -356,14 +631,15 @@ export function JobDetailClient({
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <Th>Status</Th>
                     <Th>Path</Th>
+                    <Th>Status</Th>
                     <Th>Skipped</Th>
                     <Th>Attempts</Th>
-                    <Th>Completed (UTC)</Th>
-                    <Th>
-                      <span className="sr-only">Details</span>
-                    </Th>
+                    <Th>Worker</Th>
+                    <Th>Lease</Th>
+                    <Th>Last error</Th>
+                    <Th>Completed</Th>
+                    <Th>&nbsp;</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -371,29 +647,92 @@ export function JobDetailClient({
                     <Fragment key={item.id}>
                       <TableRow>
                         <Td>
+                          <div className="flex items-start gap-2">
+                            <OutlinedButton
+                              size="small"
+                              color="secondary"
+                              aria-expanded={expanded.has(item.id)}
+                              aria-label={
+                                expanded.has(item.id)
+                                  ? 'Hide details'
+                                  : 'Show details'
+                              }
+                              onClick={() => toggle(item.id)}
+                              className="shrink-0 px-1.5"
+                            >
+                              <Icon
+                                name={
+                                  expanded.has(item.id)
+                                    ? 'radix-chevron-down'
+                                    : 'radix-chevron-right'
+                                }
+                                size={14}
+                              />
+                            </OutlinedButton>
+                            <span className="break-all">{item.path}</span>
+                          </div>
+                        </Td>
+                        <Td>
                           <Badge color={QUEUE_STATUS_COLOR[item.status]}>
                             {item.status}
                           </Badge>
                         </Td>
-                        <Td className="break-all">{item.path}</Td>
                         <Td>{describeSkips(item.result) || '—'}</Td>
                         <Td>
                           {item.attemptCount} / {item.maxAttempts}
                         </Td>
-                        <Td>{formatDateTime(item.completedAt)}</Td>
                         <Td>
-                          <OutlinedButton
-                            size="small"
-                            onClick={() => toggle(item.id)}
-                          >
-                            {expanded.has(item.id) ? 'Hide' : 'Details'}
-                          </OutlinedButton>
+                          {item.claimedBy ? (
+                            <WorkerName name={item.claimedBy} />
+                          ) : item.lastClaimedBy ? (
+                            <span className="text-neutral-400">
+                              <WorkerName name={item.lastClaimedBy} />
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </Td>
+                        <Td>
+                          {item.leaseExpiresAt ? (
+                            <span className="flex flex-wrap items-center gap-2">
+                              <LocalDateTime
+                                iso={item.leaseExpiresAt}
+                                seconds
+                              />
+                              {now !== null && isStaleClaim(item, now) && (
+                                <Badge color="error">expired</Badge>
+                              )}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </Td>
+                        <Td>
+                          <QueueItemMessage lastError={item.lastError} clamp />
+                        </Td>
+                        <Td>
+                          <LocalDateTime iso={item.completedAt} />
+                        </Td>
+                        <Td>
+                          {active && item.status === 'failed' && (
+                            <OutlinedButton
+                              size="small"
+                              color="warning"
+                              disabled={retrying !== null}
+                              onClick={() => void retry(item.id)}
+                            >
+                              {retrying === item.id ? 'Retrying…' : 'Retry'}
+                            </OutlinedButton>
+                          )}
                         </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={6}>
-                            <QueueItemDetails item={item} />
+                          <Td colSpan={9}>
+                            <QueueItemDetails
+                              item={item}
+                              sourceId={job.sourceId}
+                            />
                           </Td>
                         </TableRow>
                       )}
@@ -405,8 +744,8 @@ export function JobDetailClient({
 
             {items.length >= JOB_QUEUE_ITEMS_LIMIT && (
               <Typography variant="body2" className="text-warning-400">
-                Showing the first {JOB_QUEUE_ITEMS_LIMIT} directories, oldest
-                first. Filter by status to narrow it down.
+                Showing the first {JOB_QUEUE_ITEMS_LIMIT} directories, most
+                recently changed first. Filter by status to narrow it down.
               </Typography>
             )}
           </>

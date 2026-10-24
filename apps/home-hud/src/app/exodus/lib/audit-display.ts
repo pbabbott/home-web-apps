@@ -8,6 +8,7 @@ export const AUDIT_EVENT_LABELS: Record<AuditEventType, string> = {
   'inventory_item.created': 'Inventory item proposed',
   'inventory_item.recommendation_changed': 'Recommendation changed',
   'inventory_item.decision_changed': 'Inventory item decided',
+  'inventory_item.promoted': 'Promoted from skipped',
 };
 
 /** Own keys only: `in` would also accept `toString` and the like. */
@@ -56,6 +57,7 @@ interface AuditDetails {
   from?: string | { recommendation?: string; confidence?: string };
   to?: string | { recommendation?: string; confidence?: string };
   count?: number;
+  skipReason?: string | null;
 }
 
 /** One line saying what an event did, built from its `details`. */
@@ -79,6 +81,8 @@ export function describeAuditEvent(event: AuditEvent): string {
     }
     case 'inventory_item.decision_changed':
       return `${d.path ?? '?'}: ${decisionWord(d.from)} → ${decisionWord(d.to)}`;
+    case 'inventory_item.promoted':
+      return `${d.path ?? '?'}${d.skipReason ? `: was skipped as "${d.skipReason}"` : ''}`;
     case 'queue_items.excluded':
       return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped by an exclusion rule`;
   }

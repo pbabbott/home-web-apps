@@ -62,6 +62,8 @@ export interface InventoryItemWithExclusion extends InventoryItem {
 export interface InventoryItemQuery {
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;
+  /** Only inventory items at or beneath this path. */
+  pathPrefix?: string;
   /** The `normalizedRootPath` of the last inventory item of the previous page. */
   after?: string;
   limit?: number;

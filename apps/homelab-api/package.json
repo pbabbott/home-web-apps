@@ -11,6 +11,7 @@
     "clean": "rm -rf dist",
     "dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./dist/index.js\"",
     "dev:deps": "docker compose --ansi=never -f ./docker-compose.yaml up -d --quiet-pull --wait",
+    "dev:sync-prod": "pnpm dev:deps:down && pnpm dev:deps && pnpm seed:remote",
     "dev:deps:down": "docker compose --ansi=never -f ./docker-compose.yaml down -v",
     "env:generate": "abctl secrets generate-env",
     "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",

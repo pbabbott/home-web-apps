@@ -27,6 +27,31 @@ export const activeClaim = (id: string, claimToken: string) =>
     jobIsActive(discoveryQueueItems.jobId),
   );
 
+/**
+ * The item as already settled by this very claim (same token, now `status`),
+ * for answering a retried complete/skip whose first response was lost. Only
+ * the claim's own token matches: another worker's attempt still conflicts.
+ */
+export const settledByClaim = async (
+  db: Database | Tx,
+  id: string,
+  claimToken: string,
+  status: 'completed' | 'skipped',
+) => {
+  const [row] = await db
+    .select()
+    .from(discoveryQueueItems)
+    .where(
+      and(
+        eq(discoveryQueueItems.id, id),
+        eq(discoveryQueueItems.status, status),
+        eq(discoveryQueueItems.claimToken, claimToken),
+      ),
+    );
+
+  return row;
+};
+
 /** A guarded write matched nothing: either no such item or the claim is dead. */
 export const claimMissError = async (
   db: Database | Tx,

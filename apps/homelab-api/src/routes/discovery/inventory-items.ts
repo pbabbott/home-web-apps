@@ -8,11 +8,13 @@ import {
   decideInventoryItem,
   getInventoryItem,
   listSourceInventoryItems,
+  promoteInventoryItem,
   proposeInventoryItems,
 } from '../../controllers/discovery/inventory-items';
 import { parseActor } from '../../lib/actor';
 import {
   decideInventoryItemBodySchema,
+  promoteInventoryItemBodySchema,
   proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
   inventoryItemIdParamsSchema,
@@ -45,4 +47,11 @@ inventoryItemsRouter.patch(
   validateParams(inventoryItemIdParamsSchema),
   validateBody(decideInventoryItemBodySchema),
   decideInventoryItem,
+);
+inventoryItemsRouter.post(
+  '/queue-items/:id/promote',
+  parseActor,
+  validateParams(queueItemIdParamsSchema),
+  validateBody(promoteInventoryItemBodySchema),
+  promoteInventoryItem,
 );

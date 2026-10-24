@@ -25,6 +25,7 @@ import {
   describeAuditEvent,
   parseAuditEventType,
 } from '../lib/audit-display';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import type { AuditEvent, AuditEventType } from '../sources/lib/homelab-api';
 
 interface AuditClientProps {
@@ -146,7 +147,7 @@ export function AuditClient({
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <Th>When (UTC)</Th>
+                  <Th>When</Th>
                   <Th>Event</Th>
                   <Th>What</Th>
                   <Th>Source</Th>
@@ -157,8 +158,7 @@ export function AuditClient({
                 {events.map((event) => (
                   <TableRow key={event.id}>
                     <Td>
-                      {event.createdAt.slice(0, 10)}{' '}
-                      {event.createdAt.slice(11, 19)}
+                      <LocalDateTime iso={event.createdAt} seconds />
                     </Td>
                     <Td>{AUDIT_EVENT_LABELS[event.eventType]}</Td>
                     <Td className="break-all">{describeAuditEvent(event)}</Td>

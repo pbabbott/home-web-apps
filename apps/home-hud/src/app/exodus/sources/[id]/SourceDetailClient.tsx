@@ -9,13 +9,13 @@ import { inventoryItemsUrl } from '../../lib/inventory-display';
 import {
   isActiveJob,
   type Source,
-  type DiscoveryJob,
   type DiscoveryJobWithCounts,
   type QueueItem,
 } from '../lib/homelab-api';
 import { CurrentJobPanel } from './CurrentJobPanel';
 import { FailedItemsPanel } from './FailedItemsPanel';
 import { JobHistoryPanel } from './JobHistoryPanel';
+import { AddSourceModal } from '../AddSourceModal';
 import { StartJobModal } from './StartJobModal';
 
 /** While a job is active the page re-fetches this often, so progress shows without a manual reload. */
@@ -24,7 +24,9 @@ const ACTIVE_REFRESH_MS = 5000;
 interface SourceDetailClientProps {
   source: Source;
   host: Host | null;
-  jobs: DiscoveryJob[] | null;
+  /** Null if the hosts could not be loaded, so the source cannot be edited. */
+  hosts: Host[] | null;
+  jobs: DiscoveryJobWithCounts[] | null;
   latestJob: DiscoveryJobWithCounts | null;
   failedItems: QueueItem[] | null;
   hasActiveJob: boolean;
@@ -33,6 +35,7 @@ interface SourceDetailClientProps {
 export function SourceDetailClient({
   source,
   host,
+  hosts,
   jobs,
   latestJob,
   failedItems,
@@ -40,6 +43,7 @@ export function SourceDetailClient({
 }: SourceDetailClientProps) {
   const router = useRouter();
   const [startModalOpen, setStartModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!hasActiveJob) return;
@@ -73,15 +77,24 @@ export function SourceDetailClient({
               : 'No host linked'}{' '}
           · {source.sourceType}
         </Typography>
-        <OutlinedButton
-          component={Link}
-          href={inventoryItemsUrl({ source: source.id })}
-          color="accent-falcon"
-          size="small"
-          className="self-start"
-        >
-          Inventory items →
-        </OutlinedButton>
+        <div className="flex gap-3">
+          <OutlinedButton
+            component={Link}
+            href={inventoryItemsUrl({ source: source.id })}
+            color="accent-falcon"
+            size="small"
+          >
+            Inventory items →
+          </OutlinedButton>
+          <OutlinedButton
+            color="secondary"
+            size="small"
+            disabled={hosts === null}
+            onClick={() => setEditModalOpen(true)}
+          >
+            Edit
+          </OutlinedButton>
+        </div>
       </div>
 
       {jobs === null ? (
@@ -114,6 +127,15 @@ export function SourceDetailClient({
       )}
 
       {jobs && jobs.length > 0 && <JobHistoryPanel jobs={jobs} />}
+
+      <AddSourceModal
+        key={source.updatedAt}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        hosts={hosts ?? []}
+        source={source}
+        onSaved={refresh}
+      />
 
       <StartJobModal
         sourceId={source.id}

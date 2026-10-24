@@ -1,4 +1,3 @@
-import { getHosts, type Host } from '../../infra/hosts/lib/homelab-api';
 import {
   getAllDiscoveryJobs,
   getSources,
@@ -9,7 +8,7 @@ import {
 import { JobsClient } from './JobsClient';
 
 interface JobsPageProps {
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ source?: string; attention?: string }>;
 }
 
 const UUID_PATTERN =
@@ -20,20 +19,18 @@ function isUuid(value: string | undefined): value is string {
 }
 
 export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
-  const { source: sourceParam } = await searchParams;
+  const { source: sourceParam, attention } = await searchParams;
 
   // An id that isn't a uuid would 400 the API; it can only come from a
   // hand-edited URL, so treat it as "no filter" instead of an error page.
   const requestedSourceId = isUuid(sourceParam) ? sourceParam : undefined;
 
-  const [sourcesResult, hostsResult, jobsResult] = await Promise.allSettled([
+  const [sourcesResult, jobsResult] = await Promise.allSettled([
     getSources(),
-    getHosts(),
     getAllDiscoveryJobs(requestedSourceId),
   ]);
 
   let sources: Source[] | null = null;
-  let hosts: Host[] | null = null;
   let jobs: DiscoveryJobWithSource[] | null = null;
 
   if (sourcesResult.status === 'fulfilled') {
@@ -43,12 +40,6 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
       'Failed to load sources from homelab-api:',
       sourcesResult.reason,
     );
-  }
-
-  if (hostsResult.status === 'fulfilled') {
-    hosts = hostsResult.value;
-  } else {
-    console.error('Failed to load hosts from homelab-api:', hostsResult.reason);
   }
 
   if (jobsResult.status === 'fulfilled') {
@@ -71,8 +62,8 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
     <JobsClient
       jobs={jobs}
       sources={sources}
-      hosts={hosts}
       selectedSourceId={selectedSourceId}
+      attentionOnly={attention === '1'}
       hasActiveJob={jobs?.some(isActiveJob) ?? false}
     />
   );

@@ -6,7 +6,7 @@ Discovery is **selective**, not a crawl. The agent reasons about the filesystem,
 
 ## What discovery produces
 
-Inventory items are the **only** output of discovery. There is no per-file or per-directory catalogue: the earlier per-path catalogue (its table, routes, the `record_discovered_items` tool and its browser) was removed in migration `0011`, because nothing consumed it; this entity was called "review candidate" until migration `0012` renamed it. Any per-file metadata is gathered by a future copy workflow while copying, using approved inventory items as its authorization and scope, or by the agent as `evidence` on an inventory item (for example `estimatedSizeBytes`).
+Inventory items are the **only** output of discovery (the agent proposes them; a human can also [promote a skipped path](#promoting-a-skipped-path)). There is no per-file or per-directory catalogue: the earlier per-path catalogue (its table, routes, the `record_discovered_items` tool and its browser) was removed in migration `0011`, because nothing consumed it; this entity was called "review candidate" until migration `0012` renamed it. Any per-file metadata is gathered by a future copy workflow while copying, using approved inventory items as its authorization and scope, or by the agent as `evidence` on an inventory item (for example `estimatedSizeBytes`).
 
 | Path or situation                      | Result                                                                                                                         |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -113,6 +113,16 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 - Repeating the current decision and note is a no-op with no event. An omitted note is kept when the decision is unchanged and cleared when it changes.
 - An approval normally covers the inventory item's subtree, so internal folders need no separate approval. A nested inventory item can still exist (a subproject can be a legitimate separate unit), so nesting is allowed but made visible: see [Nested inventory items](#nested-inventory-items).
 
+## Promoting a skipped path
+
+The agent's skips are judgments and can be wrong. On the job detail page, an expanded directory lists its skipped paths with a **Promote** button, plus a "Promote a path…" form for something a `skippedGroups` pattern hid. `POST /queue-items/:id/promote` (`{ path, kind, note?, skipReason? }`, REST only, no MCP tool) then creates an inventory item that is already `approved`: promoting is the human's approval.
+
+- Human actor only (409 otherwise).
+- The path must lie strictly inside the queue item's directory.
+- Never overwrites: a path that already has an inventory item is 409 with `inventoryItemId`, so an agent row or a human decision is never replaced. A path under an exclusion rule is 409 with `blocked`, like a proposal.
+- The row is `recommendation: back_up`, `confidence: high`, with minimal evidence (`sufficientInformation: false`) and a reason recording the agent's skip reason. `firstJobId` / `lastJobId` are the queue item's job, and `inventory_item.promoted` is audited.
+- The queue item's `result` is left as the agent wrote it, so known skips still reports the path. A later agent proposal for the same path updates the agent fields and never the approval, as in [Rediscovery](#rediscovery).
+
 ## Nested inventory items
 
 Proposing a path inside an existing inventory item (or above one) is **not rejected**: the agent cannot reliably tell a monorepo subproject from a repository's `src\`, and a hard rule would hang on agent-claimed `evidence.git`. Instead each result of `propose_inventory_items` carries:
@@ -150,6 +160,7 @@ Enforcement: proposing an inventory item under an `exclude_subtree` rule, or exa
 | `inventory_item.created`                | an inventory item is first proposed (actor `openclaw`)  | path, recommendation, confidence          |
 | `inventory_item.recommendation_changed` | recommendation or confidence changed on rediscovery     | path, from, to, reason, decision in force |
 | `inventory_item.decision_changed`       | a human approves, rejects, changes or resets a decision | path, from, to, note, recommendation      |
+| `inventory_item.promoted`               | a human promotes a skipped path (actor `human`)         | path, kind, skipReason                    |
 
 Each is written in the same transaction as its change. Listing a directory, skipping a path, or an unchanged re-proposal writes nothing. Filter with `GET /audit-events?inventoryItemId=`.
 

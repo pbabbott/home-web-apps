@@ -3,29 +3,39 @@ import {
   completeDiscoveryJob,
   createDiscoveryJob as createDiscoveryJobRow,
   getDiscoveryJobById,
-  getQueueCounts,
+  getQueueSummaries,
   getSourceById,
   listAllDiscoveryJobs as listAllDiscoveryJobRows,
   listDiscoveryJobs as listDiscoveryJobRows,
   transitionDiscoveryJob,
   type DiscoveryJob,
   type DiscoveryJobWithSource,
-  type QueueCounts,
+  type QueueSummary,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
 import { toQueuePath } from './paths';
 
-export type DiscoveryJobWithCounts = DiscoveryJob & {
-  /** This job's item counts by status; `failed` > 0 means "finished with failures". */
-  queueCounts: QueueCounts;
+/**
+ * A job with its queue at a glance: `queueCounts` (`failed` > 0 on a finished
+ * job means it finished with failures), `staleClaims` (expired leases not yet
+ * reclaimed), the agent's last activity and worker, and for an active job its
+ * `phase`.
+ */
+export type DiscoveryJobWithCounts = DiscoveryJob & QueueSummary;
+
+const summarize = async <T extends DiscoveryJob>(
+  jobs: T[],
+): Promise<(T & QueueSummary)[]> => {
+  const summaries = await getQueueSummaries(db, jobs);
+
+  return jobs.map((job) => ({
+    ...job,
+    ...(summaries.get(job.id) as QueueSummary),
+  }));
 };
 
-const withCounts = async (
-  job: DiscoveryJob,
-): Promise<DiscoveryJobWithCounts> => ({
-  ...job,
-  queueCounts: await getQueueCounts(db, job.id),
-});
+const withCounts = async (job: DiscoveryJob): Promise<DiscoveryJobWithCounts> =>
+  (await summarize([job]))[0];
 
 export const requireJob = async (id: string): Promise<DiscoveryJob> => {
   const job = await getDiscoveryJobById(db, id);
@@ -44,19 +54,20 @@ export async function createDiscoveryJob(
   return withCounts(job);
 }
 
-export const listAllJobs = (
+export async function listAllJobs(
   sourceId?: string,
-): Promise<DiscoveryJobWithSource[]> =>
-  listAllDiscoveryJobRows(db, { sourceId });
+): Promise<(DiscoveryJobWithSource & QueueSummary)[]> {
+  return summarize(await listAllDiscoveryJobRows(db, { sourceId }));
+}
 
 export async function listSourceJobs(
   sourceId: string,
-): Promise<DiscoveryJob[]> {
+): Promise<DiscoveryJobWithCounts[]> {
   if (!(await getSourceById(db, sourceId))) {
     throw new DiscoveryError('not_found', 'source not found');
   }
 
-  return listDiscoveryJobRows(db, sourceId);
+  return summarize(await listDiscoveryJobRows(db, sourceId));
 }
 
 export async function getDiscoveryJob(

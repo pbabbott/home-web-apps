@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   index,
   integer,
@@ -88,6 +89,47 @@ export const sources = pgTable('sources', {
     .defaultNow(),
 });
 
+export const sourceConnectionTypeEnum = pgEnum('source_connection_type', [
+  'smb',
+]);
+
+/** Connection options that are not secret; the shape depends on the type. */
+export type SourceConnectionSettings = {
+  /**
+   * SMB only: which share serves a Windows path prefix, for machines where
+   * the admin shares (`C$`) are unavailable. The longest matching prefix wins.
+   */
+  shareMappings?: { pathPrefix: string; share: string }[];
+};
+
+/**
+ * How to authenticate to a source's filesystem so files can be previewed.
+ * At most one per source. `secretCiphertext` is encrypted by the API and is
+ * opaque here; it is never selected into API responses.
+ */
+export const sourceConnections = pgTable('source_connections', {
+  sourceId: uuid('source_id')
+    .primaryKey()
+    .references(() => sources.id, { onDelete: 'cascade' }),
+  connectionType: sourceConnectionTypeEnum('connection_type').notNull(),
+  username: text('username').notNull(),
+  domain: text('domain'),
+  secretCiphertext: text('secret_ciphertext').notNull(),
+  settings: jsonb('settings')
+    .$type<SourceConnectionSettings>()
+    .notNull()
+    .default({}),
+  lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
+  lastTestOk: boolean('last_test_ok'),
+  lastTestError: text('last_test_error'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 /**
  * One discovery run over a source, rooted at `rootPath`. The partial unique
  * index allows at most one active (pending/running) job per source: two
@@ -151,6 +193,8 @@ export const discoveryQueueItems = pgTable(
       .notNull()
       .defaultNow(),
     claimedBy: text('claimed_by'),
+    /** Who held the most recent claim; survives release, expiry and failure. */
+    lastClaimedBy: text('last_claimed_by'),
     claimToken: uuid('claim_token'),
     leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -397,7 +441,15 @@ export type AuditEventType =
   | 'queue_items.excluded'
   | 'inventory_item.created'
   | 'inventory_item.recommendation_changed'
-  | 'inventory_item.decision_changed';
+  | 'inventory_item.decision_changed'
+  | 'inventory_item.promoted'
+  | 'source_connection.updated'
+  | 'source_connection.deleted';
+
+export type SourceConnection = typeof sourceConnections.$inferSelect;
+export type NewSourceConnection = typeof sourceConnections.$inferInsert;
+export type SourceConnectionType =
+  (typeof sourceConnectionTypeEnum.enumValues)[number];
 
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;
@@ -440,6 +492,16 @@ export const sourceSelectSchema = createSelectSchema(sources, {
   createdAt: dateTime,
   updatedAt: dateTime,
 });
+
+/** Omits `secretCiphertext`: the secret never leaves the database layer. */
+export const sourceConnectionSelectSchema = createSelectSchema(
+  sourceConnections,
+  {
+    lastTestedAt: dateTime,
+    createdAt: dateTime,
+    updatedAt: dateTime,
+  },
+).omit({ secretCiphertext: true });
 
 export const discoveryJobSelectSchema = createSelectSchema(discoveryJobs, {
   createdAt: dateTime,
