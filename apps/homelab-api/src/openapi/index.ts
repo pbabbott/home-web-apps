@@ -4,6 +4,7 @@ import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
 import { inventoryItemsPaths } from './discovery/inventory-items';
+import { sourceConnectionsPaths } from './discovery/source-connections';
 import { sourcesPaths } from './discovery/sources';
 import { healthPaths } from './health';
 import { hostsPaths } from './hosts';
@@ -62,6 +63,7 @@ export const openApiSpec = createDocument({
     ...tagged('Maps', mapsPaths),
     ...tagged('Pods', podsPaths),
     ...tagged('Sources', sourcesPaths),
+    ...tagged('Sources', sourceConnectionsPaths),
     ...tagged('Discovery Jobs', discoveryJobsPaths),
     ...tagged('Queue Items', queueItemsPaths),
     ...tagged('Exclusion Rules', exclusionRulesPaths),

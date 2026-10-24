@@ -490,6 +490,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['video', 'camera', 'stream', 'media', 'record'],
   },
   {
+    id: 'radix-magnifying-glass',
+    label: 'Magnifying glass',
+    slug: 'MagnifyingGlassIcon',
+    source: 'radix',
+    keywords: ['search', 'find', 'zoom', 'preview', 'spyglass', 'lookup'],
+  },
+  {
     id: 'radix-eye-open',
     label: 'Eye',
     slug: 'EyeOpenIcon',

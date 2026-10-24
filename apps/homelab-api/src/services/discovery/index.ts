@@ -5,3 +5,4 @@ export * from './queue-items';
 export * from './exclusion-rules';
 export * from './audit-events';
 export * from './inventory-items';
+export * from './source-connections';

@@ -36,6 +36,7 @@ import {
   type InventoryLayout,
 } from '../lib/inventory-display';
 import { LocalDateTime } from '../lib/LocalDateTime';
+import { PreviewButton } from '../lib/PreviewButton';
 import { decideInventoryItem } from '../sources/lib/actions';
 import type {
   InventoryItemDecision,
@@ -308,6 +309,13 @@ export function InventoryClient({
                           />
                           {inventoryItem.rootPath}
                         </button>
+                        {inventoryItem.kind === 'file' && (
+                          <PreviewButton
+                            sourceId={inventoryItem.sourceId}
+                            path={inventoryItem.rootPath}
+                            className="ml-1 align-text-bottom"
+                          />
+                        )}
                         <div>
                           <span className="text-neutral-400">What: </span>
                           {inventoryItem.summary}

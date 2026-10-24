@@ -44,6 +44,7 @@ import {
 } from '../../lib/JobSummary';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
+import { PreviewButton } from '../../lib/PreviewButton';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
 import {
   enqueueQueueItems,
@@ -206,27 +207,30 @@ function QueueItemDetails({
                 {result.skipped.map((skip) => (
                   <TableRow key={skip.path}>
                     <Td color="secondary">
-                      {inventoried.has(skip.path.toLowerCase()) ? (
-                        <Link
-                          href="/exodus/inventory"
-                          className="text-neutral-400 underline"
-                        >
-                          In inventory
-                        </Link>
-                      ) : (
-                        <OutlinedButton
-                          size="small"
-                          color="secondary"
-                          onClick={() =>
-                            setPromoting({
-                              path: skip.path,
-                              reason: skip.reason,
-                            })
-                          }
-                        >
-                          Promote
-                        </OutlinedButton>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <PreviewButton sourceId={sourceId} path={skip.path} />
+                        {inventoried.has(skip.path.toLowerCase()) ? (
+                          <Link
+                            href="/exodus/inventory"
+                            className="text-neutral-400 underline"
+                          >
+                            In inventory
+                          </Link>
+                        ) : (
+                          <OutlinedButton
+                            size="small"
+                            color="secondary"
+                            onClick={() =>
+                              setPromoting({
+                                path: skip.path,
+                                reason: skip.reason,
+                              })
+                            }
+                          >
+                            Promote
+                          </OutlinedButton>
+                        )}
+                      </div>
                     </Td>
                     <Td color="secondary" className="break-all">
                       {relativeToDirectory(item.path, skip.path)}

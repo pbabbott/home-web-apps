@@ -30,6 +30,7 @@ import type {
   InventoryItem,
 } from '../sources/lib/homelab-api';
 import { InventoryItemDetails } from './InventoryItemDetails';
+import { PreviewButton } from '../lib/PreviewButton';
 
 interface InventoryItemDetailModalProps {
   /** The inventory item to review; null closes the modal. */
@@ -120,6 +121,13 @@ export function InventoryItemDetailModal({
         <ModalTitle>{inventoryItem?.displayName}</ModalTitle>
         <ModalDescription className="break-all">
           {inventoryItem?.rootPath}
+          {inventoryItem?.kind === 'file' && (
+            <PreviewButton
+              sourceId={inventoryItem.sourceId}
+              path={inventoryItem.rootPath}
+              className="ml-1 align-text-bottom"
+            />
+          )}
         </ModalDescription>
 
         {inventoryItem && (

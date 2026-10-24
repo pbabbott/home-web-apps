@@ -18,6 +18,7 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 | Inventory items, human decisions, exclusion rules, audit log |                           |
 | home-hud pages: sources, jobs, inventory item review         | Bulk review actions       |
 | MCP tools for the agent's work loop (`POST /mcp`)            |                           |
+| Per-source file access (SMB) and file preview                |                           |
 | Unit and integration tests                                   |                           |
 
 ## Where things live

@@ -19,6 +19,7 @@ import type {
   InventoryItem,
   InventoryItemDecision,
 } from '../sources/lib/homelab-api';
+import { PreviewButton } from '../lib/PreviewButton';
 import { InventoryItemCompactDetails } from './InventoryItemDetails';
 
 interface InventoryItemCardProps {
@@ -55,6 +56,13 @@ export function InventoryItemCard({
         </Typography>
         <Typography variant="body2" className="break-all text-neutral-400">
           {inventoryItem.rootPath}
+          {isFile && (
+            <PreviewButton
+              sourceId={inventoryItem.sourceId}
+              path={inventoryItem.rootPath}
+              className="ml-1 align-text-bottom"
+            />
+          )}
         </Typography>
       </div>
 

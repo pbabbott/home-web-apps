@@ -2,6 +2,8 @@
   "$schema": "https://turbo.build/schema.json",
   "globalPassThroughEnv": [
     "CI",
+    "PATH",
+    "HOME",
     "ABCTL_IMAGE_TAG",
     "IMAGE_TAG",
     "PORT",

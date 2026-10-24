@@ -1,5 +1,6 @@
 export { DiscoveryError } from '../shared';
 export * from './sources';
+export * from './source-connections';
 export * from './jobs';
 export * from './queue-items';
 export * from './import';

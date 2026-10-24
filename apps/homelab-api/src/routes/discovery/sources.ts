@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { parseActor } from '../../lib/actor';
 import {
   validateBody,
   validateParams,
@@ -13,6 +14,13 @@ import {
   listSourceQueueItems,
 } from '../../controllers/discovery/queue-items';
 import {
+  deleteSourceConnection,
+  getSourceConnection,
+  previewSourceFile,
+  saveSourceConnection,
+  testSourceConnection,
+} from '../../controllers/discovery/source-connections';
+import {
   createSource,
   listSources,
   updateSource,
@@ -21,6 +29,8 @@ import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
   knownSkipListQuerySchema,
+  previewQuerySchema,
+  saveSourceConnectionBodySchema,
   queueItemListQuerySchema,
   sourceIdParamsSchema,
   updateSourceBodySchema,
@@ -62,4 +72,33 @@ sourcesRouter.get(
   validateParams(sourceIdParamsSchema),
   validateQuery(knownSkipListQuerySchema),
   listKnownSkips,
+);
+sourcesRouter.get(
+  '/sources/:id/connection',
+  validateParams(sourceIdParamsSchema),
+  getSourceConnection,
+);
+sourcesRouter.put(
+  '/sources/:id/connection',
+  parseActor,
+  validateParams(sourceIdParamsSchema),
+  validateBody(saveSourceConnectionBodySchema),
+  saveSourceConnection,
+);
+sourcesRouter.delete(
+  '/sources/:id/connection',
+  parseActor,
+  validateParams(sourceIdParamsSchema),
+  deleteSourceConnection,
+);
+sourcesRouter.post(
+  '/sources/:id/connection/test',
+  validateParams(sourceIdParamsSchema),
+  testSourceConnection,
+);
+sourcesRouter.get(
+  '/sources/:id/preview',
+  validateParams(sourceIdParamsSchema),
+  validateQuery(previewQuerySchema),
+  previewSourceFile,
 );
