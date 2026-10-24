@@ -1,9 +1,11 @@
 import {
   describeSkips,
+  formatRelativeTime,
   guessKind,
   isStaleClaim,
   jobPhase,
   jobDetailUrl,
+  jobProgress,
   parsePathLines,
   parseQueueStatus,
 } from '../../src/app/exodus/lib/job-display';
@@ -134,5 +136,38 @@ describe('isStaleClaim', () => {
     expect(
       isStaleClaim({ status: 'in_progress', leaseExpiresAt: null }, now),
     ).toBe(false);
+  });
+});
+
+describe('jobProgress', () => {
+  it('counts completed and skipped as done, out of everything discovered', () => {
+    expect(
+      jobProgress({
+        queued: 3,
+        in_progress: 1,
+        completed: 10,
+        failed: 2,
+        skipped: 4,
+      }),
+    ).toEqual({ done: 14, total: 20, failed: 2 });
+  });
+});
+
+describe('formatRelativeTime', () => {
+  const now = Date.parse('2026-10-24T12:00:00Z');
+
+  it.each([
+    ['2026-10-24T11:59:30Z', 'just now'],
+    ['2026-10-24T11:56:00Z', '4 min ago'],
+    ['2026-10-24T09:00:00Z', '3 h ago'],
+    ['2026-10-22T12:00:00Z', '2 d ago'],
+    ['2026-10-24T12:05:00Z', 'just now'],
+  ])('%s -> %s', (iso, expected) => {
+    expect(formatRelativeTime(iso, now)).toBe(expected);
+  });
+
+  it('is a dash without a usable timestamp', () => {
+    expect(formatRelativeTime(null, now)).toBe('—');
+    expect(formatRelativeTime('nope', now)).toBe('—');
   });
 });

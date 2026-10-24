@@ -48,7 +48,7 @@ export interface DiscoveryJobWithCounts extends DiscoveryJob, JobQueueSummary {}
 /** A source's jobs, newest first. */
 export async function getDiscoveryJobs(
   sourceId: string,
-): Promise<DiscoveryJob[]> {
+): Promise<DiscoveryJobWithCounts[]> {
   const res = await fetch(
     `${HOMELAB_API_URL}/sources/${sourceId}/discovery-jobs`,
     { cache: 'no-store' },
@@ -61,7 +61,7 @@ export async function getDiscoveryJobs(
     );
   }
 
-  return (await res.json()) as DiscoveryJob[];
+  return (await res.json()) as DiscoveryJobWithCounts[];
 }
 
 export async function getDiscoveryJob(
@@ -81,7 +81,7 @@ export async function getDiscoveryJob(
   return (await res.json()) as DiscoveryJobWithCounts;
 }
 
-export interface DiscoveryJobWithSource extends DiscoveryJob {
+export interface DiscoveryJobWithSource extends DiscoveryJob, JobQueueSummary {
   sourceName: string;
   /** The host the job's source is linked to, if any. */
   hostId: string | null;

@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { JOB_STATUS_COLOR, formatDuration } from '../lib/job-display';
+import { JobActivity, JobPhaseBadge, JobProgress } from '../lib/JobSummary';
 import { LocalDateTime } from '../lib/LocalDateTime';
 import type {
   Source,
@@ -101,6 +102,8 @@ export function JobsClient({
                   <Th>ID</Th>
                   <Th>Root</Th>
                   <Th>Status</Th>
+                  <Th>Progress</Th>
+                  <Th>Last activity</Th>
                   <Th>Source</Th>
                   <Th>Created</Th>
                   <Th>Finished</Th>
@@ -134,9 +137,18 @@ export function JobsClient({
                         </Link>
                       </Td>
                       <Td>
-                        <Badge color={JOB_STATUS_COLOR[job.status]}>
-                          {job.status}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge color={JOB_STATUS_COLOR[job.status]}>
+                            {job.status}
+                          </Badge>
+                          <JobPhaseBadge job={job} />
+                        </div>
+                      </Td>
+                      <Td>
+                        <JobProgress job={job} />
+                      </Td>
+                      <Td>
+                        <JobActivity job={job} />
                       </Td>
                       <Td>
                         <Link

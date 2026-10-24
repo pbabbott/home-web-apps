@@ -206,3 +206,42 @@ export function jobPhase(
     color: counts.failed > 0 ? 'warning' : 'success',
   };
 }
+
+/** Finished directories (completed or skipped) out of every directory discovered so far; the total grows while the agent explores. */
+export function jobProgress(counts: QueueCounts): {
+  done: number;
+  total: number;
+  failed: number;
+} {
+  const total =
+    counts.queued +
+    counts.in_progress +
+    counts.completed +
+    counts.failed +
+    counts.skipped;
+
+  return {
+    done: counts.completed + counts.skipped,
+    total,
+    failed: counts.failed,
+  };
+}
+
+/** `just now`, `4 min ago`, `3 h ago`, `2 d ago`; `—` for no or an unparseable timestamp. */
+export function formatRelativeTime(iso: string | null, now: number): string {
+  if (!iso) return '—';
+
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return '—';
+
+  const seconds = Math.max(0, Math.round((now - then) / 1000));
+  if (seconds < 60) return 'just now';
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+
+  return `${Math.floor(hours / 24)} d ago`;
+}

@@ -9,7 +9,6 @@ import { inventoryItemsUrl } from '../../lib/inventory-display';
 import {
   isActiveJob,
   type Source,
-  type DiscoveryJob,
   type DiscoveryJobWithCounts,
   type QueueItem,
 } from '../lib/homelab-api';
@@ -27,7 +26,7 @@ interface SourceDetailClientProps {
   host: Host | null;
   /** Null if the hosts could not be loaded, so the source cannot be edited. */
   hosts: Host[] | null;
-  jobs: DiscoveryJob[] | null;
+  jobs: DiscoveryJobWithCounts[] | null;
   latestJob: DiscoveryJobWithCounts | null;
   failedItems: QueueItem[] | null;
   hasActiveJob: boolean;

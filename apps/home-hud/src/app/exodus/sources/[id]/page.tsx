@@ -11,7 +11,6 @@ import {
   getJobQueueItems,
   isActiveJob,
   type Source,
-  type DiscoveryJob,
   type DiscoveryJobWithCounts,
   type QueueItem,
 } from '../lib/homelab-api';
@@ -54,7 +53,10 @@ export default async function SourceDetailPage({ params }: PageProps) {
   ]);
 
   const host: Host | null = unwrap(hostResult, 'host');
-  const jobs: DiscoveryJob[] | null = unwrap(jobsResult, 'discovery jobs');
+  const jobs: DiscoveryJobWithCounts[] | null = unwrap(
+    jobsResult,
+    'discovery jobs',
+  );
   const hosts: Host[] | null = unwrap(hostsResult, 'hosts');
 
   // The newest job is the one worth showing, running or already finished.

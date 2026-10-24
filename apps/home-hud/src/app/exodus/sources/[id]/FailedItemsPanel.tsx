@@ -60,6 +60,7 @@ export function FailedItemsPanel({
             <TableRow>
               <Th>Path</Th>
               <Th>Attempts</Th>
+              <Th>Worker</Th>
               <Th>Last error</Th>
               <Th>Failed</Th>
               <Th>&nbsp;</Th>
@@ -72,6 +73,7 @@ export function FailedItemsPanel({
                 <Td>
                   {item.attemptCount} / {item.maxAttempts}
                 </Td>
+                <Td className="break-all">{item.lastClaimedBy ?? '—'}</Td>
                 <Td>{item.lastError ?? '—'}</Td>
                 <Td>
                   <LocalDateTime iso={item.updatedAt} />
