@@ -52,7 +52,7 @@ const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
 function Detail({ title, children }: { title: string; children: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <Typography variant="caption" className="text-neutral-400">
+      <Typography variant="body1" className="text-neutral-400">
         {title}
       </Typography>
       <Typography variant="body2" className="break-words">
@@ -76,7 +76,7 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
 
       {result?.skippedGroups && result.skippedGroups.length > 0 && (
         <div className="flex flex-col gap-1">
-          <Typography variant="caption" className="text-neutral-400">
+          <Typography variant="body1" className="text-neutral-400">
             Skipped by pattern
           </Typography>
           <ul className="flex list-disc flex-col gap-1 pl-5">
@@ -93,7 +93,7 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
 
       {result && result.skipped.length > 0 && (
         <div className="flex flex-col gap-1">
-          <Typography variant="caption" className="text-neutral-400">
+          <Typography variant="body1" className="text-neutral-400">
             Skipped paths
           </Typography>
           <ul className="flex list-disc flex-col gap-1 pl-5">
