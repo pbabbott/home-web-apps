@@ -510,6 +510,20 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     source: 'radix',
     keywords: ['back', 'previous', 'left', 'navigate', 'return'],
   },
+  {
+    id: 'radix-chevron-right',
+    label: 'Chevron Right',
+    slug: 'ChevronRightIcon',
+    source: 'radix',
+    keywords: ['next', 'right', 'forward', 'navigate', 'expand'],
+  },
+  {
+    id: 'radix-chevron-down',
+    label: 'Chevron Down',
+    slug: 'ChevronDownIcon',
+    source: 'radix',
+    keywords: ['down', 'dropdown', 'collapse', 'expand', 'open'],
+  },
 ];
 
 export function lookupById(id: string): FuiIconDefinition | undefined {

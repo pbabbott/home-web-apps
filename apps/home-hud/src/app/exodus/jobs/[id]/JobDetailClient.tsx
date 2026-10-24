@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect, useState, type FormEvent } from 'react';
+import { Icon } from '@abbottland/fui-icons';
 import {
   Badge,
   Button,
@@ -356,14 +357,11 @@ export function JobDetailClient({
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <Th>Status</Th>
                     <Th>Path</Th>
+                    <Th>Status</Th>
                     <Th>Skipped</Th>
                     <Th>Attempts</Th>
                     <Th>Completed (UTC)</Th>
-                    <Th>
-                      <span className="sr-only">Details</span>
-                    </Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -371,28 +369,45 @@ export function JobDetailClient({
                     <Fragment key={item.id}>
                       <TableRow>
                         <Td>
+                          <div className="flex items-start gap-2">
+                            <OutlinedButton
+                              size="small"
+                              color="secondary"
+                              aria-expanded={expanded.has(item.id)}
+                              aria-label={
+                                expanded.has(item.id)
+                                  ? 'Hide details'
+                                  : 'Show details'
+                              }
+                              onClick={() => toggle(item.id)}
+                              className="shrink-0 px-1.5"
+                            >
+                              <Icon
+                                name={
+                                  expanded.has(item.id)
+                                    ? 'radix-chevron-down'
+                                    : 'radix-chevron-right'
+                                }
+                                size={14}
+                              />
+                            </OutlinedButton>
+                            <span className="break-all">{item.path}</span>
+                          </div>
+                        </Td>
+                        <Td>
                           <Badge color={QUEUE_STATUS_COLOR[item.status]}>
                             {item.status}
                           </Badge>
                         </Td>
-                        <Td className="break-all">{item.path}</Td>
                         <Td>{describeSkips(item.result) || '—'}</Td>
                         <Td>
                           {item.attemptCount} / {item.maxAttempts}
                         </Td>
                         <Td>{formatDateTime(item.completedAt)}</Td>
-                        <Td>
-                          <OutlinedButton
-                            size="small"
-                            onClick={() => toggle(item.id)}
-                          >
-                            {expanded.has(item.id) ? 'Hide' : 'Details'}
-                          </OutlinedButton>
-                        </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={6}>
+                          <Td colSpan={5}>
                             <QueueItemDetails item={item} />
                           </Td>
                         </TableRow>
