@@ -85,7 +85,7 @@ export function CurrentJobPanel({
 
   return (
     <Panel color="default" className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Typography variant="h5" component="h2">
             {job && isActiveJob(job) ? 'Current Job' : 'Latest Job'}
@@ -94,7 +94,7 @@ export function CurrentJobPanel({
             <Badge color={JOB_STATUS_COLOR[job.status]}>{job.status}</Badge>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {job && isActiveJob(job) && (
             <>
               {job.phase === 'awaiting_completion' ? (
