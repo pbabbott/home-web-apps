@@ -36,7 +36,7 @@ import {
   parsePathLines,
   relativeToDirectory,
 } from '../../lib/job-display';
-import { JobActivity } from '../../lib/JobSummary';
+import { JobActivity, JobProgress } from '../../lib/JobSummary';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
@@ -447,6 +447,9 @@ export function JobDetailClient({
           </div>
           <Detail title="Created">
             <LocalDateTime iso={job.createdAt} />
+          </Detail>
+          <Detail title="Progress">
+            <JobProgress job={job} />
           </Detail>
           {active && (
             <Detail title="Last activity">
