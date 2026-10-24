@@ -91,6 +91,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   className,
   children,
   sideOffset = 8,
+  collisionPadding = 8,
   ...props
 }) => {
   const animatedRef = useRef(animated);
@@ -125,8 +126,11 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
       <RDM.Content
         ref={contentRef}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
         className={extendedTwMerge(
-          'relative z-50 min-w-[380px] bg-neutral-900/30 backdrop-blur-sm',
+          'relative z-50 flex min-w-[380px] flex-col bg-neutral-900/30 backdrop-blur-sm',
+          // Never taller than the room left in the viewport: the item list scrolls instead.
+          'max-h-[var(--radix-dropdown-menu-content-available-height)]',
           'border border-primary-700 text-neutral-300 pb-3 px-2',
           className,
         )}
@@ -151,7 +155,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
             )}
           </div>
         )}
-        <div className="flex px-2 py-1">
+        <div className="flex min-h-0 overflow-y-auto px-2 py-1">
           <div className="flex-1">{children}</div>
           <DottedDecoration className="text-primary-700 opacity-60 self-center pr-1" />
         </div>
