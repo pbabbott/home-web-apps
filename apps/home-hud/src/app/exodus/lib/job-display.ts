@@ -22,6 +22,33 @@ export function formatDateTime(iso: string | null): string {
   return iso ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : '—';
 }
 
+/**
+ * Elapsed time between two ISO timestamps as `1h 5m 3s`, or `—` while the job
+ * has not finished (or a timestamp is unparseable).
+ */
+export function formatDuration(
+  startIso: string,
+  endIso: string | null,
+): string {
+  if (!endIso) return '—';
+
+  const ms = Date.parse(endIso) - Date.parse(startIso);
+  if (!Number.isFinite(ms) || ms < 0) return '—';
+
+  const total = Math.round(ms / 1000);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+
+  const parts = [
+    hours > 0 ? `${hours}h` : '',
+    minutes > 0 ? `${minutes}m` : '',
+    seconds > 0 || total === 0 ? `${seconds}s` : '',
+  ].filter(Boolean);
+
+  return parts.join(' ');
+}
+
 export const QUEUE_STATUS_COLOR: Record<QueueItemStatus, BadgeColor> = {
   queued: 'warning',
   in_progress: 'secondary',
@@ -54,6 +81,20 @@ export function describeSkippedGroup(group: {
   return group.count === undefined
     ? group.pattern
     : `${group.pattern} ×${group.count}`;
+}
+
+/**
+ * `path` relative to the directory it was found in, so a row inside an
+ * expanded `C:\backup-test\x` item reads `y\z` rather than the full path.
+ * Falls back to the full path when it is not under `directory`.
+ */
+export function relativeToDirectory(directory: string, path: string): string {
+  const base = directory.replace(/[\\/]+$/, '');
+  const startsWithBase =
+    path.slice(0, base.length).toLowerCase() === base.toLowerCase();
+  const rest = path.slice(base.length);
+
+  return startsWithBase && /^[\\/]/.test(rest) ? rest.slice(1) : path;
 }
 
 /** One line for the table: `3 skipped, 2 patterns`, or an empty string when nothing was skipped. */

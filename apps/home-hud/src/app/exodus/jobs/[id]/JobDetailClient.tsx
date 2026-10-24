@@ -25,8 +25,10 @@ import {
   describeSkippedGroup,
   describeSkips,
   formatDateTime,
+  formatDuration,
   jobDetailUrl,
   parsePathLines,
+  relativeToDirectory,
 } from '../../lib/job-display';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { enqueueQueueItems } from '../../sources/lib/actions';
@@ -96,19 +98,28 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
           <Typography variant="body1" className="text-neutral-400">
             Skipped paths
           </Typography>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
-            {result.skipped.map((skip) => (
-              <li key={skip.path}>
-                <Typography
-                  variant="body2"
-                  component="span"
-                  className="break-all"
-                >
-                  {skip.path}: {skip.reason}
-                </Typography>
-              </li>
-            ))}
-          </ul>
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Path</Th>
+                  <Th color="secondary">Reason</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {result.skipped.map((skip) => (
+                  <TableRow key={skip.path}>
+                    <Td color="secondary" className="break-all">
+                      {relativeToDirectory(item.path, skip.path)}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {skip.reason}
+                    </Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
         </div>
       )}
 
@@ -276,24 +287,32 @@ export function JobDetailClient({
           </Typography>
           <Badge color={JOB_STATUS_COLOR[job.status]}>{job.status}</Badge>
         </div>
-        <Typography variant="body2" className="text-neutral-400">
-          {sourceName ? (
-            <Link
-              href={`/exodus/sources/${job.sourceId}`}
-              className="text-primary-400 hover:underline"
-            >
-              {sourceName}
-            </Link>
-          ) : (
-            'Unknown source'
-          )}
-          {' · created '}
-          {formatDateTime(job.createdAt)}
-          {job.finishedAt
-            ? ` · finished ${formatDateTime(job.finishedAt)}`
-            : ''}
-          {' (UTC)'}
-        </Typography>
+        <div className="flex flex-wrap gap-x-8 gap-y-3">
+          <div className="flex flex-col gap-0.5">
+            <Typography variant="caption" className="text-neutral-400">
+              Source
+            </Typography>
+            <Typography variant="body2">
+              {sourceName ? (
+                <Link
+                  href={`/exodus/sources/${job.sourceId}`}
+                  className="text-primary-400 hover:underline"
+                >
+                  {sourceName}
+                </Link>
+              ) : (
+                'Unknown source'
+              )}
+            </Typography>
+          </div>
+          <Detail title="Created (UTC)">{formatDateTime(job.createdAt)}</Detail>
+          <Detail title="Finished (UTC)">
+            {formatDateTime(job.finishedAt)}
+          </Detail>
+          <Detail title="Duration">
+            {formatDuration(job.createdAt, job.finishedAt)}
+          </Detail>
+        </div>
         {job.error && (
           <Typography variant="body2" className="text-error-400">
             {job.error}
