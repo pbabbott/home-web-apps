@@ -21,19 +21,23 @@ import {
   jobResult,
   knownSkipsResult,
   proposeResult,
+  releaseResult,
   ruleResult,
   skipResult,
 } from './mcp-results';
 import {
+  claimAnyQueueItemOperation,
   claimQueueItemOperation,
   completeQueueItemOperation,
   failQueueItemOperation,
   heartbeatQueueItemOperation,
   listKnownSkipsOperation,
+  releaseQueueItemOperation,
   skipQueueItemOperation,
 } from './controllers/discovery/queue-items';
 import * as discoveryService from './services/discovery';
 import {
+  claimAnyQueueItemBodySchema,
   claimQueueItemBodySchema,
   completeQueueItemBodySchema,
   createExclusionRuleBodySchema,
@@ -45,6 +49,7 @@ import {
   knownSkipListQuerySchema,
   proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
+  releaseQueueItemBodySchema,
   inventoryItemListQuerySchema,
   sourceIdParamsSchema,
   skipQueueItemBodySchema,
@@ -140,6 +145,24 @@ export const createMcpServer = (): McpServer => {
   );
 
   server.registerTool(
+    claimAnyQueueItemOperation.mcp.name,
+    {
+      description: claimAnyQueueItemOperation.mcp.description,
+      inputSchema: claimAnyQueueItemBodySchema.shape,
+    },
+    ({ workerId, leaseSeconds, sourceId }) =>
+      run(claimAnyQueueItemOperation.mcp.name, async () =>
+        claimResult(
+          await discoveryService.claimAnyQueueItem(
+            workerId,
+            leaseSeconds,
+            sourceId,
+          ),
+        ),
+      ),
+  );
+
+  server.registerTool(
     heartbeatQueueItemOperation.mcp.name,
     {
       description: heartbeatQueueItemOperation.mcp.description,
@@ -224,7 +247,11 @@ export const createMcpServer = (): McpServer => {
           { summary, skipped, skippedGroups },
         );
 
-        return completeResult(item, children);
+        return completeResult(
+          item,
+          children,
+          await discoveryService.jobQueueCounts(item.jobId),
+        );
       }),
   );
 
@@ -249,8 +276,25 @@ export const createMcpServer = (): McpServer => {
       inputSchema: { id: queueItemId, ...skipQueueItemBodySchema.shape },
     },
     ({ id, claimToken, reason }) =>
-      run(skipQueueItemOperation.mcp.name, async () =>
-        skipResult(await discoveryService.skipItem(id, claimToken, reason)),
+      run(skipQueueItemOperation.mcp.name, async () => {
+        const item = await discoveryService.skipItem(id, claimToken, reason);
+
+        return skipResult(
+          item,
+          await discoveryService.jobQueueCounts(item.jobId),
+        );
+      }),
+  );
+
+  server.registerTool(
+    releaseQueueItemOperation.mcp.name,
+    {
+      description: releaseQueueItemOperation.mcp.description,
+      inputSchema: { id: queueItemId, ...releaseQueueItemBodySchema.shape },
+    },
+    ({ id, claimToken }) =>
+      run(releaseQueueItemOperation.mcp.name, async () =>
+        releaseResult(await discoveryService.releaseItem(id, claimToken)),
       ),
   );
 

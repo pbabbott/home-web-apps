@@ -26,6 +26,13 @@ export const claimQueueItemBodySchema = z.object({
 });
 export type ClaimQueueItemBody = z.infer<typeof claimQueueItemBodySchema>;
 
+export const claimAnyQueueItemBodySchema = claimQueueItemBodySchema.extend({
+  sourceId: z.uuid().optional().meta({
+    description: 'Only claim from this source’s active job.',
+  }),
+});
+export type ClaimAnyQueueItemBody = z.infer<typeof claimAnyQueueItemBodySchema>;
+
 export const queueItemListQuerySchema = z.object({
   status: z
     .enum(['queued', 'in_progress', 'completed', 'failed', 'skipped'])
@@ -129,6 +136,11 @@ export const skipQueueItemBodySchema = z.object({
   reason: z.string().min(1).meta({ example: 'system directory' }),
 });
 export type SkipQueueItemBody = z.infer<typeof skipQueueItemBodySchema>;
+
+export const releaseQueueItemBodySchema = z.object({
+  claimToken: claimTokenSchema,
+});
+export type ReleaseQueueItemBody = z.infer<typeof releaseQueueItemBodySchema>;
 
 export const jobQueueItemListQuerySchema = z.object({
   status: queueItemListQuerySchema.shape.status,

@@ -1,6 +1,7 @@
 import type { BadgeColor } from '@abbottland/fui-components';
 import type {
   DiscoveryJobStatus,
+  QueueCounts,
   QueueItemResult,
   QueueItemStatus,
 } from '../sources/lib/homelab-api';
@@ -138,4 +139,70 @@ export function parsePathLines(text: string): string[] {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
+}
+
+/** Where an active job stands, so a person can tell waiting on the agent from waiting on them. */
+export type JobPhase =
+  | 'work_remaining'
+  | 'stuck_claims'
+  | 'awaiting_completion';
+
+export interface JobPhaseInfo {
+  phase: JobPhase;
+  label: string;
+  detail: string;
+  color: BadgeColor;
+}
+
+/** True once an in-progress item's lease has run out: its worker is gone and the next claim reclaims it. */
+export function isStaleClaim(
+  item: { status: QueueItemStatus; leaseExpiresAt: string | null },
+  now: number,
+): boolean {
+  return (
+    item.status === 'in_progress' &&
+    item.leaseExpiresAt !== null &&
+    Date.parse(item.leaseExpiresAt) < now
+  );
+}
+
+const directories = (n: number) =>
+  `${n} ${n === 1 ? 'directory' : 'directories'}`;
+
+/**
+ * `staleClaims` is how many in-progress items have an expired lease; callers
+ * that cannot see lease times pass 0. Stuck claims win over remaining work
+ * because they need a worker to come back, not just time.
+ */
+export function jobPhase(
+  counts: QueueCounts,
+  staleClaims: number,
+): JobPhaseInfo {
+  if (staleClaims > 0) {
+    return {
+      phase: 'stuck_claims',
+      label: 'Stuck claims',
+      detail: `${directories(staleClaims)} held by a worker whose lease expired. The next claim returns ${staleClaims === 1 ? 'it' : 'them'} to the queue.`,
+      color: 'error',
+    };
+  }
+
+  if (counts.queued > 0 || counts.in_progress > 0) {
+    return {
+      phase: 'work_remaining',
+      label: 'Work remaining',
+      detail: `${counts.queued} queued, ${counts.in_progress} in progress. The agent is still exploring.`,
+      color: 'secondary',
+    };
+  }
+
+  return {
+    phase: 'awaiting_completion',
+    label: 'Awaiting completion',
+    detail:
+      counts.failed > 0
+        ? `Discovery finished with ${`${directories(counts.failed)} failed`}. Retry them, or mark the job complete.`
+        : 'Discovery finished. Mark the job complete when you are done reviewing.',
+    color: counts.failed > 0 ? 'warning' : 'success',
+  };
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "discovery_queue_items" ADD COLUMN "last_claimed_by" text;

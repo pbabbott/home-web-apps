@@ -14,6 +14,7 @@ import {
   activeClaim,
   claimMissError,
   jobIsActive,
+  settledByClaim,
 } from './claims';
 import {
   expireLeases,
@@ -161,8 +162,16 @@ export type ClaimQueueItemInput = {
 /** Why a claim found nothing, so a worker knows whether to wait or stop. */
 export type ClaimIdleReason = 'queue_empty' | 'retry_backoff' | 'in_progress';
 
+/** The job a claimed item belongs to, so a worker needs no separate lookup. */
+export type ClaimedJob = { id: string; sourceId: string; rootPath: string };
+
 export type ClaimQueueItemResult =
-  | { item: DiscoveryQueueItem }
+  | {
+      item: DiscoveryQueueItem;
+      job: ClaimedJob;
+      /** The job's queue after this claim, so a worker can budget its run. */
+      queueCounts: QueueCounts;
+    }
   | {
       item: null;
       /**
@@ -232,6 +241,7 @@ export const claimNextQueueItem = async (
         status: 'in_progress',
         attemptCount: sql`${t.attemptCount} + 1`,
         claimedBy: input.workerId,
+        lastClaimedBy: input.workerId,
         claimToken: sql`gen_random_uuid()`,
         leaseExpiresAt: sql`now() + make_interval(secs => ${input.leaseSeconds})`,
         updatedAt: sql`now()`,
@@ -250,8 +260,87 @@ export const claimNextQueueItem = async (
         .where(eq(discoveryJobs.id, job.id));
     }
 
-    return { item };
+    return {
+      item,
+      job: { id: job.id, sourceId: job.sourceId, rootPath: job.rootPath },
+      queueCounts: await getQueueCounts(tx, job.id),
+    };
   });
+
+export type ClaimAnyInput = {
+  workerId: string;
+  leaseSeconds: number;
+  /** Only consider this source's active job. */
+  sourceId?: string;
+};
+
+/**
+ * Claims the next directory of the oldest active job that has one, so a
+ * worker with no job id asks one question. Idle only when no active job can
+ * hand out work: `queue_empty` (stop) if every job is drained or none exist,
+ * otherwise the soonest `retryAt` of the jobs that are merely waiting. Counts
+ * in the idle result are summed over the active jobs.
+ */
+export const claimNextAcrossJobs = async (
+  db: Database,
+  input: ClaimAnyInput,
+): Promise<ClaimQueueItemResult> => {
+  const jobs = await db
+    .select({ id: discoveryJobs.id })
+    .from(discoveryJobs)
+    .where(
+      and(
+        inArray(discoveryJobs.status, ACTIVE_JOB_STATUSES),
+        input.sourceId ? eq(discoveryJobs.sourceId, input.sourceId) : undefined,
+      ),
+    )
+    .orderBy(asc(discoveryJobs.createdAt));
+
+  const idle: Extract<ClaimQueueItemResult, { item: null }> = {
+    item: null,
+    reason: 'queue_empty',
+    retryAt: null,
+    queueCounts: {
+      queued: 0,
+      in_progress: 0,
+      completed: 0,
+      failed: 0,
+      skipped: 0,
+    },
+  };
+
+  for (const { id } of jobs) {
+    let result: ClaimQueueItemResult;
+    try {
+      result = await claimNextQueueItem(db, {
+        jobId: id,
+        workerId: input.workerId,
+        leaseSeconds: input.leaseSeconds,
+      });
+    } catch (err) {
+      // The job finished between listing and claiming: nothing to take there.
+      if (err instanceof DiscoveryError && err.code === 'conflict') continue;
+      throw err;
+    }
+
+    if (!('reason' in result)) return result;
+
+    for (const key of Object.keys(idle.queueCounts) as (keyof QueueCounts)[]) {
+      idle.queueCounts[key] += result.queueCounts[key];
+    }
+    if (result.reason === 'queue_empty') continue;
+
+    // A waiting job outranks a drained one; among waiting ones the soonest wins.
+    if (idle.reason === 'queue_empty' || result.reason === 'retry_backoff') {
+      idle.reason = result.reason;
+    }
+    if (result.retryAt && (!idle.retryAt || result.retryAt < idle.retryAt)) {
+      idle.retryAt = result.retryAt;
+    }
+  }
+
+  return idle;
+};
 
 const describeIdleQueue = async (
   tx: Tx,
@@ -358,7 +447,22 @@ export const completeQueueItem = async (
       .where(activeClaim(id, input.claimToken))
       .returning();
 
-    if (!item) throw await claimMissError(tx, id);
+    if (!item) {
+      // A retry after a lost response: the first call already completed it and
+      // enqueued its children, so report those rather than conflicting.
+      const replay = await settledByClaim(
+        tx,
+        id,
+        input.claimToken,
+        'completed',
+      );
+      if (!replay) throw await claimMissError(tx, id);
+
+      return {
+        item: replay,
+        children: await existingChildren(tx, replay, input),
+      };
+    }
 
     const inserted = await insertQueuePaths(tx, {
       jobId: item.jobId,
@@ -371,6 +475,31 @@ export const completeQueueItem = async (
 
     return { item, children: await refreshAfterExclusion(tx, job, inserted) };
   });
+
+/** Rows already queued for a replayed completion's paths; nothing is inserted. */
+const existingChildren = async (
+  tx: Tx,
+  item: DiscoveryQueueItem,
+  input: CompleteQueueItemInput,
+): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> => {
+  const paths = input.discoveredPaths ?? [];
+  if (paths.length === 0) return [];
+
+  const rows = await tx
+    .select()
+    .from(discoveryQueueItems)
+    .where(
+      and(
+        eq(discoveryQueueItems.jobId, item.jobId),
+        inArray(
+          discoveryQueueItems.normalizedPath,
+          paths.map((p) => p.normalizedPath),
+        ),
+      ),
+    );
+
+  return rows.map((row) => ({ item: row, created: false }));
+};
 
 export type FailQueueItemInput = {
   claimToken: string;
@@ -429,6 +558,38 @@ export const failQueueItem = async (
     return row;
   });
 
+/**
+ * Hands a claim back without finishing it: the item returns to `queued` at
+ * once and the attempt is refunded, since the worker chose to stop rather than
+ * failing or vanishing. Lets a bounded run leave nothing claimed.
+ */
+export const releaseQueueItem = async (
+  db: Database,
+  id: string,
+  input: { claimToken: string },
+): Promise<DiscoveryQueueItem> => {
+  const t = discoveryQueueItems;
+
+  const [row] = await db
+    .update(t)
+    .set({
+      status: 'queued',
+      attemptCount: sql`greatest(${t.attemptCount} - 1, 0)`,
+      lastError: sql`'released by ' || coalesce(${t.claimedBy}, 'unknown')`,
+      availableAt: sql`now()`,
+      claimedBy: null,
+      claimToken: null,
+      leaseExpiresAt: null,
+      updatedAt: sql`now()`,
+    })
+    .where(activeClaim(id, input.claimToken))
+    .returning();
+
+  if (!row) throw await claimMissError(db, id);
+
+  return row;
+};
+
 export const skipQueueItem = async (
   db: Database,
   id: string,
@@ -445,9 +606,12 @@ export const skipQueueItem = async (
     .where(activeClaim(id, input.claimToken))
     .returning();
 
-  if (!row) throw await claimMissError(db, id);
+  if (row) return row;
 
-  return row;
+  const replay = await settledByClaim(db, id, input.claimToken, 'skipped');
+  if (!replay) throw await claimMissError(db, id);
+
+  return replay;
 };
 
 /**
@@ -513,5 +677,48 @@ export const retryQueueItem = async (
       'conflict',
       `job is ${existing.jobStatus}; start a new discovery job to explore this directory again`,
     );
+  });
+};
+
+/**
+ * Human-requested retry of every `failed` item of an active job, each granted
+ * exactly one more attempt as in `retryQueueItem`. Returns the requeued items
+ * (none is fine: nothing had failed).
+ */
+export const retryFailedQueueItems = async (
+  db: Database,
+  jobId: string,
+): Promise<DiscoveryQueueItem[]> => {
+  const t = discoveryQueueItems;
+
+  return db.transaction(async (tx) => {
+    const [job] = await tx
+      .select()
+      .from(discoveryJobs)
+      .where(eq(discoveryJobs.id, jobId))
+      .for('share');
+
+    if (!job) throw new DiscoveryError('not_found', 'discovery job not found');
+
+    if (!ACTIVE_JOB_STATUSES.includes(job.status)) {
+      throw new DiscoveryError(
+        'conflict',
+        `job is ${job.status}; start a new discovery job to explore these directories again`,
+      );
+    }
+
+    return tx
+      .update(t)
+      .set({
+        status: 'queued',
+        maxAttempts: sql`${t.attemptCount} + 1`,
+        availableAt: sql`now()`,
+        claimedBy: null,
+        claimToken: null,
+        leaseExpiresAt: null,
+        updatedAt: sql`now()`,
+      })
+      .where(and(eq(t.jobId, jobId), eq(t.status, 'failed')))
+      .returning();
   });
 };

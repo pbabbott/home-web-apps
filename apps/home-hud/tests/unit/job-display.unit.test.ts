@@ -1,6 +1,8 @@
 import {
   describeSkips,
   guessKind,
+  isStaleClaim,
+  jobPhase,
   jobDetailUrl,
   parsePathLines,
   parseQueueStatus,
@@ -77,5 +79,60 @@ describe('guessKind', () => {
     expect(guessKind('C:\\Users\\Me\\Downloads\\')).toBe('directory');
     expect(guessKind('C:\\code\\.git')).toBe('directory');
     expect(guessKind('C:\\a\\v1.')).toBe('directory');
+  });
+});
+
+describe('jobPhase', () => {
+  const counts = (over: Partial<Record<string, number>> = {}) => ({
+    queued: 0,
+    in_progress: 0,
+    completed: 5,
+    failed: 0,
+    skipped: 0,
+    ...over,
+  });
+
+  it('is work_remaining while anything is queued or in progress', () => {
+    expect(jobPhase(counts({ queued: 2 }), 0).phase).toBe('work_remaining');
+    expect(jobPhase(counts({ in_progress: 1 }), 0).phase).toBe(
+      'work_remaining',
+    );
+  });
+
+  it('reports stuck claims ahead of remaining work', () => {
+    const info = jobPhase(counts({ queued: 2, in_progress: 1 }), 1);
+    expect(info.phase).toBe('stuck_claims');
+    expect(info.detail).toContain('1 directory');
+  });
+
+  it('is awaiting_completion when drained, and says when some failed', () => {
+    expect(jobPhase(counts(), 0)).toMatchObject({
+      phase: 'awaiting_completion',
+      color: 'success',
+    });
+    const failed = jobPhase(counts({ failed: 2 }), 0);
+    expect(failed.color).toBe('warning');
+    expect(failed.detail).toContain('2 directories failed');
+  });
+});
+
+describe('isStaleClaim', () => {
+  const now = Date.parse('2026-10-24T12:00:00Z');
+
+  it('is true only for an in-progress item past its lease', () => {
+    const past = '2026-10-24T11:59:00Z';
+    const future = '2026-10-24T12:05:00Z';
+    expect(
+      isStaleClaim({ status: 'in_progress', leaseExpiresAt: past }, now),
+    ).toBe(true);
+    expect(
+      isStaleClaim({ status: 'in_progress', leaseExpiresAt: future }, now),
+    ).toBe(false);
+    expect(isStaleClaim({ status: 'queued', leaseExpiresAt: past }, now)).toBe(
+      false,
+    );
+    expect(
+      isStaleClaim({ status: 'in_progress', leaseExpiresAt: null }, now),
+    ).toBe(false);
   });
 });

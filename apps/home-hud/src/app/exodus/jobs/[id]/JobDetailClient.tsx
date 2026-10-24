@@ -30,7 +30,9 @@ import {
   QUEUE_STATUS_COLOR,
   describeSkips,
   formatDuration,
+  isStaleClaim,
   jobDetailUrl,
+  jobPhase,
   parsePathLines,
   relativeToDirectory,
 } from '../../lib/job-display';
@@ -40,6 +42,8 @@ import { PromoteSkippedModal } from './PromoteSkippedModal';
 import {
   enqueueQueueItems,
   listInventoryPathsUnder,
+  retryFailedQueueItems,
+  retryQueueItem,
 } from '../../sources/lib/actions';
 import {
   JOB_QUEUE_ITEMS_LIMIT,
@@ -360,6 +364,33 @@ export function JobDetailClient({
   const router = useRouter();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const active = isActiveJob(job);
+  const [now, setNow] = useState<number | null>(null);
+  const [retrying, setRetrying] = useState<string | 'all' | null>(null);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  // Set after mount: lease expiry compared against the server's clock at render
+  // time would not match what the browser computes during hydration.
+  useEffect(() => setNow(Date.now()), [items]);
+
+  // From the server, so a status filter on the table cannot hide stuck claims.
+  const phase = active ? jobPhase(job.queueCounts, job.staleClaims) : null;
+
+  async function retry(target: string | 'all') {
+    setRetrying(target);
+    setRetryError(null);
+    const result =
+      target === 'all'
+        ? await retryFailedQueueItems(job.id)
+        : await retryQueueItem(target);
+    setRetrying(null);
+
+    if (!result.ok) {
+      setRetryError(result.error);
+      return;
+    }
+
+    router.refresh();
+  }
 
   useEffect(() => {
     if (!active) return;
@@ -430,6 +461,15 @@ export function JobDetailClient({
         )}
       </div>
 
+      {phase && (
+        <Panel color="default" className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge color={phase.color}>{phase.label}</Badge>
+            <Typography variant="body2">{phase.detail}</Typography>
+          </div>
+        </Panel>
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {STATUS_FILTERS.map(({ status: s, label }) => (
           <CountTile key={s} label={label} value={job.queueCounts[s]} />
@@ -450,6 +490,18 @@ export function JobDetailClient({
             Directories
           </Typography>
           <div className="flex flex-wrap gap-2">
+            {active && job.queueCounts.failed > 0 && (
+              <OutlinedButton
+                size="small"
+                color="warning"
+                disabled={retrying !== null}
+                onClick={() => void retry('all')}
+              >
+                {retrying === 'all'
+                  ? 'Retrying…'
+                  : `Retry all failed (${job.queueCounts.failed})`}
+              </OutlinedButton>
+            )}
             <OutlinedButton
               component={Link}
               href={jobDetailUrl(job.id)}
@@ -472,6 +524,12 @@ export function JobDetailClient({
           </div>
         </div>
 
+        {retryError && (
+          <Typography variant="body2" className="text-error-400">
+            {retryError}
+          </Typography>
+        )}
+
         {items === null ? (
           <Typography variant="body2" className="text-error-400">
             Failed to load directories from homelab-api.
@@ -490,6 +548,9 @@ export function JobDetailClient({
                     <Th>Status</Th>
                     <Th>Skipped</Th>
                     <Th>Attempts</Th>
+                    <Th>Worker</Th>
+                    <Th>Lease</Th>
+                    <Th>Last error</Th>
                     <Th>Completed</Th>
                   </TableRow>
                 </TableHead>
@@ -533,12 +594,55 @@ export function JobDetailClient({
                           {item.attemptCount} / {item.maxAttempts}
                         </Td>
                         <Td>
-                          <LocalDateTime iso={item.completedAt} />
+                          {item.claimedBy ? (
+                            item.claimedBy
+                          ) : item.lastClaimedBy ? (
+                            <span className="text-neutral-400">
+                              {item.lastClaimedBy}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </Td>
+                        <Td>
+                          {item.leaseExpiresAt ? (
+                            <span className="flex flex-wrap items-center gap-2">
+                              <LocalDateTime
+                                iso={item.leaseExpiresAt}
+                                seconds
+                              />
+                              {now !== null && isStaleClaim(item, now) && (
+                                <Badge color="error">expired</Badge>
+                              )}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </Td>
+                        <Td>
+                          <span className="line-clamp-2 break-words">
+                            {item.lastError ?? '—'}
+                          </span>
+                        </Td>
+                        <Td>
+                          <div className="flex items-center gap-2">
+                            <LocalDateTime iso={item.completedAt} />
+                            {active && item.status === 'failed' && (
+                              <OutlinedButton
+                                size="small"
+                                color="warning"
+                                disabled={retrying !== null}
+                                onClick={() => void retry(item.id)}
+                              >
+                                {retrying === item.id ? 'Retrying…' : 'Retry'}
+                              </OutlinedButton>
+                            )}
+                          </div>
                         </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={5}>
+                          <Td colSpan={8}>
                             <QueueItemDetails
                               item={item}
                               sourceId={job.sourceId}

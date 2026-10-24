@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { LocalDateTime } from '../../lib/LocalDateTime';
-import { JOB_STATUS_COLOR } from '../../lib/job-display';
+import { JOB_STATUS_COLOR, jobPhase } from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
   completeDiscoveryJob,
@@ -133,6 +133,16 @@ export function CurrentJobPanel({
         </Typography>
       ) : (
         <>
+          {isActiveJob(job) && (
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge color={jobPhase(job.queueCounts, job.staleClaims).color}>
+                {jobPhase(job.queueCounts, job.staleClaims).label}
+              </Badge>
+              <Typography variant="body2">
+                {jobPhase(job.queueCounts, job.staleClaims).detail}
+              </Typography>
+            </div>
+          )}
           <Typography variant="body2" className="break-all text-neutral-400">
             {job.rootPath}
             {job.startedAt && (

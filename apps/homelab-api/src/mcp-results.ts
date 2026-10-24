@@ -4,6 +4,7 @@ import type {
   InventoryItem,
   KnownSkip,
   NestedInventoryItem,
+  QueueCounts,
 } from '@abbottland/homelab-db';
 import type { ProposedInventoryItem } from './services/discovery/inventory-items';
 
@@ -22,6 +23,13 @@ const compact = <T extends Record<string, unknown>>(value: T): Partial<T> =>
 const attempt = (item: DiscoveryQueueItem) =>
   `${item.attemptCount}/${item.maxAttempts}`;
 
+/** What is left after this claim: the agent's cue to continue or stop. */
+const remaining = (counts: QueueCounts) => ({
+  queued: counts.queued,
+  inProgress: counts.in_progress,
+  failed: counts.failed,
+});
+
 export const claimResult = (result: ClaimQueueItemResult) => {
   if (!('reason' in result)) {
     const { item } = result;
@@ -34,6 +42,10 @@ export const claimResult = (result: ClaimQueueItemResult) => {
       leaseExpiresAt: item.leaseExpiresAt,
       attempt: attempt(item),
       lastError: item.lastError,
+      jobId: result.job.id,
+      sourceId: result.job.sourceId,
+      jobRootPath: result.job.rootPath,
+      remaining: remaining(result.queueCounts),
     });
   }
 
@@ -53,8 +65,10 @@ export const heartbeatResult = (item: DiscoveryQueueItem) => ({
 export const completeResult = (
   item: DiscoveryQueueItem,
   children: { item: DiscoveryQueueItem; created: boolean }[],
+  counts: QueueCounts,
 ) => ({
   status: item.status,
+  remaining: remaining(counts),
   queued: children
     .filter((c) => c.created && c.item.status !== 'skipped')
     .map((c) => c.item.path),
@@ -72,8 +86,13 @@ export const failResult = (item: DiscoveryQueueItem) =>
     retryAt: item.status === 'queued' ? item.availableAt : undefined,
   });
 
-export const skipResult = (item: DiscoveryQueueItem) => ({
+export const releaseResult = (item: DiscoveryQueueItem) => ({
   status: item.status,
+});
+
+export const skipResult = (item: DiscoveryQueueItem, counts: QueueCounts) => ({
+  status: item.status,
+  remaining: remaining(counts),
 });
 
 const nested = ({ rootPath, kind, decision }: NestedInventoryItem) => ({
@@ -144,7 +163,12 @@ type JobRow = {
 };
 
 export const jobResult = (
-  job: JobRow & { sourceName?: string; queueCounts?: unknown },
+  job: JobRow & {
+    sourceName?: string;
+    queueCounts?: unknown;
+    phase?: string | null;
+    staleClaims?: number;
+  },
 ) =>
   compact({
     id: job.id,
@@ -153,5 +177,7 @@ export const jobResult = (
     rootPath: job.rootPath,
     status: job.status,
     error: job.error,
+    phase: job.phase,
+    staleClaims: job.staleClaims || undefined,
     queueCounts: job.queueCounts,
   });

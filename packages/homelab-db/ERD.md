@@ -59,6 +59,7 @@ erDiagram
         jsonb result "nullable, summary + paths skipped without queueing"
         timestamptz available_at
         text claimed_by "nullable"
+        text last_claimed_by "nullable, kept after release/expiry/failure"
         uuid claim_token "nullable"
         timestamptz lease_expires_at "nullable"
         timestamptz created_at

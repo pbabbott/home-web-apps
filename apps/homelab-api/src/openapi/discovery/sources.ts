@@ -19,10 +19,7 @@ import {
   sourceIdParamsSchema,
   updateSourceBodySchema,
 } from '../../schemas/discovery';
-import {
-  discoveryJobSelectSchema,
-  sourceSelectSchema,
-} from '@abbottland/homelab-db';
+import { sourceSelectSchema } from '@abbottland/homelab-db';
 import { z } from 'zod';
 
 export const sourcesPaths = {
@@ -92,7 +89,7 @@ export const sourcesPaths = {
         '200': {
           description: 'The jobs',
           content: {
-            'application/json': { schema: z.array(discoveryJobSelectSchema) },
+            'application/json': { schema: z.array(discoveryJobResponseSchema) },
           },
         },
         '400': validationErrorResponse,

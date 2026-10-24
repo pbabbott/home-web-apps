@@ -84,6 +84,7 @@ describe('discoveryQueueItemSelectSchema', () => {
     result: null,
     availableAt: new Date(),
     claimedBy: null,
+    lastClaimedBy: null,
     claimToken: null,
     leaseExpiresAt: null,
     createdAt: new Date(),

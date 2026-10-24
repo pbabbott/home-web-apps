@@ -39,9 +39,31 @@ export const queueCountsSchema = z
       'This job’s item counts by status. failed > 0 on a completed job means it finished with failures.',
   });
 
-export const discoveryJobResponseSchema = discoveryJobSelectSchema.extend({
+export const queueSummaryShape = {
   queueCounts: queueCountsSchema,
-});
+  staleClaims: z.number().meta({
+    description:
+      'In-progress items whose lease has expired. They are only returned to the queue by the next claim, so this is how a stuck run shows up between ticks.',
+  }),
+  lastActivityAt: z.string().nullable().meta({
+    format: 'date-time',
+    description:
+      'Most recent change to any item of the job; null if it has none.',
+  }),
+  lastWorker: z.string().nullable().meta({
+    description: 'workerId of the most recently changed claimed item.',
+  }),
+  phase: z
+    .enum(['work_remaining', 'stuck_claims', 'awaiting_completion'])
+    .nullable()
+    .meta({
+      description:
+        'Active jobs only (null once finished). work_remaining: queued or in-progress work; stuck_claims: a lease expired and the next claim will reclaim it; awaiting_completion: nothing left, a human completes the job (failed items may still need a retry).',
+    }),
+};
+
+export const discoveryJobResponseSchema =
+  discoveryJobSelectSchema.extend(queueSummaryShape);
 
 export const queueItemWithCreatedSchema = discoveryQueueItemSelectSchema.extend(
   {
@@ -68,7 +90,16 @@ export const claimResultSchema = z
       description:
         'Present when item is null. When it is worth claiming again (null for queue_empty).',
     }),
-    queueCounts: queueCountsSchema.optional(),
+    job: z
+      .object({ id: z.uuid(), sourceId: z.uuid(), rootPath: z.string() })
+      .optional()
+      .meta({
+        description: 'Present with a claimed item: the job it belongs to.',
+      }),
+    queueCounts: queueCountsSchema.optional().meta({
+      description:
+        'The job’s queue after the claim; when idle from the any-job claim, summed over the active jobs.',
+    }),
   })
   .meta({ id: 'ClaimResult' });
 
@@ -77,6 +108,7 @@ export const completedQueueItemSchema = discoveryQueueItemSelectSchema.extend({
 });
 
 export const discoveryJobWithSourceSchema = discoveryJobSelectSchema.extend({
+  ...queueSummaryShape,
   sourceName: z.string(),
   hostId: z.uuid().nullable().meta({
     description: 'The host the job’s source is linked to, if any.',

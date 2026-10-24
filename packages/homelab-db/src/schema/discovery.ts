@@ -151,6 +151,8 @@ export const discoveryQueueItems = pgTable(
       .notNull()
       .defaultNow(),
     claimedBy: text('claimed_by'),
+    /** Who held the most recent claim; survives release, expiry and failure. */
+    lastClaimedBy: text('last_claimed_by'),
     claimToken: uuid('claim_token'),
     leaseExpiresAt: timestamp('lease_expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })

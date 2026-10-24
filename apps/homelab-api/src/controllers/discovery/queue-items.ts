@@ -12,6 +12,8 @@ import type {
   KnownSkipListQuery,
   QueueItemIdParams,
   QueueItemListQuery,
+  ClaimAnyQueueItemBody,
+  ReleaseQueueItemBody,
   SkipQueueItemBody,
   SourceIdParams,
 } from '../../schemas/discovery';
@@ -97,6 +99,36 @@ export const claimQueueItem = handle(
     res
       .status(200)
       .json(await discoveryService.claimQueueItem(id, workerId, leaseSeconds));
+  },
+);
+
+// Does: lease the next directory of whichever active job has one.
+// Who: agent (claim_next_directory), the entry point of a cron run.
+export const claimAnyQueueItemOperation = {
+  summary: 'Claim the next directory of any active job',
+  description:
+    'Like claiming within one job, but picks the oldest active (pending or running) job that has claimable work, so a worker needs no job id. The claimed item comes with its job (id, sourceId, rootPath) and the job’s queueCounts after the claim. When nothing is claimable anywhere, item is null: reason queue_empty means stop (no active job has work, or none exist), otherwise wait until retryAt. Idle queueCounts are summed over the active jobs.',
+  mcp: {
+    name: 'claim_next_directory',
+    description:
+      'Lease the next directory of any active job; use this to start a run (no job id needed). Returns { id, path, reason, claimToken, jobId, sourceId, jobRootPath, remaining } or { idle, next } where next is `stop` (no work anywhere: end your run) or `wait` (retry at retryAt).',
+  },
+} satisfies Operation;
+
+export const claimAnyQueueItem = handle(
+  'POST /queue-items/claim',
+  async (req, res) => {
+    const { workerId, leaseSeconds, sourceId } =
+      req.body as ClaimAnyQueueItemBody;
+    res
+      .status(200)
+      .json(
+        await discoveryService.claimAnyQueueItem(
+          workerId,
+          leaseSeconds,
+          sourceId,
+        ),
+      );
   },
 );
 
@@ -204,6 +236,28 @@ export const skipQueueItem = handle(
   },
 );
 
+// Does: give a claimed directory back unfinished, refunding the attempt.
+// Who: agent (release_directory), when a bounded run stops with work in hand.
+export const releaseQueueItemOperation = {
+  summary: 'Release a claim without finishing it',
+  description:
+    'Returns the item to queued immediately and refunds the attempt it used, so a run that stops early leaves nothing claimed and nothing penalized. Use fail_directory instead when the directory itself is the problem.',
+  mcp: {
+    name: 'release_directory',
+    description:
+      'Hand a claimed directory back unfinished (e.g. your run budget is spent or you are stopping). It is requeued at once and no attempt is spent. Do not use it for a directory that cannot be explored: use fail_directory.',
+  },
+} satisfies Operation;
+
+export const releaseQueueItem = handle(
+  'POST /queue-items/:id/release',
+  async (req, res) => {
+    const { id } = req.params as QueueItemIdParams;
+    const { claimToken } = req.body as ReleaseQueueItemBody;
+    res.status(200).json(await discoveryService.releaseItem(id, claimToken));
+  },
+);
+
 // Does: requeue a permanently failed directory for one more attempt. No
 // claimToken: it acts on a failed item nobody holds a lease on.
 // Who: human only (home-hud retry button). Deliberately not an MCP tool.
@@ -219,6 +273,23 @@ export const retryQueueItem = handle(
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
     res.status(200).json(await discoveryService.retryItem(id));
+  },
+);
+
+// Does: requeue every failed directory of an active job, one more attempt each.
+// Who: human only (home-hud "Retry all failed"). Deliberately not an MCP tool.
+export const retryFailedQueueItemsOperation = {
+  summary: 'Retry all failed items of a job',
+  description:
+    'Requeues every failed item of a pending or running job for exactly one more attempt each; attemptCount and lastError are kept. Returns the requeued items (empty when nothing had failed).',
+  hud: '/exodus/jobs/[id]',
+} satisfies Operation;
+
+export const retryFailedQueueItems = handle(
+  'POST /discovery-jobs/:id/retry-failed',
+  async (req, res) => {
+    const { id } = req.params as JobIdParams;
+    res.status(200).json(await discoveryService.retryFailedItems(id));
   },
 );
 

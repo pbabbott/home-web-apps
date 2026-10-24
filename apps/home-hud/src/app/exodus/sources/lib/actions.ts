@@ -122,6 +122,12 @@ export async function retryQueueItem(itemId: string): Promise<ActionResult> {
   return post(`/queue-items/${itemId}/retry`);
 }
 
+export async function retryFailedQueueItems(
+  jobId: string,
+): Promise<ActionResult<{ id: string }[]>> {
+  return post<{ id: string }[]>(`/discovery-jobs/${jobId}/retry-failed`);
+}
+
 export interface CreateExclusionRuleInput {
   /** Omit for a global rule, which applies to every source. */
   sourceId?: string;

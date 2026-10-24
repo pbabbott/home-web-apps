@@ -13,6 +13,7 @@ import {
 } from '../../controllers/discovery/discovery-jobs';
 import {
   claimQueueItem,
+  retryFailedQueueItems,
   enqueueQueueItems,
   listJobQueueItems,
 } from '../../controllers/discovery/queue-items';
@@ -64,6 +65,11 @@ discoveryJobsRouter.post(
   validateParams(jobIdParamsSchema),
   validateBody(enqueueQueueItemsBodySchema),
   enqueueQueueItems,
+);
+discoveryJobsRouter.post(
+  '/discovery-jobs/:id/retry-failed',
+  validateParams(jobIdParamsSchema),
+  retryFailedQueueItems,
 );
 discoveryJobsRouter.post(
   '/discovery-jobs/:id/queue-items/claim',

@@ -20,6 +20,12 @@ export interface QueueItem {
   attemptCount: number;
   maxAttempts: number;
   lastError: string | null;
+  /** Worker holding the lease right now; null unless in progress. */
+  claimedBy: string | null;
+  /** Worker that held the most recent claim; survives release, expiry and failure. */
+  lastClaimedBy: string | null;
+  /** When the current lease runs out; null unless in progress. */
+  leaseExpiresAt: string | null;
   updatedAt: string;
   priority: number;
   /** Why the directory was queued, written by whoever queued it. */

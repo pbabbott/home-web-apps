@@ -25,9 +25,25 @@ export interface DiscoveryJob {
   finishedAt: string | null;
 }
 
-export interface DiscoveryJobWithCounts extends DiscoveryJob {
+export type JobPhase =
+  | 'work_remaining'
+  | 'stuck_claims'
+  | 'awaiting_completion';
+
+/** What homelab-api adds to every job it returns: the queue at a glance. */
+export interface JobQueueSummary {
   queueCounts: QueueCounts;
+  /** In-progress items whose lease expired; the next claim reclaims them. */
+  staleClaims: number;
+  /** Latest change to any of the job's items: the agent's pulse. */
+  lastActivityAt: string | null;
+  /** workerId of the most recently changed claimed item. */
+  lastWorker: string | null;
+  /** Active jobs only; null once finished. */
+  phase: JobPhase | null;
 }
+
+export interface DiscoveryJobWithCounts extends DiscoveryJob, JobQueueSummary {}
 
 /** A source's jobs, newest first. */
 export async function getDiscoveryJobs(

@@ -8,9 +8,9 @@ export const MCP_INSTRUCTIONS = `
 Goal: find what is worth backing up on a Windows machine and present logical backup units (inventory items) for a human to approve. Explore selectively; do not catalogue the drive. Your recommendation is never an approval.
 
 Run:
-1. list_known_skips (pathPrefix = job root) and list_exclusion_rules. Known skips are your own past judgments: don't re-inspect them without a specific reason. They never block you.
-2. Loop: claim_directory -> inspect that ONE directory -> act on each entry -> complete_directory. Result "next: stop" means done (a human completes the job); "next: wait" means retry at retryAt.
-3. Large directory: heartbeat_directory periodically, propose in batches of 10, complete once. After a re-claim, list_inventory_items (pathPrefix = the directory) and continue; proposals are idempotent.
+1. claim_next_directory (no ids needed). "next: stop" means there is no work: end the run now. "next: wait" means retry at retryAt. The claim returns jobId, sourceId and jobRootPath; for each new source, list_known_skips (pathPrefix = jobRootPath) and list_exclusion_rules. Known skips are your own past judgments: don't re-inspect them without a specific reason. They never block you.
+2. Loop: inspect that ONE directory -> act on each entry -> complete_directory -> claim_next_directory. Work at most the number of directories your prompt allows (default 10). Stop early when remaining.queued is 0. A human completes the job. Never end a run holding a claim: release_directory if you must stop (no attempt is spent), fail_directory if the directory cannot be explored.
+3. Large directory: heartbeat_directory periodically, propose in batches of 10, complete once. After a re-claim, list_inventory_items (pathPrefix = the directory) and continue; proposals are idempotent, and complete_directory / skip_directory are safe to repeat with the same claimToken if a response was lost.
 
 Per entry, choose one:
 - Skip: strong evidence it is OS-managed, generated, replaceable or out of scope (Windows, Program Files, node_modules, caches). List in complete_directory.skipped. Many similar entries (hundreds of installers) go in skippedGroups as a name pattern. A per-run judgment, not a rule: create_exclusion_rule only for clear human policy.

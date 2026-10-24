@@ -13,6 +13,15 @@ jest.mock('../../src/services/discovery', () => {
     listAllJobs: jest.fn(),
     getDiscoveryJob: jest.fn(),
     claimQueueItem: jest.fn(),
+    claimAnyQueueItem: jest.fn(),
+    releaseItem: jest.fn(),
+    jobQueueCounts: jest.fn().mockResolvedValue({
+      queued: 4,
+      in_progress: 1,
+      completed: 7,
+      failed: 2,
+      skipped: 0,
+    }),
     heartbeat: jest.fn(),
     completeItem: jest.fn(),
     failItem: jest.fn(),
@@ -27,6 +36,7 @@ jest.mock('../../src/services/discovery', () => {
 });
 
 const ID = '3f1d1c52-6a4a-4a4e-9a3c-0f6d2a1b7c10';
+const JOB_ID = '5b2c9a10-1111-4222-8333-944455556666';
 const TOKEN = '8c1b0c3e-5a53-4a7c-8f4e-2b1f3d9a6e11';
 
 // StreamableHTTPClientTransport performs real fetch calls, so this spins up a
@@ -60,6 +70,7 @@ describe('MCP endpoint (/mcp)', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'claim_directory',
+      'claim_next_directory',
       'complete_directory',
       'create_exclusion_rule',
       'fail_directory',
@@ -70,6 +81,7 @@ describe('MCP endpoint (/mcp)', () => {
       'list_inventory_items',
       'list_known_skips',
       'propose_inventory_items',
+      'release_directory',
       'skip_directory',
     ]);
   });
@@ -140,6 +152,8 @@ describe('MCP endpoint (/mcp)', () => {
         lastError: null,
         createdAt: '2026-10-21T10:00:00.000Z',
       },
+      job: { id: JOB_ID, sourceId: ID, rootPath: 'C:\\Users\\You' },
+      queueCounts: { queued: 3, in_progress: 1, failed: 2 },
     });
 
     const { isError, body } = await call('claim_directory', {
@@ -154,6 +168,10 @@ describe('MCP endpoint (/mcp)', () => {
       claimToken: TOKEN,
       leaseExpiresAt: '2026-10-21T10:05:00.000Z',
       attempt: '1/3',
+      jobId: JOB_ID,
+      sourceId: ID,
+      jobRootPath: 'C:\\Users\\You',
+      remaining: { queued: 3, inProgress: 1, failed: 2 },
     });
     expect(discoveryService.claimQueueItem).toHaveBeenCalledWith(ID, 'w1', 300);
   });
@@ -187,6 +205,48 @@ describe('MCP endpoint (/mcp)', () => {
     },
   );
 
+  it('claim_next_directory passes the optional source and tells an empty tick to stop', async () => {
+    (discoveryService.claimAnyQueueItem as jest.Mock).mockResolvedValue({
+      item: null,
+      reason: 'queue_empty',
+      retryAt: null,
+      queueCounts: { queued: 0, failed: 1 },
+    });
+
+    const { isError, body } = await call('claim_next_directory', {
+      workerId: 'w1',
+      sourceId: ID,
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual({
+      idle: 'queue_empty',
+      next: 'stop',
+      queueCounts: { queued: 0, failed: 1 },
+    });
+    expect(discoveryService.claimAnyQueueItem).toHaveBeenCalledWith(
+      'w1',
+      300,
+      ID,
+    );
+  });
+
+  it('release_directory hands the claim back', async () => {
+    (discoveryService.releaseItem as jest.Mock).mockResolvedValue({
+      id: ID,
+      status: 'queued',
+    });
+
+    const { isError, body } = await call('release_directory', {
+      id: ID,
+      claimToken: TOKEN,
+    });
+
+    expect(isError).toBeFalsy();
+    expect(body).toEqual({ status: 'queued' });
+    expect(discoveryService.releaseItem).toHaveBeenCalledWith(ID, TOKEN);
+  });
+
   it('complete_directory reports queued, excluded and already queued children', async () => {
     (discoveryService.completeItem as jest.Mock).mockResolvedValue({
       item: { id: ID, status: 'completed' },
@@ -205,6 +265,7 @@ describe('MCP endpoint (/mcp)', () => {
 
     expect(body).toEqual({
       status: 'completed',
+      remaining: { queued: 4, inProgress: 1, failed: 2 },
       queued: ['C:\\a'],
       excluded: ['C:\\b'],
       alreadyQueued: 1,
@@ -402,7 +463,7 @@ describe('MCP endpoint (/mcp)', () => {
 
   it('serves the agent playbook as server instructions', () => {
     expect(client.getInstructions()).toContain('inventory items');
-    expect(client.getInstructions()).toContain('claim_directory');
+    expect(client.getInstructions()).toContain('claim_next_directory');
   });
 
   it('keeps the playbook and tool descriptions short', async () => {
