@@ -134,6 +134,12 @@ export {
   retryQueueItem,
   retryDelaySeconds,
   listKnownSkips,
+  importSources,
+  importDiscoveryJobs,
+  importQueueItems,
+  importInventoryItems,
+  importExclusionRules,
+  importAuditEvents,
 } from './queries/discovery';
 export type {
   CreateSourceInput,

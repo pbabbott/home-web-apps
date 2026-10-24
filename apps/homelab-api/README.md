@@ -105,15 +105,17 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 - **Mixed directories (Downloads):** never propose the folder itself. Each keeper is its own `kind: file` item, junk goes in `skippedGroups`, archives are not extracted, and a large directory is heartbeated and proposed in batches of 10. See [Exodus inventory](../../docs/exodus/inventory.md#mixed-directories-downloads). A per-run judgment the agent may revisit, not an exclusion rule.
 - **Exclusions at enqueue:** follow-ups under an `exclude_subtree` rule are `skipped` as soon as they are queued, and each claim rechecks.
 
-## Seeding hosts from a remote environment
+## Seeding hosts and exodus data from a remote environment
 
 A local database reset (`pnpm dev:deps:down`) wipes hand-registered hosts. Rather than re-entering IPs/instances by hand, `pnpm run seed:remote` pulls the full host list from a remote `homelab-api` (e.g. production) and upserts it into the local database — matching existing rows by `ipAddress` (not `id`, which is a per-environment UUID).
 
 Production `homelab-api` has its own route on the cluster's gateway: `https://homelab-api.local.abbottland.io` (sits alongside `home-hud`'s own route on the same `istio-ingress` gateway, in the `home-hud` namespace — not actually proxied through `home-hud` itself).
 
 ```sh
-REMOTE_HOMELAB_API_URL=https://homelab-api.local.abbottland.io pnpm run seed:remote
+pnpm run seed:remote   # REMOTE_HOMELAB_API_URL overrides the prod default
 ```
+
+To bring a local environment to prod parity from scratch, `pnpm run dev:sync-prod` wipes the local Postgres volume, restarts it, and runs `seed:remote`, which applies migrations before seeding.
 
 Output lists each host as created (`+`) or updated (`~`), e.g.:
 
@@ -125,6 +127,11 @@ Got 11 host(s) from remote.
   ...
 Done. Created 6, updated 5.
 ```
+
+After hosts, the script also syncs the exodus discovery tables from the remote: `sources` (matched by `name`; `hostId` re-pointed at the local host with the same IP), `discovery_jobs` and `discovery_queue_items` (remote ids kept so they stay linked), `inventory_items` (matched by source + root path; the remote recommendation **and human decision** overwrite local ones), `exclusion_rules` (matched by source + path) and `audit_events` (appended, existing ones kept). It is an upsert, so re-running refreshes rows and never deletes local-only data.
+
+> [!NOTE]
+> A remote `pending`/`running` job conflicts with a different local active job on the same source (one-active-job-per-source index); the sync fails in that case.
 
 > [!NOTE]
 > If `@abbottland/homelab-db` was changed since its last build, rebuild it first (`pnpm --filter @abbottland/homelab-db build`) — `seed:remote` runs against the package's compiled `dist`, not its source.
