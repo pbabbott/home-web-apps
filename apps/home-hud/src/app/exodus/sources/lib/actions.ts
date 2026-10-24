@@ -156,6 +156,48 @@ export async function decideInventoryItem(
   });
 }
 
+export interface PromoteSkippedPathInput {
+  path: string;
+  kind: 'file' | 'directory';
+  note?: string;
+  /** Why the agent skipped it, for the audit trail. */
+  skipReason?: string;
+}
+
+/**
+ * A human promotes a path the agent skipped: it becomes an approved inventory
+ * item. Sent as the default (human) actor: the API refuses anything else.
+ */
+export async function promoteSkippedPath(
+  queueItemId: string,
+  input: PromoteSkippedPathInput,
+): Promise<ActionResult<InventoryItem>> {
+  return post<InventoryItem>(`/queue-items/${queueItemId}/promote`, input);
+}
+
+/** Normalized paths of the source's inventory items at or beneath `pathPrefix`. */
+export async function listInventoryPathsUnder(
+  sourceId: string,
+  pathPrefix: string,
+): Promise<ActionResult<string[]>> {
+  try {
+    const params = new URLSearchParams({ pathPrefix, limit: '500' });
+    const res = await fetch(
+      `${HOMELAB_API_URL}/sources/${sourceId}/inventory-items?${params}`,
+      { cache: 'no-store' },
+    );
+
+    if (!res.ok) return { ok: false, error: await errorMessage(res) };
+
+    const items = (await res.json()) as InventoryItem[];
+
+    return { ok: true, data: items.map((i) => i.normalizedRootPath) };
+  } catch (err) {
+    console.error(`GET inventory-items under ${pathPrefix} failed:`, err);
+    return { ok: false, error: 'Could not reach homelab-api' };
+  }
+}
+
 /** One inventory item with how exclusion rules treat it, for the details modal. */
 export async function getInventoryItemDetail(
   id: string,

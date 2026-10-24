@@ -90,16 +90,6 @@ export function jobDetailUrl(jobId: string, status?: QueueItemStatus): string {
     : `/exodus/jobs/${jobId}`;
 }
 
-/** `*.msi ×212`, or just the pattern when the agent did not count. */
-export function describeSkippedGroup(group: {
-  pattern: string;
-  count?: number;
-}): string {
-  return group.count === undefined
-    ? group.pattern
-    : `${group.pattern} ×${group.count}`;
-}
-
 /**
  * `path` relative to the directory it was found in, so a row inside an
  * expanded `C:\backup-test\x` item reads `y\z` rather than the full path.
@@ -129,6 +119,17 @@ export function describeSkips(result: QueueItemResult | null): string {
   }
 
   return parts.join(', ');
+}
+
+/** `file` when the last path segment has an extension, else `directory`. A guess the user can change. */
+export function guessKind(path: string): 'file' | 'directory' {
+  const name =
+    path
+      .replace(/[\\/]+$/, '')
+      .split(/[\\/]/)
+      .pop() ?? '';
+
+  return /.\.[^.]+$/.test(name) ? 'file' : 'directory';
 }
 
 /** Splits a textarea into trimmed, non-empty lines. */

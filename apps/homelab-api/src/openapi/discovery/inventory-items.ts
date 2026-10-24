@@ -11,11 +11,13 @@ import {
   decideInventoryItemOperation,
   getInventoryItemOperation,
   listInventoryItemsOperation,
+  promoteInventoryItemOperation,
   proposeInventoryItemsOperation,
 } from '../../controllers/discovery/inventory-items';
 import {
   inventoryItemEvidenceSchema,
   decideInventoryItemBodySchema,
+  promoteInventoryItemBodySchema,
   proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
   inventoryItemIdParamsSchema,
@@ -157,6 +159,33 @@ export const inventoryItemsPaths = {
         '404': discoveryNotFoundResponse('inventory item'),
         '409': conflictResponse(
           'The actor is not a human, or the path is covered by an exclusion rule and cannot be approved',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/promote': {
+    post: {
+      summary: promoteInventoryItemOperation.summary,
+      'x-home-hud': promoteInventoryItemOperation.hud,
+      description: promoteInventoryItemOperation.description,
+      requestParams: {
+        path: queueItemIdParamsSchema,
+        header: actorHeaders,
+      },
+      requestBody: {
+        content: {
+          'application/json': { schema: promoteInventoryItemBodySchema },
+        },
+      },
+      responses: {
+        '201': {
+          description: 'The new, approved inventory item',
+          content: { 'application/json': { schema: inventoryItemSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'The actor is not a human, the path already has an inventory item, is under an exclusion rule, or is outside the queue item’s directory',
         ),
       },
     },

@@ -28,7 +28,6 @@ import {
 import {
   JOB_STATUS_COLOR,
   QUEUE_STATUS_COLOR,
-  describeSkippedGroup,
   describeSkips,
   formatDuration,
   jobDetailUrl,
@@ -37,7 +36,11 @@ import {
 } from '../../lib/job-display';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
-import { enqueueQueueItems } from '../../sources/lib/actions';
+import { PromoteSkippedModal } from './PromoteSkippedModal';
+import {
+  enqueueQueueItems,
+  listInventoryPathsUnder,
+} from '../../sources/lib/actions';
 import {
   JOB_QUEUE_ITEMS_LIMIT,
   isActiveJob,
@@ -70,9 +73,37 @@ function Detail({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function QueueItemDetails({ item }: { item: QueueItem }) {
+function QueueItemDetails({
+  item,
+  sourceId,
+}: {
+  item: QueueItem;
+  sourceId: string;
+}) {
   const result = item.result;
   const hasNothing = !item.reason && !result && !item.lastError;
+  // Lowercased paths already in the inventory beneath this directory.
+  const [inventoried, setInventoried] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  // `path` is absent when the user types one in.
+  const [promoting, setPromoting] = useState<{
+    path?: string;
+    reason?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!result) return;
+
+    let cancelled = false;
+    void listInventoryPathsUnder(sourceId, item.path).then((found) => {
+      if (!cancelled && found.ok) setInventoried(new Set(found.data));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceId, item.path, result]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -87,15 +118,32 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
           <Typography variant="body1" className="text-neutral-400">
             Skipped by pattern
           </Typography>
-          <ul className="flex list-disc flex-col gap-1 pl-5">
-            {result.skippedGroups.map((group) => (
-              <li key={group.pattern}>
-                <Typography variant="body2" component="span">
-                  {describeSkippedGroup(group)}: {group.reason}
-                </Typography>
-              </li>
-            ))}
-          </ul>
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Pattern</Th>
+                  <Th color="secondary">Count</Th>
+                  <Th color="secondary">Reason</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {result.skippedGroups.map((group) => (
+                  <TableRow key={group.pattern}>
+                    <Td color="secondary" className="break-all">
+                      {group.pattern}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {group.count ?? '—'}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {group.reason}
+                    </Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
         </div>
       )}
 
@@ -108,6 +156,7 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
             <Table size="small" color="secondary">
               <TableHead>
                 <TableRow>
+                  <Th color="secondary">Inventory</Th>
                   <Th color="secondary">Path</Th>
                   <Th color="secondary">Reason</Th>
                 </TableRow>
@@ -115,6 +164,29 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
               <TableBody>
                 {result.skipped.map((skip) => (
                   <TableRow key={skip.path}>
+                    <Td color="secondary">
+                      {inventoried.has(skip.path.toLowerCase()) ? (
+                        <Link
+                          href="/exodus/inventory"
+                          className="text-neutral-400 underline"
+                        >
+                          In inventory
+                        </Link>
+                      ) : (
+                        <OutlinedButton
+                          size="small"
+                          color="secondary"
+                          onClick={() =>
+                            setPromoting({
+                              path: skip.path,
+                              reason: skip.reason,
+                            })
+                          }
+                        >
+                          Promote
+                        </OutlinedButton>
+                      )}
+                    </Td>
                     <Td color="secondary" className="break-all">
                       {relativeToDirectory(item.path, skip.path)}
                     </Td>
@@ -127,6 +199,36 @@ function QueueItemDetails({ item }: { item: QueueItem }) {
             </Table>
           </ScrollableTable>
         </div>
+      )}
+
+      {result && (
+        <div>
+          <OutlinedButton
+            size="small"
+            color="secondary"
+            onClick={() => setPromoting({})}
+          >
+            Promote a path…
+          </OutlinedButton>
+        </div>
+      )}
+
+      {promoting && (
+        <PromoteSkippedModal
+          key={promoting.path ?? 'typed'}
+          open
+          onOpenChange={(next) => {
+            if (!next) setPromoting(null);
+          }}
+          queueItem={item}
+          path={promoting.path}
+          skipReason={promoting.reason}
+          onPromoted={(path) =>
+            setInventoried((current) =>
+              new Set(current).add(path.toLowerCase()),
+            )
+          }
+        />
       )}
 
       {hasNothing && (
@@ -437,7 +539,10 @@ export function JobDetailClient({
                       {expanded.has(item.id) && (
                         <TableRow>
                           <Td colSpan={5}>
-                            <QueueItemDetails item={item} />
+                            <QueueItemDetails
+                              item={item}
+                              sourceId={job.sourceId}
+                            />
                           </Td>
                         </TableRow>
                       )}

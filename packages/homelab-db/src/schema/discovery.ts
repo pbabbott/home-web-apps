@@ -397,7 +397,8 @@ export type AuditEventType =
   | 'queue_items.excluded'
   | 'inventory_item.created'
   | 'inventory_item.recommendation_changed'
-  | 'inventory_item.decision_changed';
+  | 'inventory_item.decision_changed'
+  | 'inventory_item.promoted';
 
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;

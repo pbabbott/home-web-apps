@@ -1,6 +1,6 @@
 import {
-  describeSkippedGroup,
   describeSkips,
+  guessKind,
   jobDetailUrl,
   parsePathLines,
   parseQueueStatus,
@@ -25,21 +25,6 @@ describe('jobDetailUrl', () => {
     expect(jobDetailUrl('abc', 'failed')).toBe(
       '/exodus/jobs/abc?status=failed',
     );
-  });
-});
-
-describe('describeSkippedGroup', () => {
-  it('shows the count when the agent counted', () => {
-    expect(describeSkippedGroup({ pattern: '*.msi', count: 212 })).toBe(
-      '*.msi ×212',
-    );
-    expect(describeSkippedGroup({ pattern: '*.msi', count: 0 })).toBe(
-      '*.msi ×0',
-    );
-  });
-
-  it('shows just the pattern otherwise', () => {
-    expect(describeSkippedGroup({ pattern: '*.iso' })).toBe('*.iso');
   });
 });
 
@@ -78,5 +63,19 @@ describe('parsePathLines', () => {
       'C:\\a',
       'C:\\b',
     ]);
+  });
+});
+
+describe('guessKind', () => {
+  it('calls a name with an extension a file', () => {
+    expect(guessKind('C:\\Users\\Me\\Downloads\\tax-return.pdf')).toBe('file');
+    expect(guessKind('C:\\a\\archive.tar.gz')).toBe('file');
+  });
+
+  it('calls anything else a directory', () => {
+    expect(guessKind('C:\\Users\\Me\\Downloads\\Taxes')).toBe('directory');
+    expect(guessKind('C:\\Users\\Me\\Downloads\\')).toBe('directory');
+    expect(guessKind('C:\\code\\.git')).toBe('directory');
+    expect(guessKind('C:\\a\\v1.')).toBe('directory');
   });
 });

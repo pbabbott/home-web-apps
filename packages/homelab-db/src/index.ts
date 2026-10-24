@@ -98,10 +98,12 @@ export {
   upsertInventoryItems,
   getInventoryItemById,
   decideInventoryItem,
+  promoteInventoryItem,
   listInventoryItems,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {
+  PromoteInventoryItemInput,
   InventoryItemInput,
   UpsertInventoryItemsInput,
   UpsertedInventoryItem,

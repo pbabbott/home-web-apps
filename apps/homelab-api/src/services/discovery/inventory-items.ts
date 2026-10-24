@@ -6,6 +6,7 @@ import {
   getInventoryItemById,
   getSourceById,
   listInventoryItems as listInventoryItemRows,
+  promoteInventoryItem as promoteInventoryItemRow,
   upsertInventoryItems,
   type Actor,
   type InventoryItemDecision,
@@ -22,7 +23,10 @@ import {
   windowsPathName,
   windowsPathParent,
 } from '../../lib/windows-path';
-import type { InventoryItemInput } from '../../schemas/discovery';
+import type {
+  InventoryItemInput,
+  PromoteInventoryItemBody,
+} from '../../schemas/discovery';
 import { assertWithinClaimedDirectory } from './paths';
 
 export type ProposedInventoryItem = UpsertedInventoryItem & {
@@ -144,3 +148,49 @@ export const decideInventoryItem = (
   actor: Actor,
 ): Promise<InventoryItem> =>
   decideInventoryItemRow(db, id, { ...input, actor });
+
+/**
+ * A human promotes a path the agent skipped. The path must lie strictly
+ * beneath the queue item's directory: it is that directory's skip being
+ * corrected, not a way to add arbitrary paths.
+ */
+export async function promoteInventoryItem(
+  queueItemId: string,
+  body: PromoteInventoryItemBody,
+  actor: Actor,
+): Promise<
+  InventoryItem & {
+    coveredBy: NestedInventoryItem[];
+    covers: NestedInventoryItem[];
+  }
+> {
+  const queueItem = await getQueueItemById(db, queueItemId);
+  if (!queueItem) throw new DiscoveryError('not_found', 'queue item not found');
+
+  const { path, normalizedPath } = normalizeWindowsPath(body.path);
+
+  assertWithinClaimedDirectory(queueItem, [{ path, normalizedPath }], {
+    allowSelf: false,
+    subject: 'promoted paths',
+  });
+
+  const inventoryItem = await promoteInventoryItemRow(db, queueItemId, {
+    kind: body.kind,
+    rootPath: path,
+    normalizedRootPath: normalizedPath,
+    displayName: body.displayName ?? windowsPathName(path),
+    skipReason: body.skipReason,
+    note: body.note,
+    actor,
+  });
+
+  return {
+    ...inventoryItem,
+    ...(await findNestedInventoryItems(
+      db,
+      inventoryItem.sourceId,
+      normalizedPath,
+      ancestorsOf(normalizedPath),
+    )),
+  };
+}
