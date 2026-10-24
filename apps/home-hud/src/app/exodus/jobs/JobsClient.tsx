@@ -15,7 +15,8 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import { JOB_STATUS_COLOR, formatDateTime } from '../lib/job-display';
+import { JOB_STATUS_COLOR, formatDuration } from '../lib/job-display';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import type {
   Source,
   DiscoveryJobWithSource,
@@ -98,11 +99,12 @@ export function JobsClient({
               <TableHead>
                 <TableRow>
                   <Th>ID</Th>
+                  <Th>Root</Th>
                   <Th>Status</Th>
                   <Th>Source</Th>
-                  <Th>Root</Th>
-                  <Th>Created (UTC)</Th>
-                  <Th>Finished (UTC)</Th>
+                  <Th>Created</Th>
+                  <Th>Finished</Th>
+                  <Th>Duration</Th>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -123,6 +125,14 @@ export function JobsClient({
                           </Typography>
                         </Link>
                       </Td>
+                      <Td className="break-all">
+                        <Link
+                          href={`/exodus/jobs/${job.id}`}
+                          className="text-primary-400 hover:underline"
+                        >
+                          {job.rootPath}
+                        </Link>
+                      </Td>
                       <Td>
                         <Badge color={JOB_STATUS_COLOR[job.status]}>
                           {job.status}
@@ -136,16 +146,13 @@ export function JobsClient({
                           {job.sourceName}
                         </Link>
                       </Td>
-                      <Td className="break-all">
-                        <Link
-                          href={`/exodus/jobs/${job.id}`}
-                          className="text-primary-400 hover:underline"
-                        >
-                          {job.rootPath}
-                        </Link>
+                      <Td>
+                        <LocalDateTime iso={job.createdAt} />
                       </Td>
-                      <Td>{formatDateTime(job.createdAt)}</Td>
-                      <Td>{formatDateTime(job.finishedAt)}</Td>
+                      <Td>
+                        <LocalDateTime iso={job.finishedAt} />
+                      </Td>
+                      <Td>{formatDuration(job.createdAt, job.finishedAt)}</Td>
                     </TableRow>
                   );
                 })}

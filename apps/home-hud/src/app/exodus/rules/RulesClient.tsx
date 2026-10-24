@@ -20,7 +20,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import { formatDateTime } from '../lib/job-display';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import { deleteExclusionRule } from '../sources/lib/actions';
 import type { ExclusionRule } from '../sources/lib/homelab-api';
 import { AddRuleModal } from './AddRuleModal';
@@ -104,7 +104,7 @@ export function RulesClient({ sources, rules }: RulesClientProps) {
                   <Th>Scope</Th>
                   <Th>Applies to</Th>
                   <Th>Reason</Th>
-                  <Th>Created (UTC)</Th>
+                  <Th>Created</Th>
                   <Th>
                     <span className="sr-only">Actions</span>
                   </Th>
@@ -131,7 +131,9 @@ export function RulesClient({ sources, rules }: RulesClientProps) {
                         : (sourceNames.get(rule.sourceId) ?? 'Unknown source')}
                     </Td>
                     <Td>{rule.reason ?? '—'}</Td>
-                    <Td>{formatDateTime(rule.createdAt)}</Td>
+                    <Td>
+                      <LocalDateTime iso={rule.createdAt} />
+                    </Td>
                     <Td>
                       <div className="flex gap-2">
                         <OutlinedButton

@@ -29,7 +29,7 @@ import {
   RECOMMENDATION_LABELS,
   type DecisionFilter,
 } from '../lib/inventory-display';
-import { formatDateTime } from '../lib/job-display';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import { decideInventoryItem } from '../sources/lib/actions';
 import type {
   InventoryItemDecision,
@@ -238,7 +238,7 @@ export function InventoryClient({
                     <Th>Agent says</Th>
                     <Th>Confidence</Th>
                     <Th>Decision</Th>
-                    <Th>Updated (UTC)</Th>
+                    <Th>Updated</Th>
                     <Th>
                       <span className="sr-only">Actions</span>
                     </Th>
@@ -291,7 +291,9 @@ export function InventoryClient({
                           )}
                         </div>
                       </Td>
-                      <Td>{formatDateTime(inventoryItem.recommendedAt)}</Td>
+                      <Td>
+                        <LocalDateTime iso={inventoryItem.recommendedAt} />
+                      </Td>
                       <Td>
                         <div className="flex flex-col gap-2">
                           {inventoryItem.decision === 'pending' && (

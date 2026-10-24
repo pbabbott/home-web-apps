@@ -14,12 +14,29 @@ export const JOB_STATUS_COLOR: Record<DiscoveryJobStatus, BadgeColor> = {
 };
 
 /**
- * Date and time in UTC (column headers say so), formatted by hand so server
- * and client renders match. No trailing "Z": the pixel font draws it like a
- * digit.
+ * Date and time in the runtime's local zone on a 12-hour clock:
+ * `2026-10-24 3:05 PM`, or `3:05:09 PM` with `seconds`. The server's zone
+ * differs from the browser's, so render it through `LocalDateTime` rather than
+ * calling this during SSR, or the markup will mismatch.
  */
-export function formatDateTime(iso: string | null): string {
-  return iso ? `${iso.slice(0, 10)} ${iso.slice(11, 16)}` : '—';
+export function formatLocalDateTime(
+  iso: string | null,
+  options: { seconds?: boolean; dateOnly?: boolean } = {},
+): string {
+  if (!iso) return '—';
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  if (options.dateOnly) return day;
+
+  const hour = date.getHours();
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  const clock = `${hour12}:${pad(date.getMinutes())}${options.seconds ? `:${pad(date.getSeconds())}` : ''}`;
+
+  return `${day} ${clock} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
 /**

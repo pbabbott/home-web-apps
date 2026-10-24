@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Fragment, useEffect, useState, type FormEvent } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { Icon } from '@abbottland/fui-icons';
 import {
   Badge,
@@ -24,12 +30,12 @@ import {
   QUEUE_STATUS_COLOR,
   describeSkippedGroup,
   describeSkips,
-  formatDateTime,
   formatDuration,
   jobDetailUrl,
   parsePathLines,
   relativeToDirectory,
 } from '../../lib/job-display';
+import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { enqueueQueueItems } from '../../sources/lib/actions';
 import {
@@ -51,7 +57,7 @@ const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
   { status: 'failed', label: 'Failed' },
 ];
 
-function Detail({ title, children }: { title: string; children: string }) {
+function Detail({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
       <Typography variant="body1" className="text-neutral-400">
@@ -305,9 +311,11 @@ export function JobDetailClient({
               )}
             </Typography>
           </div>
-          <Detail title="Created (UTC)">{formatDateTime(job.createdAt)}</Detail>
-          <Detail title="Finished (UTC)">
-            {formatDateTime(job.finishedAt)}
+          <Detail title="Created">
+            <LocalDateTime iso={job.createdAt} />
+          </Detail>
+          <Detail title="Finished">
+            <LocalDateTime iso={job.finishedAt} />
           </Detail>
           <Detail title="Duration">
             {formatDuration(job.createdAt, job.finishedAt)}
@@ -380,7 +388,7 @@ export function JobDetailClient({
                     <Th>Status</Th>
                     <Th>Skipped</Th>
                     <Th>Attempts</Th>
-                    <Th>Completed (UTC)</Th>
+                    <Th>Completed</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -422,7 +430,9 @@ export function JobDetailClient({
                         <Td>
                           {item.attemptCount} / {item.maxAttempts}
                         </Td>
-                        <Td>{formatDateTime(item.completedAt)}</Td>
+                        <Td>
+                          <LocalDateTime iso={item.completedAt} />
+                        </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>

@@ -14,7 +14,8 @@ import {
   Panel,
   Typography,
 } from '@abbottland/fui-components';
-import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
+import { LocalDateTime } from '../../lib/LocalDateTime';
+import { JOB_STATUS_COLOR } from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
   completeDiscoveryJob,
@@ -134,11 +135,18 @@ export function CurrentJobPanel({
         <>
           <Typography variant="body2" className="break-all text-neutral-400">
             {job.rootPath}
-            {job.startedAt ? ` · started ${formatDateTime(job.startedAt)}` : ''}
-            {job.finishedAt
-              ? ` · finished ${formatDateTime(job.finishedAt)}`
-              : ''}
-            {' (UTC)'}
+            {job.startedAt && (
+              <>
+                {' · started '}
+                <LocalDateTime iso={job.startedAt} />
+              </>
+            )}
+            {job.finishedAt && (
+              <>
+                {' · finished '}
+                <LocalDateTime iso={job.finishedAt} />
+              </>
+            )}
           </Typography>
 
           <OutlinedButton

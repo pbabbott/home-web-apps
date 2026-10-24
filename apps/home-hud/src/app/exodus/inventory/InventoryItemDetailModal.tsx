@@ -22,7 +22,7 @@ import {
   RECOMMENDATION_LABELS,
 } from '../lib/inventory-display';
 import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
-import { formatDateTime } from '../lib/job-display';
+import { LocalDateTime } from '../lib/LocalDateTime';
 import {
   decideInventoryItem,
   getInventoryItemDetail,
@@ -210,7 +210,7 @@ export function InventoryItemDetailModal({
               </Typography>
               <Typography variant="small" className="text-neutral-400">
                 {inventoryItem.recommendedBy ?? 'agent'}, updated{' '}
-                {formatDateTime(inventoryItem.recommendedAt)} UTC
+                <LocalDateTime iso={inventoryItem.recommendedAt} />
               </Typography>
             </Section>
 
@@ -256,9 +256,12 @@ export function InventoryItemDetailModal({
                   {inventoryItem.decidedBy
                     ? ` by ${inventoryItem.decidedBy}`
                     : ''}
-                  {inventoryItem.decidedAt
-                    ? ` on ${formatDateTime(inventoryItem.decidedAt)} UTC`
-                    : ''}
+                  {inventoryItem.decidedAt && (
+                    <>
+                      {' on '}
+                      <LocalDateTime iso={inventoryItem.decidedAt} />
+                    </>
+                  )}
                   {inventoryItem.decisionNote
                     ? `: ${inventoryItem.decisionNote}`
                     : ''}

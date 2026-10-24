@@ -11,7 +11,8 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import { JOB_STATUS_COLOR, formatDateTime } from '../../lib/job-display';
+import { LocalDateTime } from '../../lib/LocalDateTime';
+import { JOB_STATUS_COLOR } from '../../lib/job-display';
 import type { DiscoveryJob } from '../lib/homelab-api';
 
 export function JobHistoryPanel({ jobs }: { jobs: DiscoveryJob[] }) {
@@ -27,8 +28,8 @@ export function JobHistoryPanel({ jobs }: { jobs: DiscoveryJob[] }) {
             <TableRow>
               <Th>Status</Th>
               <Th>Root</Th>
-              <Th>Created (UTC)</Th>
-              <Th>Finished (UTC)</Th>
+              <Th>Created</Th>
+              <Th>Finished</Th>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -47,8 +48,12 @@ export function JobHistoryPanel({ jobs }: { jobs: DiscoveryJob[] }) {
                     {job.rootPath}
                   </Link>
                 </Td>
-                <Td>{formatDateTime(job.createdAt)}</Td>
-                <Td>{formatDateTime(job.finishedAt)}</Td>
+                <Td>
+                  <LocalDateTime iso={job.createdAt} />
+                </Td>
+                <Td>
+                  <LocalDateTime iso={job.finishedAt} />
+                </Td>
               </TableRow>
             ))}
           </TableBody>

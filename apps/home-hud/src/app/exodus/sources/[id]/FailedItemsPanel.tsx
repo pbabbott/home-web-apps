@@ -14,7 +14,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import { formatDateTime } from '../../lib/job-display';
+import { LocalDateTime } from '../../lib/LocalDateTime';
 import { retryQueueItem } from '../lib/actions';
 import type { QueueItem } from '../lib/homelab-api';
 
@@ -61,7 +61,7 @@ export function FailedItemsPanel({
               <Th>Path</Th>
               <Th>Attempts</Th>
               <Th>Last error</Th>
-              <Th>Failed (UTC)</Th>
+              <Th>Failed</Th>
               <Th>&nbsp;</Th>
             </TableRow>
           </TableHead>
@@ -73,7 +73,9 @@ export function FailedItemsPanel({
                   {item.attemptCount} / {item.maxAttempts}
                 </Td>
                 <Td>{item.lastError ?? '—'}</Td>
-                <Td>{formatDateTime(item.updatedAt)}</Td>
+                <Td>
+                  <LocalDateTime iso={item.updatedAt} />
+                </Td>
                 <Td>
                   {activeJobIds.has(item.jobId) ? (
                     <OutlinedButton
