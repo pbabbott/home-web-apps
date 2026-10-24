@@ -61,6 +61,19 @@ export async function createSource(
   return post<Source>('/sources', input);
 }
 
+export interface UpdateSourceInput {
+  name?: string;
+  /** Null unlinks the host. */
+  hostId?: string | null;
+}
+
+export async function updateSource(
+  id: string,
+  input: UpdateSourceInput,
+): Promise<ActionResult<Source>> {
+  return patch<Source>(`/sources/${id}`, input);
+}
+
 export async function startDiscoveryJob(
   sourceId: string,
   rootPath: string,

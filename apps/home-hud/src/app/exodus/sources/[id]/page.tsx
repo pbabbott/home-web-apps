@@ -1,5 +1,9 @@
 import { notFound } from 'next/navigation';
-import { getHost, type Host } from '../../../infra/hosts/lib/homelab-api';
+import {
+  getHost,
+  getHosts,
+  type Host,
+} from '../../../infra/hosts/lib/homelab-api';
 import {
   getSources,
   getDiscoveryJob,
@@ -43,13 +47,15 @@ export default async function SourceDetailPage({ params }: PageProps) {
 
   if (!source) notFound();
 
-  const [hostResult, jobsResult] = await Promise.allSettled([
+  const [hostResult, jobsResult, hostsResult] = await Promise.allSettled([
     source.hostId ? getHost(source.hostId) : Promise.resolve(null),
     getDiscoveryJobs(id),
+    getHosts(),
   ]);
 
   const host: Host | null = unwrap(hostResult, 'host');
   const jobs: DiscoveryJob[] | null = unwrap(jobsResult, 'discovery jobs');
+  const hosts: Host[] | null = unwrap(hostsResult, 'hosts');
 
   // The newest job is the one worth showing, running or already finished.
   let latestJob: DiscoveryJobWithCounts | null = null;
@@ -78,6 +84,7 @@ export default async function SourceDetailPage({ params }: PageProps) {
     <SourceDetailClient
       source={source}
       host={host}
+      hosts={hosts}
       jobs={jobs}
       latestJob={latestJob}
       failedItems={failedItems}

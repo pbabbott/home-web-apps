@@ -13,7 +13,8 @@ import {
 } from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
 import { HostSelectField } from './HostSelectField';
-import { createSource } from './lib/actions';
+import { createSource, updateSource } from './lib/actions';
+import type { Source } from './lib/homelab-api';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -30,23 +31,28 @@ interface AddSourceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hosts: Host[];
-  onCreated: () => void;
+  /** The source to edit. Remount (via `key`) to switch sources. */
+  source?: Source | null;
+  /** Called after a source is created or edited. */
+  onSaved: () => void;
 }
 
 export function AddSourceModal({
   open,
   onOpenChange,
   hosts,
-  onCreated,
+  source = null,
+  onSaved,
 }: AddSourceModalProps) {
-  const [name, setName] = useState('');
-  const [hostId, setHostId] = useState('');
+  const editing = source !== null;
+  const [name, setName] = useState(source?.name ?? '');
+  const [hostId, setHostId] = useState(source?.hostId ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function resetForm() {
-    setName('');
-    setHostId('');
+    setName(source?.name ?? '');
+    setHostId(source?.hostId ?? '');
     setError(null);
   }
 
@@ -55,10 +61,15 @@ export function AddSourceModal({
     setSubmitting(true);
     setError(null);
 
-    const result = await createSource({
-      name: name.trim(),
-      hostId: hostId || undefined,
-    });
+    const result = source
+      ? await updateSource(source.id, {
+          name: name.trim(),
+          hostId: hostId || null,
+        })
+      : await createSource({
+          name: name.trim(),
+          hostId: hostId || undefined,
+        });
     setSubmitting(false);
 
     if (!result.ok) {
@@ -66,9 +77,9 @@ export function AddSourceModal({
       return;
     }
 
-    resetForm();
+    if (!editing) resetForm();
     onOpenChange(false);
-    onCreated();
+    onSaved();
   }
 
   return (
@@ -80,10 +91,11 @@ export function AddSourceModal({
       }}
     >
       <ModalContent color="secondary">
-        <ModalTitle>Add Source</ModalTitle>
+        <ModalTitle>{editing ? 'Edit Source' : 'Add Source'}</ModalTitle>
         <ModalDescription>
-          Register a machine to explore for the exodus migration. Link it to a
-          host registered under Infra / Hosts, or leave it unlinked.
+          {editing
+            ? 'Rename the source or change the host it is linked to. Its jobs and inventory items stay with it.'
+            : 'Register a machine to explore for the exodus migration. Link it to a host registered under Infra / Hosts, or leave it unlinked.'}
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -120,7 +132,13 @@ export function AddSourceModal({
               Cancel
             </OutlinedButton>
             <Button type="submit" size="small" disabled={submitting}>
-              {submitting ? 'Adding…' : 'Add Source'}
+              {submitting
+                ? editing
+                  ? 'Saving…'
+                  : 'Adding…'
+                : editing
+                  ? 'Save'
+                  : 'Add Source'}
             </Button>
           </div>
         </form>

@@ -11,11 +11,13 @@ import {
 import {
   createSourceOperation,
   listSourcesOperation,
+  updateSourceOperation,
 } from '../../controllers/discovery/sources';
 import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
   sourceIdParamsSchema,
+  updateSourceBodySchema,
 } from '../../schemas/discovery';
 import {
   discoveryJobSelectSchema,
@@ -53,6 +55,28 @@ export const sourcesPaths = {
           },
         },
         '400': validationErrorResponse,
+        '409': conflictResponse('A source with this name already exists'),
+      },
+    },
+  },
+  '/sources/{id}': {
+    patch: {
+      summary: updateSourceOperation.summary,
+      'x-home-hud': updateSourceOperation.hud,
+      description: updateSourceOperation.description,
+      requestParams: { path: sourceIdParamsSchema },
+      requestBody: {
+        content: {
+          'application/json': { schema: updateSourceBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The updated source',
+          content: { 'application/json': { schema: sourceSelectSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('source or host'),
         '409': conflictResponse('A source with this name already exists'),
       },
     },

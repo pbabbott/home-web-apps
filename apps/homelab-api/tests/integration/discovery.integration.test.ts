@@ -158,6 +158,58 @@ describe('sources', () => {
       .expect(409);
   });
 
+  it('renames a source, relinks and unlinks its host', async () => {
+    const hostId = await createHost();
+    const created = await getRequest()
+      .post('/sources')
+      .send({ name: 'exodus-test-edit' })
+      .expect(201);
+    createdSourceIds.push(created.body.id);
+    const url = `/sources/${created.body.id}`;
+
+    const renamed = await getRequest()
+      .patch(url)
+      .send({ name: 'exodus-test-edited', hostId })
+      .expect(200);
+    expect(renamed.body).toMatchObject({
+      name: 'exodus-test-edited',
+      hostId,
+      sourceType: 'windows',
+    });
+
+    const unlinked = await getRequest()
+      .patch(url)
+      .send({ hostId: null })
+      .expect(200);
+    expect(unlinked.body).toMatchObject({
+      name: 'exodus-test-edited',
+      hostId: null,
+    });
+  });
+
+  it('rejects an edit to a duplicate name, a missing host or source, or an empty body', async () => {
+    const id = await createSource();
+    const other = await getRequest()
+      .post('/sources')
+      .send({ name: 'exodus-test-edit-other' })
+      .expect(201);
+    createdSourceIds.push(other.body.id);
+
+    await getRequest()
+      .patch(`/sources/${id}`)
+      .send({ name: 'exodus-test-edit-other' })
+      .expect(409);
+    await getRequest()
+      .patch(`/sources/${id}`)
+      .send({ hostId: '123e4567-e89b-42d3-a456-426614174000' })
+      .expect(404);
+    await getRequest()
+      .patch('/sources/123e4567-e89b-42d3-a456-426614174000')
+      .send({ name: 'exodus-test-ghost' })
+      .expect(404);
+    await getRequest().patch(`/sources/${id}`).send({}).expect(400);
+  });
+
   it('creates a source without a host', async () => {
     const res = await getRequest()
       .post('/sources')

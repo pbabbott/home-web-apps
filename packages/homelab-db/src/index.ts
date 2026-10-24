@@ -116,6 +116,7 @@ export type {
 export {
   DiscoveryError,
   createSource,
+  updateSource,
   listSources,
   getSourceById,
   getQueueCounts,
@@ -145,6 +146,7 @@ export {
 } from './queries/discovery';
 export type {
   CreateSourceInput,
+  UpdateSourceInput,
   QueuePath,
   QueueCounts,
   CreateDiscoveryJobInput,

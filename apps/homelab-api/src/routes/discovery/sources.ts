@@ -12,13 +12,18 @@ import {
   listKnownSkips,
   listSourceQueueItems,
 } from '../../controllers/discovery/queue-items';
-import { createSource, listSources } from '../../controllers/discovery/sources';
+import {
+  createSource,
+  listSources,
+  updateSource,
+} from '../../controllers/discovery/sources';
 import {
   createDiscoveryJobBodySchema,
   createSourceBodySchema,
   knownSkipListQuerySchema,
   queueItemListQuerySchema,
   sourceIdParamsSchema,
+  updateSourceBodySchema,
 } from '../../schemas/discovery';
 
 export const sourcesRouter = Router();
@@ -28,6 +33,12 @@ sourcesRouter.post(
   '/sources',
   validateBody(createSourceBodySchema),
   createSource,
+);
+sourcesRouter.patch(
+  '/sources/:id',
+  validateParams(sourceIdParamsSchema),
+  validateBody(updateSourceBodySchema),
+  updateSource,
 );
 sourcesRouter.post(
   '/sources/:id/discovery-jobs',

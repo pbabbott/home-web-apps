@@ -113,7 +113,7 @@ export function SourcesClient({ sources, hosts }: SourcesClientProps) {
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         hosts={hosts ?? []}
-        onCreated={() => router.refresh()}
+        onSaved={() => router.refresh()}
       />
     </main>
   );
