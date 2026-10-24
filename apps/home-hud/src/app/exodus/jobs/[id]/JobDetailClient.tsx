@@ -36,7 +36,12 @@ import {
   parsePathLines,
   relativeToDirectory,
 } from '../../lib/job-display';
-import { JobActivity, JobProgress } from '../../lib/JobSummary';
+import {
+  JobActivity,
+  JobProgress,
+  QueueItemMessage,
+  WorkerName,
+} from '../../lib/JobSummary';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
@@ -78,6 +83,30 @@ function Detail({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+/** Copies `text`; clipboard access can be denied (insecure origin, no permission), so failure is shown, not thrown. */
+function CopyButton({ text }: { text: string }) {
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setState('copied');
+    } catch {
+      setState('failed');
+    }
+  }
+
+  return (
+    <OutlinedButton size="small" color="secondary" onClick={() => void copy()}>
+      {state === 'copied'
+        ? 'Copied'
+        : state === 'failed'
+          ? 'Copy failed'
+          : 'Copy'}
+    </OutlinedButton>
+  );
+}
+
 function QueueItemDetails({
   item,
   sourceId,
@@ -116,7 +145,14 @@ function QueueItemDetails({
       {result?.summary && (
         <Detail title="What the agent concluded">{result.summary}</Detail>
       )}
-      {item.lastError && <Detail title="Last error">{item.lastError}</Detail>}
+      {item.lastError && (
+        <Detail title="Last error">
+          <span className="flex flex-wrap items-start gap-3">
+            <QueueItemMessage lastError={item.lastError} />
+            <CopyButton text={item.lastError} />
+          </span>
+        </Detail>
+      )}
 
       {result?.skippedGroups && result.skippedGroups.length > 0 && (
         <div className="flex flex-col gap-1">
@@ -368,6 +404,7 @@ export function JobDetailClient({
   const [now, setNow] = useState<number | null>(null);
   const [retrying, setRetrying] = useState<string | 'all' | null>(null);
   const [retryError, setRetryError] = useState<string | null>(null);
+  const [retryNotice, setRetryNotice] = useState<string | null>(null);
 
   // Set after mount: lease expiry compared against the server's clock at render
   // time would not match what the browser computes during hydration.
@@ -379,26 +416,41 @@ export function JobDetailClient({
   async function retry(target: string | 'all') {
     setRetrying(target);
     setRetryError(null);
-    const result =
-      target === 'all'
-        ? await retryFailedQueueItems(job.id)
-        : await retryQueueItem(target);
+    setRetryNotice(null);
+    let requeued = 1;
+    let failure: string | null = null;
+
+    if (target === 'all') {
+      const result = await retryFailedQueueItems(job.id);
+      if (result.ok) requeued = result.data.length;
+      else failure = result.error;
+    } else {
+      const result = await retryQueueItem(target);
+      if (!result.ok) failure = result.error;
+    }
     setRetrying(null);
 
-    if (!result.ok) {
-      setRetryError(result.error);
+    if (failure !== null) {
+      setRetryError(failure);
       return;
     }
 
+    setRetryNotice(
+      `Requeued ${requeued} ${requeued === 1 ? 'directory' : 'directories'}; each gets one more attempt.`,
+    );
     router.refresh();
   }
 
+  // The list is ordered by last change, so a refresh moves rows under the
+  // reader; hold it still while any row is open.
+  const paused = expanded.size > 0;
+
   useEffect(() => {
-    if (!active) return;
+    if (!active || paused) return;
 
     const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
-  }, [active, router]);
+  }, [active, paused, router]);
 
   function toggle(id: string) {
     setExpanded((current) => {
@@ -541,6 +593,21 @@ export function JobDetailClient({
             {retryError}
           </Typography>
         )}
+        {retryNotice && (
+          <Typography
+            variant="body2"
+            role="status"
+            className="text-success-400"
+          >
+            {retryNotice}
+          </Typography>
+        )}
+        {active && expanded.size > 0 && (
+          <Typography variant="body2" className="text-neutral-400">
+            Auto-refresh is paused while a directory is open. Close it to
+            resume.
+          </Typography>
+        )}
 
         {items === null ? (
           <Typography variant="body2" className="text-error-400">
@@ -564,6 +631,7 @@ export function JobDetailClient({
                     <Th>Lease</Th>
                     <Th>Last error</Th>
                     <Th>Completed</Th>
+                    <Th>&nbsp;</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -607,10 +675,10 @@ export function JobDetailClient({
                         </Td>
                         <Td>
                           {item.claimedBy ? (
-                            item.claimedBy
+                            <WorkerName name={item.claimedBy} />
                           ) : item.lastClaimedBy ? (
                             <span className="text-neutral-400">
-                              {item.lastClaimedBy}
+                              <WorkerName name={item.lastClaimedBy} />
                             </span>
                           ) : (
                             '—'
@@ -632,29 +700,27 @@ export function JobDetailClient({
                           )}
                         </Td>
                         <Td>
-                          <span className="line-clamp-2 break-words">
-                            {item.lastError ?? '—'}
-                          </span>
+                          <QueueItemMessage lastError={item.lastError} clamp />
                         </Td>
                         <Td>
-                          <div className="flex items-center gap-2">
-                            <LocalDateTime iso={item.completedAt} />
-                            {active && item.status === 'failed' && (
-                              <OutlinedButton
-                                size="small"
-                                color="warning"
-                                disabled={retrying !== null}
-                                onClick={() => void retry(item.id)}
-                              >
-                                {retrying === item.id ? 'Retrying…' : 'Retry'}
-                              </OutlinedButton>
-                            )}
-                          </div>
+                          <LocalDateTime iso={item.completedAt} />
+                        </Td>
+                        <Td>
+                          {active && item.status === 'failed' && (
+                            <OutlinedButton
+                              size="small"
+                              color="warning"
+                              disabled={retrying !== null}
+                              onClick={() => void retry(item.id)}
+                            >
+                              {retrying === item.id ? 'Retrying…' : 'Retry'}
+                            </OutlinedButton>
+                          )}
                         </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={8}>
+                          <Td colSpan={9}>
                             <QueueItemDetails
                               item={item}
                               sourceId={job.sourceId}
@@ -670,8 +736,8 @@ export function JobDetailClient({
 
             {items.length >= JOB_QUEUE_ITEMS_LIMIT && (
               <Typography variant="body2" className="text-warning-400">
-                Showing the first {JOB_QUEUE_ITEMS_LIMIT} directories, oldest
-                first. Filter by status to narrow it down.
+                Showing the first {JOB_QUEUE_ITEMS_LIMIT} directories, most
+                recently changed first. Filter by status to narrow it down.
               </Typography>
             )}
           </>

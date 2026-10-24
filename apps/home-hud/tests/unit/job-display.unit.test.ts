@@ -1,4 +1,5 @@
 import {
+  classifyQueueMessage,
   describeSkips,
   formatRelativeTime,
   guessKind,
@@ -6,6 +7,7 @@ import {
   jobPhase,
   jobDetailUrl,
   jobProgress,
+  needsAttention,
   parsePathLines,
   parseQueueStatus,
 } from '../../src/app/exodus/lib/job-display';
@@ -169,5 +171,49 @@ describe('formatRelativeTime', () => {
   it('is a dash without a usable timestamp', () => {
     expect(formatRelativeTime(null, now)).toBe('—');
     expect(formatRelativeTime('nope', now)).toBe('—');
+  });
+});
+
+describe('classifyQueueMessage', () => {
+  it.each([
+    ['released by worker-a', 'released'],
+    ['lease expired (worker w1, attempt 2/3)', 'expired'],
+    ['lease expired on final attempt (worker w1, attempt 3/3)', 'expired'],
+    ['job cancelled', 'cancelled'],
+    ['job failed', 'cancelled'],
+    ['skipped: system directory', 'skipped'],
+    ['EBUSY: resource busy', 'error'],
+    ['the lease expired somehow', 'error'],
+  ])('%s -> %s', (message, kind) => {
+    expect(classifyQueueMessage(message)).toBe(kind);
+  });
+});
+
+describe('needsAttention', () => {
+  const counts = (failed = 0) => ({
+    queued: 0,
+    in_progress: 0,
+    completed: 1,
+    failed,
+    skipped: 0,
+  });
+
+  it('flags stuck and drained active jobs, and active jobs with failures', () => {
+    expect(
+      needsAttention({ phase: 'stuck_claims', queueCounts: counts() }),
+    ).toBe(true);
+    expect(
+      needsAttention({ phase: 'awaiting_completion', queueCounts: counts() }),
+    ).toBe(true);
+    expect(
+      needsAttention({ phase: 'work_remaining', queueCounts: counts(2) }),
+    ).toBe(true);
+  });
+
+  it('ignores healthy running jobs and every finished job', () => {
+    expect(
+      needsAttention({ phase: 'work_remaining', queueCounts: counts() }),
+    ).toBe(false);
+    expect(needsAttention({ phase: null, queueCounts: counts(5) })).toBe(false);
   });
 });

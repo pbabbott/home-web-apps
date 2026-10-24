@@ -8,7 +8,7 @@ import {
 import { JobsClient } from './JobsClient';
 
 interface JobsPageProps {
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ source?: string; attention?: string }>;
 }
 
 const UUID_PATTERN =
@@ -19,7 +19,7 @@ function isUuid(value: string | undefined): value is string {
 }
 
 export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
-  const { source: sourceParam } = await searchParams;
+  const { source: sourceParam, attention } = await searchParams;
 
   // An id that isn't a uuid would 400 the API; it can only come from a
   // hand-edited URL, so treat it as "no filter" instead of an error page.
@@ -63,6 +63,7 @@ export default async function ExodusJobsPage({ searchParams }: JobsPageProps) {
       jobs={jobs}
       sources={sources}
       selectedSourceId={selectedSourceId}
+      attentionOnly={attention === '1'}
       hasActiveJob={jobs?.some(isActiveJob) ?? false}
     />
   );

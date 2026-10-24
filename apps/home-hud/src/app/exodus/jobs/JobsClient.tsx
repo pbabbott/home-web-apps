@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import {
   Badge,
+  OutlinedButton,
   Panel,
   ScrollableTable,
   Table,
@@ -15,7 +16,11 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
-import { JOB_STATUS_COLOR, formatDuration } from '../lib/job-display';
+import {
+  JOB_STATUS_COLOR,
+  formatDuration,
+  needsAttention,
+} from '../lib/job-display';
 import { JobActivity, JobPhaseBadge, JobProgress } from '../lib/JobSummary';
 import { LocalDateTime } from '../lib/LocalDateTime';
 import type {
@@ -26,14 +31,21 @@ import type {
 /** While any job is active the page re-fetches this often, so progress shows without a manual reload. */
 const ACTIVE_REFRESH_MS = 5000;
 
-function buildUrl(sourceId: string | null): string {
-  return sourceId ? `/exodus/jobs?source=${sourceId}` : '/exodus/jobs';
+function buildUrl(sourceId: string | null, attentionOnly: boolean): string {
+  const params = new URLSearchParams();
+  if (sourceId) params.set('source', sourceId);
+  if (attentionOnly) params.set('attention', '1');
+  const query = params.toString();
+
+  return query ? `/exodus/jobs?${query}` : '/exodus/jobs';
 }
 
 interface JobsClientProps {
   jobs: DiscoveryJobWithSource[] | null;
   sources: Source[] | null;
   selectedSourceId: string | null;
+  /** Show only active jobs a person should look at (see `needsAttention`). */
+  attentionOnly: boolean;
   hasActiveJob: boolean;
 }
 
@@ -41,9 +53,12 @@ export function JobsClient({
   jobs,
   sources,
   selectedSourceId,
+  attentionOnly,
   hasActiveJob,
 }: JobsClientProps) {
   const router = useRouter();
+  const attentionCount = jobs?.filter(needsAttention).length ?? 0;
+  const shown = attentionOnly ? (jobs?.filter(needsAttention) ?? null) : jobs;
 
   useEffect(() => {
     if (!hasActiveJob) return;
@@ -71,7 +86,9 @@ export function JobsClient({
             <select
               value={selectedSourceId ?? ''}
               disabled={sources === null}
-              onChange={(e) => router.push(buildUrl(e.target.value || null))}
+              onChange={(e) =>
+                router.push(buildUrl(e.target.value || null, attentionOnly))
+              }
               className="border border-neutral-300 bg-neutral-600 px-2 py-1.5 text-neutral-50 focus:outline-none focus:ring-0"
             >
               <option value="">All sources</option>
@@ -84,15 +101,36 @@ export function JobsClient({
           </label>
         </div>
 
-        {jobs === null ? (
+        <div className="flex flex-wrap gap-2">
+          <OutlinedButton
+            component={Link}
+            href={buildUrl(selectedSourceId, false)}
+            size="small"
+            color={attentionOnly ? 'secondary' : 'primary'}
+          >
+            All jobs
+          </OutlinedButton>
+          <OutlinedButton
+            component={Link}
+            href={buildUrl(selectedSourceId, true)}
+            size="small"
+            color={attentionOnly ? 'primary' : 'secondary'}
+          >
+            Needs attention ({attentionCount})
+          </OutlinedButton>
+        </div>
+
+        {shown === null ? (
           <Typography variant="body2" className="text-error-400">
             Failed to load discovery jobs from homelab-api.
           </Typography>
-        ) : jobs.length === 0 ? (
+        ) : shown.length === 0 ? (
           <Typography variant="body2" className="text-neutral-400">
-            {selectedSourceId
-              ? 'No discovery jobs for this source.'
-              : 'No discovery jobs yet.'}
+            {attentionOnly
+              ? 'No active job needs attention.'
+              : selectedSourceId
+                ? 'No discovery jobs for this source.'
+                : 'No discovery jobs yet.'}
           </Typography>
         ) : (
           <ScrollableTable className="mb-0">
@@ -111,7 +149,7 @@ export function JobsClient({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {jobs.map((job) => {
+                {shown.map((job) => {
                   return (
                     <TableRow key={job.id}>
                       <Td>

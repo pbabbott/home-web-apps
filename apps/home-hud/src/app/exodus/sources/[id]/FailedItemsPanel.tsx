@@ -14,6 +14,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
+import { QueueItemMessage, WorkerName } from '../../lib/JobSummary';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { retryQueueItem } from '../lib/actions';
 import type { QueueItem } from '../lib/homelab-api';
@@ -73,8 +74,16 @@ export function FailedItemsPanel({
                 <Td>
                   {item.attemptCount} / {item.maxAttempts}
                 </Td>
-                <Td className="break-all">{item.lastClaimedBy ?? '—'}</Td>
-                <Td>{item.lastError ?? '—'}</Td>
+                <Td>
+                  {item.lastClaimedBy ? (
+                    <WorkerName name={item.lastClaimedBy} />
+                  ) : (
+                    '—'
+                  )}
+                </Td>
+                <Td>
+                  <QueueItemMessage lastError={item.lastError} />
+                </Td>
                 <Td>
                   <LocalDateTime iso={item.updatedAt} />
                 </Td>

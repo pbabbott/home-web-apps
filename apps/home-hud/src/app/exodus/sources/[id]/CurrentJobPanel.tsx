@@ -36,6 +36,15 @@ const COUNT_TILES: { status: QueueItemStatus; label: string }[] = [
   { status: 'failed', label: 'Failed' },
 ];
 
+/** Discovery is drained: finishing is the next step, and failures are worth naming. */
+function completeLabel(job: DiscoveryJobWithCounts): string {
+  const failed = job.queueCounts.failed;
+
+  return job.phase === 'awaiting_completion' && failed > 0
+    ? `Complete with ${failed} failed`
+    : 'Mark Complete';
+}
+
 export function CurrentJobPanel({
   job,
   hasActiveJob,
@@ -88,13 +97,23 @@ export function CurrentJobPanel({
         <div className="flex items-center gap-2">
           {job && isActiveJob(job) && (
             <>
-              <OutlinedButton
-                size="small"
-                disabled={busy}
-                onClick={() => void run(completeDiscoveryJob)}
-              >
-                Mark Complete
-              </OutlinedButton>
+              {job.phase === 'awaiting_completion' ? (
+                <Button
+                  size="small"
+                  disabled={busy}
+                  onClick={() => void run(completeDiscoveryJob)}
+                >
+                  {completeLabel(job)}
+                </Button>
+              ) : (
+                <OutlinedButton
+                  size="small"
+                  disabled={busy}
+                  onClick={() => void run(completeDiscoveryJob)}
+                >
+                  {completeLabel(job)}
+                </OutlinedButton>
+              )}
               <OutlinedButton
                 size="small"
                 color="error"

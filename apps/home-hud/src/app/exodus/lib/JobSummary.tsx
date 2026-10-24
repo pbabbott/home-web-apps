@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Badge } from '@abbottland/fui-components';
-import { formatRelativeTime, jobPhase, jobProgress } from './job-display';
+import {
+  QUEUE_MESSAGE_LABEL,
+  classifyQueueMessage,
+  formatRelativeTime,
+  jobPhase,
+  jobProgress,
+} from './job-display';
 import type { JobQueueSummary } from '../sources/lib/homelab-api';
 
 const RELATIVE_TICK_MS = 30_000;
@@ -50,8 +56,56 @@ export function JobActivity({ job }: { job: JobQueueSummary }) {
     <>
       <RelativeTime iso={job.lastActivityAt} />
       {job.lastWorker && (
-        <span className="break-all text-neutral-400"> · {job.lastWorker}</span>
+        <span className="text-neutral-400">
+          {' · '}
+          <WorkerName name={job.lastWorker} />
+        </span>
       )}
     </>
+  );
+}
+
+/** A workerId cut to a readable width; the full id is in the tooltip. */
+export function WorkerName({ name }: { name: string }) {
+  return (
+    <span
+      title={name}
+      className="inline-block max-w-[16ch] truncate align-bottom"
+    >
+      {name}
+    </span>
+  );
+}
+
+/**
+ * An item's `lastError`, led by a badge when it records how a claim ended
+ * (released, lease expired, job ended, skipped) rather than a real error.
+ * `clamp` cuts it to two lines for table cells; the full text stays in the tooltip.
+ */
+export function QueueItemMessage({
+  lastError,
+  clamp = false,
+}: {
+  lastError: string | null;
+  clamp?: boolean;
+}) {
+  if (!lastError) return <>—</>;
+
+  const kind = classifyQueueMessage(lastError);
+
+  return (
+    <span className="flex flex-wrap items-start gap-2">
+      {kind !== 'error' && (
+        <Badge color={QUEUE_MESSAGE_LABEL[kind].color}>
+          {QUEUE_MESSAGE_LABEL[kind].label}
+        </Badge>
+      )}
+      <span
+        title={lastError}
+        className={clamp ? 'line-clamp-2 break-words' : 'break-words'}
+      >
+        {lastError}
+      </span>
+    </span>
   );
 }

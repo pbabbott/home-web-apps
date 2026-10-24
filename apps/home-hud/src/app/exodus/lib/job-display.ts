@@ -245,3 +245,49 @@ export function formatRelativeTime(iso: string | null, now: number): string {
 
   return `${Math.floor(hours / 24)} d ago`;
 }
+
+export type QueueMessageKind =
+  | 'released'
+  | 'expired'
+  | 'cancelled'
+  | 'skipped'
+  | 'error';
+
+/**
+ * homelab-api records why an item left its claim in `lastError` as plain
+ * text with a fixed prefix (`released by <worker>`, `lease expired …`,
+ * `job cancelled|failed`, `skipped: <reason>`); anything else is a worker's
+ * own error. Matching the prefix keeps those apart without a schema column.
+ */
+export function classifyQueueMessage(lastError: string): QueueMessageKind {
+  if (lastError.startsWith('released by ')) return 'released';
+  if (lastError.startsWith('lease expired')) return 'expired';
+  if (/^job (cancelled|failed)$/.test(lastError)) return 'cancelled';
+  if (lastError.startsWith('skipped: ')) return 'skipped';
+
+  return 'error';
+}
+
+export const QUEUE_MESSAGE_LABEL: Record<
+  Exclude<QueueMessageKind, 'error'>,
+  { label: string; color: BadgeColor }
+> = {
+  released: { label: 'released', color: 'secondary' },
+  expired: { label: 'lease expired', color: 'warning' },
+  cancelled: { label: 'job ended', color: 'dark' },
+  skipped: { label: 'skipped', color: 'dark' },
+};
+
+/** An active job a person should look at: stuck, drained and waiting on them, or carrying failures. */
+export function needsAttention(job: {
+  phase: JobPhase | null;
+  queueCounts: QueueCounts;
+}): boolean {
+  if (job.phase === null) return false;
+
+  return (
+    job.phase === 'stuck_claims' ||
+    job.phase === 'awaiting_completion' ||
+    job.queueCounts.failed > 0
+  );
+}
