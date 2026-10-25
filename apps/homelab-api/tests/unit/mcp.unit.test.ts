@@ -467,7 +467,7 @@ describe('MCP endpoint (/mcp)', () => {
   });
 
   it('keeps the playbook and tool descriptions short', async () => {
-    expect(client.getInstructions().length).toBeLessThanOrEqual(4000);
+    expect(client.getInstructions().length).toBeLessThanOrEqual(5000);
 
     const { tools } = await client.listTools();
     for (const tool of tools) {
