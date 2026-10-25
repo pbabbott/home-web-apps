@@ -8,6 +8,7 @@ import {
   ModalTitle,
   Typography,
 } from '@abbottland/fui-components';
+import { PdfViewer } from './PdfViewer';
 import { previewKind, previewUrl } from './preview';
 
 type Loaded =
@@ -23,7 +24,7 @@ interface FilePreviewModalProps {
   path: string;
 }
 
-/** Fetches the file through the preview proxy and shows it as an image, PDF or text. */
+/** Fetches the file through the preview proxy and shows it as an image, PDF (pdf.js) or text. */
 export function FilePreviewModal({
   open,
   onOpenChange,
@@ -127,7 +128,7 @@ export function FilePreviewModal({
             />
           )}
           {loaded.status === 'blob' && kind === 'pdf' && (
-            <iframe src={loaded.url} title={path} className="h-[70vh] w-full" />
+            <PdfViewer url={loaded.url} title={path} />
           )}
         </div>
       </ModalContent>
