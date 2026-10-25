@@ -24,6 +24,12 @@ import { HttpError } from '../../lib/http-error';
 import { matchesNamePattern } from '../../lib/name-pattern';
 import { previewTypeOf, type PreviewType } from '../../lib/preview-types';
 import {
+  EOCD_SEARCH_BYTES,
+  locateCentralDirectory,
+  parseCentralDirectory,
+  type ZipEntry,
+} from '../../lib/zip-listing';
+import {
   CredentialKeyError,
   decryptSecret,
   encryptSecret,
@@ -156,8 +162,67 @@ export type Preview = {
   size: number;
   /** Set when a text file was cut at the size limit. */
   truncated: boolean;
-  /** The file's bytes (text is decoded to UTF-8 and capped). */
+  /** The file's bytes (text is decoded to UTF-8 and capped; a zip is its JSON listing). */
   body: Readable | Buffer;
+};
+
+const MAX_ZIP_ENTRIES = 1000;
+
+export type ZipListing = {
+  /** Entries the archive declares, before the cap. */
+  total: number;
+  truncated: boolean;
+  /** Uncompressed size of the listed entries. */
+  totalSize: number;
+  entries: ZipEntry[];
+};
+
+/** Lists a zip from its central directory, reading only the end of the file. */
+const listZip = async (
+  driver: ReturnType<typeof getConnectionDriver>,
+  target: ConnectionTarget,
+  path: string,
+  size: number,
+  maxDirectoryBytes: number,
+): Promise<ZipListing> => {
+  try {
+    const tail = await driver.readTail(
+      target,
+      path,
+      size,
+      Math.min(size, EOCD_SEARCH_BYTES),
+    );
+    const directory = locateCentralDirectory(tail, size);
+
+    if (directory.size > maxDirectoryBytes) {
+      throw new HttpError(
+        413,
+        `This zip's file list is ${(directory.size / 1024 / 1024).toFixed(1)} MB; previews are limited to ${maxDirectoryBytes / 1024 / 1024} MB`,
+      );
+    }
+
+    const bytes =
+      directory.offset >= size - tail.length
+        ? tail.subarray(directory.offset - (size - tail.length))
+        : await driver.readTail(target, path, size, size - directory.offset);
+    const entries = parseCentralDirectory(
+      bytes.subarray(0, directory.size),
+      directory.entries,
+      MAX_ZIP_ENTRIES,
+    );
+
+    return {
+      total: directory.entries,
+      truncated: entries.length < directory.entries,
+      totalSize: entries.reduce((sum, entry) => sum + entry.size, 0),
+      entries,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('not a readable zip')) {
+      throw new HttpError(422, `Could not read the zip: ${err.message}`);
+    }
+    throw err;
+  }
 };
 
 const ancestorsOf = (normalizedPath: string): string[] => {
@@ -265,6 +330,23 @@ export const openPreview = (sourceId: string, path: string): Promise<Preview> =>
 
     try {
       const { size } = await driver.stat(target, canonical);
+
+      if (type.kind === 'zip') {
+        const listing = await listZip(
+          driver,
+          target,
+          canonical,
+          size,
+          type.maxBytes,
+        );
+
+        return {
+          type,
+          size,
+          truncated: false,
+          body: Buffer.from(JSON.stringify(listing)),
+        };
+      }
 
       if (type.kind !== 'text' && size > type.maxBytes) {
         throw new HttpError(

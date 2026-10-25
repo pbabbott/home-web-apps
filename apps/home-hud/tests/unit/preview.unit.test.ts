@@ -7,6 +7,7 @@ describe('previewKind', () => {
     ['C:\\a\\doc.pdf', 'pdf'],
     ['C:\\a\\Appointments (1).xml', 'text'],
     ['C:\\a\\notes.txt', 'text'],
+    ['C:\\a\\Archive.ZIP', 'zip'],
   ])('%s is %s', (path, kind) => {
     expect(previewKind(path)).toBe(kind);
   });
@@ -14,7 +15,7 @@ describe('previewKind', () => {
   it.each([
     'C:\\a\\logo.svg',
     'C:\\a\\setup.exe',
-    'C:\\a\\archive.zip',
+    'C:\\a\\archive.rar',
     'C:\\a\\.gitignore',
     'C:\\folder.with.dots\\noextension',
     'C:\\Users',

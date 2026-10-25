@@ -56,6 +56,16 @@ export interface ConnectionDriver {
    * a truncated stream.
    */
   open(target: ConnectionTarget, path: string): Readable;
+  /**
+   * The last `bytes` of a file of `size` bytes, without transferring the
+   * rest. Throws ConnectionError.
+   */
+  readTail(
+    target: ConnectionTarget,
+    path: string,
+    size: number,
+    bytes: number,
+  ): Promise<Buffer>;
   /** The direct children of a directory (no `.`/`..`). Throws ConnectionError. */
   list(target: ConnectionTarget, path: string): Promise<DirEntry[]>;
 }

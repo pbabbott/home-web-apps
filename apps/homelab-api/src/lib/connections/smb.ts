@@ -1,4 +1,7 @@
 import { spawn } from 'node:child_process';
+import { mkdtemp, open, rm, truncate, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { Readable } from 'node:stream';
 import { isWithinPath, normalizeWindowsPath } from '../windows-path';
 import {
@@ -314,5 +317,50 @@ export const smbDriver: ConnectionDriver = {
     child.stdout.on('error', () => child.kill('SIGKILL'));
 
     return child.stdout;
+  },
+
+  async readTail(target, path, size, bytes) {
+    const { share, relativePath } = shareFor(target, path);
+    const length = Math.min(size, bytes);
+    const dir = await mkdtemp(join(tmpdir(), 'smb-tail-'));
+    const local = join(dir, 'tail');
+
+    try {
+      // `reget` continues a download from the local file's length, so a
+      // sparse file of the skipped length makes smbclient fetch only the tail.
+      await writeFile(local, '');
+      await truncate(local, size - length);
+
+      const { output } = await runSmbclient(target, [
+        `//${target.address}/${share}`,
+        '-c',
+        `reget "${relativePath}" "${local}"`,
+      ]);
+
+      if (/NT_STATUS_[A-Z_]+/.test(output)) {
+        throw new ConnectionError(
+          errorCodeOf(output),
+          describeSmbError(output),
+        );
+      }
+
+      // Read only the tail back: the file is as long as the original.
+      const handle = await open(local, 'r');
+
+      try {
+        if ((await handle.stat()).size !== size) {
+          throw new ConnectionError('failed', 'The file changed while reading');
+        }
+
+        const tail = Buffer.alloc(length);
+        await handle.read(tail, 0, length, size - length);
+
+        return tail;
+      } finally {
+        await handle.close();
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   },
 };

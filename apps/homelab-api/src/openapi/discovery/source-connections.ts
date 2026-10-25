@@ -109,6 +109,23 @@ export const sourceConnectionsPaths = {
               schema: z.string().meta({ format: 'binary' }),
             },
             'text/plain': { schema: z.string() },
+            'application/json': {
+              schema: z.object({
+                total: z.number(),
+                truncated: z.boolean(),
+                totalSize: z.number(),
+                entries: z.array(
+                  z.object({
+                    path: z.string(),
+                    size: z.number(),
+                    compressedSize: z.number(),
+                    modifiedAt: z.string().nullable(),
+                    isDirectory: z.boolean(),
+                    encrypted: z.boolean(),
+                  }),
+                ),
+              }),
+            },
           },
         },
         '400': validationErrorResponse,
@@ -117,6 +134,7 @@ export const sourceConnectionsPaths = {
         '409': conflictResponse('The source is not linked to a host'),
         '413': messageResponse('The file is too large to preview'),
         '415': messageResponse('The file type cannot be previewed'),
+        '422': messageResponse('The file is not a readable zip'),
         '502': messageResponse('The source could not be read'),
         '503': messageResponse('EXODUS_CREDENTIAL_KEY is not configured'),
       },

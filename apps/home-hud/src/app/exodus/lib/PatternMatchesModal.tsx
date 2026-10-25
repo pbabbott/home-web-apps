@@ -20,6 +20,7 @@ import {
 import { listSkippedGroupMatches } from '../sources/lib/actions';
 import type { SkippedGroupMatches } from '../sources/lib/homelab-api';
 import { PromoteSkippedModal } from '../jobs/[id]/PromoteSkippedModal';
+import { formatSize } from './inventory-display';
 import { PreviewButton } from './PreviewButton';
 
 type Loaded =
@@ -40,21 +41,6 @@ interface PatternMatchesModalProps {
   inventoried: ReadonlySet<string>;
   onPromoted: (path: string) => void;
 }
-
-const formatSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`;
-
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let value = bytes / 1024;
-  let unit = 0;
-
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
-};
 
 /** Lists, live from the source, the entries a skipped pattern excluded so the reviewer can see what they are acknowledging. */
 export function PatternMatchesModal({
