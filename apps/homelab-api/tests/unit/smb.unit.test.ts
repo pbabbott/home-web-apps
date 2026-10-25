@@ -1,5 +1,6 @@
 import {
   describeSmbError,
+  parseSmbListing,
   resolveShare,
   smbclientInvocation,
 } from '../../src/lib/connections/smb';
@@ -103,5 +104,39 @@ describe('describeSmbError', () => {
     ['NT_STATUS_OBJECT_PATH_NOT_FOUND getting alt name', 'File not found'],
   ])('%s', (output, expected) => {
     expect(describeSmbError(output)).toContain(expected);
+  });
+});
+
+describe('parseSmbListing', () => {
+  it('parses files and folders, keeping spaces in names', () => {
+    const output = [
+      '  .                                   D        0  Tue Mar  4 10:11:12 2025',
+      '  ..                                  D        0  Tue Mar  4 10:11:12 2025',
+      '  setup (1).exe                       A  1048576  Wed Jan 15 09:05:00 2025',
+      '  Old Stuff                           D        0  Sat Dec 21 23:59:59 2024',
+      '',
+      '\t\t12345 blocks of size 4096. 100 blocks available',
+    ].join('\n');
+
+    expect(parseSmbListing(output)).toEqual([
+      {
+        name: 'setup (1).exe',
+        isDirectory: false,
+        size: 1048576,
+        modifiedAt: '2025-01-15T09:05:00',
+      },
+      {
+        name: 'Old Stuff',
+        isDirectory: true,
+        size: 0,
+        modifiedAt: '2024-12-21T23:59:59',
+      },
+    ]);
+  });
+
+  it('returns nothing for an error', () => {
+    expect(
+      parseSmbListing('tree connect failed: NT_STATUS_BAD_NETWORK_NAME'),
+    ).toEqual([]);
   });
 });

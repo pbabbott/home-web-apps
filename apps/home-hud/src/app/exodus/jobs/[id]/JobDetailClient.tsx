@@ -44,6 +44,7 @@ import {
 } from '../../lib/JobSummary';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
+import { PatternMatchesModal } from '../../lib/PatternMatchesModal';
 import { PreviewButton } from '../../lib/PreviewButton';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
 import {
@@ -276,6 +277,11 @@ function QueueItemDetails({
     path?: string;
     reason?: string;
   } | null>(null);
+  const [viewingPattern, setViewingPattern] = useState<{
+    pattern: string;
+    count?: number;
+    reason: string;
+  } | null>(null);
 
   async function setReviewed(path: string, pattern: string, reviewed: boolean) {
     setAckError(await review.setReviewed(item.id, path, pattern, reviewed));
@@ -341,7 +347,14 @@ function QueueItemDetails({
                       />
                     </Td>
                     <Td color="secondary" className="break-all">
-                      {group.pattern}
+                      <button
+                        type="button"
+                        title="Show the files this pattern matched"
+                        onClick={() => setViewingPattern(group)}
+                        className="text-left underline decoration-dotted hover:text-primary-400"
+                      >
+                        {group.pattern}
+                      </button>
                     </Td>
                     <Td color="secondary" className="text-neutral-400">
                       {group.count ?? '—'}
@@ -456,6 +469,23 @@ function QueueItemDetails({
           queueItem={item}
           path={promoting.path}
           skipReason={promoting.reason}
+          onPromoted={review.markInventoried}
+        />
+      )}
+
+      {viewingPattern && (
+        <PatternMatchesModal
+          key={viewingPattern.pattern}
+          open
+          onOpenChange={(next) => {
+            if (!next) setViewingPattern(null);
+          }}
+          sourceId={sourceId}
+          queueItem={item}
+          pattern={viewingPattern.pattern}
+          expectedCount={viewingPattern.count}
+          reason={viewingPattern.reason}
+          inventoried={inventoried}
           onPromoted={review.markInventoried}
         />
       )}

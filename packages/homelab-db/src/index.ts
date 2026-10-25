@@ -134,6 +134,7 @@ export {
   deleteSourceConnection,
   recordSourceConnectionTest,
   isPathKnownToSource,
+  listSkippedGroupPatterns,
   getQueueCounts,
   getQueueSummaries,
   jobPhase,

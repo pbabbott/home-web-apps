@@ -44,6 +44,23 @@ export interface QueueItemResult {
   skippedGroups?: { pattern: string; count?: number; reason: string }[];
 }
 
+/** What a skipped pattern matched in its directory, read live from the source. */
+export interface SkippedGroupMatches {
+  path: string;
+  pattern: string;
+  /** Matches found, before the API's cap. */
+  total: number;
+  truncated: boolean;
+  entries: {
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    size: number;
+    /** Source-local time without a zone, e.g. `2025-01-15T09:05:00`. */
+    modifiedAt: string | null;
+  }[];
+}
+
 /** The API returns at most this many queue items for a job. */
 export const JOB_QUEUE_ITEMS_LIMIT = 500;
 

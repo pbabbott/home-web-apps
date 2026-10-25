@@ -32,6 +32,15 @@ export class ConnectionError extends Error {
   }
 }
 
+/** One entry of a directory listing. */
+export type DirEntry = {
+  name: string;
+  isDirectory: boolean;
+  size: number;
+  /** ISO timestamp; the source reports local time without a zone. */
+  modifiedAt: string | null;
+};
+
 /**
  * Reads files from a source over one protocol. Paths are Windows paths as
  * stored in inventory (`C:\Users\you\a.jpg`). Add a driver per
@@ -47,4 +56,6 @@ export interface ConnectionDriver {
    * a truncated stream.
    */
   open(target: ConnectionTarget, path: string): Readable;
+  /** The direct children of a directory (no `.`/`..`). Throws ConnectionError. */
+  list(target: ConnectionTarget, path: string): Promise<DirEntry[]>;
 }

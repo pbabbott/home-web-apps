@@ -1,10 +1,15 @@
 import { Router } from 'express';
-import { validateBody, validateParams } from '@abbottland/express';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '@abbottland/express';
 import {
   claimAnyQueueItem,
   completeQueueItem,
   failQueueItem,
   heartbeatQueueItem,
+  listSkippedGroupMatches,
   releaseQueueItem,
   retryQueueItem,
   skipQueueItem,
@@ -17,6 +22,7 @@ import {
   queueItemIdParamsSchema,
   releaseQueueItemBodySchema,
   skipQueueItemBodySchema,
+  skippedGroupMatchesQuerySchema,
 } from '../../schemas/discovery';
 
 export const queueItemsRouter = Router();
@@ -60,4 +66,11 @@ queueItemsRouter.post(
   '/queue-items/:id/retry',
   validateParams(queueItemIdParamsSchema),
   retryQueueItem,
+);
+
+queueItemsRouter.get(
+  '/queue-items/:id/skipped-group-matches',
+  validateParams(queueItemIdParamsSchema),
+  validateQuery(skippedGroupMatchesQuerySchema),
+  listSkippedGroupMatches,
 );

@@ -13,6 +13,7 @@ import type {
   SourceConnection,
   SourceConnectionType,
   SkipAcknowledgement,
+  SkippedGroupMatches,
 } from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
@@ -343,4 +344,15 @@ export async function testSourceConnection(
   sourceId: string,
 ): Promise<ActionResult<SourceConnection>> {
   return post<SourceConnection>(`/sources/${sourceId}/connection/test`);
+}
+
+/** The entries in a queue item's directory that one of its skipped patterns matched. */
+export async function listSkippedGroupMatches(
+  queueItemId: string,
+  pattern: string,
+): Promise<ActionResult<SkippedGroupMatches>> {
+  return send<SkippedGroupMatches>(
+    'GET',
+    `/queue-items/${queueItemId}/skipped-group-matches?${new URLSearchParams({ pattern })}`,
+  );
 }

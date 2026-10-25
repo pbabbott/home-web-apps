@@ -5,6 +5,7 @@ import {
   ConnectionError,
   type ConnectionDriver,
   type ConnectionTarget,
+  type DirEntry,
   type TestResult,
 } from './types';
 
@@ -188,6 +189,53 @@ const shareFor = (target: ConnectionTarget, path: string): ResolvedShare => {
 
 const SIZE_PATTERN = /stream: \[::\$DATA\], (\d+) bytes/;
 
+// `  name with spaces   AH   1234  Tue Mar  4 10:11:12 2025`
+const LS_LINE =
+  /^ {2}(.+?)\s+([ADHSRNI]*)\s+(\d+)\s+\w{3} (\w{3}) ([ \d]\d) (\d\d:\d\d:\d\d) (\d{4})$/;
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/** Parses `smbclient ls` output. Lines that are not entries (summary, errors) are ignored. */
+export const parseSmbListing = (output: string): DirEntry[] => {
+  const entries: DirEntry[] = [];
+
+  for (const line of output.split(/\r?\n/)) {
+    const match = LS_LINE.exec(line);
+
+    if (!match) continue;
+
+    const [, name, flags, size, month, day, time, year] = match;
+
+    if (name === '.' || name === '..') continue;
+
+    const monthIndex = MONTHS.indexOf(month);
+
+    entries.push({
+      name,
+      isDirectory: flags.includes('D'),
+      size: Number(size),
+      modifiedAt:
+        monthIndex < 0
+          ? null
+          : `${year}-${String(monthIndex + 1).padStart(2, '0')}-${day.trim().padStart(2, '0')}T${time}`,
+    });
+  }
+
+  return entries;
+};
+
 export const smbDriver: ConnectionDriver = {
   async test(target): Promise<TestResult> {
     const mapped = target.settings.shareMappings ?? [];
@@ -234,6 +282,23 @@ export const smbDriver: ConnectionDriver = {
     }
 
     return { size: Number(size) };
+  },
+
+  async list(target, path) {
+    const { share, relativePath } = shareFor(target, path);
+    const mask = relativePath ? `${relativePath}\\*` : '*';
+    const { output } = await runSmbclient(target, [
+      `//${target.address}/${share}`,
+      '-c',
+      `ls "${mask}"`,
+    ]);
+    const entries = parseSmbListing(output);
+
+    if (entries.length === 0 && /NT_STATUS_[A-Z_]+/.test(output)) {
+      throw new ConnectionError(errorCodeOf(output), describeSmbError(output));
+    }
+
+    return entries;
   },
 
   open(target, path): Readable {

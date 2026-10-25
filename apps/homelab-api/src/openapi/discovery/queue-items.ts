@@ -15,6 +15,7 @@ import {
   heartbeatQueueItemOperation,
   listJobQueueItemsOperation,
   listKnownSkipsOperation,
+  listSkippedGroupMatchesOperation,
   listSourceQueueItemsOperation,
   releaseQueueItemOperation,
   retryFailedQueueItemsOperation,
@@ -35,6 +36,7 @@ import {
   queueItemListQuerySchema,
   releaseQueueItemBodySchema,
   skipQueueItemBodySchema,
+  skippedGroupMatchesQuerySchema,
   sourceIdParamsSchema,
 } from '../../schemas/discovery';
 import { discoveryQueueItemSelectSchema } from '@abbottland/homelab-db';
@@ -52,7 +54,60 @@ const knownSkipSchema = z.object({
   jobId: z.uuid().meta({ description: 'The job that recorded the skip.' }),
 });
 
+const skippedGroupMatchesSchema = z.object({
+  path: z.string().meta({ description: 'The queue item’s directory.' }),
+  pattern: z.string(),
+  total: z
+    .number()
+    .int()
+    .meta({ description: 'Matches found, before the cap.' }),
+  truncated: z.boolean(),
+  entries: z.array(
+    z.object({
+      name: z.string(),
+      path: z.string().meta({ description: 'Full path, usable for preview.' }),
+      isDirectory: z.boolean(),
+      size: z.number(),
+      modifiedAt: z.string().nullable(),
+    }),
+  ),
+});
+
+const messageResponse = (description: string) => ({
+  description,
+  content: {
+    'application/json': { schema: z.object({ message: z.string() }) },
+  },
+});
+
 export const queueItemsPaths = {
+  '/queue-items/{id}/skipped-group-matches': {
+    get: {
+      summary: listSkippedGroupMatchesOperation.summary,
+      'x-home-hud': listSkippedGroupMatchesOperation.hud,
+      description: listSkippedGroupMatchesOperation.description,
+      requestParams: {
+        path: queueItemIdParamsSchema,
+        query: skippedGroupMatchesQuerySchema,
+      },
+      responses: {
+        '200': {
+          description: 'The matching entries',
+          content: {
+            'application/json': { schema: skippedGroupMatchesSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '403': messageResponse('The pattern is not recorded on the item'),
+        '404': discoveryNotFoundResponse(
+          'queue item, source connection or directory',
+        ),
+        '409': conflictResponse('The source is not linked to a host'),
+        '502': messageResponse('The source could not be read'),
+        '503': messageResponse('EXODUS_CREDENTIAL_KEY is not configured'),
+      },
+    },
+  },
   '/sources/{id}/known-skips': {
     get: {
       summary: listKnownSkipsOperation.summary,
