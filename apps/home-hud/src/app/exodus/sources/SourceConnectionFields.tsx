@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,6 +67,7 @@ export function SourceConnectionFields({
   testing,
   onTest,
 }: SourceConnectionFieldsProps) {
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const set = (patch: Partial<ConnectionForm>) =>
     onChange({ ...form, ...patch });
   const setMapping = (index: number, patch: Partial<ShareMapping>) =>
@@ -83,7 +85,7 @@ export function SourceConnectionFields({
         </Typography>
       </legend>
 
-      <DropdownMenu>
+      <DropdownMenu open={typeMenuOpen} onOpenChange={setTypeMenuOpen}>
         <DropdownMenuTrigger asChild>
           <OutlinedButton type="button" size="small">
             {TYPE_LABELS[form.type]}

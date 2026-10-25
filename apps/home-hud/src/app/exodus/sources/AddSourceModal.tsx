@@ -68,11 +68,15 @@ export function AddSourceModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Keyed on the id, not the object: the page refreshes `source` while a job runs,
+  // and a refetch would overwrite what the user is typing.
+  const sourceId = source?.id;
+
   useEffect(() => {
-    if (!source || !open) return;
+    if (!sourceId || !open) return;
 
     let cancelled = false;
-    void getSourceConnection(source.id).then((result) => {
+    void getSourceConnection(sourceId).then((result) => {
       if (cancelled || !result.ok) return;
       setSavedConnection(result.data);
       setConnectionForm(connectionFormOf(result.data));
@@ -81,7 +85,7 @@ export function AddSourceModal({
     return () => {
       cancelled = true;
     };
-  }, [source, open]);
+  }, [sourceId, open]);
 
   function resetForm() {
     setName(source?.name ?? '');
