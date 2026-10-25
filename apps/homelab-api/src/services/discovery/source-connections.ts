@@ -1,9 +1,12 @@
 import {
   deleteSourceConnection as deleteConnectionRow,
+  getDiscoveryJobById,
   getHostById,
+  getQueueItemById,
   getSourceById,
   getSourceConnection,
   isPathKnownToSource,
+  listSkippedGroupPatterns,
   recordSourceConnectionTest,
   upsertSourceConnection,
   DiscoveryError,
@@ -18,7 +21,14 @@ import {
   type ConnectionTarget,
 } from '../../lib/connections';
 import { HttpError } from '../../lib/http-error';
+import { matchesNamePattern } from '../../lib/name-pattern';
 import { previewTypeOf, type PreviewType } from '../../lib/preview-types';
+import {
+  EOCD_SEARCH_BYTES,
+  locateCentralDirectory,
+  parseCentralDirectory,
+  type ZipEntry,
+} from '../../lib/zip-listing';
 import {
   CredentialKeyError,
   decryptSecret,
@@ -152,8 +162,67 @@ export type Preview = {
   size: number;
   /** Set when a text file was cut at the size limit. */
   truncated: boolean;
-  /** The file's bytes (text is decoded to UTF-8 and capped). */
+  /** The file's bytes (text is decoded to UTF-8 and capped; a zip is its JSON listing). */
   body: Readable | Buffer;
+};
+
+const MAX_ZIP_ENTRIES = 1000;
+
+export type ZipListing = {
+  /** Entries the archive declares, before the cap. */
+  total: number;
+  truncated: boolean;
+  /** Uncompressed size of the listed entries. */
+  totalSize: number;
+  entries: ZipEntry[];
+};
+
+/** Lists a zip from its central directory, reading only the end of the file. */
+const listZip = async (
+  driver: ReturnType<typeof getConnectionDriver>,
+  target: ConnectionTarget,
+  path: string,
+  size: number,
+  maxDirectoryBytes: number,
+): Promise<ZipListing> => {
+  try {
+    const tail = await driver.readTail(
+      target,
+      path,
+      size,
+      Math.min(size, EOCD_SEARCH_BYTES),
+    );
+    const directory = locateCentralDirectory(tail, size);
+
+    if (directory.size > maxDirectoryBytes) {
+      throw new HttpError(
+        413,
+        `This zip's file list is ${(directory.size / 1024 / 1024).toFixed(1)} MB; previews are limited to ${maxDirectoryBytes / 1024 / 1024} MB`,
+      );
+    }
+
+    const bytes =
+      directory.offset >= size - tail.length
+        ? tail.subarray(directory.offset - (size - tail.length))
+        : await driver.readTail(target, path, size, size - directory.offset);
+    const entries = parseCentralDirectory(
+      bytes.subarray(0, directory.size),
+      directory.entries,
+      MAX_ZIP_ENTRIES,
+    );
+
+    return {
+      total: directory.entries,
+      truncated: entries.length < directory.entries,
+      totalSize: entries.reduce((sum, entry) => sum + entry.size, 0),
+      entries,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('not a readable zip')) {
+      throw new HttpError(422, `Could not read the zip: ${err.message}`);
+    }
+    throw err;
+  }
 };
 
 const ancestorsOf = (normalizedPath: string): string[] => {
@@ -205,10 +274,26 @@ export const decodeText = (bytes: Buffer): Buffer => {
   return Buffer.from(bytes.toString('utf8').replace(/^\uFEFF/, ''));
 };
 
+/** True if the file's name matches a pattern skipped directly under its folder. */
+const matchesSkippedGroup = async (
+  sourceId: string,
+  canonical: string,
+  normalizedPath: string,
+): Promise<boolean> => {
+  const parent = windowsPathParent(normalizedPath);
+
+  if (!parent) return false;
+
+  const name = canonical.slice(canonical.lastIndexOf('\\') + 1);
+  const patterns = await listSkippedGroupPatterns(db, sourceId, parent);
+
+  return patterns.some((pattern) => matchesNamePattern(pattern, name));
+};
+
 /**
  * Opens one file of a source for preview. Limited to paths discovery has
- * recorded for the source (an inventory item's folder or file, or a skipped
- * path) and to previewable types, so the endpoint cannot be used to read
+ * recorded for the source (an inventory item's folder or file, a skipped
+ * path, or a file matching a skipped pattern of its folder) and to previewable types, so the endpoint cannot be used to read
  * arbitrary files from the machine.
  */
 export const openPreview = (sourceId: string, path: string): Promise<Preview> =>
@@ -231,11 +316,12 @@ export const openPreview = (sourceId: string, path: string): Promise<Preview> =>
     }
 
     if (
-      !(await isPathKnownToSource(db, sourceId, ancestorsOf(normalizedPath)))
+      !(await isPathKnownToSource(db, sourceId, ancestorsOf(normalizedPath))) &&
+      !(await matchesSkippedGroup(sourceId, canonical, normalizedPath))
     ) {
       throw new HttpError(
         403,
-        'This path is not part of the source\u2019s inventory or skipped paths',
+        'This path is not part of the source\u2019s inventory, skipped paths or skipped patterns',
       );
     }
 
@@ -244,6 +330,23 @@ export const openPreview = (sourceId: string, path: string): Promise<Preview> =>
 
     try {
       const { size } = await driver.stat(target, canonical);
+
+      if (type.kind === 'zip') {
+        const listing = await listZip(
+          driver,
+          target,
+          canonical,
+          size,
+          type.maxBytes,
+        );
+
+        return {
+          type,
+          size,
+          truncated: false,
+          body: Buffer.from(JSON.stringify(listing)),
+        };
+      }
 
       if (type.kind !== 'text' && size > type.maxBytes) {
         throw new HttpError(
@@ -263,6 +366,82 @@ export const openPreview = (sourceId: string, path: string): Promise<Preview> =>
         size,
         truncated: size > type.maxBytes,
         body: decodeText(await readUpTo(stream, type.maxBytes)),
+      };
+    } catch (err) {
+      if (err instanceof ConnectionError) {
+        if (err.code === 'not_found') {
+          throw new DiscoveryError('not_found', err.message);
+        }
+        throw new HttpError(502, err.message);
+      }
+      throw err;
+    }
+  });
+
+const MAX_PATTERN_MATCHES = 1000;
+
+export type SkippedGroupMatches = {
+  path: string;
+  pattern: string;
+  /** Matches found, before the cap. */
+  total: number;
+  truncated: boolean;
+  entries: {
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    size: number;
+    modifiedAt: string | null;
+  }[];
+};
+
+/**
+ * Lists the entries of a queue item's directory that one of its skipped
+ * patterns matches, so a reviewer can see what the pattern excluded. Only a
+ * pattern the worker recorded on the item is listed, so this cannot be used
+ * to browse the machine.
+ */
+export const listSkippedGroupMatches = (
+  queueItemId: string,
+  pattern: string,
+): Promise<SkippedGroupMatches> =>
+  withKeyErrors(async () => {
+    const item = await getQueueItemById(db, queueItemId);
+
+    if (!item) throw new DiscoveryError('not_found', 'queue item not found');
+
+    if (
+      !item.result?.skippedGroups?.some((group) => group.pattern === pattern)
+    ) {
+      throw new HttpError(403, 'This pattern was not skipped for this item');
+    }
+
+    const job = await getDiscoveryJobById(db, item.jobId);
+
+    if (!job) throw new DiscoveryError('not_found', 'job not found');
+
+    const { connection, target } = await loadTarget(job.sourceId);
+
+    try {
+      const matches = (
+        await getConnectionDriver(connection.connectionType).list(
+          target,
+          item.path,
+        )
+      )
+        .filter((entry) => matchesNamePattern(pattern, entry.name))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const base = item.path.replace(/\\+$/, '');
+
+      return {
+        path: item.path,
+        pattern,
+        total: matches.length,
+        truncated: matches.length > MAX_PATTERN_MATCHES,
+        entries: matches.slice(0, MAX_PATTERN_MATCHES).map((entry) => ({
+          ...entry,
+          path: `${base}\\${entry.name}`,
+        })),
       };
     } catch (err) {
       if (err instanceof ConnectionError) {

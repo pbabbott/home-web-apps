@@ -531,6 +531,20 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     source: 'radix',
     keywords: ['down', 'dropdown', 'collapse', 'expand', 'open'],
   },
+  {
+    id: 'radix-check',
+    label: 'Check',
+    slug: 'CheckIcon',
+    source: 'radix',
+    keywords: ['done', 'ok', 'success', 'tick', 'complete'],
+  },
+  {
+    id: 'radix-warning',
+    label: 'Warning',
+    slug: 'ExclamationTriangleIcon',
+    source: 'radix',
+    keywords: ['alert', 'caution', 'attention', 'flag', 'triangle'],
+  },
 ];
 
 export function lookupById(id: string): FuiIconDefinition | undefined {

@@ -1,4 +1,4 @@
-export type PreviewKind = 'image' | 'pdf' | 'text';
+export type PreviewKind = 'image' | 'pdf' | 'text' | 'zip';
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
 const TEXT_EXTENSIONS = [
@@ -30,9 +30,27 @@ export function previewKind(path: string): PreviewKind | null {
 
   if (IMAGE_EXTENSIONS.includes(extension)) return 'image';
   if (extension === 'pdf') return 'pdf';
+  if (extension === 'zip') return 'zip';
   if (TEXT_EXTENSIONS.includes(extension)) return 'text';
 
   return null;
+}
+
+/** What homelab-api returns for a zip: its entries, not its contents. Mirrors `ZipListing` there. */
+export interface ZipListing {
+  /** Entries the archive declares, before the cap. */
+  total: number;
+  truncated: boolean;
+  /** Uncompressed size of the listed entries. */
+  totalSize: number;
+  entries: {
+    path: string;
+    size: number;
+    compressedSize: number;
+    modifiedAt: string | null;
+    isDirectory: boolean;
+    encrypted: boolean;
+  }[];
 }
 
 /** Same-origin URL of the preview proxy for a source's file. */

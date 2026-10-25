@@ -45,6 +45,7 @@ export {
   exclusionRuleSelectSchema,
   auditEventSelectSchema,
   inventoryItemSelectSchema,
+  skipAcknowledgementSelectSchema,
 } from './schema/discovery';
 export type {
   Source,
@@ -77,6 +78,8 @@ export type {
   NewAuditEvent,
   AuditActorType,
   AuditEventType,
+  SkipAcknowledgement,
+  NewSkipAcknowledgement,
 } from './schema/discovery';
 
 export { insertAuditEvent, listAuditEvents } from './queries/audit';
@@ -131,6 +134,7 @@ export {
   deleteSourceConnection,
   recordSourceConnectionTest,
   isPathKnownToSource,
+  listSkippedGroupPatterns,
   getQueueCounts,
   getQueueSummaries,
   jobPhase,
@@ -154,6 +158,9 @@ export {
   retryQueueItem,
   retryDelaySeconds,
   listKnownSkips,
+  acknowledgeSkip,
+  unacknowledgeSkip,
+  listSkipAcknowledgements,
   importSources,
   importDiscoveryJobs,
   importQueueItems,
@@ -178,6 +185,8 @@ export type {
   ClaimQueueItemResult,
   KnownSkip,
   ListKnownSkipsOptions,
+  SkipInput,
+  ListSkipAcknowledgementsOptions,
   ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,

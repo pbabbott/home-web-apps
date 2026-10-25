@@ -155,3 +155,13 @@ export const knownSkipListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(1000).default(200),
 });
 export type KnownSkipListQuery = z.infer<typeof knownSkipListQuerySchema>;
+
+export const skippedGroupMatchesQuerySchema = z.object({
+  pattern: z.string().min(1).max(100).meta({
+    example: '*.exe',
+    description: 'One of the skipped patterns recorded on the queue item.',
+  }),
+});
+export type SkippedGroupMatchesQuery = z.infer<
+  typeof skippedGroupMatchesQuerySchema
+>;

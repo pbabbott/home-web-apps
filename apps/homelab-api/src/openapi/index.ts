@@ -4,6 +4,7 @@ import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
 import { inventoryItemsPaths } from './discovery/inventory-items';
+import { skipAcknowledgementsPaths } from './discovery/skip-acknowledgements';
 import { sourceConnectionsPaths } from './discovery/source-connections';
 import { sourcesPaths } from './discovery/sources';
 import { healthPaths } from './health';
@@ -68,6 +69,7 @@ export const openApiSpec = createDocument({
     ...tagged('Queue Items', queueItemsPaths),
     ...tagged('Exclusion Rules', exclusionRulesPaths),
     ...tagged('Inventory Items', inventoryItemsPaths),
+    ...tagged('Queue Items', skipAcknowledgementsPaths),
     ...tagged('Audit Events', auditEventsPaths),
     ...tagged('Hosts', hostsPaths),
   },

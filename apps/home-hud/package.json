@@ -26,6 +26,7 @@
     "@react-three/postprocessing": "catalog:",
     "echarts": "^5.6.0",
     "next": "catalog:",
+    "pdfjs-dist": "^6.4.299",
     "postprocessing": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

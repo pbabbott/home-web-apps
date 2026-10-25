@@ -185,3 +185,27 @@ export const isPathKnownToSource = async (
 
   return result.rows[0]?.known === true;
 };
+
+/**
+ * Name patterns (`*.exe`) a worker skipped directly under this directory, for
+ * the source. A file matching one of them is something discovery decided
+ * about, so it may be previewed.
+ */
+export const listSkippedGroupPatterns = async (
+  db: Database,
+  sourceId: string,
+  normalizedDir: string,
+): Promise<string[]> => {
+  const result = await db.execute<{ pattern: string }>(sql`
+    select distinct grp ->> 'pattern' as pattern
+    from ${discoveryQueueItems} q
+    join ${discoveryJobs} j on j.id = q.job_id
+    cross join lateral jsonb_array_elements(
+      coalesce(q.result -> 'skippedGroups', '[]'::jsonb)
+    ) as grp
+    where j.source_id = ${sourceId}
+      and q.normalized_path = ${normalizedDir}
+  `);
+
+  return result.rows.map((row) => row.pattern);
+};

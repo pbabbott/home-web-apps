@@ -1,10 +1,14 @@
 import { spawn } from 'node:child_process';
+import { mkdtemp, open, rm, truncate, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { Readable } from 'node:stream';
 import { isWithinPath, normalizeWindowsPath } from '../windows-path';
 import {
   ConnectionError,
   type ConnectionDriver,
   type ConnectionTarget,
+  type DirEntry,
   type TestResult,
 } from './types';
 
@@ -188,6 +192,53 @@ const shareFor = (target: ConnectionTarget, path: string): ResolvedShare => {
 
 const SIZE_PATTERN = /stream: \[::\$DATA\], (\d+) bytes/;
 
+// `  name with spaces   AH   1234  Tue Mar  4 10:11:12 2025`
+const LS_LINE =
+  /^ {2}(.+?)\s+([ADHSRNI]*)\s+(\d+)\s+\w{3} (\w{3}) ([ \d]\d) (\d\d:\d\d:\d\d) (\d{4})$/;
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/** Parses `smbclient ls` output. Lines that are not entries (summary, errors) are ignored. */
+export const parseSmbListing = (output: string): DirEntry[] => {
+  const entries: DirEntry[] = [];
+
+  for (const line of output.split(/\r?\n/)) {
+    const match = LS_LINE.exec(line);
+
+    if (!match) continue;
+
+    const [, name, flags, size, month, day, time, year] = match;
+
+    if (name === '.' || name === '..') continue;
+
+    const monthIndex = MONTHS.indexOf(month);
+
+    entries.push({
+      name,
+      isDirectory: flags.includes('D'),
+      size: Number(size),
+      modifiedAt:
+        monthIndex < 0
+          ? null
+          : `${year}-${String(monthIndex + 1).padStart(2, '0')}-${day.trim().padStart(2, '0')}T${time}`,
+    });
+  }
+
+  return entries;
+};
+
 export const smbDriver: ConnectionDriver = {
   async test(target): Promise<TestResult> {
     const mapped = target.settings.shareMappings ?? [];
@@ -236,6 +287,23 @@ export const smbDriver: ConnectionDriver = {
     return { size: Number(size) };
   },
 
+  async list(target, path) {
+    const { share, relativePath } = shareFor(target, path);
+    const mask = relativePath ? `${relativePath}\\*` : '*';
+    const { output } = await runSmbclient(target, [
+      `//${target.address}/${share}`,
+      '-c',
+      `ls "${mask}"`,
+    ]);
+    const entries = parseSmbListing(output);
+
+    if (entries.length === 0 && /NT_STATUS_[A-Z_]+/.test(output)) {
+      throw new ConnectionError(errorCodeOf(output), describeSmbError(output));
+    }
+
+    return entries;
+  },
+
   open(target, path): Readable {
     const { share, relativePath } = shareFor(target, path);
     const child = spawnSmbclient(target, [
@@ -249,5 +317,50 @@ export const smbDriver: ConnectionDriver = {
     child.stdout.on('error', () => child.kill('SIGKILL'));
 
     return child.stdout;
+  },
+
+  async readTail(target, path, size, bytes) {
+    const { share, relativePath } = shareFor(target, path);
+    const length = Math.min(size, bytes);
+    const dir = await mkdtemp(join(tmpdir(), 'smb-tail-'));
+    const local = join(dir, 'tail');
+
+    try {
+      // `reget` continues a download from the local file's length, so a
+      // sparse file of the skipped length makes smbclient fetch only the tail.
+      await writeFile(local, '');
+      await truncate(local, size - length);
+
+      const { output } = await runSmbclient(target, [
+        `//${target.address}/${share}`,
+        '-c',
+        `reget "${relativePath}" "${local}"`,
+      ]);
+
+      if (/NT_STATUS_[A-Z_]+/.test(output)) {
+        throw new ConnectionError(
+          errorCodeOf(output),
+          describeSmbError(output),
+        );
+      }
+
+      // Read only the tail back: the file is as long as the original.
+      const handle = await open(local, 'r');
+
+      try {
+        if ((await handle.stat()).size !== size) {
+          throw new ConnectionError('failed', 'The file changed while reading');
+        }
+
+        const tail = Buffer.alloc(length);
+        await handle.read(tail, 0, length, size - length);
+
+        return tail;
+      } finally {
+        await handle.close();
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   },
 };

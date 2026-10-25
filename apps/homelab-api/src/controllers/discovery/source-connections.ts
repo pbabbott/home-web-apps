@@ -84,7 +84,7 @@ export const testSourceConnection = handle(
 export const previewSourceFileOperation = {
   summary: 'Preview a file from a source',
   description:
-    'Streams an image, PDF or text file over the source’s connection. Only paths discovery recorded for the source (inside an inventory item, or a skipped path) can be read. Text is returned as UTF-8 `text/plain`, cut at 1 MB with `X-Preview-Truncated: true`; other types are limited to 25 MB.',
+    'Streams an image, PDF or text file over the source’s connection, or lists a zip’s entries as JSON (`ZipListing`, first 1000 entries; only the end of the archive is read, so size does not matter). Only paths discovery recorded for the source (inside an inventory item, or a skipped path) can be read. Text is returned as UTF-8 `text/plain`, cut at 1 MB with `X-Preview-Truncated: true`; other types are limited to 25 MB.',
   hud: '/exodus/inventory',
 } satisfies Operation;
 

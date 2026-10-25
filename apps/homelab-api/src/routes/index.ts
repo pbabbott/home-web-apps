@@ -4,6 +4,7 @@ import { discoveryJobsRouter } from './discovery/discovery-jobs';
 import { exclusionRulesRouter } from './discovery/exclusion-rules';
 import { queueItemsRouter } from './discovery/queue-items';
 import { inventoryItemsRouter } from './discovery/inventory-items';
+import { skipAcknowledgementsRouter } from './discovery/skip-acknowledgements';
 import { sourcesRouter } from './discovery/sources';
 import { hostsRouter } from './hosts';
 import { mapsRouter } from './maps';
@@ -24,6 +25,7 @@ export const createRouter = (): Router => {
     queueItemsRouter,
     exclusionRulesRouter,
     inventoryItemsRouter,
+    skipAcknowledgementsRouter,
     auditEventsRouter,
     mcpRouter,
   );

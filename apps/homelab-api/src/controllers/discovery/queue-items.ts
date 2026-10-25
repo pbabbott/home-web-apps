@@ -15,6 +15,7 @@ import type {
   ClaimAnyQueueItemBody,
   ReleaseQueueItemBody,
   SkipQueueItemBody,
+  SkippedGroupMatchesQuery,
   SourceIdParams,
 } from '../../schemas/discovery';
 
@@ -314,5 +315,25 @@ export const listKnownSkips = handle(
     res
       .status(200)
       .json(await discoveryService.listSourceKnownSkips(id, filters));
+  },
+);
+
+// Does: list what a skipped pattern (`*.exe`) of a queue item's directory matches, over the source's connection.
+// Who: human (home-hud job page, pattern modal). No MCP tool.
+export const listSkippedGroupMatchesOperation = {
+  summary: 'List the entries a skipped pattern matches',
+  description:
+    'Lists the direct children of the queue item’s directory whose name matches one of the item’s recorded `skippedGroups` patterns, read live over the source’s connection. At most 1000 entries (`truncated` says if there were more). Only a recorded pattern can be listed.',
+  hud: '/exodus/jobs/[id]',
+} satisfies Operation;
+
+export const listSkippedGroupMatches = handle(
+  'GET /queue-items/:id/skipped-group-matches',
+  async (req, res) => {
+    const { id } = req.params as QueueItemIdParams;
+    const { pattern } = req.query as SkippedGroupMatchesQuery;
+    res
+      .status(200)
+      .json(await discoveryService.listSkippedGroupMatches(id, pattern));
   },
 );

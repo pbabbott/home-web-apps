@@ -8,6 +8,7 @@ describe('previewTypeOf', () => {
     ['C:\\a\\doc.pdf', 'pdf'],
     ['C:\\a\\Appointments (1).xml', 'text'],
     ['C:\\a\\notes.txt', 'text'],
+    ['C:\\a\\Archive.ZIP', 'zip'],
   ])('%s is %s', (path, kind) => {
     expect(previewTypeOf(path)?.kind).toBe(kind);
   });
@@ -15,7 +16,7 @@ describe('previewTypeOf', () => {
   it.each([
     'C:\\a\\logo.svg',
     'C:\\a\\setup.exe',
-    'C:\\a\\archive.zip',
+    'C:\\a\\archive.rar',
     'C:\\a\\.gitignore',
     'C:\\a.b\\noextension',
   ])('refuses %s', (path) => {

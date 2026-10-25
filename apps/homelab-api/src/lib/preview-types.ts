@@ -1,9 +1,13 @@
-export type PreviewKind = 'image' | 'pdf' | 'text';
+export type PreviewKind = 'image' | 'pdf' | 'text' | 'zip';
 
 export type PreviewType = {
   kind: PreviewKind;
   contentType: string;
-  /** Largest file that will be streamed (text is truncated instead). */
+  /**
+   * Largest file that will be streamed (text is truncated instead). For a
+   * zip, the largest central directory that will be read; the archive itself
+   * is never transferred.
+   */
   maxBytes: number;
 };
 
@@ -26,6 +30,13 @@ const TEXT: PreviewType = {
   maxBytes: 1 * MB,
 };
 
+/** A zip is previewed as a JSON listing of its entries, never extracted. */
+const ZIP: PreviewType = {
+  kind: 'zip',
+  contentType: 'application/json; charset=utf-8',
+  maxBytes: 8 * MB,
+};
+
 const BY_EXTENSION: Record<string, PreviewType> = {
   jpg: IMAGE('image/jpeg'),
   jpeg: IMAGE('image/jpeg'),
@@ -45,6 +56,7 @@ const BY_EXTENSION: Record<string, PreviewType> = {
   conf: TEXT,
   yaml: TEXT,
   yml: TEXT,
+  zip: ZIP,
 };
 
 /** The preview type for a path, or null if its extension is not previewable. */
