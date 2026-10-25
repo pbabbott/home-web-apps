@@ -137,59 +137,62 @@ function AcknowledgeControl({
   );
 }
 
-function QueueItemDetails({
-  item,
-  sourceId,
-}: {
-  item: QueueItem;
-  sourceId: string;
-}) {
-  const result = item.result;
-  const hasNothing = !item.reason && !result && !item.lastError;
-  // Lowercased paths already in the inventory beneath this directory.
+/** What a human has done about the skips beneath a job's root, shared by the list and the open rows. */
+interface SkipReview {
+  /** Lowercased paths already in the inventory. */
+  inventoried: ReadonlySet<string>;
+  /** `skipKey`s of the acknowledged skips. */
+  acknowledged: ReadonlySet<string>;
+  /** Null on success, else the error to show. */
+  setReviewed: (
+    queueItemId: string,
+    path: string,
+    pattern: string,
+    reviewed: boolean,
+  ) => Promise<string | null>;
+  markInventoried: (path: string) => void;
+}
+
+function useSkipReview(
+  sourceId: string,
+  rootPath: string,
+  items: QueueItem[] | null,
+): SkipReview {
   const [inventoried, setInventoried] = useState<ReadonlySet<string>>(
     new Set(),
   );
-  // `skipKey`s of the source's acknowledged skips beneath this directory.
   const [acknowledged, setAcknowledged] = useState<ReadonlySet<string>>(
     new Set(),
   );
-  const [ackError, setAckError] = useState<string | null>(null);
-  // `path` is absent when the user types one in.
-  const [promoting, setPromoting] = useState<{
-    path?: string;
-    reason?: string;
-  } | null>(null);
 
+  // `items` is a fresh array on every server refresh, so new skips are picked up.
   useEffect(() => {
-    if (!result) return;
-
     let cancelled = false;
-    void listInventoryPathsUnder(sourceId, item.path).then((found) => {
+    void listInventoryPathsUnder(sourceId, rootPath).then((found) => {
       if (!cancelled && found.ok) setInventoried(new Set(found.data));
     });
-
-    void listAcknowledgedSkipsUnder(sourceId, item.path).then((found) => {
+    void listAcknowledgedSkipsUnder(sourceId, rootPath).then((found) => {
       if (!cancelled && found.ok) setAcknowledged(new Set(found.data));
     });
 
     return () => {
       cancelled = true;
     };
-  }, [sourceId, item.path, result]);
+  }, [sourceId, rootPath, items]);
 
-  async function setReviewed(path: string, pattern: string, reviewed: boolean) {
+  async function setReviewed(
+    queueItemId: string,
+    path: string,
+    pattern: string,
+    reviewed: boolean,
+  ) {
     const input = { path, ...(pattern ? { pattern } : {}) };
     const res = reviewed
-      ? await acknowledgeSkip(item.id, input)
-      : await unacknowledgeSkip(item.id, input);
+      ? await acknowledgeSkip(queueItemId, input)
+      : await unacknowledgeSkip(queueItemId, input);
 
-    if (!res.ok) {
-      setAckError(res.error);
-      return;
-    }
+    if (!res.ok) return res.error;
 
-    setAckError(null);
     setAcknowledged((current) => {
       const next = new Set(current);
       const key = skipKey(path, pattern);
@@ -198,6 +201,84 @@ function QueueItemDetails({
 
       return next;
     });
+
+    return null;
+  }
+
+  return {
+    inventoried,
+    acknowledged,
+    setReviewed,
+    markInventoried: (path) =>
+      setInventoried((current) => new Set(current).add(path.toLowerCase())),
+  };
+}
+
+/**
+ * Whether a human has dealt with every skip of a directory. Null when the
+ * directory has no result yet (not completed), so nothing can be said.
+ * Promoted paths count as reviewed: the human acted on them.
+ */
+function skipsReviewed(
+  item: QueueItem,
+  { acknowledged, inventoried }: SkipReview,
+): boolean | null {
+  if (!item.result) return null;
+
+  return (
+    item.result.skipped.every(
+      (skip) =>
+        acknowledged.has(skipKey(skip.path)) ||
+        inventoried.has(skip.path.toLowerCase()),
+    ) &&
+    (item.result.skippedGroups ?? []).every((group) =>
+      acknowledged.has(skipKey(item.path, group.pattern)),
+    )
+  );
+}
+
+/** A check when every skip is dealt with (or there are none), a flag when some are not, nothing when unknown. */
+function ReviewedMark({ reviewed }: { reviewed: boolean | null }) {
+  if (reviewed === null) return null;
+
+  return reviewed ? (
+    <Icon
+      name="radix-check"
+      size={16}
+      className="text-success-400"
+      title="All skips reviewed"
+    />
+  ) : (
+    <Icon
+      name="radix-warning"
+      size={16}
+      className="text-warning-400"
+      title="Skips still to review"
+    />
+  );
+}
+
+function QueueItemDetails({
+  item,
+  sourceId,
+  review,
+}: {
+  item: QueueItem;
+  sourceId: string;
+  review: SkipReview;
+}) {
+  const result = item.result;
+  const hasNothing = !item.reason && !result && !item.lastError;
+  const { inventoried, acknowledged } = review;
+  const [ackError, setAckError] = useState<string | null>(null);
+  // `path` is absent when the user types one in.
+  const [promoting, setPromoting] = useState<{
+    path?: string;
+    reason?: string;
+  } | null>(null);
+
+  async function setReviewed(path: string, pattern: string, reviewed: boolean) {
+    setAckError(await review.setReviewed(item.id, path, pattern, reviewed));
   }
 
   const skippedPaths = result?.skipped ?? [];
@@ -375,11 +456,7 @@ function QueueItemDetails({
           queueItem={item}
           path={promoting.path}
           skipReason={promoting.reason}
-          onPromoted={(path) =>
-            setInventoried((current) =>
-              new Set(current).add(path.toLowerCase()),
-            )
-          }
+          onPromoted={review.markInventoried}
         />
       )}
 
@@ -510,6 +587,7 @@ export function JobDetailClient({
   status,
 }: JobDetailClientProps) {
   const router = useRouter();
+  const review = useSkipReview(job.sourceId, job.rootPath, items);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const active = isActiveJob(job);
   const [now, setNow] = useState<number | null>(null);
@@ -738,6 +816,9 @@ export function JobDetailClient({
               <Table size="small">
                 <TableHead>
                   <TableRow>
+                    <Th className="w-px px-2">
+                      <span className="sr-only">Skips reviewed</span>
+                    </Th>
                     <Th>Path</Th>
                     <Th>Status</Th>
                     <Th>Skipped</Th>
@@ -753,6 +834,11 @@ export function JobDetailClient({
                   {items.map((item) => (
                     <Fragment key={item.id}>
                       <TableRow>
+                        <Td className="w-px px-2">
+                          <ReviewedMark
+                            reviewed={skipsReviewed(item, review)}
+                          />
+                        </Td>
                         <Td>
                           <div className="flex items-start gap-2">
                             <OutlinedButton
@@ -835,10 +921,11 @@ export function JobDetailClient({
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={9}>
+                          <Td colSpan={10}>
                             <QueueItemDetails
                               item={item}
                               sourceId={job.sourceId}
+                              review={review}
                             />
                           </Td>
                         </TableRow>
