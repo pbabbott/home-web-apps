@@ -109,9 +109,13 @@ export function FilePreviewModal({
           )}
           {loaded.status === 'text' && (
             <>
-              <pre className="whitespace-pre-wrap break-all text-sm">
+              <Typography
+                variant="body2"
+                component="div"
+                className="whitespace-pre-wrap break-all"
+              >
                 {loaded.text}
-              </pre>
+              </Typography>
               {loaded.truncated && (
                 <Typography variant="body2" className="mt-2 text-neutral-400">
                   Showing the first part of a larger file.
