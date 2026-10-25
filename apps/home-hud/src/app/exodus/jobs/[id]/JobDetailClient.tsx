@@ -208,7 +208,6 @@ function QueueItemDetails({
                   <TableRow key={skip.path}>
                     <Td color="secondary">
                       <div className="flex items-center gap-2">
-                        <PreviewButton sourceId={sourceId} path={skip.path} />
                         {inventoried.has(skip.path.toLowerCase()) ? (
                           <Link
                             href="/exodus/inventory"
@@ -233,7 +232,10 @@ function QueueItemDetails({
                       </div>
                     </Td>
                     <Td color="secondary" className="break-all">
-                      {relativeToDirectory(item.path, skip.path)}
+                      <div className="flex items-center gap-2">
+                        <PreviewButton sourceId={sourceId} path={skip.path} />
+                        <span>{relativeToDirectory(item.path, skip.path)}</span>
+                      </div>
                     </Td>
                     <Td color="secondary" className="text-neutral-400">
                       {skip.reason}
