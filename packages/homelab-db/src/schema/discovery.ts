@@ -263,6 +263,41 @@ export const exclusionRules = pgTable(
 );
 
 /**
+ * A human's "I agree with this skip". Kept apart from the queue item's `result`
+ * (which stays as the agent wrote it) and keyed by source + path, so it holds
+ * across later jobs that skip the same path. `pattern` is '' for a plain path
+ * skip; for a pattern skip, `path` is the directory and `pattern` the name
+ * pattern. `queueItemId` only records where it was acknowledged.
+ */
+export const skipAcknowledgements = pgTable(
+  'skip_acknowledgements',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => sources.id, { onDelete: 'cascade' }),
+    path: text('path').notNull(),
+    normalizedPath: text('normalized_path').notNull(),
+    pattern: text('pattern').notNull().default(''),
+    queueItemId: uuid('queue_item_id').references(
+      () => discoveryQueueItems.id,
+      { onDelete: 'set null' },
+    ),
+    acknowledgedBy: text('acknowledged_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('skip_acknowledgements_source_path_pattern_unique').on(
+      table.sourceId,
+      table.normalizedPath,
+      table.pattern,
+    ),
+  ],
+);
+
+/**
  * A coherent, potentially valuable backup unit proposed by the agent for human
  * review: usually a directory (a project, a photo folder), occasionally a
  * standalone file. One inventory item covers its whole subtree, so a repository is
@@ -443,6 +478,8 @@ export type AuditEventType =
   | 'inventory_item.recommendation_changed'
   | 'inventory_item.decision_changed'
   | 'inventory_item.promoted'
+  | 'skip.acknowledged'
+  | 'skip.unacknowledged'
   | 'source_connection.updated'
   | 'source_connection.deleted';
 
@@ -481,6 +518,9 @@ export type InventoryItemConfidence =
   (typeof inventoryItemConfidenceEnum.enumValues)[number];
 export type InventoryItemDecision =
   (typeof inventoryItemDecisionEnum.enumValues)[number];
+
+export type SkipAcknowledgement = typeof skipAcknowledgements.$inferSelect;
+export type NewSkipAcknowledgement = typeof skipAcknowledgements.$inferInsert;
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
@@ -529,6 +569,11 @@ export const exclusionRuleSelectSchema = createSelectSchema(exclusionRules, {
 export const auditEventSelectSchema = createSelectSchema(auditEvents, {
   createdAt: dateTime,
 });
+
+export const skipAcknowledgementSelectSchema = createSelectSchema(
+  skipAcknowledgements,
+  { createdAt: dateTime },
+);
 
 export const inventoryItemSelectSchema = createSelectSchema(inventoryItems, {
   recommendedAt: dateTime,

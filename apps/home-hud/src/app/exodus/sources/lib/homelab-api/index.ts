@@ -6,3 +6,4 @@ export * from './audit-events';
 export * from './inventory-items';
 export * from './architecture';
 export * from './source-connections';
+export * from './skip-acknowledgements';

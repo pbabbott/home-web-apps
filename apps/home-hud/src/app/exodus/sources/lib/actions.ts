@@ -12,6 +12,7 @@ import type {
   Source,
   SourceConnection,
   SourceConnectionType,
+  SkipAcknowledgement,
 } from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
@@ -218,6 +219,61 @@ export async function listInventoryPathsUnder(
     return { ok: true, data: items.map((i) => i.normalizedRootPath) };
   } catch (err) {
     console.error(`GET inventory-items under ${pathPrefix} failed:`, err);
+    return { ok: false, error: 'Could not reach homelab-api' };
+  }
+}
+
+export interface SkipInput {
+  path: string;
+  /** Set for a "skipped by pattern" entry; `path` is then the directory. */
+  pattern?: string;
+}
+
+/** A human agrees with the agent's skip. Sent as the default (human) actor. */
+export async function acknowledgeSkip(
+  queueItemId: string,
+  input: SkipInput,
+): Promise<ActionResult<SkipAcknowledgement>> {
+  return post<SkipAcknowledgement>(
+    `/queue-items/${queueItemId}/skip-acknowledgements`,
+    input,
+  );
+}
+
+/** Takes an acknowledgement back. */
+export async function unacknowledgeSkip(
+  queueItemId: string,
+  input: SkipInput,
+): Promise<ActionResult> {
+  return send(
+    'DELETE',
+    `/queue-items/${queueItemId}/skip-acknowledgements`,
+    input,
+  );
+}
+
+/** Keys (see `skipKey`) of the source's acknowledged skips at or beneath `pathPrefix`. */
+export async function listAcknowledgedSkipsUnder(
+  sourceId: string,
+  pathPrefix: string,
+): Promise<ActionResult<string[]>> {
+  try {
+    const params = new URLSearchParams({ pathPrefix, limit: '1000' });
+    const res = await fetch(
+      `${HOMELAB_API_URL}/sources/${sourceId}/skip-acknowledgements?${params}`,
+      { cache: 'no-store' },
+    );
+
+    if (!res.ok) return { ok: false, error: await errorMessage(res) };
+
+    const rows = (await res.json()) as SkipAcknowledgement[];
+
+    return {
+      ok: true,
+      data: rows.map((r) => `${r.normalizedPath}|${r.pattern}`),
+    };
+  } catch (err) {
+    console.error(`GET skip-acknowledgements under ${pathPrefix} failed:`, err);
     return { ok: false, error: 'Could not reach homelab-api' };
   }
 }

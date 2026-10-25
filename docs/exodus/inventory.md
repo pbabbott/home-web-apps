@@ -123,6 +123,15 @@ The agent's skips are judgments and can be wrong. On the job detail page, an exp
 - The row is `recommendation: back_up`, `confidence: high`, with minimal evidence (`sufficientInformation: false`) and a reason recording the agent's skip reason. `firstJobId` / `lastJobId` are the queue item's job, and `inventory_item.promoted` is audited.
 - The queue item's `result` is left as the agent wrote it, so known skips still reports the path. A later agent proposal for the same path updates the agent fields and never the approval, as in [Rediscovery](#rediscovery).
 
+## Acknowledging a skipped path
+
+Reviewing skips by eye loses track of what was checked. On the job detail page each skipped path and each "skipped by pattern" row has an **Acknowledge** button: the human agrees with the skip. The headings count reviewed rows (`Skipped paths · 12 / 30 reviewed`); a promoted path counts as reviewed. The button turns into a warning-colour **Undo ack**, which takes it back.
+
+- `POST /queue-items/:id/skip-acknowledgements` (`{ path, pattern? }`), `DELETE` the same route to undo, `GET /sources/:id/skip-acknowledgements` (`pathPrefix`, `limit`) to list. REST only, no MCP tool.
+- Human actor only (409 otherwise). A plain path must lie strictly inside the queue item's directory; for a pattern skip, `path` is the directory itself.
+- Idempotent. Stored in `skip_acknowledgements`, unique per `(source_id, normalized_path, pattern)`, so an acknowledgement holds for later jobs that skip the same path. The queue item's `result` is left as the agent wrote it.
+- Audited as `skip.acknowledged` / `skip.unacknowledged` (path, and pattern when set), once per actual change.
+
 ## Nested inventory items
 
 Proposing a path inside an existing inventory item (or above one) is **not rejected**: the agent cannot reliably tell a monorepo subproject from a repository's `src\`, and a hard rule would hang on agent-claimed `evidence.git`. Instead each result of `propose_inventory_items` carries:
@@ -161,6 +170,8 @@ Enforcement: proposing an inventory item under an `exclude_subtree` rule, or exa
 | `inventory_item.recommendation_changed` | recommendation or confidence changed on rediscovery     | path, from, to, reason, decision in force |
 | `inventory_item.decision_changed`       | a human approves, rejects, changes or resets a decision | path, from, to, note, recommendation      |
 | `inventory_item.promoted`               | a human promotes a skipped path (actor `human`)         | path, kind, skipReason                    |
+| `skip.acknowledged`                     | a human acknowledges a skipped path (actor `human`)     | path, pattern (when set)                  |
+| `skip.unacknowledged`                   | a human takes an acknowledgement back                   | path, pattern (when set)                  |
 
 Each is written in the same transaction as its change. Listing a directory, skipping a path, or an unchanged re-proposal writes nothing. Filter with `GET /audit-events?inventoryItemId=`.
 

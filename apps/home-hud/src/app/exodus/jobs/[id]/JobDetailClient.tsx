@@ -47,10 +47,13 @@ import { CountTile } from '../../sources/[id]/CountTile';
 import { PreviewButton } from '../../lib/PreviewButton';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
 import {
+  acknowledgeSkip,
   enqueueQueueItems,
+  listAcknowledgedSkipsUnder,
   listInventoryPathsUnder,
   retryFailedQueueItems,
   retryQueueItem,
+  unacknowledgeSkip,
 } from '../../sources/lib/actions';
 import {
   JOB_QUEUE_ITEMS_LIMIT,
@@ -58,6 +61,7 @@ import {
   type DiscoveryJobWithCounts,
   type QueueItem,
   type QueueItemStatus,
+  skipKey,
 } from '../../sources/lib/homelab-api';
 
 /** While the job is active the page re-fetches this often, so the agent's progress shows without a reload. */
@@ -108,6 +112,31 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+/** The button that marks a skip as reviewed, or takes that back. */
+function AcknowledgeControl({
+  acknowledged,
+  onAcknowledge,
+  onUndo,
+}: {
+  acknowledged: boolean;
+  onAcknowledge: () => void;
+  onUndo: () => void;
+}) {
+  if (acknowledged) {
+    return (
+      <OutlinedButton size="small" color="warning" onClick={onUndo}>
+        Undo ack
+      </OutlinedButton>
+    );
+  }
+
+  return (
+    <OutlinedButton size="small" color="success" onClick={onAcknowledge}>
+      Acknowledge
+    </OutlinedButton>
+  );
+}
+
 function QueueItemDetails({
   item,
   sourceId,
@@ -121,6 +150,11 @@ function QueueItemDetails({
   const [inventoried, setInventoried] = useState<ReadonlySet<string>>(
     new Set(),
   );
+  // `skipKey`s of the source's acknowledged skips beneath this directory.
+  const [acknowledged, setAcknowledged] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const [ackError, setAckError] = useState<string | null>(null);
   // `path` is absent when the user types one in.
   const [promoting, setPromoting] = useState<{
     path?: string;
@@ -135,10 +169,48 @@ function QueueItemDetails({
       if (!cancelled && found.ok) setInventoried(new Set(found.data));
     });
 
+    void listAcknowledgedSkipsUnder(sourceId, item.path).then((found) => {
+      if (!cancelled && found.ok) setAcknowledged(new Set(found.data));
+    });
+
     return () => {
       cancelled = true;
     };
   }, [sourceId, item.path, result]);
+
+  async function setReviewed(path: string, pattern: string, reviewed: boolean) {
+    const input = { path, ...(pattern ? { pattern } : {}) };
+    const res = reviewed
+      ? await acknowledgeSkip(item.id, input)
+      : await unacknowledgeSkip(item.id, input);
+
+    if (!res.ok) {
+      setAckError(res.error);
+      return;
+    }
+
+    setAckError(null);
+    setAcknowledged((current) => {
+      const next = new Set(current);
+      const key = skipKey(path, pattern);
+      if (reviewed) next.add(key);
+      else next.delete(key);
+
+      return next;
+    });
+  }
+
+  const skippedPaths = result?.skipped ?? [];
+  const skippedGroups = result?.skippedGroups ?? [];
+  // Promoted paths are reviewed too: the human acted on them.
+  const reviewedPaths = skippedPaths.filter(
+    (skip) =>
+      acknowledged.has(skipKey(skip.path)) ||
+      inventoried.has(skip.path.toLowerCase()),
+  ).length;
+  const reviewedGroups = skippedGroups.filter((group) =>
+    acknowledged.has(skipKey(item.path, group.pattern)),
+  ).length;
 
   return (
     <div className="flex flex-col gap-3">
@@ -158,12 +230,14 @@ function QueueItemDetails({
       {result?.skippedGroups && result.skippedGroups.length > 0 && (
         <div className="flex flex-col gap-1">
           <Typography variant="body1" className="text-neutral-400">
-            Skipped by pattern
+            Skipped by pattern · {reviewedGroups} / {skippedGroups.length}{' '}
+            reviewed
           </Typography>
           <ScrollableTable className="mb-0">
             <Table size="small" color="secondary">
               <TableHead>
                 <TableRow>
+                  <Th color="secondary">Review</Th>
                   <Th color="secondary">Pattern</Th>
                   <Th color="secondary">Count</Th>
                   <Th color="secondary">Reason</Th>
@@ -172,6 +246,19 @@ function QueueItemDetails({
               <TableBody>
                 {result.skippedGroups.map((group) => (
                   <TableRow key={group.pattern}>
+                    <Td color="secondary">
+                      <AcknowledgeControl
+                        acknowledged={acknowledged.has(
+                          skipKey(item.path, group.pattern),
+                        )}
+                        onAcknowledge={() =>
+                          void setReviewed(item.path, group.pattern, true)
+                        }
+                        onUndo={() =>
+                          void setReviewed(item.path, group.pattern, false)
+                        }
+                      />
+                    </Td>
                     <Td color="secondary" className="break-all">
                       {group.pattern}
                     </Td>
@@ -192,13 +279,18 @@ function QueueItemDetails({
       {result && result.skipped.length > 0 && (
         <div className="flex flex-col gap-1">
           <Typography variant="body1" className="text-neutral-400">
-            Skipped paths
+            Skipped paths · {reviewedPaths} / {skippedPaths.length} reviewed
           </Typography>
+          {ackError && (
+            <Typography variant="body2" className="text-error-400">
+              {ackError}
+            </Typography>
+          )}
           <ScrollableTable className="mb-0">
             <Table size="small" color="secondary">
               <TableHead>
                 <TableRow>
-                  <Th color="secondary">Inventory</Th>
+                  <Th color="secondary">Review</Th>
                   <Th color="secondary">Path</Th>
                   <Th color="secondary">Reason</Th>
                 </TableRow>
@@ -207,7 +299,7 @@ function QueueItemDetails({
                 {result.skipped.map((skip) => (
                   <TableRow key={skip.path}>
                     <Td color="secondary">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {inventoried.has(skip.path.toLowerCase()) ? (
                           <Link
                             href="/exodus/inventory"
@@ -216,18 +308,31 @@ function QueueItemDetails({
                             In inventory
                           </Link>
                         ) : (
-                          <OutlinedButton
-                            size="small"
-                            color="secondary"
-                            onClick={() =>
-                              setPromoting({
-                                path: skip.path,
-                                reason: skip.reason,
-                              })
-                            }
-                          >
-                            Promote
-                          </OutlinedButton>
+                          <>
+                            <AcknowledgeControl
+                              acknowledged={acknowledged.has(
+                                skipKey(skip.path),
+                              )}
+                              onAcknowledge={() =>
+                                void setReviewed(skip.path, '', true)
+                              }
+                              onUndo={() =>
+                                void setReviewed(skip.path, '', false)
+                              }
+                            />
+                            <OutlinedButton
+                              size="small"
+                              color="secondary"
+                              onClick={() =>
+                                setPromoting({
+                                  path: skip.path,
+                                  reason: skip.reason,
+                                })
+                              }
+                            >
+                              Promote
+                            </OutlinedButton>
+                          </>
                         )}
                       </div>
                     </Td>
