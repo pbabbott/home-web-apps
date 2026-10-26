@@ -84,7 +84,7 @@ export function AcknowledgeControl({
   );
 }
 
-/** A check when every skip is reviewed and no inventory decision is pending, a flag when something is left, nothing when unknown. */
+/** A check when every skip is reviewed, no inventory decision is pending and the on-disk contents are acknowledged, a flag when something is left, nothing when unknown. */
 export function ReviewedMark({ reviewed }: { reviewed: boolean | null }) {
   if (reviewed === null) return null;
 
@@ -93,14 +93,14 @@ export function ReviewedMark({ reviewed }: { reviewed: boolean | null }) {
       name="radix-check"
       size={16}
       className="text-success-400"
-      title="All skips reviewed and no inventory decisions pending"
+      title="Skips, inventory decisions and on-disk contents all reviewed"
     />
   ) : (
     <Icon
       name="radix-warning"
       size={16}
       className="text-warning-400"
-      title="Skips or inventory decisions still to review"
+      title="Skips, inventory decisions or on-disk contents still to review"
     />
   );
 }

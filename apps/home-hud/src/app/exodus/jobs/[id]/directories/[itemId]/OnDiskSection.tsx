@@ -21,8 +21,13 @@ import {
 } from '../../../../lib/inventory-display';
 import { QUEUE_STATUS_COLOR } from '../../../../lib/job-display';
 import { LocalDateTime } from '../../../../lib/LocalDateTime';
+import { AcknowledgeControl } from '../../../../lib/DirectoryReview';
 import { PreviewButton } from '../../../../lib/PreviewButton';
-import { listDirectoryOnDisk } from '../../../../sources/lib/actions';
+import {
+  listDirectoryOnDisk,
+  reviewOnDisk,
+  unreviewOnDisk,
+} from '../../../../sources/lib/actions';
 import type {
   DirectoryListing,
   DiskCoverage,
@@ -63,6 +68,10 @@ function describeCoverage(coverage: DiskCoverage): {
 }
 
 interface OnDiskSectionProps {
+  /** Who acknowledged this directory's on-disk contents; null if no one has. */
+  review: { reviewedBy: string; createdAt: string } | null;
+  /** After the acknowledgement changed: the page re-reads the directory's review state. */
+  onReviewChanged: () => void;
   sourceId: string;
   queueItemId: string;
   /** Changes when a skip, inventory item or approval changes, so a loaded listing is re-read. */
@@ -73,6 +82,8 @@ interface OnDiskSectionProps {
 
 /** What is actually in the directory on the source, to find what the agent left unaccounted for. */
 export function OnDiskSection({
+  review,
+  onReviewChanged,
   sourceId,
   queueItemId,
   coverageSignature,
@@ -83,6 +94,8 @@ export function OnDiskSection({
   const [error, setError] = useState<string | null>(null);
   const [onlyUncovered, setOnlyUncovered] = useState(false);
   // The latest request wins, so a slow earlier scan cannot overwrite a newer one.
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const latest = useRef(0);
   // The coverage state the current listing was read under; null before the first scan.
   const scannedWith = useRef<string | null>(null);
@@ -103,6 +116,22 @@ export function OnDiskSection({
   }, [queueItemId, coverageSignature]);
 
   const loaded = listing !== null;
+
+  async function setReviewed(reviewed: boolean) {
+    setReviewing(true);
+    setReviewError(null);
+    const res = reviewed
+      ? await reviewOnDisk(queueItemId)
+      : await unreviewOnDisk(queueItemId);
+    setReviewing(false);
+
+    if (!res.ok) {
+      setReviewError(res.error);
+      return;
+    }
+
+    onReviewChanged();
+  }
 
   // After a first scan, read again when skips or inventory change, so coverage stays current.
   useEffect(() => {
@@ -134,6 +163,12 @@ export function OnDiskSection({
           On disk
         </Typography>
         <div className="flex flex-wrap items-center gap-2">
+          <AcknowledgeControl
+            acknowledged={review !== null}
+            disabled={reviewing}
+            onAcknowledge={() => void setReviewed(true)}
+            onUndo={() => void setReviewed(false)}
+          />
           {loaded && (
             <OutlinedButton
               size="small"
@@ -154,6 +189,26 @@ export function OnDiskSection({
           </OutlinedButton>
         </div>
       </div>
+
+      <Typography
+        variant="body2"
+        className={review ? 'text-success-400' : 'text-warning-400'}
+      >
+        {review ? (
+          <>
+            Acknowledged by {review.reviewedBy} on{' '}
+            <LocalDateTime iso={review.createdAt} />
+          </>
+        ) : (
+          'Not yet acknowledged. Acknowledge once you have checked that nothing here was overlooked.'
+        )}
+      </Typography>
+
+      {reviewError && (
+        <Typography variant="body2" className="text-error-400">
+          {reviewError}
+        </Typography>
+      )}
 
       {error && (
         <Typography variant="body2" className="text-error-400">

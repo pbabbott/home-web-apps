@@ -44,7 +44,7 @@ export interface QueueItem {
 
 /** A job's queue item, as listed on the job page. */
 export interface JobQueueItem extends QueueItem {
-  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
   reviewed: boolean | null;
 }
 
@@ -59,7 +59,7 @@ export interface SkipReview {
 }
 
 export interface QueueItemDetail extends QueueItem {
-  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
   reviewed: boolean | null;
   job: {
     id: string;
@@ -68,6 +68,8 @@ export interface QueueItemDetail extends QueueItem {
     status: DiscoveryJobStatus;
   };
   skipReview: SkipReview;
+  /** Who acknowledged the directory's on-disk contents; null if no one has. */
+  onDiskReview: { reviewedBy: string; createdAt: string } | null;
   /** The directory itself is an approved inventory item. */
   directoryApproved: boolean;
 }

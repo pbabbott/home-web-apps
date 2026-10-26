@@ -470,6 +470,8 @@ export function DirectoryDetailClient({
       <OnDiskSection
         sourceId={sourceId}
         queueItemId={item.id}
+        review={item.onDiskReview}
+        onReviewChanged={() => router.refresh()}
         coverageSignature={JSON.stringify([
           skipReview,
           item.inventoryByDecision,
