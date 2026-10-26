@@ -17,6 +17,11 @@ export type QueuePath = {
   priority?: number;
   /** Why the path is worth exploring, for whoever claims it later. */
   reason?: string;
+  /**
+   * Set when the path could not be read: it is recorded as `failed` at once
+   * (no claim, no attempt spent) with this as its last error.
+   */
+  failure?: string;
 };
 
 export type QueueCounts = Record<DiscoveryQueueItemStatus, number>;
@@ -76,6 +81,9 @@ export const insertQueuePaths = async (
         normalizedPath: p.normalizedPath,
         priority: p.priority ?? input.priority ?? 0,
         reason: p.reason ?? null,
+        ...(p.failure
+          ? { status: 'failed' as const, lastError: p.failure }
+          : {}),
       })),
     )
     .onConflictDoNothing({

@@ -467,6 +467,11 @@ export type QueueItemResult = {
    * (`*.msi`) instead of one `skipped` entry each. Not recursive.
    */
   skippedGroups?: { pattern: string; count?: number; reason: string }[];
+  /**
+   * Child directories that could not be read (access denied). Each also exists
+   * as a `failed` queue item a human can retry once access is granted.
+   */
+  unreadable?: { path: string; error: string }[];
 };
 
 export type AuditEventType =

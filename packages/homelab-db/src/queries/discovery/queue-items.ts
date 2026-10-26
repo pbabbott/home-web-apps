@@ -411,6 +411,11 @@ export type CompleteQueueItemInput = {
   claimToken: string;
   /** Child directories found while inspecting this one. */
   discoveredPaths?: QueuePath[];
+  /**
+   * Child directories the worker could not read. Each carries a `failure` and is
+   * recorded as a `failed` item without being claimed.
+   */
+  unreadablePaths?: QueuePath[];
   /** What the worker concluded, including paths it saw but chose not to queue. */
   result?: QueueItemResult;
 };
@@ -474,7 +479,10 @@ export const completeQueueItem = async (
 
     const inserted = await insertQueuePaths(tx, {
       jobId: item.jobId,
-      paths: input.discoveredPaths ?? [],
+      paths: [
+        ...(input.discoveredPaths ?? []),
+        ...(input.unreadablePaths ?? []),
+      ],
     });
     const [job] = await tx
       .select({ id: discoveryJobs.id, sourceId: discoveryJobs.sourceId })
@@ -490,7 +498,10 @@ const existingChildren = async (
   item: DiscoveryQueueItem,
   input: CompleteQueueItemInput,
 ): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> => {
-  const paths = input.discoveredPaths ?? [];
+  const paths = [
+    ...(input.discoveredPaths ?? []),
+    ...(input.unreadablePaths ?? []),
+  ];
   if (paths.length === 0) return [];
 
   const rows = await tx
