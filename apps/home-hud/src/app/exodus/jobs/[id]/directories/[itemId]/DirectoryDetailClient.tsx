@@ -211,7 +211,7 @@ export function DirectoryDetailClient({
               </Badge>
             </span>
           </Tooltip>
-          <ReviewedMark reviewed={skipReview.reviewed} />
+          <ReviewedMark reviewed={item.reviewed} />
         </div>
         <div className="flex flex-wrap gap-x-8 gap-y-3">
           <Detail title="Source">
@@ -480,15 +480,20 @@ export function DirectoryDetailClient({
           <Table size="small" color="secondary">
             <TableHead>
               <TableRow>
+                <Th color="secondary">Decision</Th>
                 <Th color="secondary">Path</Th>
                 <Th color="secondary">Kind</Th>
                 <Th color="secondary">Recommendation</Th>
-                <Th color="secondary">Decision</Th>
               </TableRow>
             </TableHead>
             <TableBody>
               {sortedInventory.map((inventoryItem) => (
                 <TableRow key={inventoryItem.id}>
+                  <Td color="secondary">
+                    <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                      {DECISION_LABELS[inventoryItem.decision]}
+                    </Badge>
+                  </Td>
                   <Td color="secondary" className="break-all">
                     <Link
                       href={inventoryItemUrl(sourceId, inventoryItem.rootPath)}
@@ -503,11 +508,6 @@ export function DirectoryDetailClient({
                       color={RECOMMENDATION_COLOR[inventoryItem.recommendation]}
                     >
                       {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
-                    </Badge>
-                  </Td>
-                  <Td color="secondary">
-                    <Badge color={DECISION_COLOR[inventoryItem.decision]}>
-                      {DECISION_LABELS[inventoryItem.decision]}
                     </Badge>
                   </Td>
                 </TableRow>

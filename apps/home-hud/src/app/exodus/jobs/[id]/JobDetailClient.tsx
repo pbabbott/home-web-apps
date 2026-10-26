@@ -37,6 +37,7 @@ import {
   QueueItemMessage,
 } from '../../lib/JobSummary';
 import { Detail, ReviewedMark } from '../../lib/DirectoryReview';
+import { DECISION_COLOR, DECISION_LABELS } from '../../lib/inventory-display';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { QueueDirectoriesModal } from './QueueDirectoriesModal';
@@ -48,6 +49,7 @@ import {
   JOB_QUEUE_ITEMS_LIMIT,
   isActiveJob,
   type DiscoveryJobWithCounts,
+  type InventoryItemDecision,
   type JobQueueItem,
   type QueueItemStatus,
 } from '../../sources/lib/homelab-api';
@@ -62,6 +64,35 @@ const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
   { status: 'skipped', label: 'Skipped' },
   { status: 'failed', label: 'Failed' },
 ];
+
+const DECISION_ORDER: InventoryItemDecision[] = [
+  'approved',
+  'pending',
+  'rejected',
+];
+
+/** The inventory items a directory proposed: a badge per decision that has any. */
+function InventoryBreakdown({
+  byDecision,
+}: {
+  byDecision: Record<InventoryItemDecision, number>;
+}) {
+  const decisions = DECISION_ORDER.filter(
+    (decision) => byDecision[decision] > 0,
+  );
+
+  if (decisions.length === 0) return <>—</>;
+
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      {decisions.map((decision) => (
+        <Badge key={decision} color={DECISION_COLOR[decision]}>
+          {byDecision[decision]} {DECISION_LABELS[decision].toLowerCase()}
+        </Badge>
+      ))}
+    </span>
+  );
+}
 
 interface JobDetailClientProps {
   job: DiscoveryJobWithCounts;
@@ -334,7 +365,7 @@ export function JobDetailClient({
                   {sortedItems.map((item) => (
                     <TableRow key={item.id}>
                       <Td className="w-px px-2">
-                        <ReviewedMark reviewed={item.skipsReviewed} />
+                        <ReviewedMark reviewed={item.reviewed} />
                       </Td>
                       <Td>
                         <Link
@@ -356,7 +387,11 @@ export function JobDetailClient({
                         </Tooltip>
                       </Td>
                       <Td>{describeSkips(item.result) || '—'}</Td>
-                      <Td>{item.inventoryCount || '—'}</Td>
+                      <Td>
+                        <InventoryBreakdown
+                          byDecision={item.inventoryByDecision}
+                        />
+                      </Td>
                       <Td>
                         {item.attemptCount} / {item.maxAttempts}
                       </Td>

@@ -1,6 +1,7 @@
 import { HOMELAB_API_URL } from './config';
 import type { DiscoveryJobStatus } from './discovery-jobs';
 import { getJson } from './http';
+import type { InventoryItemDecision } from './inventory-items';
 
 export type QueueItemStatus =
   | 'queued'
@@ -35,14 +36,16 @@ export interface QueueItem {
   result: QueueItemResult | null;
   /** Inventory items this directory last proposed or added; a later job may take one over. */
   inventoryCount: number;
+  /** `inventoryCount` split by human decision. */
+  inventoryByDecision: Record<InventoryItemDecision, number>;
   createdAt: string;
   completedAt: string | null;
 }
 
 /** A job's queue item, as listed on the job page. */
 export interface JobQueueItem extends QueueItem {
-  /** Whether a human dealt with every skip; null until the directory has a result. */
-  skipsReviewed: boolean | null;
+  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  reviewed: boolean | null;
 }
 
 /** What a human has done about each skip of a directory. */
@@ -56,6 +59,8 @@ export interface SkipReview {
 }
 
 export interface QueueItemDetail extends QueueItem {
+  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  reviewed: boolean | null;
   job: {
     id: string;
     sourceId: string;
