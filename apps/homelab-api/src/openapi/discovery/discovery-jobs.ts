@@ -23,7 +23,6 @@ export const discoveryJobsPaths = {
   '/discovery-jobs': {
     get: {
       summary: listDiscoveryJobsOperation.summary,
-      'x-home-hud': listDiscoveryJobsOperation.hud,
       'x-mcp-tool': listDiscoveryJobsOperation.mcp.name,
       description: listDiscoveryJobsOperation.description,
       requestParams: { query: jobListQuerySchema },

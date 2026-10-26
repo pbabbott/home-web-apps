@@ -30,6 +30,7 @@ interface SourceDetailClientProps {
   latestJob: DiscoveryJobWithCounts | null;
   failedItems: QueueItem[] | null;
   hasActiveJob: boolean;
+  attentionOnly: boolean;
 }
 
 export function SourceDetailClient({
@@ -40,6 +41,7 @@ export function SourceDetailClient({
   latestJob,
   failedItems,
   hasActiveJob,
+  attentionOnly,
 }: SourceDetailClientProps) {
   const router = useRouter();
   const [startModalOpen, setStartModalOpen] = useState(false);
@@ -126,7 +128,13 @@ export function SourceDetailClient({
         )
       )}
 
-      {jobs && jobs.length > 0 && <JobHistoryPanel jobs={jobs} />}
+      {jobs && jobs.length > 0 && (
+        <JobHistoryPanel
+          sourceId={source.id}
+          jobs={jobs}
+          attentionOnly={attentionOnly}
+        />
+      )}
 
       <AddSourceModal
         key={source.updatedAt}

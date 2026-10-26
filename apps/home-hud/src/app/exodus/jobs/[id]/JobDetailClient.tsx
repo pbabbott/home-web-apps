@@ -792,12 +792,12 @@ export function JobDetailClient({
       <div className="flex flex-col gap-2">
         <OutlinedButton
           component={Link}
-          href="/exodus/jobs"
+          href={`/exodus/sources/${job.sourceId}`}
           color="secondary"
           size="small"
           className="self-start"
         >
-          ← Jobs
+          ← {sourceName ?? 'Source'}
         </OutlinedButton>
         <div className="flex flex-wrap items-center gap-3">
           <Typography variant="h1" component="h1" className="break-all">
