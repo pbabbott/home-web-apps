@@ -9,7 +9,9 @@ import {
   getQueueItemById,
   getQueueItemWithJob,
   getSourceById,
+  getOnDiskReview,
   listAcknowledgedSkipKeys,
+  listOnDiskReviewedPaths,
   listInventoriedPaths,
   listInventoryItems as listInventoryItemRows,
   heartbeatQueueItem,
@@ -198,25 +200,27 @@ export const retryFailedItems = (jobId: string) =>
 
 export const retryItem = (id: string) => retryQueueItem(db, id);
 
-/** Reads the acknowledgements and inventory paths beneath `rootPath` once, for reviewing many directories. */
+/** Reads the acknowledgements, inventory paths and on-disk reviews beneath `rootPath` once, for reviewing many directories. */
 async function loadReviewContext(
   sourceId: string,
   rootPath: string,
-): Promise<ReviewContext> {
+): Promise<ReviewContext & { onDiskReviewed: ReadonlySet<string> }> {
   const { normalizedPath } = normalizeWindowsPath(rootPath);
-  const [acknowledged, inventoried] = await Promise.all([
+  const [acknowledged, inventoried, onDiskReviewed] = await Promise.all([
     listAcknowledgedSkipKeys(db, sourceId, normalizedPath),
     listInventoriedPaths(db, sourceId, normalizedPath),
+    listOnDiskReviewedPaths(db, sourceId, normalizedPath),
   ]);
 
   return {
     acknowledged: new Set(acknowledged),
     inventoried: new Set(inventoried),
+    onDiskReviewed: new Set(onDiskReviewed),
   };
 }
 
 export type QueueItemListEntry = QueueItemWithInventoryCount & {
-  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
   reviewed: boolean | null;
 };
 
@@ -235,15 +239,18 @@ export async function listJobQueueItems(
     reviewed: directoryReviewed(
       reviewSkips(item.path, item.result, context),
       item.inventoryByDecision.pending,
+      context.onDiskReviewed.has(item.normalizedPath),
     ),
   }));
 }
 
 export type QueueItemDetail = QueueItemWithInventoryCount & {
   job: Pick<DiscoveryJob, 'id' | 'sourceId' | 'rootPath' | 'status'>;
-  /** As on the list: skips reviewed and no inventory decision pending. */
+  /** As on the list: skips reviewed, no inventory decision pending and the on-disk contents acknowledged. */
   reviewed: boolean | null;
   skipReview: SkipReview;
+  /** Who acknowledged the on-disk contents of this directory, if anyone. */
+  onDiskReview: { reviewedBy: string; createdAt: Date } | null;
   /** The directory itself is an approved inventory item. */
   directoryApproved: boolean;
 };
@@ -253,7 +260,7 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
   if (!found) throw new DiscoveryError('not_found', 'queue item not found');
 
   const { item, job } = found;
-  const [context, approved] = await Promise.all([
+  const [context, approved, review] = await Promise.all([
     loadReviewContext(job.sourceId, item.path),
     listInventoryItemRows(db, {
       sourceId: job.sourceId,
@@ -261,8 +268,12 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
       decision: 'approved',
       limit: 1,
     }),
+    getOnDiskReview(db, job.sourceId, item.normalizedPath),
   ]);
 
+  const onDiskReview = review
+    ? { reviewedBy: review.reviewedBy, createdAt: review.createdAt }
+    : null;
   const skipReview = reviewSkips(item.path, item.result, context);
 
   return {
@@ -273,8 +284,13 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
       rootPath: job.rootPath,
       status: job.status,
     },
-    reviewed: directoryReviewed(skipReview, item.inventoryByDecision.pending),
+    reviewed: directoryReviewed(
+      skipReview,
+      item.inventoryByDecision.pending,
+      onDiskReview !== null,
+    ),
     skipReview,
+    onDiskReview,
     directoryApproved: approved.length > 0,
   };
 }

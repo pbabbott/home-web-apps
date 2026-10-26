@@ -78,6 +78,16 @@ const unacknowledge = (
     .set(headers)
     .send(body);
 
+const reviewDisk = (
+  item: ClaimedItem,
+  headers: Record<string, string> = HUMAN,
+) => getRequest().post(`/queue-items/${item.id}/on-disk-review`).set(headers);
+
+const unreviewDisk = (
+  item: ClaimedItem,
+  headers: Record<string, string> = HUMAN,
+) => getRequest().delete(`/queue-items/${item.id}/on-disk-review`).set(headers);
+
 const list = async (sourceId: string, query: Record<string, string> = {}) =>
   (
     await getRequest()
@@ -224,6 +234,10 @@ describe('skip review on a job’s directories', () => {
     expect((await listed(item)).reviewed).toBe(false);
 
     await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
+    // Skips alone are not enough: what is on disk must be acknowledged too.
+    expect((await listed(item)).reviewed).toBe(false);
+
+    await reviewDisk(item).expect(201);
     expect((await listed(item)).reviewed).toBe(true);
 
     const detail = (
@@ -236,6 +250,8 @@ describe('skip review on a job’s directories', () => {
     });
     expect(detail.job.sourceId).toBe(sourceId);
     expect(detail.directoryApproved).toBe(false);
+    expect(detail.reviewed).toBe(true);
+    expect(detail.onDiskReview).toMatchObject({ reviewedBy: 'brandon' });
 
     await unacknowledge(item, { path: KEEPER }).expect(204);
     expect((await listed(item)).reviewed).toBe(false);
@@ -245,6 +261,7 @@ describe('skip review on a job’s directories', () => {
     const sourceId = await createSource();
     const item = await skipInJob(sourceId);
     await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
+    await reviewDisk(item).expect(201);
 
     const promoted = (
       await getRequest()
@@ -287,6 +304,83 @@ describe('skip review on a job’s directories', () => {
     await getRequest()
       .get('/queue-items/123e4567-e89b-42d3-a456-426614174000')
       .expect(404);
+  });
+});
+
+describe('acknowledging the on-disk contents', () => {
+  const eventTypes = async (sourceId: string) =>
+    (
+      await getRequest().get('/audit-events').query({ sourceId }).expect(200)
+    ).body.map((e: { eventType: string }) => e.eventType);
+
+  it('is recorded once, undoable, and reflected on the item', async () => {
+    const sourceId = await createSource();
+    const item = await skipInJob(sourceId);
+    const get = async () =>
+      (await getRequest().get(`/queue-items/${item.id}`).expect(200)).body;
+
+    expect((await get()).onDiskReview).toBeNull();
+
+    const first = await reviewDisk(item).expect(201);
+    expect(first.body).toMatchObject({
+      sourceId,
+      path: DOWNLOADS,
+      reviewedBy: 'brandon',
+    });
+    // Idempotent: the same row comes back and no second event is written.
+    const again = await reviewDisk(item).expect(201);
+    expect(again.body.id).toBe(first.body.id);
+    expect((await get()).onDiskReview).toMatchObject({ reviewedBy: 'brandon' });
+
+    await unreviewDisk(item).expect(204);
+    expect((await get()).onDiskReview).toBeNull();
+    await unreviewDisk(item).expect(404);
+
+    expect(await eventTypes(sourceId)).toEqual(
+      expect.arrayContaining(['on_disk.reviewed', 'on_disk.unreviewed']),
+    );
+    expect(
+      (await eventTypes(sourceId)).filter(
+        (type: string) => type === 'on_disk.reviewed',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('only a human may review or take it back', async () => {
+    const sourceId = await createSource();
+    const item = await skipInJob(sourceId);
+    const agent = { 'X-Actor-Type': 'openclaw', 'X-Actor-Id': 'agent' };
+
+    await reviewDisk(item, agent).expect(409);
+    await reviewDisk(item).expect(201);
+    await unreviewDisk(item, agent).expect(409);
+  });
+
+  it('404s for an unknown queue item', async () => {
+    const unknown = { id: '123e4567-e89b-42d3-a456-426614174000' };
+
+    await reviewDisk(unknown as ClaimedItem).expect(404);
+    await unreviewDisk(unknown as ClaimedItem).expect(404);
+  });
+
+  it('holds for a later job of the same source, and lists by path prefix', async () => {
+    const sourceId = await createSource();
+    const first = await skipInJob(sourceId);
+    await reviewDisk(first).expect(201);
+
+    await skipInJob(sourceId);
+
+    const listed = async (query: Record<string, string>) =>
+      (
+        await getRequest()
+          .get(`/sources/${sourceId}/on-disk-reviews`)
+          .query(query)
+          .expect(200)
+      ).body as { path: string }[];
+    expect(
+      (await listed({ pathPrefix: DOWNLOADS })).map((r) => r.path),
+    ).toEqual([DOWNLOADS]);
+    expect(await listed({ pathPrefix: 'C:\\Elsewhere' })).toHaveLength(0);
   });
 });
 

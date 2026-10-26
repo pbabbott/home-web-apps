@@ -141,6 +141,15 @@ Reviewing skips by eye loses track of what was checked. On the job detail page e
 - Idempotent. Stored in `skip_acknowledgements`, unique per `(source_id, normalized_path, pattern)`, so an acknowledgement holds for later jobs that skip the same path. The queue item's `result` is left as the agent wrote it.
 - Audited as `skip.acknowledged` / `skip.unacknowledged` (path, and pattern when set), once per actual change.
 
+## Acknowledging the on-disk contents
+
+The directory page's **On disk** section lists what is actually in the directory (see [UI](./ui.md#directory-page)), but that listing is read live and never stored. Once a reviewer has checked that everything is accounted for, **Acknowledge** records it; **Undo ack** takes it back. A directory's green check needs this acknowledgement as well as every skip reviewed and no inventory decision pending.
+
+- `POST /queue-items/:id/on-disk-review` (no body), `DELETE` the same route to undo, `GET /sources/:id/on-disk-reviews` (`pathPrefix`, `limit`) to list. REST only, no MCP tool.
+- Human actor only (409 otherwise). Idempotent. Always available: it does not require a scan, and it does not require every entry to be covered, so a folder the SMB account cannot list can still be finished.
+- Stored in `on_disk_reviews`, unique per `(source_id, normalized_path)`, so it holds for later jobs that visit the same directory. It does not expire when the contents change.
+- Audited as `on_disk.reviewed` / `on_disk.unreviewed`, once per actual change.
+
 ## Nested inventory items
 
 Proposing a path inside an existing inventory item (or above one) is **not rejected**: the agent cannot reliably tell a monorepo subproject from a repository's `src\`, and a hard rule would hang on agent-claimed `evidence.git`. Instead each result of `propose_inventory_items` carries:
@@ -181,6 +190,8 @@ Enforcement: proposing an inventory item under an `exclude_subtree` rule, or exa
 | `inventory_item.promoted`               | a human promotes a skipped path (actor `human`)         | path, kind, skipReason                    |
 | `skip.acknowledged`                     | a human acknowledges a skipped path (actor `human`)     | path, pattern (when set)                  |
 | `skip.unacknowledged`                   | a human takes an acknowledgement back                   | path, pattern (when set)                  |
+| `on_disk.reviewed`                      | a human acknowledges a directory's on-disk contents     | path                                      |
+| `on_disk.unreviewed`                    | a human takes that acknowledgement back                 | path                                      |
 
 Each is written in the same transaction as its change. Listing a directory, skipping a path, or an unchanged re-proposal writes nothing. Filter with `GET /audit-events?inventoryItemId=`.
 

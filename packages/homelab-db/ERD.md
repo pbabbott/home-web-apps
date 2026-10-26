@@ -11,7 +11,9 @@ erDiagram
     sources ||--o{ inventory_items : "source_id (CASCADE)"
     sources ||--o| source_connections : "source_id (CASCADE)"
     sources ||--o{ skip_acknowledgements : "source_id (CASCADE)"
+    sources ||--o{ on_disk_reviews : "source_id (CASCADE)"
     discovery_queue_items |o--o{ skip_acknowledgements : "queue_item_id (SET NULL)"
+    discovery_queue_items |o--o{ on_disk_reviews : "queue_item_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "first_job_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "last_job_id (SET NULL)"
     discovery_queue_items |o--o{ inventory_items : "last_queue_item_id (SET NULL)"
@@ -134,6 +136,16 @@ erDiagram
         timestamptz created_at
     }
 
+    on_disk_reviews {
+        uuid id PK
+        uuid source_id FK
+        text path "the reviewed directory"
+        text normalized_path
+        uuid queue_item_id FK "nullable, where acknowledged"
+        text reviewed_by
+        timestamptz created_at
+    }
+
     audit_events {
         uuid id PK
         uuid source_id "no FK"
@@ -162,3 +174,4 @@ erDiagram
 - **Source connections (migration file `0012_source_connections`).** At most one per source (`source_id` is the primary key), cascading with the source. It holds the credentials the API uses to read files for preview. `secret_ciphertext` is AES-256-GCM output produced by `homelab-api`; this package never sees the key or the plaintext. Saving a connection clears the last test result.
 - **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory items. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory items; deleting a queue item nulls `last_queue_item_id`. Deleting a host that a source references is blocked (`RESTRICT`).
 - **Skip acknowledgements (migration `0013_skip_acknowledgements`).** A human's "I agree with this skip", unique per `(source_id, normalized_path, pattern)` so it holds across later jobs of the source. `pattern` is `''` for a path skip; for a pattern skip, `path` is the directory. The queue item's `result` is never changed. Writes audit `skip.acknowledged` / `skip.unacknowledged`.
+- **On-disk reviews (migration `0015_on_disk_reviews`).** A human's "I looked at what is on disk in this directory", unique per `(source_id, normalized_path)` so it holds across later jobs of the source. The listing itself is read live and never stored; `queue_item_id` only records where it was acknowledged. Writes audit `on_disk.reviewed` / `on_disk.unreviewed`.

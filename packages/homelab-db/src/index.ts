@@ -46,6 +46,8 @@ export {
   auditEventSelectSchema,
   inventoryItemSelectSchema,
   skipAcknowledgementSelectSchema,
+  onDiskReviews,
+  onDiskReviewSelectSchema,
 } from './schema/discovery';
 export type {
   Source,
@@ -80,6 +82,8 @@ export type {
   AuditEventType,
   SkipAcknowledgement,
   NewSkipAcknowledgement,
+  OnDiskReview,
+  NewOnDiskReview,
 } from './schema/discovery';
 
 export { insertAuditEvent, listAuditEvents } from './queries/audit';
@@ -172,6 +176,12 @@ export {
   unacknowledgeSkip,
   listSkipAcknowledgements,
   listAcknowledgedSkipKeys,
+  reviewOnDisk,
+  unreviewOnDisk,
+  getOnDiskReview,
+  listOnDiskReviewedPaths,
+  listOnDiskReviews,
+  importOnDiskReviews,
   importSources,
   importDiscoveryJobs,
   importQueueItems,
@@ -201,6 +211,7 @@ export type {
   ListKnownSkipsOptions,
   SkipInput,
   ListSkipAcknowledgementsOptions,
+  ListOnDiskReviewsOptions,
   ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,

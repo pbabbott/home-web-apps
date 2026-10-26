@@ -22,17 +22,18 @@ const ackKey = (normalizedPath: string, pattern = '') =>
   `${normalizedPath}|${pattern}`;
 
 /**
- * Whether a directory is fully dealt with: every skip reviewed and no
- * inventory item it proposed still waiting for a human decision. Null while
- * the review itself is unknown (no result yet).
+ * Whether a directory is fully dealt with: every skip reviewed, no inventory
+ * item it proposed still waiting for a human decision, and what is on disk
+ * acknowledged. Null while the review itself is unknown (no result yet).
  */
 export function directoryReviewed(
   skipReview: SkipReview,
   pendingInventory: number,
+  onDiskReviewed: boolean,
 ): boolean | null {
   if (skipReview.reviewed === null) return null;
 
-  return skipReview.reviewed && pendingInventory === 0;
+  return skipReview.reviewed && pendingInventory === 0 && onDiskReviewed;
 }
 
 /**

@@ -82,7 +82,7 @@ export const queueItemListEntrySchema = discoveryQueueItemSelectSchema.extend({
 
 const reviewedSchema = z.boolean().nullable().meta({
   description:
-    'True when every skipped path is acknowledged or in the inventory, every skipped pattern is acknowledged, and no inventory item the directory proposed is still pending a decision; null until the directory has a result.',
+    'True when every skipped path is acknowledged or in the inventory, every skipped pattern is acknowledged, and no inventory item the directory proposed is still pending a decision, and a human acknowledged the directory’s on-disk contents; null until the directory has a result.',
 });
 
 /** A job's listed queue item, with whether a human has dealt with all of it. */
@@ -111,6 +111,13 @@ export const queueItemDetailSchema = queueItemListEntrySchema.extend({
       z.object({ pattern: z.string(), acknowledged: z.boolean() }),
     ),
   }),
+  onDiskReview: z
+    .object({ reviewedBy: z.string(), createdAt: z.iso.datetime() })
+    .nullable()
+    .meta({
+      description:
+        'Who acknowledged the on-disk contents of this directory, and when; null if no one has.',
+    }),
   directoryApproved: z.boolean().meta({
     description: 'The directory itself is an approved inventory item.',
   }),

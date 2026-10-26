@@ -9,6 +9,7 @@ import {
   importExclusionRules,
   importInventoryItems,
   importQueueItems,
+  importOnDiskReviews,
   importSkipAcknowledgements,
   importSources,
   runMigrationsWithLock,
@@ -20,6 +21,7 @@ import {
   type HostType,
   type InventoryItem,
   type QueueItemWithInventoryCount,
+  type OnDiskReview,
   type SkipAcknowledgement,
   type Source,
 } from '@abbottland/homelab-db';
@@ -190,8 +192,29 @@ async function syncDiscovery(
     }
     await importSkipAcknowledgements(db, acknowledgements);
 
+    // After queue items, like acknowledgements. A remote that predates the
+    // feature answers 404, which is not worth failing the whole sync for.
+    let onDiskReviews: OnDiskReview[] = [];
+    try {
+      onDiskReviews = (
+        await fetchRemoteJson<OnDiskReview[]>(
+          `${base}/on-disk-reviews?limit=${ACKNOWLEDGEMENT_LIMIT}`,
+        )
+      ).map((review) => reviveDates({ ...review, sourceId }, ['createdAt']));
+    } catch (err) {
+      console.warn(
+        `  ! ${remoteSource.name}: could not pull on-disk reviews (${err instanceof Error ? err.message : err})`,
+      );
+    }
+    if (onDiskReviews.length >= ACKNOWLEDGEMENT_LIMIT) {
+      console.warn(
+        `  ! ${remoteSource.name}: on-disk reviews hit the ${ACKNOWLEDGEMENT_LIMIT} cap; some were not pulled`,
+      );
+    }
+    await importOnDiskReviews(db, onDiskReviews);
+
     console.log(
-      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s), ${acknowledgements.length} acknowledgement(s)`,
+      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s), ${acknowledgements.length} acknowledgement(s), ${onDiskReviews.length} on-disk review(s)`,
     );
   }
 

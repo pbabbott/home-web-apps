@@ -80,14 +80,15 @@ describe('directoryReviewed', () => {
     patterns: [],
   });
 
-  it('is null while the skip review is unknown, even with pending inventory', () => {
-    expect(directoryReviewed(review(null), 0)).toBeNull();
-    expect(directoryReviewed(review(null), 2)).toBeNull();
+  it('is null while the skip review is unknown, whatever else is true', () => {
+    expect(directoryReviewed(review(null), 0, true)).toBeNull();
+    expect(directoryReviewed(review(null), 2, false)).toBeNull();
   });
 
-  it('needs every skip reviewed and no pending inventory decision', () => {
-    expect(directoryReviewed(review(true), 0)).toBe(true);
-    expect(directoryReviewed(review(true), 1)).toBe(false);
-    expect(directoryReviewed(review(false), 0)).toBe(false);
+  it('needs every skip reviewed, no pending inventory decision and the disk acknowledged', () => {
+    expect(directoryReviewed(review(true), 0, true)).toBe(true);
+    expect(directoryReviewed(review(true), 1, true)).toBe(false);
+    expect(directoryReviewed(review(false), 0, true)).toBe(false);
+    expect(directoryReviewed(review(true), 0, false)).toBe(false);
   });
 });

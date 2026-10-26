@@ -1,13 +1,12 @@
 import { and, asc, eq, or, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../../client';
 import {
-  discoveryJobs,
-  discoveryQueueItems,
   skipAcknowledgements,
   type SkipAcknowledgement,
 } from '../../schema/discovery';
 import { insertAuditEvent, type Actor } from '../audit';
-import { DiscoveryError, escapeLike, type Tx } from '../shared';
+import { DiscoveryError, escapeLike } from '../shared';
+import { assertHuman, sourceOfQueueItem } from './review-helpers';
 
 export type SkipInput = {
   path: string;
@@ -20,33 +19,6 @@ export type SkipInput = {
 const LIST_DEFAULT_LIMIT = 500;
 const LIST_MAX_LIMIT = 1000;
 
-const assertHuman = (actor: Actor, verb: string) => {
-  if (actor.type !== 'human') {
-    throw new DiscoveryError(
-      'conflict',
-      `only a human can ${verb} a skipped path`,
-    );
-  }
-};
-
-const sourceOfQueueItem = async (
-  tx: Tx,
-  queueItemId: string,
-): Promise<{ sourceId: string; jobId: string }> => {
-  const [queued] = await tx
-    .select({
-      jobId: discoveryQueueItems.jobId,
-      sourceId: discoveryJobs.sourceId,
-    })
-    .from(discoveryQueueItems)
-    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
-    .where(eq(discoveryQueueItems.id, queueItemId));
-
-  if (!queued) throw new DiscoveryError('not_found', 'queue item not found');
-
-  return queued;
-};
-
 /**
  * A human agrees with the agent's skip of a path (or pattern). Only a human
  * may: acknowledging is a review. Idempotent: acknowledging again returns
@@ -57,7 +29,7 @@ export const acknowledgeSkip = async (
   queueItemId: string,
   input: SkipInput,
 ): Promise<SkipAcknowledgement> => {
-  assertHuman(input.actor, 'acknowledge');
+  assertHuman(input.actor, 'acknowledge a skipped path');
 
   return db.transaction(async (tx) => {
     const { sourceId, jobId } = await sourceOfQueueItem(tx, queueItemId);
@@ -110,7 +82,7 @@ export const unacknowledgeSkip = async (
   queueItemId: string,
   input: SkipInput,
 ): Promise<void> => {
-  assertHuman(input.actor, 'unacknowledge');
+  assertHuman(input.actor, 'unacknowledge a skipped path');
 
   await db.transaction(async (tx) => {
     const { sourceId, jobId } = await sourceOfQueueItem(tx, queueItemId);
