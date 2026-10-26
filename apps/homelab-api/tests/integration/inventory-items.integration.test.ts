@@ -98,7 +98,7 @@ const propose = (item: ClaimedItem, inventoryItems: object[]) =>
     .post(`/queue-items/${item.id}/inventory-items`)
     .send({ claimToken: item.claimToken, inventoryItems });
 
-const listInventoryItems = async (
+const listInventoryPage = async (
   sourceId: string,
   query: Record<string, string> = {},
 ) =>
@@ -107,7 +107,12 @@ const listInventoryItems = async (
       .get(`/sources/${sourceId}/inventory-items`)
       .query(query)
       .expect(200)
-  ).body as Record<string, any>[];
+  ).body as { items: Record<string, any>[]; total: number };
+
+const listInventoryItems = async (
+  sourceId: string,
+  query: Record<string, string> = {},
+) => (await listInventoryPage(sourceId, query)).items;
 
 const decide = (
   id: string,
@@ -216,6 +221,51 @@ describe('creating and retrieving inventory items', () => {
       after: page[1].normalizedRootPath,
     });
     expect(rest).toHaveLength(1);
+  });
+
+  it('searches, matches an exact path, filters by kind and pages with offset and a total', async () => {
+    const sourceId = await createSource();
+    const { item } = await startAndClaim(sourceId);
+    await propose(item, [
+      proposal(`${ROOT}\\photos`, { summary: 'Family pictures' }),
+      proposal(`${ROOT}\\photos\\raw`),
+      proposal(`${ROOT}\\100%_done`),
+      proposal(`${ROOT}\\notes.txt`, { kind: 'file' }),
+    ]).expect(200);
+
+    const paths = async (query: Record<string, string>) =>
+      (await listInventoryItems(sourceId, query)).map((c) => c.rootPath);
+
+    // Case-insensitive, across path and summary.
+    expect(await paths({ q: 'PHOTOS' })).toEqual([
+      `${ROOT}\\photos`,
+      `${ROOT}\\photos\\raw`,
+    ]);
+    expect(await paths({ q: 'pictures' })).toEqual([`${ROOT}\\photos`]);
+    // LIKE wildcards are literal.
+    expect(await paths({ q: '%_' })).toEqual([`${ROOT}\\100%_done`]);
+    expect(await paths({ q: '%' })).toEqual([`${ROOT}\\100%_done`]);
+    // Exact path: not the subtree.
+    expect(await paths({ path: `${ROOT}\\PHOTOS` })).toEqual([
+      `${ROOT}\\photos`,
+    ]);
+    expect(await paths({ kind: 'file' })).toEqual([`${ROOT}\\notes.txt`]);
+
+    // Offset pages; the total ignores paging.
+    const first = await listInventoryPage(sourceId, { limit: '3' });
+    const second = await listInventoryPage(sourceId, {
+      limit: '3',
+      offset: '3',
+    });
+    expect([first.total, second.total]).toEqual([4, 4]);
+    expect(first.items).toHaveLength(3);
+    expect(second.items).toHaveLength(1);
+    expect((await listInventoryPage(sourceId, { q: 'photos' })).total).toBe(2);
+
+    await getRequest()
+      .get(`/sources/${sourceId}/inventory-items`)
+      .query({ offset: '1', after: 'c:\\x' })
+      .expect(400);
   });
 
   it('refuses inventory items outside the claimed directory or from a dead claim', async () => {

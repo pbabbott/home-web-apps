@@ -112,7 +112,11 @@ export const proposeResult = (results: ProposedInventoryItem[]) =>
     covers: covers.map(nested),
   }));
 
-export const inventoryListResult = (items: InventoryItem[], limit: number) => ({
+export const inventoryListResult = (
+  { items, total }: { items: InventoryItem[]; total: number },
+  limit: number,
+) => ({
+  total,
   items: items.map((i) =>
     compact({
       id: i.id,

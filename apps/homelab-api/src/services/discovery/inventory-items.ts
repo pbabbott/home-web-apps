@@ -5,12 +5,14 @@ import {
   getQueueItemById,
   getInventoryItemById,
   getSourceById,
+  countInventoryItems,
   listInventoryItems as listInventoryItemRows,
   inventoryQueueItemDirectory as inventoryQueueItemDirectoryRow,
   promoteInventoryItem as promoteInventoryItemRow,
   upsertInventoryItems,
   type Actor,
   type InventoryItemDecision,
+  type InventoryItemKind,
   type InventoryItemEvidence,
   type InventoryItemRecommendation,
   type NestedInventoryItem,
@@ -119,26 +121,42 @@ export async function listSourceInventoryItems(
     jobId?: string;
     recommendation?: InventoryItemRecommendation;
     decision?: InventoryItemDecision;
+    kind?: InventoryItemKind;
     pathPrefix?: string;
+    path?: string;
+    q?: string;
     after?: string;
+    offset?: number;
     limit?: number;
   },
-): Promise<InventoryItem[]> {
+): Promise<{ items: InventoryItem[]; total: number }> {
   if (!(await getSourceById(db, sourceId))) {
     throw new DiscoveryError('not_found', 'source not found');
   }
 
-  return listInventoryItemRows(db, {
+  const options = {
     sourceId,
     jobId: filters.jobId,
     recommendation: filters.recommendation,
     decision: filters.decision,
+    kind: filters.kind,
     normalizedPathPrefix: filters.pathPrefix
       ? normalizeWindowsPath(filters.pathPrefix).normalizedPath
       : undefined,
+    normalizedPath: filters.path
+      ? normalizeWindowsPath(filters.path).normalizedPath
+      : undefined,
+    search: filters.q,
     after: filters.after,
+    offset: filters.offset,
     limit: filters.limit,
-  });
+  };
+  const [items, total] = await Promise.all([
+    listInventoryItemRows(db, options),
+    countInventoryItems(db, options),
+  ]);
+
+  return { items, total };
 }
 
 export const getInventoryItem = (

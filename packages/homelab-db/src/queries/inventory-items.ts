@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
   discoveryJobs,
@@ -815,10 +815,17 @@ export type ListInventoryItemsOptions = {
   jobId?: string;
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;
+  kind?: InventoryItemKind;
   /** The path (normalized) itself and everything beneath it. */
   normalizedPathPrefix?: string;
+  /** Exactly this path (normalized), nothing beneath it. */
+  normalizedPath?: string;
+  /** Case-insensitive substring of the path, display name or summary. */
+  search?: string;
   /** Keyset cursor: the last normalizedRootPath of the previous page. */
   after?: string;
+  /** Rows to skip, for numbered pages. Not combined with `after`. */
+  offset?: number;
   limit?: number;
 };
 
@@ -834,6 +841,41 @@ const subtreeFilter = (normalizedDir: string): SQL => {
   return sql`(${t.normalizedRootPath} = ${normalizedDir} or ${t.normalizedRootPath} like ${`${escapeLike(dir)}\\%`} escape '!')`;
 };
 
+const searchFilter = (search: string): SQL => {
+  const t = inventoryItems;
+  const pattern = `%${escapeLike(search)}%`;
+
+  return sql`(${t.rootPath} ilike ${pattern} escape '!' or ${t.displayName} ilike ${pattern} escape '!' or ${t.summary} ilike ${pattern} escape '!')`;
+};
+
+/** The filters shared by a page of inventory items and its total. Paging is applied by the caller. */
+const filterConditions = (
+  options: ListInventoryItemsOptions,
+  { cursor }: { cursor: boolean },
+): (SQL | undefined)[] => {
+  const t = inventoryItems;
+
+  return [
+    eq(t.sourceId, options.sourceId),
+    options.jobId ? eq(t.lastJobId, options.jobId) : undefined,
+    options.recommendation
+      ? eq(t.recommendation, options.recommendation)
+      : undefined,
+    options.decision ? eq(t.decision, options.decision) : undefined,
+    options.kind ? eq(t.kind, options.kind) : undefined,
+    options.normalizedPathPrefix
+      ? subtreeFilter(options.normalizedPathPrefix)
+      : undefined,
+    options.normalizedPath
+      ? eq(t.normalizedRootPath, options.normalizedPath)
+      : undefined,
+    options.search ? searchFilter(options.search) : undefined,
+    cursor && options.after
+      ? gt(t.normalizedRootPath, options.after)
+      : undefined,
+  ];
+};
+
 export const listInventoryItems = async (
   db: Database | Tx,
   options: ListInventoryItemsOptions,
@@ -843,27 +885,28 @@ export const listInventoryItems = async (
   return db
     .select()
     .from(t)
-    .where(
-      and(
-        eq(t.sourceId, options.sourceId),
-        options.jobId ? eq(t.lastJobId, options.jobId) : undefined,
-        options.recommendation
-          ? eq(t.recommendation, options.recommendation)
-          : undefined,
-        options.decision ? eq(t.decision, options.decision) : undefined,
-        options.normalizedPathPrefix
-          ? subtreeFilter(options.normalizedPathPrefix)
-          : undefined,
-        options.after ? gt(t.normalizedRootPath, options.after) : undefined,
-      ),
-    )
+    .where(and(...filterConditions(options, { cursor: true })))
     .orderBy(asc(t.normalizedRootPath))
     .limit(
       Math.min(
         options.limit ?? LIST_INVENTORY_ITEMS_DEFAULT_LIMIT,
         LIST_INVENTORY_ITEMS_MAX_LIMIT,
       ),
-    );
+    )
+    .offset(options.offset ?? 0);
+};
+
+/** How many inventory items match the filters, ignoring the paging options. */
+export const countInventoryItems = async (
+  db: Database | Tx,
+  options: ListInventoryItemsOptions,
+): Promise<number> => {
+  const [row] = await db
+    .select({ total: count() })
+    .from(inventoryItems)
+    .where(and(...filterConditions(options, { cursor: false })));
+
+  return row.total;
 };
 
 /** The part of a nearby inventory item worth showing next to a proposal. */

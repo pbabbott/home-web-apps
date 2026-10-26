@@ -476,21 +476,24 @@ describe('MCP endpoint (/mcp)', () => {
   });
 
   it('list_inventory_items returns compact items and a cursor on a full page', async () => {
-    (discoveryService.listSourceInventoryItems as jest.Mock).mockResolvedValue([
-      {
-        id: ID,
-        rootPath: 'C:\\a',
-        normalizedRootPath: 'c:\\a',
-        kind: 'directory',
-        recommendation: 'back_up',
-        confidence: 'high',
-        decision: 'pending',
-        decisionNote: null,
-        summary: 'docs',
-        evidence: {},
-        decidedBy: null,
-      },
-    ]);
+    (discoveryService.listSourceInventoryItems as jest.Mock).mockResolvedValue({
+      total: 9,
+      items: [
+        {
+          id: ID,
+          rootPath: 'C:\\a',
+          normalizedRootPath: 'c:\\a',
+          kind: 'directory',
+          recommendation: 'back_up',
+          confidence: 'high',
+          decision: 'pending',
+          decisionNote: null,
+          summary: 'docs',
+          evidence: {},
+          decidedBy: null,
+        },
+      ],
+    });
 
     const { body } = await call('list_inventory_items', {
       sourceId: ID,
@@ -498,6 +501,7 @@ describe('MCP endpoint (/mcp)', () => {
     });
 
     expect(body).toEqual({
+      total: 9,
       items: [
         {
           id: ID,

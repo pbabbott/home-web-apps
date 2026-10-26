@@ -112,6 +112,7 @@ export {
   inventoryQueueItemDirectory,
   skipInventoriedQueueItems,
   listInventoryItems,
+  countInventoryItems,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {

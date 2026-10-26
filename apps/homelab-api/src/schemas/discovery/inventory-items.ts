@@ -142,21 +142,39 @@ export type ProposeInventoryItemsBody = z.infer<
   typeof proposeInventoryItemsBodySchema
 >;
 
-export const inventoryItemListQuerySchema = z.object({
-  jobId: z.uuid().optional().meta({
-    description: 'Only inventory items last proposed by this job.',
-  }),
-  recommendation: inventoryItemRecommendationSchema.optional(),
-  decision: z.enum(['pending', 'approved', 'rejected']).optional(),
-  pathPrefix: windowsPathSchema.optional().meta({
-    description: 'Only inventory items at or beneath this path.',
-  }),
-  after: z.string().min(1).optional().meta({
-    description:
-      'Cursor: the normalizedRootPath of the last inventory item of the previous page.',
-  }),
-  limit: z.coerce.number().int().min(1).max(500).default(100),
-});
+export const inventoryItemListQuerySchema = z
+  .object({
+    jobId: z.uuid().optional().meta({
+      description: 'Only inventory items last proposed by this job.',
+    }),
+    recommendation: inventoryItemRecommendationSchema.optional(),
+    decision: z.enum(['pending', 'approved', 'rejected']).optional(),
+    kind: z.enum(['file', 'directory']).optional(),
+    pathPrefix: windowsPathSchema.optional().meta({
+      description: 'Only inventory items at or beneath this path.',
+    }),
+    path: windowsPathSchema.optional().meta({
+      description:
+        'Only the inventory item at exactly this path (nothing beneath it).',
+    }),
+    q: z.string().trim().min(1).max(200).optional().meta({
+      description:
+        'Case-insensitive substring of the path, display name or summary.',
+    }),
+    after: z.string().min(1).optional().meta({
+      description:
+        'Cursor: the normalizedRootPath of the last inventory item of the previous page.',
+    }),
+    offset: z.coerce.number().int().min(0).optional().meta({
+      description:
+        'Items to skip, for numbered pages. Use either offset or after, not both.',
+    }),
+    limit: z.coerce.number().int().min(1).max(500).default(100),
+  })
+  .refine((query) => query.offset === undefined || query.after === undefined, {
+    message: 'offset and after cannot be combined',
+    path: ['offset'],
+  });
 export type InventoryItemListQuery = z.infer<
   typeof inventoryItemListQuerySchema
 >;

@@ -54,11 +54,11 @@ export const proposeInventoryItems = handle(
 export const listInventoryItemsOperation = {
   summary: 'List a source’s inventory items',
   description:
-    'Ordered by normalizedRootPath. Up to `limit` (default 100, max 500) per page; pass the last normalizedRootPath as `after` for the next page. Filter by last-proposing job, recommendation, decision, or path prefix.',
+    'Returns `{ items, total }`; `total` counts every match, ignoring paging. Ordered by normalizedRootPath. Up to `limit` (default 100, max 500) per page; pass the last normalizedRootPath as `after` for the next page, or `offset` for numbered pages. Filter by last-proposing job, recommendation, decision, kind, path prefix, exact path, or a case-insensitive search `q` over path, name and summary.',
   mcp: {
     name: 'list_inventory_items',
     description:
-      'Inventory items already recorded for a source, with human decisions. Filter by recommendation, decision, jobId or pathPrefix; pass `next` back as `after` for more.',
+      'Inventory items already recorded for a source, with human decisions. Filter by recommendation, decision, kind, jobId, pathPrefix, exact path or search text `q`; pass `next` back as `after` for more. `total` is the number of matches.',
   },
   hud: '/exodus/inventory',
 } satisfies Operation;

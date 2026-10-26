@@ -125,7 +125,15 @@ export const inventoryItemsPaths = {
         '200': {
           description: 'The inventory items',
           content: {
-            'application/json': { schema: z.array(inventoryItemSchema) },
+            'application/json': {
+              schema: z.object({
+                items: z.array(inventoryItemSchema),
+                total: z.number().int().meta({
+                  description:
+                    'Every inventory item matching the filters, ignoring paging.',
+                }),
+              }),
+            },
           },
         },
         '400': validationErrorResponse,
