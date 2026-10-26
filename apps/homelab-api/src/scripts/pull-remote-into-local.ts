@@ -9,6 +9,7 @@ import {
   importExclusionRules,
   importInventoryItems,
   importQueueItems,
+  importSkipAcknowledgements,
   importSources,
   runMigrationsWithLock,
   updateHost,
@@ -19,6 +20,7 @@ import {
   type ExporterType,
   type HostType,
   type InventoryItem,
+  type SkipAcknowledgement,
   type Source,
 } from '@abbottland/homelab-db';
 import { config, initConfig } from '../config';
@@ -71,6 +73,9 @@ const DEFAULT_REMOTE_URL = 'https://homelab-api.local.abbottland.io';
 
 // The remote caps both inventory and audit-event pages at 500.
 const PAGE_SIZE = 500;
+
+// The remote's acknowledgement list is capped at 1000 and has no paging.
+const ACKNOWLEDGEMENT_LIMIT = 1000;
 
 /** JSON carries timestamps as strings; the DB layer wants Dates. */
 function reviveDates<T extends object>(row: T, fields: (keyof T)[]): T {
@@ -169,8 +174,21 @@ async function syncDiscovery(
       if (page.length < PAGE_SIZE) break;
     }
 
+    // After queue items: acknowledgements may reference one.
+    const acknowledgements = (
+      await fetchRemoteJson<SkipAcknowledgement[]>(
+        `${base}/skip-acknowledgements?limit=${ACKNOWLEDGEMENT_LIMIT}`,
+      )
+    ).map((ack) => reviveDates({ ...ack, sourceId }, ['createdAt']));
+    if (acknowledgements.length >= ACKNOWLEDGEMENT_LIMIT) {
+      console.warn(
+        `  ! ${remoteSource.name}: acknowledgements hit the ${ACKNOWLEDGEMENT_LIMIT} cap; some were not pulled`,
+      );
+    }
+    await importSkipAcknowledgements(db, acknowledgements);
+
     console.log(
-      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s)`,
+      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s), ${acknowledgements.length} acknowledgement(s)`,
     );
   }
 

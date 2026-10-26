@@ -171,6 +171,7 @@ export {
   importQueueItems,
   importInventoryItems,
   importExclusionRules,
+  importSkipAcknowledgements,
   importAuditEvents,
 } from './queries/discovery';
 export type {
