@@ -284,6 +284,27 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     source: 'custom',
     keywords: ['network', 'wifi', 'gateway'],
   },
+  {
+    id: 'minus',
+    label: 'Minus',
+    slug: 'minus',
+    source: 'custom',
+    keywords: ['remove', 'subtract', 'zoom out', 'less'],
+  },
+  {
+    id: 'plus',
+    label: 'Plus',
+    slug: 'plus',
+    source: 'custom',
+    keywords: ['add', 'new', 'create', 'zoom in', 'more'],
+  },
+  {
+    id: 'target',
+    label: 'Target',
+    slug: 'target',
+    source: 'custom',
+    keywords: ['center', 'recenter', 'reset', 'crosshair', 'focus'],
+  },
 
   // radix icons (generic symbols for diagrams)
   {
@@ -530,13 +551,6 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     slug: 'ChevronDownIcon',
     source: 'radix',
     keywords: ['down', 'dropdown', 'collapse', 'expand', 'open'],
-  },
-  {
-    id: 'radix-plus',
-    label: 'Plus',
-    slug: 'PlusIcon',
-    source: 'radix',
-    keywords: ['add', 'new', 'create'],
   },
   {
     id: 'radix-check',

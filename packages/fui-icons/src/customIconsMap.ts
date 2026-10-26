@@ -7,7 +7,10 @@ import {
   FolderIcon,
   HaproxyIcon,
   HardDriveIcon,
+  MinusIcon,
+  PlusIcon,
   RouterIcon,
+  TargetIcon,
 } from './customIcons';
 
 export const CUSTOM_ICONS: Record<string, FC<SvgIconProps>> = {
@@ -17,5 +20,8 @@ export const CUSTOM_ICONS: Record<string, FC<SvgIconProps>> = {
   folder: FolderIcon,
   haproxy: HaproxyIcon,
   'hard-drive': HardDriveIcon,
+  minus: MinusIcon,
+  plus: PlusIcon,
   router: RouterIcon,
+  target: TargetIcon,
 };

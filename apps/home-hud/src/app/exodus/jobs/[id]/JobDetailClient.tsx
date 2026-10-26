@@ -737,7 +737,7 @@ export function JobDetailClient({
                 onClick={() => setQueueing(true)}
               >
                 <span className="inline-flex items-center gap-1.5">
-                  <Icon name="radix-plus" size={14} />
+                  <Icon name="plus" size={14} />
                   Queue directories
                 </span>
               </OutlinedButton>

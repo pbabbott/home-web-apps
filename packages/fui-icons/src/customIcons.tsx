@@ -204,3 +204,50 @@ export const HaproxyIcon: FC<SvgIconProps> = ({ size, className }) => (
     <rect x="21" y="21" width="2" height="2" fill="#169bd6" />
   </svg>
 );
+
+export const PlusIcon: FC<SvgIconProps> = ({ size, className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 16 16"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+  >
+    {/* hand-crafted */}
+    <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth={1.5} />
+  </svg>
+);
+
+export const MinusIcon: FC<SvgIconProps> = ({ size, className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 16 16"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+  >
+    {/* hand-crafted */}
+    <path d="M2 8h12" stroke="currentColor" strokeWidth={1.5} />
+  </svg>
+);
+
+export const TargetIcon: FC<SvgIconProps> = ({ size, className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 16 16"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+  >
+    {/* hand-crafted */}
+    <circle cx={8} cy={8} r={5} stroke="currentColor" strokeWidth={1.5} />
+    <path
+      d="M8 1v3M8 12v3M1 8h3M12 8h3"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    />
+  </svg>
+);
