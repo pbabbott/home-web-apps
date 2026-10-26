@@ -3,7 +3,6 @@
 import { errorMessage } from './errors';
 import type {
   InventoryItemDecision,
-  InventoryItemWithExclusion,
   DiscoveryJob,
   ExclusionRule,
   ExclusionRuleScope,
@@ -303,24 +302,6 @@ export async function listAcknowledgedSkipsUnder(
     };
   } catch (err) {
     console.error(`GET skip-acknowledgements under ${pathPrefix} failed:`, err);
-    return { ok: false, error: 'Could not reach homelab-api' };
-  }
-}
-
-/** One inventory item with how exclusion rules treat it, for the details modal. */
-export async function getInventoryItemDetail(
-  id: string,
-): Promise<ActionResult<InventoryItemWithExclusion>> {
-  try {
-    const res = await fetch(`${HOMELAB_API_URL}/inventory-items/${id}`, {
-      cache: 'no-store',
-    });
-
-    if (!res.ok) return { ok: false, error: await errorMessage(res) };
-
-    return { ok: true, data: (await res.json()) as InventoryItemWithExclusion };
-  } catch (err) {
-    console.error(`GET /inventory-items/${id} failed:`, err);
     return { ok: false, error: 'Could not reach homelab-api' };
   }
 }

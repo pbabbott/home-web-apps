@@ -80,14 +80,6 @@ export function parsePage(value: string | undefined): number {
   return Number.isInteger(page) && page >= 1 ? page : 1;
 }
 
-/** How the inventory items are laid out: a dense table or roomy cards. */
-export type InventoryLayout = 'table' | 'cards';
-
-/** A layout from a URL parameter. Absent or unknown means the table. */
-export function parseLayout(value: string | undefined): InventoryLayout {
-  return value === 'cards' ? 'cards' : 'table';
-}
-
 /**
  * True when the agent changed its recommendation after a human decided, so the
  * decision may deserve another look. A pending inventory item has nothing to revisit.
@@ -132,8 +124,6 @@ export interface InventoryItemView {
   q?: string;
   /** Exactly one inventory item, by its root path. */
   path?: string;
-  /** Defaults to the table, so it is omitted from the URL. */
-  layout?: InventoryLayout;
   /** 1-based; the first page is the default, so it is omitted from the URL. */
   page?: number;
 }
@@ -152,7 +142,6 @@ export function inventoryItemsUrl(view: InventoryItemView): string {
   if (view.kind) params.set('kind', view.kind);
   if (view.q) params.set('q', view.q);
   if (view.path) params.set('path', view.path);
-  if (view.layout && view.layout !== 'table') params.set('view', view.layout);
   if (view.page && view.page > 1) params.set('page', String(view.page));
 
   const query = params.toString();
