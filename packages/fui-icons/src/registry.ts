@@ -532,6 +532,13 @@ export const ICON_REGISTRY: FuiIconDefinition[] = [
     keywords: ['down', 'dropdown', 'collapse', 'expand', 'open'],
   },
   {
+    id: 'radix-plus',
+    label: 'Plus',
+    slug: 'PlusIcon',
+    source: 'radix',
+    keywords: ['add', 'new', 'create'],
+  },
+  {
     id: 'radix-check',
     label: 'Check',
     slug: 'CheckIcon',
