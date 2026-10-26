@@ -15,8 +15,8 @@ import {
   OutlinedButton,
   Typography,
 } from '@abbottland/fui-components';
-import { guessKind } from '../../lib/job-display';
-import { promoteSkippedPath } from '../../sources/lib/actions';
+import { guessKind } from './job-display';
+import { promoteSkippedPath } from '../sources/lib/actions';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

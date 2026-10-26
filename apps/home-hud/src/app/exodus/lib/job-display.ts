@@ -101,9 +101,14 @@ export function jobDetailUrl(jobId: string, status?: QueueItemStatus): string {
     : `/exodus/jobs/${jobId}`;
 }
 
+/** `/exodus/jobs/<id>/directories/<itemId>`: one directory of a job. */
+export function directoryDetailUrl(jobId: string, itemId: string): string {
+  return `/exodus/jobs/${jobId}/directories/${itemId}`;
+}
+
 /**
- * `path` relative to the directory it was found in, so a row inside an
- * expanded `C:\backup-test\x` item reads `y\z` rather than the full path.
+ * `path` relative to the directory it was found in, so a row inside the
+ * `C:\backup-test\x` directory reads `y\z` rather than the full path.
  * Falls back to the full path when it is not under `directory`.
  */
 export function relativeToDirectory(directory: string, path: string): string {

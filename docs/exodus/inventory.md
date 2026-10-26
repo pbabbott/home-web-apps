@@ -115,7 +115,7 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 
 ## Inventorying a whole directory
 
-Some directories are better backed up whole than explored (a synced `Google Drive`, a `Dropbox`). On the job detail page an expanded directory has an **Inventory whole directory** button. `POST /queue-items/:id/inventory-directory` (`{ note? }`, REST only, no MCP tool) approves that directory as one inventory item:
+Some directories are better backed up whole than explored (a synced `Google Drive`, a `Dropbox`). On a directory's page (`/exodus/jobs/[id]/directories/[itemId]`) there is an **Inventory whole directory** button. `POST /queue-items/:id/inventory-directory` (`{ note? }`, REST only, no MCP tool) approves that directory as one inventory item:
 
 - If the agent already proposed the directory, that item is approved like any decision (`inventory_item.decision_changed`; the agent's fields are untouched). Otherwise an approved `directory` item is created (`back_up`, `high`, minimal evidence; `inventory_item.promoted` with `wholeDirectory: true`). The response says which (`created`) and how many queue items were skipped (`skippedQueueItems`).
 - Human actor only (409 otherwise). A path under an exclusion rule is 409 with `blocked`.
@@ -124,7 +124,7 @@ Some directories are better backed up whole than explored (a synced `Google Driv
 
 ## Promoting a skipped path
 
-The agent's skips are judgments and can be wrong. On the job detail page, an expanded directory lists its skipped paths with a **Promote** button, plus a "Promote a path…" form for something a `skippedGroups` pattern hid. `POST /queue-items/:id/promote` (`{ path, kind, note?, skipReason? }`, REST only, no MCP tool) then creates an inventory item that is already `approved`: promoting is the human's approval.
+The agent's skips are judgments and can be wrong. A directory's page lists its skipped paths with a **Promote** button, plus a "Promote a path…" form for something a `skippedGroups` pattern hid. `POST /queue-items/:id/promote` (`{ path, kind, note?, skipReason? }`, REST only, no MCP tool) then creates an inventory item that is already `approved`: promoting is the human's approval.
 
 - Human actor only (409 otherwise).
 - The path must lie strictly inside the queue item's directory.

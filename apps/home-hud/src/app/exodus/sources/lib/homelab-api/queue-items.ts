@@ -1,4 +1,5 @@
 import { HOMELAB_API_URL } from './config';
+import type { DiscoveryJobStatus } from './discovery-jobs';
 import { getJson } from './http';
 
 export type QueueItemStatus =
@@ -38,6 +39,34 @@ export interface QueueItem {
   completedAt: string | null;
 }
 
+/** A job's queue item, as listed on the job page. */
+export interface JobQueueItem extends QueueItem {
+  /** Whether a human dealt with every skip; null until the directory has a result. */
+  skipsReviewed: boolean | null;
+}
+
+/** What a human has done about each skip of a directory. */
+export interface SkipReview {
+  /** Null when the directory has no result yet. */
+  reviewed: boolean | null;
+  /** One per `result.skipped`, in order. */
+  paths: { path: string; acknowledged: boolean; inventoried: boolean }[];
+  /** One per `result.skippedGroups`, in order. */
+  patterns: { pattern: string; acknowledged: boolean }[];
+}
+
+export interface QueueItemDetail extends QueueItem {
+  job: {
+    id: string;
+    sourceId: string;
+    rootPath: string;
+    status: DiscoveryJobStatus;
+  };
+  skipReview: SkipReview;
+  /** The directory itself is an approved inventory item. */
+  directoryApproved: boolean;
+}
+
 export interface QueueItemResult {
   summary?: string;
   /** Paths seen and deliberately not explored. */
@@ -72,10 +101,16 @@ export const JOB_QUEUE_ITEMS_LIMIT = 500;
 export async function getJobQueueItems(
   jobId: string,
   status?: QueueItemStatus,
-): Promise<QueueItem[]> {
+): Promise<JobQueueItem[]> {
   const params = new URLSearchParams(status ? { status } : {});
 
-  return getJson<QueueItem[]>(`/discovery-jobs/${jobId}/queue-items?${params}`);
+  return getJson<JobQueueItem[]>(
+    `/discovery-jobs/${jobId}/queue-items?${params}`,
+  );
+}
+
+export async function getQueueItem(id: string): Promise<QueueItemDetail> {
+  return getJson<QueueItemDetail>(`/queue-items/${id}`);
 }
 
 export async function getQueueItems(

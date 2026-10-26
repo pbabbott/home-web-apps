@@ -280,32 +280,6 @@ export async function unacknowledgeSkip(
   );
 }
 
-/** Keys (see `skipKey`) of the source's acknowledged skips at or beneath `pathPrefix`. */
-export async function listAcknowledgedSkipsUnder(
-  sourceId: string,
-  pathPrefix: string,
-): Promise<ActionResult<string[]>> {
-  try {
-    const params = new URLSearchParams({ pathPrefix, limit: '1000' });
-    const res = await fetch(
-      `${HOMELAB_API_URL}/sources/${sourceId}/skip-acknowledgements?${params}`,
-      { cache: 'no-store' },
-    );
-
-    if (!res.ok) return { ok: false, error: await errorMessage(res) };
-
-    const rows = (await res.json()) as SkipAcknowledgement[];
-
-    return {
-      ok: true,
-      data: rows.map((r) => `${r.normalizedPath}|${r.pattern}`),
-    };
-  } catch (err) {
-    console.error(`GET skip-acknowledgements under ${pathPrefix} failed:`, err);
-    return { ok: false, error: 'Could not reach homelab-api' };
-  }
-}
-
 /** The source's connection, or null when it has none yet. */
 export async function getSourceConnection(
   sourceId: string,
