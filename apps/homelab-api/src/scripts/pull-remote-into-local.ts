@@ -15,11 +15,11 @@ import {
   updateHost,
   type DiscoveryJob,
   type AuditEvent,
-  type DiscoveryQueueItem,
   type ExclusionRule,
   type ExporterType,
   type HostType,
   type InventoryItem,
+  type QueueItemWithInventoryCount,
   type SkipAcknowledgement,
   type Source,
 } from '@abbottland/homelab-db';
@@ -133,8 +133,11 @@ async function syncDiscovery(
     await importDiscoveryJobs(db, jobs);
 
     const queueItems = (
-      await fetchRemoteJson<DiscoveryQueueItem[]>(`${base}/queue-items`)
+      await fetchRemoteJson<QueueItemWithInventoryCount[]>(
+        `${base}/queue-items`,
+      )
     ).map((item) =>
+      // `inventoryCount` rides along but is not a column; the insert ignores it.
       reviveDates(item, [
         'availableAt',
         'leaseExpiresAt',

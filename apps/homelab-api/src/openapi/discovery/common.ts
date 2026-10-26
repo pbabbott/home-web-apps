@@ -65,6 +65,14 @@ export const queueSummaryShape = {
 export const discoveryJobResponseSchema =
   discoveryJobSelectSchema.extend(queueSummaryShape);
 
+/** A listed queue item, with how many inventory items it last proposed or added. */
+export const queueItemListEntrySchema = discoveryQueueItemSelectSchema.extend({
+  inventoryCount: z.number().int().meta({
+    description:
+      'Inventory items last proposed or added from this directory; a later job may take one over.',
+  }),
+});
+
 export const queueItemWithCreatedSchema = discoveryQueueItemSelectSchema.extend(
   {
     created: z.boolean().meta({

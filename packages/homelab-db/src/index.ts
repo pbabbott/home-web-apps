@@ -186,6 +186,7 @@ export type {
   ListAllDiscoveryJobsOptions,
   DiscoveryJobWithSource,
   ListQueueItemsOptions,
+  QueueItemWithInventoryCount,
   EnqueueQueueItemsInput,
   ClaimQueueItemInput,
   ClaimQueueItemResult,

@@ -325,6 +325,14 @@ export const inventoryItems = pgTable(
     lastJobId: uuid('last_job_id').references(() => discoveryJobs.id, {
       onDelete: 'set null',
     }),
+    /**
+     * The queue item (directory) that last proposed or added this inventory
+     * item; a later job overwrites it. Counted per queue item for the job page.
+     */
+    lastQueueItemId: uuid('last_queue_item_id').references(
+      () => discoveryQueueItems.id,
+      { onDelete: 'set null' },
+    ),
     kind: inventoryItemKindEnum('kind').notNull(),
     rootPath: text('root_path').notNull(),
     normalizedRootPath: text('normalized_root_path').notNull(),
@@ -369,6 +377,7 @@ export const inventoryItems = pgTable(
       table.recommendation,
     ),
     index('inventory_items_last_job_idx').on(table.lastJobId),
+    index('inventory_items_last_queue_item_idx').on(table.lastQueueItemId),
     check(
       'inventory_items_decided_check',
       sql`${table.decision} = 'pending' or ${table.decidedAt} is not null`,

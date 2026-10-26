@@ -4,6 +4,7 @@ import {
   completedQueueItemSchema,
   conflictResponse,
   discoveryNotFoundResponse,
+  queueItemListEntrySchema,
   queueItemWithCreatedSchema,
 } from './common';
 import {
@@ -143,7 +144,7 @@ export const queueItemsPaths = {
           description: 'The queue items',
           content: {
             'application/json': {
-              schema: z.array(discoveryQueueItemSelectSchema),
+              schema: z.array(queueItemListEntrySchema),
             },
           },
         },
@@ -166,7 +167,7 @@ export const queueItemsPaths = {
           description: 'The queue items',
           content: {
             'application/json': {
-              schema: z.array(discoveryQueueItemSelectSchema),
+              schema: z.array(queueItemListEntrySchema),
             },
           },
         },
@@ -385,7 +386,7 @@ export const queueItemsPaths = {
           description: 'The requeued items',
           content: {
             'application/json': {
-              schema: z.array(discoveryQueueItemSelectSchema),
+              schema: z.array(queueItemListEntrySchema),
             },
           },
         },

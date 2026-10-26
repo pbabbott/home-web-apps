@@ -126,6 +126,7 @@ describe('inventoryItemSelectSchema', () => {
     sourceId: id,
     firstJobId: id,
     lastJobId: id,
+    lastQueueItemId: id,
     kind: 'directory',
     rootPath: 'C:\\code\\project-a',
     normalizedRootPath: 'c:\\code\\project-a',

@@ -129,6 +129,8 @@ export const importInventoryItems = async (
         set: {
           firstJobId: sql`excluded.first_job_id`,
           lastJobId: sql`excluded.last_job_id`,
+          // A remote that predates the column sends none; keep the local link.
+          lastQueueItemId: sql`coalesce(excluded.last_queue_item_id, ${inventoryItems.lastQueueItemId})`,
           kind: sql`excluded.kind`,
           rootPath: sql`excluded.root_path`,
           displayName: sql`excluded.display_name`,

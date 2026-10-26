@@ -3,6 +3,7 @@ import type { Database } from '../../client';
 import {
   discoveryJobs,
   discoveryQueueItems,
+  inventoryItems,
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
   type QueueItemResult,
@@ -49,6 +50,11 @@ export type ListQueueItemsOptions = {
 
 const LIST_QUEUE_ITEMS_LIMIT = 500;
 
+/** A queue item plus how many inventory items it last proposed or added. */
+export type QueueItemWithInventoryCount = DiscoveryQueueItem & {
+  inventoryCount: number;
+};
+
 /**
  * Most recently changed first, so when a big job exceeds the limit it is the
  * oldest, settled items that drop off rather than fresh failures.
@@ -56,9 +62,15 @@ const LIST_QUEUE_ITEMS_LIMIT = 500;
 export const listQueueItems = async (
   db: Database,
   options: ListQueueItemsOptions,
-): Promise<DiscoveryQueueItem[]> => {
+): Promise<QueueItemWithInventoryCount[]> => {
   const rows = await db
-    .select({ item: discoveryQueueItems })
+    .select({
+      item: discoveryQueueItems,
+      inventoryCount: sql<number>`(
+        select count(*)::int from ${inventoryItems}
+        where ${inventoryItems.lastQueueItemId} = ${discoveryQueueItems.id}
+      )`,
+    })
     .from(discoveryQueueItems)
     .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
     .where(
@@ -77,7 +89,10 @@ export const listQueueItems = async (
     .orderBy(desc(discoveryQueueItems.updatedAt), asc(discoveryQueueItems.path))
     .limit(LIST_QUEUE_ITEMS_LIMIT);
 
-  return rows.map((row) => row.item);
+  return rows.map((row) => ({
+    ...row.item,
+    inventoryCount: row.inventoryCount,
+  }));
 };
 
 export type EnqueueQueueItemsInput = {
