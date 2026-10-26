@@ -107,6 +107,15 @@ describe('describeAuditEvent', () => {
     ).toBe('1 queued directory skipped by an exclusion rule');
   });
 
+  it('describes queue items skipped inside an approved directory', () => {
+    expect(
+      describeAuditEvent(event('queue_items.inventoried', { count: 15 })),
+    ).toBe('15 queued directories skipped: inside an approved directory');
+    expect(
+      describeAuditEvent(event('queue_items.inventoried', { count: 1 })),
+    ).toBe('1 queued directory skipped: inside an approved directory');
+  });
+
   it('survives missing details', () => {
     expect(describeAuditEvent(event('exclusion_rule.deleted', null))).toBe(
       '? (?)',

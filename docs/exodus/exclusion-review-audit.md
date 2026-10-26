@@ -27,15 +27,17 @@ Human review is a decision on an inventory item; see [Inventory Items](./invento
 
 ## Audit events
 
-| `event_type`                            | Written when                                                        | `details`                                    |
-| --------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------- |
-| `exclusion_rule.created`                | rule created                                                        | path, scope, reason, global                  |
-| `exclusion_rule.updated`                | scope/reason actually changed                                       | path, before, after                          |
-| `exclusion_rule.deleted`                | rule removed                                                        | snapshot of the removed rule                 |
-| `inventory_item.created`                | an agent first proposes an inventory item                           | path, recommendation, confidence             |
-| `inventory_item.recommendation_changed` | recommendation or confidence changed on rediscovery                 | path, from, to, reason, decision             |
-| `inventory_item.decision_changed`       | a human approves, rejects, changes or resets a decision             | path, from, to, note, recommendation         |
-| `queue_items.excluded`                  | claim skipped queued items under an exclusion rule (actor `system`) | count, ruleIds, up to 100 itemIds, truncated |
+| `event_type`                            | Written when                                                        | `details`                                             |
+| --------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| `exclusion_rule.created`                | rule created                                                        | path, scope, reason, global                           |
+| `exclusion_rule.updated`                | scope/reason actually changed                                       | path, before, after                                   |
+| `exclusion_rule.deleted`                | rule removed                                                        | snapshot of the removed rule                          |
+| `inventory_item.created`                | an agent first proposes an inventory item                           | path, recommendation, confidence                      |
+| `inventory_item.recommendation_changed` | recommendation or confidence changed on rediscovery                 | path, from, to, reason, decision                      |
+| `inventory_item.decision_changed`       | a human approves, rejects, changes or resets a decision             | path, from, to, note, recommendation                  |
+| `queue_items.excluded`                  | claim skipped queued items under an exclusion rule (actor `system`) | count, ruleIds, up to 100 itemIds, truncated          |
+| `queue_items.inventoried`               | queued items skipped inside an approved directory (actor `system`)  | count, inventoryItemIds, up to 100 itemIds, truncated |
+| `inventory_item.promoted`               | a human promotes a skipped path or adds a whole directory           | path, kind, skipReason, wholeDirectory?               |
 
 Every event is inserted in the same transaction as the change it describes, so a rolled-back change leaves no event. Rejected requests (400/404/409) write nothing: there is deliberately no failure-logging framework. `GET /audit-events` is the only route; filters are `sourceId`, `jobId`, `exclusionRuleId`, `inventoryItemId`, `eventType`, `since`, `until`; newest first, `limit` up to 500, `before=<last event id>` for the next page.
 

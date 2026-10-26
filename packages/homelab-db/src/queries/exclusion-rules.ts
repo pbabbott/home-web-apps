@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, isNull, or, sql } from 'drizzle-orm';
 import type { Database } from '../client';
 import { isForeignKeyViolation, isUniqueViolation } from '../pg-errors';
 import {
@@ -8,7 +8,12 @@ import {
   type ExclusionRuleScope,
 } from '../schema/discovery';
 import { insertAuditEvent, type Actor } from './audit';
-import { DiscoveryError, type Tx } from './shared';
+import {
+  DiscoveryError,
+  MAX_AUDITED_ITEM_IDS,
+  coversSql,
+  type Tx,
+} from './shared';
 
 /**
  * How the rules treat one path.
@@ -63,10 +68,6 @@ export const resolveExclusion = (
 
   return { state: 'none', ruleIds: [] };
 };
-
-/** SQL form of `covers`: the rule path equals the path or is an ancestor of it. */
-const coversSql = (rulePath: SQL | unknown, path: SQL | unknown): SQL =>
-  sql`(${path} = ${rulePath} or starts_with(${path}, case when right(${rulePath}, 1) = ${'\\'}::text then ${rulePath} else ${rulePath} || ${'\\'}::text end))`;
 
 /**
  * Rules that apply to the given sources: each source's own rules plus all
@@ -289,8 +290,6 @@ export const deleteExclusionRule = async (
       details: snapshot(rule),
     });
   });
-
-const MAX_AUDITED_ITEM_IDS = 100;
 
 /**
  * Skips every still-queued item of the job that sits under an

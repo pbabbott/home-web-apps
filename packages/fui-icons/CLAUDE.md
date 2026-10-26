@@ -110,4 +110,11 @@ Run from `packages/fui-icons` or repo root (Turborepo will scope it). Required t
 | `folder`     | `FolderIcon`    | lucide/folder — ISC          |
 | `haproxy`    | `HaproxyIcon`   | hand-crafted                 |
 | `hard-drive` | `HardDriveIcon` | lucide/hard-drive — ISC      |
+| `minus`      | `MinusIcon`     | hand-crafted (16px stroke)   |
+| `plus`       | `PlusIcon`      | hand-crafted (16px stroke)   |
 | `router`     | `RouterIcon`    | icon-park-solid — Apache 2.0 |
+| `target`     | `TargetIcon`    | hand-crafted (16px stroke)   |
+
+### Prefer fui-icons
+
+Use `<Icon name="…" />` for icons in apps instead of inline SVGs or direct `@radix-ui/react-icons` imports; add missing ones here first.

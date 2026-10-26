@@ -5,14 +5,18 @@ import {
   getQueueItemById,
   getInventoryItemById,
   getSourceById,
+  countInventoryItems,
   listInventoryItems as listInventoryItemRows,
+  inventoryQueueItemDirectory as inventoryQueueItemDirectoryRow,
   promoteInventoryItem as promoteInventoryItemRow,
   upsertInventoryItems,
   type Actor,
   type InventoryItemDecision,
+  type InventoryItemKind,
   type InventoryItemEvidence,
   type InventoryItemRecommendation,
   type NestedInventoryItem,
+  type InventoriedDirectory,
   type InventoryItem,
   type InventoryItemWithExclusion,
   type UpsertedInventoryItem,
@@ -25,6 +29,7 @@ import {
 } from '../../lib/windows-path';
 import type {
   InventoryItemInput,
+  InventoryDirectoryBody,
   PromoteInventoryItemBody,
 } from '../../schemas/discovery';
 import { assertWithinClaimedDirectory } from './paths';
@@ -116,26 +121,42 @@ export async function listSourceInventoryItems(
     jobId?: string;
     recommendation?: InventoryItemRecommendation;
     decision?: InventoryItemDecision;
+    kind?: InventoryItemKind;
     pathPrefix?: string;
+    path?: string;
+    q?: string;
     after?: string;
+    offset?: number;
     limit?: number;
   },
-): Promise<InventoryItem[]> {
+): Promise<{ items: InventoryItem[]; total: number }> {
   if (!(await getSourceById(db, sourceId))) {
     throw new DiscoveryError('not_found', 'source not found');
   }
 
-  return listInventoryItemRows(db, {
+  const options = {
     sourceId,
     jobId: filters.jobId,
     recommendation: filters.recommendation,
     decision: filters.decision,
+    kind: filters.kind,
     normalizedPathPrefix: filters.pathPrefix
       ? normalizeWindowsPath(filters.pathPrefix).normalizedPath
       : undefined,
+    normalizedPath: filters.path
+      ? normalizeWindowsPath(filters.path).normalizedPath
+      : undefined,
+    search: filters.q,
     after: filters.after,
+    offset: filters.offset,
     limit: filters.limit,
-  });
+  };
+  const [items, total] = await Promise.all([
+    listInventoryItemRows(db, options),
+    countInventoryItems(db, options),
+  ]);
+
+  return { items, total };
 }
 
 export const getInventoryItem = (
@@ -191,6 +212,41 @@ export async function promoteInventoryItem(
       inventoryItem.sourceId,
       normalizedPath,
       ancestorsOf(normalizedPath),
+    )),
+  };
+}
+
+/**
+ * A human adds a queue item's whole directory to the inventory (approving the
+ * agent's proposal if there is one), which skips the active job's queued items
+ * beneath it.
+ */
+export async function inventoryDirectory(
+  queueItemId: string,
+  body: InventoryDirectoryBody,
+  actor: Actor,
+): Promise<
+  InventoriedDirectory & {
+    coveredBy: NestedInventoryItem[];
+    covers: NestedInventoryItem[];
+  }
+> {
+  const queueItem = await getQueueItemById(db, queueItemId);
+  if (!queueItem) throw new DiscoveryError('not_found', 'queue item not found');
+
+  const result = await inventoryQueueItemDirectoryRow(db, queueItemId, {
+    displayName: windowsPathName(queueItem.path),
+    note: body.note,
+    actor,
+  });
+
+  return {
+    ...result,
+    ...(await findNestedInventoryItems(
+      db,
+      result.inventoryItem.sourceId,
+      queueItem.normalizedPath,
+      ancestorsOf(queueItem.normalizedPath),
     )),
   };
 }

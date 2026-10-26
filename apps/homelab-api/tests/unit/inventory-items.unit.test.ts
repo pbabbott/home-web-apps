@@ -200,7 +200,10 @@ describe('inventory item routes', () => {
 
   describe('GET /sources/:id/inventory-items', () => {
     it('passes filters and defaults the limit', async () => {
-      mocked.listSourceInventoryItems.mockResolvedValue([]);
+      mocked.listSourceInventoryItems.mockResolvedValue({
+        items: [],
+        total: 0,
+      });
 
       await supertest(createServer())
         .get(
@@ -214,6 +217,37 @@ describe('inventory item routes', () => {
         jobId: ID,
         limit: 100,
       });
+    });
+
+    it('passes search, exact path, kind and offset, and returns the total', async () => {
+      mocked.listSourceInventoryItems.mockResolvedValue({
+        items: [],
+        total: 7,
+      });
+
+      const res = await supertest(createServer())
+        .get(
+          `/sources/${SOURCE_ID}/inventory-items?q=%20photos%20&path=C:%5Cdata&kind=file&offset=50`,
+        )
+        .expect(200);
+
+      expect(res.body).toEqual({ items: [], total: 7 });
+      expect(mocked.listSourceInventoryItems).toHaveBeenCalledWith(SOURCE_ID, {
+        q: 'photos',
+        path: 'C:\\data',
+        kind: 'file',
+        offset: 50,
+        limit: 100,
+      });
+    });
+
+    it('rejects offset together with after, and a blank search', async () => {
+      await supertest(createServer())
+        .get(`/sources/${SOURCE_ID}/inventory-items?offset=1&after=c:%5Cx`)
+        .expect(400);
+      await supertest(createServer())
+        .get(`/sources/${SOURCE_ID}/inventory-items?q=%20`)
+        .expect(400);
     });
 
     it('rejects unknown filter values', async () => {
@@ -303,6 +337,7 @@ describe('inventory item routes', () => {
           summary: 'assessed root',
           skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
           skippedGroups: [],
+          unreadable: [],
         },
       );
     });

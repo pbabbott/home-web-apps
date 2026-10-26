@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, HexagonalBackground, Panel } from '@abbottland/fui-components';
+import { Icon } from '@abbottland/fui-icons';
 import {
   useCallback,
   useEffect,
@@ -33,35 +34,6 @@ interface PanZoomCanvasProps {
   children: ReactNode;
   /** Changing this re-centers the canvas — a new metric/groupBy reshuffles the whole layout. */
   resetKey?: string;
-}
-
-function PlusIcon() {
-  return (
-    <svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth={1.5} />
-    </svg>
-  );
-}
-
-function MinusIcon() {
-  return (
-    <svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <path d="M2 8h12" stroke="currentColor" strokeWidth={1.5} />
-    </svg>
-  );
-}
-
-function TargetIcon() {
-  return (
-    <svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <circle cx={8} cy={8} r={5} stroke="currentColor" strokeWidth={1.5} />
-      <path
-        d="M8 1v3M8 12v3M1 8h3M12 8h3"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      />
-    </svg>
-  );
 }
 
 /**
@@ -295,7 +267,7 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
           variant="contained"
           className="p-1.5"
         >
-          <PlusIcon />
+          <Icon name="plus" size={16} />
         </Button>
         <Button
           onClick={() => zoomByButton(1 / ZOOM_BUTTON_STEP)}
@@ -304,7 +276,7 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
           variant="contained"
           className="p-1.5"
         >
-          <MinusIcon />
+          <Icon name="minus" size={16} />
         </Button>
         <Button
           onClick={recenter}
@@ -313,7 +285,7 @@ export function PanZoomCanvas({ children, resetKey }: PanZoomCanvasProps) {
           variant="contained"
           className="p-1.5"
         >
-          <TargetIcon />
+          <Icon name="target" size={16} />
         </Button>
       </div>
     </Panel>

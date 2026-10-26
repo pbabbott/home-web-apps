@@ -109,11 +109,16 @@ export {
   getInventoryItemById,
   decideInventoryItem,
   promoteInventoryItem,
+  inventoryQueueItemDirectory,
+  skipInventoriedQueueItems,
   listInventoryItems,
+  countInventoryItems,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {
   PromoteInventoryItemInput,
+  InventoryQueueItemDirectoryInput,
+  InventoriedDirectory,
   InventoryItemInput,
   UpsertInventoryItemsInput,
   UpsertedInventoryItem,

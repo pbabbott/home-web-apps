@@ -118,6 +118,21 @@ export const completeQueueItemBodySchema = z.object({
       description:
         'Many similar direct entries skipped by name pattern instead of listing each. Not recursive.',
     }),
+  unreadable: z
+    .array(
+      z.object({
+        path: windowsPathSchema,
+        error: z.string().trim().min(1).max(300).meta({
+          example: 'EPERM: operation not permitted (realpath)',
+        }),
+      }),
+    )
+    .max(MAX_SKIPPED_PER_REQUEST)
+    .default([])
+    .meta({
+      description:
+        'Direct child directories you could not list (access denied, EPERM). Recorded as failed for a human to retry once access is granted. Do not also put them in discoveredPaths or skipped.',
+    }),
 });
 export type CompleteQueueItemBody = z.infer<typeof completeQueueItemBodySchema>;
 

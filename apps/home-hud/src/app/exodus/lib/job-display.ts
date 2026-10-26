@@ -75,6 +75,16 @@ export const QUEUE_STATUS_COLOR: Record<QueueItemStatus, BadgeColor> = {
   skipped: 'dark',
 };
 
+/** Tooltip text: what each directory status means. */
+export const QUEUE_STATUS_DESCRIPTION: Record<QueueItemStatus, string> = {
+  queued: 'Waiting for the agent to explore this directory.',
+  in_progress: 'The agent has claimed this directory and is exploring it now.',
+  completed: 'Explored. Its subdirectories were queued as their own items.',
+  failed: 'Exploration errored. See Last error; retry while the job is active.',
+  skipped:
+    'Not explored on purpose: excluded by a rule, covered by an approved inventory directory, or skipped by a human.',
+};
+
 const QUEUE_STATUSES = Object.keys(QUEUE_STATUS_COLOR) as QueueItemStatus[];
 
 /** A `?status=` value, or undefined for anything that is not a queue item status. */
@@ -105,6 +115,22 @@ export function relativeToDirectory(directory: string, path: string): string {
   return startsWithBase && /^[\\/]/.test(rest) ? rest.slice(1) : path;
 }
 
+/**
+ * Orders paths folder by folder, case-insensitively, so a directory is followed
+ * by what is inside it (`a`, `a\\b`, `a-old`) rather than `a-old` splitting them,
+ * as a plain string compare would since `-` sorts before `\\`.
+ */
+export function comparePaths(a: string, b: string): number {
+  const left = a.toLowerCase().split(/[\\/]+/);
+  const right = b.toLowerCase().split(/[\\/]+/);
+
+  for (let i = 0; i < Math.min(left.length, right.length); i++) {
+    if (left[i] !== right[i]) return left[i] < right[i] ? -1 : 1;
+  }
+
+  return left.length - right.length;
+}
+
 /** One line for the table: `3 skipped, 2 patterns`, or an empty string when nothing was skipped. */
 export function describeSkips(result: QueueItemResult | null): string {
   if (!result) return '';
@@ -118,6 +144,9 @@ export function describeSkips(result: QueueItemResult | null): string {
   if (groups > 0) {
     parts.push(`${groups} ${groups === 1 ? 'pattern' : 'patterns'}`);
   }
+
+  const unreadable = result.unreadable?.length ?? 0;
+  if (unreadable > 0) parts.push(`${unreadable} unreadable`);
 
   return parts.join(', ');
 }

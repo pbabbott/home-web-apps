@@ -84,7 +84,7 @@ export const enqueueQueueItems = handle(
 export const claimQueueItemOperation = {
   summary: 'Claim the next directory to inspect',
   description:
-    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
+    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first, and queued items inside an approved directory inventory item or under an exclusion rule are skipped rather than handed out. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
   mcp: {
     name: 'claim_directory',
     description:
@@ -161,11 +161,11 @@ export const heartbeatQueueItem = handle(
 export const completeQueueItemOperation = {
   summary: 'Complete a claimed directory and enqueue the follow-ups it needs',
   description:
-    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped` and `skippedGroups` are stored on the item as its result. Follow-ups under an exclusion rule are skipped immediately.',
+    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped`, `skippedGroups` and `unreadable` are stored on the item as its result; each `unreadable` child (access denied) is also recorded at once as a failed item, with no attempt spent, for a human to retry. Follow-ups under an exclusion rule are skipped immediately.',
   mcp: {
     name: 'complete_directory',
     description:
-      'Finish a claimed directory. discoveredPaths: subdirectories to explore later; skipped / skippedGroups: entries deliberately not explored; summary: one line. Returns what was queued, and what was auto-excluded by a rule.',
+      'Finish a claimed directory. discoveredPaths: subdirectories to explore later; skipped / skippedGroups: entries deliberately not explored; unreadable: child directories you could not list (EPERM, access denied), recorded as failed for a human; summary: one line. Returns what was queued, and what was auto-excluded by a rule.',
   },
 } satisfies Operation;
 
@@ -173,13 +173,19 @@ export const completeQueueItem = handle(
   'POST /queue-items/:id/complete',
   async (req, res) => {
     const { id } = req.params as QueueItemIdParams;
-    const { claimToken, discoveredPaths, summary, skipped, skippedGroups } =
-      req.body as CompleteQueueItemBody;
+    const {
+      claimToken,
+      discoveredPaths,
+      summary,
+      skipped,
+      skippedGroups,
+      unreadable,
+    } = req.body as CompleteQueueItemBody;
     const { item, children } = await discoveryService.completeItem(
       id,
       claimToken,
       discoveredPaths,
-      { summary, skipped, skippedGroups },
+      { summary, skipped, skippedGroups, unreadable },
     );
     res.status(200).json({
       ...item,
@@ -201,7 +207,7 @@ export const failQueueItemOperation = {
   mcp: {
     name: 'fail_directory',
     description:
-      'Report that a claimed directory could not be explored. Retryable failures are requeued with backoff until attempts run out; retryable=false fails it permanently.',
+      'Report that a claimed directory could not be explored. Retryable failures are requeued with backoff until attempts run out; retryable=false fails it permanently (use for access denied; retryable is for transient errors).',
   },
 } satisfies Operation;
 

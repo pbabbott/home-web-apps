@@ -10,6 +10,7 @@ import {
 import {
   decideInventoryItemOperation,
   getInventoryItemOperation,
+  inventoryDirectoryOperation,
   listInventoryItemsOperation,
   promoteInventoryItemOperation,
   proposeInventoryItemsOperation,
@@ -17,6 +18,7 @@ import {
 import {
   inventoryItemEvidenceSchema,
   decideInventoryItemBodySchema,
+  inventoryDirectoryBodySchema,
   promoteInventoryItemBodySchema,
   proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
@@ -61,6 +63,19 @@ const upsertedInventoryItemSchema = inventoryItemSchema.extend({
     description:
       'true if an existing inventory item’s recommendation, evidence or other agent fields changed.',
   }),
+});
+
+const inventoriedDirectorySchema = z.object({
+  inventoryItem: inventoryItemSchema,
+  created: z.boolean().meta({
+    description: 'false when the agent had already proposed the directory.',
+  }),
+  skippedQueueItems: z.number().int().meta({
+    description:
+      'Queued items of the active job skipped now because they sit inside the directory.',
+  }),
+  coveredBy: z.array(nestedInventoryItemSchema),
+  covers: z.array(nestedInventoryItemSchema),
 });
 
 const inventoryItemWithExclusionSchema = inventoryItemSchema.extend({
@@ -110,7 +125,15 @@ export const inventoryItemsPaths = {
         '200': {
           description: 'The inventory items',
           content: {
-            'application/json': { schema: z.array(inventoryItemSchema) },
+            'application/json': {
+              schema: z.object({
+                items: z.array(inventoryItemSchema),
+                total: z.number().int().meta({
+                  description:
+                    'Every inventory item matching the filters, ignoring paging.',
+                }),
+              }),
+            },
           },
         },
         '400': validationErrorResponse,
@@ -159,6 +182,35 @@ export const inventoryItemsPaths = {
         '404': discoveryNotFoundResponse('inventory item'),
         '409': conflictResponse(
           'The actor is not a human, or the path is covered by an exclusion rule and cannot be approved',
+        ),
+      },
+    },
+  },
+  '/queue-items/{id}/inventory-directory': {
+    post: {
+      summary: inventoryDirectoryOperation.summary,
+      'x-home-hud': inventoryDirectoryOperation.hud,
+      description: inventoryDirectoryOperation.description,
+      requestParams: {
+        path: queueItemIdParamsSchema,
+        header: actorHeaders,
+      },
+      requestBody: {
+        content: {
+          'application/json': { schema: inventoryDirectoryBodySchema },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'The approved directory inventory item',
+          content: {
+            'application/json': { schema: inventoriedDirectorySchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+        '409': conflictResponse(
+          'The actor is not a human, an exclusion rule covers the path, or the path is a file inventory item',
         ),
       },
     },

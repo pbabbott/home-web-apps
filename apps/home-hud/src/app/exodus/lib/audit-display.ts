@@ -5,6 +5,7 @@ export const AUDIT_EVENT_LABELS: Record<AuditEventType, string> = {
   'exclusion_rule.updated': 'Rule updated',
   'exclusion_rule.deleted': 'Rule removed',
   'queue_items.excluded': 'Queue skipped',
+  'queue_items.inventoried': 'Queue skipped (inventoried)',
   'inventory_item.created': 'Inventory item proposed',
   'inventory_item.recommendation_changed': 'Recommendation changed',
   'inventory_item.decision_changed': 'Inventory item decided',
@@ -58,6 +59,7 @@ interface AuditDetails {
   to?: string | { recommendation?: string; confidence?: string };
   count?: number;
   skipReason?: string | null;
+  wholeDirectory?: boolean;
 }
 
 /** One line saying what an event did, built from its `details`. */
@@ -82,9 +84,11 @@ export function describeAuditEvent(event: AuditEvent): string {
     case 'inventory_item.decision_changed':
       return `${d.path ?? '?'}: ${decisionWord(d.from)} → ${decisionWord(d.to)}`;
     case 'inventory_item.promoted':
-      return `${d.path ?? '?'}${d.skipReason ? `: was skipped as "${d.skipReason}"` : ''}`;
+      return `${d.path ?? '?'}${d.wholeDirectory ? ': added as a whole directory' : ''}${d.skipReason ? `: was skipped as "${d.skipReason}"` : ''}`;
     case 'queue_items.excluded':
       return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped by an exclusion rule`;
+    case 'queue_items.inventoried':
+      return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped: inside an approved directory`;
   }
 }
 

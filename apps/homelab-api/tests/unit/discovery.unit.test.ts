@@ -274,7 +274,12 @@ describe('discovery routes', () => {
         ID,
         TOKEN,
         ['C:\\a\\b'],
-        { summary: undefined, skipped: [], skippedGroups: [] },
+        {
+          summary: undefined,
+          skipped: [],
+          skippedGroups: [],
+          unreadable: [],
+        },
       );
       expect(res.body.children).toEqual([{ id: TOKEN, created: true }]);
     });

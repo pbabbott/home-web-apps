@@ -111,7 +111,16 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 - Approval is refused (409 + `ruleIds`) when an exclusion rule covers the path. Rejecting is always allowed.
 - Any explicit change is allowed and audited, including reversing or resetting to `pending`.
 - Repeating the current decision and note is a no-op with no event. An omitted note is kept when the decision is unchanged and cleared when it changes.
-- An approval normally covers the inventory item's subtree, so internal folders need no separate approval. A nested inventory item can still exist (a subproject can be a legitimate separate unit), so nesting is allowed but made visible: see [Nested inventory items](#nested-inventory-items).
+- An approval normally covers the inventory item's subtree, so internal folders need no separate approval. Approving a `directory` item also skips the queued work beneath it: see [Inventorying a whole directory](#inventorying-a-whole-directory). A nested inventory item can still exist (a subproject can be a legitimate separate unit), so nesting is allowed but made visible: see [Nested inventory items](#nested-inventory-items).
+
+## Inventorying a whole directory
+
+Some directories are better backed up whole than explored (a synced `Google Drive`, a `Dropbox`). On the job detail page an expanded directory has an **Inventory whole directory** button. `POST /queue-items/:id/inventory-directory` (`{ note? }`, REST only, no MCP tool) approves that directory as one inventory item:
+
+- If the agent already proposed the directory, that item is approved like any decision (`inventory_item.decision_changed`; the agent's fields are untouched). Otherwise an approved `directory` item is created (`back_up`, `high`, minimal evidence; `inventory_item.promoted` with `wholeDirectory: true`). The response says which (`created`) and how many queue items were skipped (`skippedQueueItems`).
+- Human actor only (409 otherwise). A path under an exclusion rule is 409 with `blocked`.
+- **Queued work inside an approved directory is skipped**, whichever way it was approved (this button, **Approve** on `/exodus/inventory`, or promote). At that moment only the directory just approved is acted on: the job's `queued` items at or beneath it become `skipped` (`lastError: skipped: covered by approved inventory item <path>`, naming the nearest approved directory that covers it), and a separate check enforces **every** approved directory when paths are enqueued or follow-ups are queued and at every claim, like exclusion rules (so work queued before another approval is skipped when the agent next claims, never as a side effect of an unrelated click). `in_progress` items finish; `completed` and `failed` items are untouched; approved files and non-approved items cover nothing. One `queue_items.inventoried` event (actor `system`) records each batch.
+- It is one-way: rejecting or resetting the item later does not requeue what was skipped. Queue the paths again (job detail page) or start a new job.
 
 ## Promoting a skipped path
 

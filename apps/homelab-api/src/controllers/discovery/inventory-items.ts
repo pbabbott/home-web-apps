@@ -4,6 +4,7 @@ import { handle } from './handle';
 import type { Operation } from '../operation';
 import type {
   DecideInventoryItemBody,
+  InventoryDirectoryBody,
   ProposeInventoryItemsBody,
   PromoteInventoryItemBody,
   QueueItemIdParams,
@@ -53,11 +54,11 @@ export const proposeInventoryItems = handle(
 export const listInventoryItemsOperation = {
   summary: 'List a source’s inventory items',
   description:
-    'Ordered by normalizedRootPath. Up to `limit` (default 100, max 500) per page; pass the last normalizedRootPath as `after` for the next page. Filter by last-proposing job, recommendation, decision, or path prefix.',
+    'Returns `{ items, total }`; `total` counts every match, ignoring paging. Ordered by normalizedRootPath. Up to `limit` (default 100, max 500) per page; pass the last normalizedRootPath as `after` for the next page, or `offset` for numbered pages. Filter by last-proposing job, recommendation, decision, kind, path prefix, exact path, or a case-insensitive search `q` over path, name and summary.',
   mcp: {
     name: 'list_inventory_items',
     description:
-      'Inventory items already recorded for a source, with human decisions. Filter by recommendation, decision, jobId or pathPrefix; pass `next` back as `after` for more.',
+      'Inventory items already recorded for a source, with human decisions. Filter by recommendation, decision, kind, jobId, pathPrefix, exact path or search text `q`; pass `next` back as `after` for more. `total` is the number of matches.',
   },
   hud: '/exodus/inventory',
 } satisfies Operation;
@@ -96,7 +97,7 @@ export const getInventoryItem = handle(
 export const decideInventoryItemOperation = {
   summary: 'Approve or reject an inventory item',
   description:
-    'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). Approval is refused for paths under an exclusion rule. An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow and changes nothing else. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
+    'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). Approval is refused for paths under an exclusion rule. An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow. Approving a `directory` item also marks the active job’s still-`queued` items inside it `skipped` (see inventory-directory); reversing the approval does not requeue them. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
   hud: '/exodus/inventory',
 } satisfies Operation;
 
@@ -131,5 +132,25 @@ export const promoteInventoryItem = handle(
       .json(
         await discoveryService.promoteInventoryItem(id, body, actorOf(res)),
       );
+  },
+);
+
+// Does: let a human add a queue item's whole directory to the inventory.
+// Who: human only (REST). Deliberately no MCP tool.
+export const inventoryDirectoryOperation = {
+  summary: 'Add a whole directory to the inventory',
+  description:
+    'Approves the directory as one inventory item, so exploring inside it is unnecessary. Approves the agent’s proposal for the queue item’s directory when there is one (its agent fields are untouched, like any decision), otherwise creates an approved `directory` item with a `back_up` recommendation. Either way, the active job’s still-`queued` items inside the directory are marked `skipped`, and later enqueues or claims under it are skipped too (`queue_items.inventoried` audit event); in-progress and finished items are untouched. Only a human actor may do this (409 otherwise). Refused with 409 when an exclusion rule covers the path. `created` says whether the item is new; `skippedQueueItems` how many queue items were skipped now. Lists `coveredBy` / `covers` like a proposal.',
+  hud: '/exodus/jobs',
+} satisfies Operation;
+
+export const inventoryDirectory = handle(
+  'POST /queue-items/:id/inventory-directory',
+  async (req, res) => {
+    const { id } = req.params as QueueItemIdParams;
+    const body = req.body as InventoryDirectoryBody;
+    res
+      .status(200)
+      .json(await discoveryService.inventoryDirectory(id, body, actorOf(res)));
   },
 );

@@ -201,13 +201,41 @@ export async function promoteSkippedPath(
   return post<InventoryItem>(`/queue-items/${queueItemId}/promote`, input);
 }
 
-/** Normalized paths of the source's inventory items at or beneath `pathPrefix`. */
+export interface InventoriedDirectory {
+  inventoryItem: InventoryItem;
+  /** False when the agent had already proposed the directory. */
+  created: boolean;
+  /** Queued items of the active job skipped because they sit inside it. */
+  skippedQueueItems: number;
+}
+
+/**
+ * A human adds a queue item's whole directory to the inventory, approved: the
+ * agent's proposal is approved if there is one, else an item is created. The
+ * job's queued items inside it are skipped. Sent as the default (human) actor.
+ */
+export async function inventoryWholeDirectory(
+  queueItemId: string,
+  note?: string,
+): Promise<ActionResult<InventoriedDirectory>> {
+  return post<InventoriedDirectory>(
+    `/queue-items/${queueItemId}/inventory-directory`,
+    note ? { note } : {},
+  );
+}
+
+/**
+ * Normalized paths of the source's inventory items at or beneath `pathPrefix`;
+ * only the approved ones when `approvedOnly`.
+ */
 export async function listInventoryPathsUnder(
   sourceId: string,
   pathPrefix: string,
+  approvedOnly = false,
 ): Promise<ActionResult<string[]>> {
   try {
     const params = new URLSearchParams({ pathPrefix, limit: '500' });
+    if (approvedOnly) params.set('decision', 'approved');
     const res = await fetch(
       `${HOMELAB_API_URL}/sources/${sourceId}/inventory-items?${params}`,
       { cache: 'no-store' },
@@ -215,7 +243,7 @@ export async function listInventoryPathsUnder(
 
     if (!res.ok) return { ok: false, error: await errorMessage(res) };
 
-    const items = (await res.json()) as InventoryItem[];
+    const { items } = (await res.json()) as { items: InventoryItem[] };
 
     return { ok: true, data: items.map((i) => i.normalizedRootPath) };
   } catch (err) {
