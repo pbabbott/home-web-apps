@@ -1405,6 +1405,51 @@ describe('inventorying a whole directory', () => {
         'queue_items.inventoried',
       ]),
     );
+
+    const queue = (
+      await getRequest()
+        .get(`/discovery-jobs/${job.id}/queue-items`)
+        .expect(200)
+    ).body as { path: string; lastError: string | null }[];
+    expect(queue.find((q) => q.path === FINANCE)?.lastError).toBe(
+      `skipped: covered by approved inventory item ${DRIVE}`,
+    );
+  });
+
+  it('names the nearest approved directory when several cover an item', async () => {
+    const sourceId = await createSource();
+    const { job, drive } = await driveWithChildren(sourceId);
+    const nested = `${DRIVE}\\Finance\\Taxes`;
+    await enqueue(job.id, [nested]);
+    await db.$client.query(
+      "update discovery_queue_items set status = 'queued', last_error = null, completed_at = null where job_id = $1 and path = $2",
+      [job.id, nested],
+    );
+    const financeItem = (
+      (
+        await getRequest()
+          .get(`/discovery-jobs/${job.id}/queue-items`)
+          .expect(200)
+      ).body as { id: string; path: string }[]
+    ).find((q) => q.path === FINANCE) as { id: string };
+    await inventoryDirectory(financeItem).expect(200);
+    await db.$client.query(
+      "update discovery_queue_items set status = 'queued', last_error = null, completed_at = null where job_id = $1 and path = $2",
+      [job.id, nested],
+    );
+
+    await inventoryDirectory(drive).expect(200);
+
+    const row = (
+      (
+        await getRequest()
+          .get(`/discovery-jobs/${job.id}/queue-items`)
+          .expect(200)
+      ).body as { path: string; lastError: string | null }[]
+    ).find((q) => q.path === nested);
+    expect(row?.lastError).toBe(
+      `skipped: covered by approved inventory item ${FINANCE}`,
+    );
   });
 
   it('approves the agent’s proposal instead of replacing it', async () => {

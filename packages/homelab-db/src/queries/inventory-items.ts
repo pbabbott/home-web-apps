@@ -405,7 +405,8 @@ export const skipInventoriedQueueItems = async (
     .update(q)
     .set({
       status: 'skipped',
-      lastError: 'skipped: covered by an approved inventory item',
+      // Names the nearest (deepest) approved directory, so the reason is traceable.
+      lastError: sql`'skipped: covered by approved inventory item ' || (select ${i.rootPath} from ${i} where ${i.sourceId} = ${input.sourceId} and ${i.kind} = 'directory' and ${i.decision} = 'approved' and ${coversSql(i.normalizedRootPath, q.normalizedPath)} order by length(${i.normalizedRootPath}) desc limit 1)`,
       completedAt: sql`now()`,
       updatedAt: sql`now()`,
     })
