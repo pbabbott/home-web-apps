@@ -22,7 +22,8 @@ import {
   type Source,
 } from '@abbottland/homelab-db';
 import { config, initConfig } from '../config';
-import { initDb, db } from '../db';
+import { db } from '../db';
+import { assertDatabaseIsLocal, initLocalDb } from './local-only';
 
 interface RemoteHost {
   id: string;
@@ -35,8 +36,13 @@ interface RemoteHost {
 }
 
 /**
- * Pulls the host list (physical + virtual) from a remote homelab-api — e.g.
- * production — and upserts it into the local database. Local resets lose
+ * ONE WAY ONLY: remote -> local. Reads (GET only) from a remote homelab-api —
+ * e.g. production — and overwrites the LOCAL database with it. The remote is
+ * only ever a source; `assertDatabaseIsLocal` refuses to run if
+ * POSTGRES_HOST is not this machine.
+ *
+ * Pulls the host list (physical + virtual) from the remote and upserts it into
+ * the local database. Local resets lose
  * hand-registered hosts; this re-seeds them without hand-typing IPs/instances
  * again. Matches existing rows by `ipAddress` rather than `id`, since `id`
  * is a per-environment UUID that will never line up across environments.
@@ -140,9 +146,9 @@ async function syncDiscovery(
       const query = new URLSearchParams({ limit: String(PAGE_SIZE) });
       if (after) query.set('after', after);
 
-      const page = await fetchRemoteJson<InventoryItem[]>(
-        `${base}/inventory-items?${query}`,
-      );
+      const { items: page } = await fetchRemoteJson<{
+        items: InventoryItem[];
+      }>(`${base}/inventory-items?${query}`);
       if (page.length === 0) break;
 
       await importInventoryItems(
@@ -230,11 +236,15 @@ async function run() {
   const remoteUrl = process.env.REMOTE_HOMELAB_API_URL ?? DEFAULT_REMOTE_URL;
 
   await initConfig();
+  // Check the target before anything touches it, migrations included.
+  assertDatabaseIsLocal(config.postgres);
   // A freshly reset database has no tables yet; the API normally migrates at startup.
   await runMigrationsWithLock(config.postgres);
-  initDb();
+  initLocalDb(config.postgres);
 
-  console.log(`Fetching hosts from ${remoteUrl}/hosts ...`);
+  console.log(
+    `Pulling hosts FROM remote ${remoteUrl}/hosts INTO local database ...`,
+  );
   const remoteHosts = await fetchRemoteHosts(remoteUrl);
   console.log(`Got ${remoteHosts.length} host(s) from remote.`);
 

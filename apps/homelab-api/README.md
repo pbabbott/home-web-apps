@@ -111,15 +111,18 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 
 ## Seeding hosts and exodus data from a remote environment
 
-A local database reset (`pnpm dev:deps:down`) wipes hand-registered hosts. Rather than re-entering IPs/instances by hand, `pnpm run seed:remote` pulls the full host list from a remote `homelab-api` (e.g. production) and upserts it into the local database — matching existing rows by `ipAddress` (not `id`, which is a per-environment UUID).
+A local database reset (`pnpm dev:deps:down`) wipes hand-registered hosts. Rather than re-entering IPs/instances by hand, `pnpm run local:pull-remote` pulls the full host list from a remote `homelab-api` (e.g. production) and upserts it into the **local** database — matching existing rows by `ipAddress` (not `id`, which is a per-environment UUID).
 
 Production `homelab-api` has its own route on the cluster's gateway: `https://homelab-api.local.abbottland.io` (sits alongside `home-hud`'s own route on the same `istio-ingress` gateway, in the `home-hud` namespace — not actually proxied through `home-hud` itself).
 
 ```sh
-pnpm run seed:remote   # REMOTE_HOMELAB_API_URL overrides the prod default
+pnpm run local:pull-remote   # REMOTE_HOMELAB_API_URL overrides the prod default
 ```
 
-To bring a local environment to prod parity from scratch, `pnpm run dev:sync-prod` wipes the local Postgres volume, restarts it, and runs `seed:remote`, which applies migrations before seeding.
+To bring a local environment to prod parity from scratch, `pnpm run local:reset-from-remote` wipes the local Postgres volume, restarts it, and runs `local:pull-remote`, which applies migrations before seeding. Local SMB credentials (`source_connections`) survive the wipe: `local:smb-connections:save` writes them to the gitignored `.local-connections.json` first and `local:smb-connections:restore` re-inserts them afterwards, matched by source name. Prod credentials are never copied.
+
+> [!WARNING]
+> These scripts only go one way: **remote → local**. The remote is read over its HTTP API (GET only) and is never a write target. They overwrite the database in `POSTGRES_HOST`, so they refuse to run (`RemoteDatabaseTargetError`) unless it is `localhost`, `127.0.0.1` or `::1`.
 
 Output lists each host as created (`+`) or updated (`~`), e.g.:
 
@@ -138,4 +141,4 @@ After hosts, the script also syncs the exodus discovery tables from the remote: 
 > A remote `pending`/`running` job conflicts with a different local active job on the same source (one-active-job-per-source index); the sync fails in that case.
 
 > [!NOTE]
-> If `@abbottland/homelab-db` was changed since its last build, rebuild it first (`pnpm --filter @abbottland/homelab-db build`) — `seed:remote` runs against the package's compiled `dist`, not its source.
+> If `@abbottland/homelab-db` was changed since its last build, rebuild it first (`pnpm --filter @abbottland/homelab-db build`) — `local:pull-remote` runs against the package's compiled `dist`, not its source.
