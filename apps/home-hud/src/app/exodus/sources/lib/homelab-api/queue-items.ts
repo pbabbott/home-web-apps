@@ -32,6 +32,8 @@ export interface QueueItem {
   reason: string | null;
   /** What the worker concluded about the directory; null until completed. */
   result: QueueItemResult | null;
+  /** Inventory items this directory last proposed or added; a later job may take one over. */
+  inventoryCount: number;
   createdAt: string;
   completedAt: string | null;
 }
