@@ -145,6 +145,9 @@ export function describeSkips(result: QueueItemResult | null): string {
     parts.push(`${groups} ${groups === 1 ? 'pattern' : 'patterns'}`);
   }
 
+  const unreadable = result.unreadable?.length ?? 0;
+  if (unreadable > 0) parts.push(`${unreadable} unreadable`);
+
   return parts.join(', ');
 }
 

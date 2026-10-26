@@ -385,6 +385,37 @@ function QueueItemDetails({
         </div>
       )}
 
+      {result?.unreadable && result.unreadable.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <Typography variant="body1" className="text-neutral-400">
+            Unreadable directories · {result.unreadable.length} (failed, retry
+            once access is granted)
+          </Typography>
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Path</Th>
+                  <Th color="secondary">Error</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {result.unreadable.map((entry) => (
+                  <TableRow key={entry.path}>
+                    <Td color="secondary" className="break-all">
+                      {relativeToDirectory(item.path, entry.path)}
+                    </Td>
+                    <Td color="secondary" className="text-neutral-400">
+                      {entry.error}
+                    </Td>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
+        </div>
+      )}
+
       {result && result.skipped.length > 0 && (
         <div className="flex flex-col gap-1">
           <Typography variant="body1" className="text-neutral-400">

@@ -42,6 +42,8 @@ export interface QueueItemResult {
   skipped: { path: string; reason: string }[];
   /** Many similar direct entries skipped by name pattern. */
   skippedGroups?: { pattern: string; count?: number; reason: string }[];
+  /** Child directories the agent could not read; also failed queue items. */
+  unreadable?: { path: string; error: string }[];
 }
 
 /** What a skipped pattern matched in its directory, read live from the source. */
