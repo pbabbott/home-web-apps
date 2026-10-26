@@ -99,6 +99,44 @@ export interface SkippedGroupMatches {
   }[];
 }
 
+/** How something on disk is accounted for; see the API's `directory-listing`. */
+export type DiskCoverage =
+  | {
+      kind: 'inventory';
+      decision: InventoryItemDecision;
+      recommendation: string;
+    }
+  | { kind: 'inventory_parent' }
+  | {
+      kind: 'skipped';
+      via: 'path' | 'pattern';
+      pattern?: string;
+      acknowledged: boolean;
+    }
+  | { kind: 'queued'; status: QueueItemStatus }
+  | { kind: 'excluded' }
+  | { kind: 'inventory_inside'; count: number }
+  | { kind: 'uncovered' };
+
+/** A queue item's directory as it is on the source, each entry with its coverage. */
+export interface DirectoryListing {
+  path: string;
+  /** Entries found, before the API's cap. */
+  total: number;
+  truncated: boolean;
+  /** Entries nothing accounts for. */
+  uncovered: number;
+  entries: {
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    size: number;
+    /** Source-local time without a zone. */
+    modifiedAt: string | null;
+    coverage: DiskCoverage;
+  }[];
+}
+
 /** The API returns at most this many queue items for a job. */
 export const JOB_QUEUE_ITEMS_LIMIT = 500;
 

@@ -12,6 +12,7 @@ import type {
   SourceConnection,
   SourceConnectionType,
   SkipAcknowledgement,
+  DirectoryListing,
   SkippedGroupMatches,
 } from './homelab-api';
 
@@ -337,5 +338,15 @@ export async function listSkippedGroupMatches(
   return send<SkippedGroupMatches>(
     'GET',
     `/queue-items/${queueItemId}/skipped-group-matches?${new URLSearchParams({ pattern })}`,
+  );
+}
+
+/** A queue item's directory as it is on the source, each entry marked by how it is covered. */
+export async function listDirectoryOnDisk(
+  queueItemId: string,
+): Promise<ActionResult<DirectoryListing>> {
+  return send<DirectoryListing>(
+    'GET',
+    `/queue-items/${queueItemId}/directory-listing`,
   );
 }

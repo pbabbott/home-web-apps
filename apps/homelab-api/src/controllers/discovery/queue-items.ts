@@ -339,6 +339,23 @@ export const listKnownSkips = handle(
   },
 );
 
+// Does: list a queue item's directory on the source and say how each entry is covered (inventory item, skip, queue item, exclusion rule).
+// Who: human (home-hud directory page, "On disk"). No MCP tool.
+export const getDirectoryListingOperation = {
+  summary: 'List a directory on disk with its coverage',
+  description:
+    'Lists the direct children of the queue item’s directory, read live over the source’s connection, each with `coverage`: `inventory`, `inventory_parent`, `skipped`, `queued`, `excluded`, `inventory_inside` or `uncovered`. `uncovered` counts the entries nothing accounts for, which is where something may have been overlooked. At most 2000 entries (`truncated` says if there were more).',
+  hud: '/exodus/jobs/[id]/directories/[itemId]',
+} satisfies Operation;
+
+export const getDirectoryListing = handle(
+  'GET /queue-items/:id/directory-listing',
+  async (req, res) => {
+    const { id } = req.params as QueueItemIdParams;
+    res.status(200).json(await discoveryService.getDirectoryListing(id));
+  },
+);
+
 // Does: list what a skipped pattern (`*.exe`) of a queue item's directory matches, over the source's connection.
 // Who: human (home-hud job page, pattern modal). No MCP tool.
 export const listSkippedGroupMatchesOperation = {

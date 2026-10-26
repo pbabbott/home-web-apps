@@ -150,6 +150,30 @@ export const getQueueItemWithJob = async (
   };
 };
 
+/** Status of the job's queue items at exactly these (normalized) paths, keyed by path. */
+export const listJobQueueStatusesAt = async (
+  db: Database,
+  jobId: string,
+  normalizedPaths: string[],
+): Promise<Map<string, DiscoveryQueueItemStatus>> => {
+  if (normalizedPaths.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      path: discoveryQueueItems.normalizedPath,
+      status: discoveryQueueItems.status,
+    })
+    .from(discoveryQueueItems)
+    .where(
+      and(
+        eq(discoveryQueueItems.jobId, jobId),
+        inArray(discoveryQueueItems.normalizedPath, normalizedPaths),
+      ),
+    );
+
+  return new Map(rows.map((row) => [row.path, row.status]));
+};
+
 export type EnqueueQueueItemsInput = {
   jobId: string;
   paths: QueuePath[];

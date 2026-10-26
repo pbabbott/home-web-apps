@@ -44,6 +44,7 @@ import { PatternMatchesModal } from '../../../../lib/PatternMatchesModal';
 import { PreviewButton } from '../../../../lib/PreviewButton';
 import { PromoteSkippedModal } from '../../../../lib/PromoteSkippedModal';
 import { InventoryDirectoryModal } from './InventoryDirectoryModal';
+import { OnDiskSection } from './OnDiskSection';
 import {
   acknowledgeSkip,
   retryQueueItem,
@@ -465,6 +466,17 @@ export function DirectoryDetailClient({
           </Table>
         </ScrollableTable>
       </Section>
+
+      <OnDiskSection
+        sourceId={sourceId}
+        queueItemId={item.id}
+        coverageSignature={JSON.stringify([
+          skipReview,
+          item.inventoryByDecision,
+          directoryApproved,
+        ])}
+        onPromote={(path) => setPromoting({ path })}
+      />
 
       <Section
         title={<>Inventory items · {sortedInventory.length}</>}

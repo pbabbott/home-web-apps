@@ -920,6 +920,30 @@ export const listInventoriedPaths = async (
   return rows.map((row) => row.path);
 };
 
+/** What the directory page needs of an inventory item to say how it covers a path. */
+export type InventoryCoverage = Pick<
+  InventoryItem,
+  'normalizedRootPath' | 'decision' | 'recommendation'
+>;
+
+/** Every inventory item at or beneath a path, with no page limit. */
+export const listInventoryUnder = async (
+  db: Database | Tx,
+  sourceId: string,
+  normalizedPathPrefix: string,
+): Promise<InventoryCoverage[]> => {
+  const t = inventoryItems;
+
+  return db
+    .select({
+      normalizedRootPath: t.normalizedRootPath,
+      decision: t.decision,
+      recommendation: t.recommendation,
+    })
+    .from(t)
+    .where(and(eq(t.sourceId, sourceId), subtreeFilter(normalizedPathPrefix)));
+};
+
 /** How many inventory items match the filters, ignoring the paging options. */
 export const countInventoryItems = async (
   db: Database | Tx,

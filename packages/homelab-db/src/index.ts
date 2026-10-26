@@ -114,6 +114,7 @@ export {
   listInventoryItems,
   countInventoryItems,
   listInventoriedPaths,
+  listInventoryUnder,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {
@@ -127,6 +128,7 @@ export type {
   DecideInventoryItemInput,
   ListInventoryItemsOptions,
   NestedInventoryItem,
+  InventoryCoverage,
 } from './queries/inventory-items';
 
 export {
@@ -153,6 +155,7 @@ export {
   getQueueItemById,
   listQueueItems,
   getQueueItemWithJob,
+  listJobQueueStatusesAt,
   enqueueQueueItems,
   claimNextAcrossJobs,
   claimNextQueueItem,
