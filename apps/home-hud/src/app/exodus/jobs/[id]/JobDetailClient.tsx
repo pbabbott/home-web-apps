@@ -705,7 +705,12 @@ export function JobDetailClient({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {STATUS_FILTERS.map(({ status: s, label }) => (
-          <CountTile key={s} label={label} value={job.queueCounts[s]} />
+          <CountTile
+            key={s}
+            label={label}
+            value={job.queueCounts[s]}
+            color={QUEUE_STATUS_COLOR[s]}
+          />
         ))}
       </div>
 

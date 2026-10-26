@@ -15,7 +15,11 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { LocalDateTime } from '../../lib/LocalDateTime';
-import { JOB_STATUS_COLOR, jobPhase } from '../../lib/job-display';
+import {
+  JOB_STATUS_COLOR,
+  QUEUE_STATUS_COLOR,
+  jobPhase,
+} from '../../lib/job-display';
 import {
   cancelDiscoveryJob,
   completeDiscoveryJob,
@@ -194,6 +198,7 @@ export function CurrentJobPanel({
                 key={status}
                 label={label}
                 value={job.queueCounts[status]}
+                color={QUEUE_STATUS_COLOR[status]}
               />
             ))}
           </div>
