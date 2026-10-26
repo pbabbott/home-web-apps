@@ -6,6 +6,7 @@ import {
   getInventoryItemById,
   getSourceById,
   listInventoryItems as listInventoryItemRows,
+  inventoryQueueItemDirectory as inventoryQueueItemDirectoryRow,
   promoteInventoryItem as promoteInventoryItemRow,
   upsertInventoryItems,
   type Actor,
@@ -13,6 +14,7 @@ import {
   type InventoryItemEvidence,
   type InventoryItemRecommendation,
   type NestedInventoryItem,
+  type InventoriedDirectory,
   type InventoryItem,
   type InventoryItemWithExclusion,
   type UpsertedInventoryItem,
@@ -25,6 +27,7 @@ import {
 } from '../../lib/windows-path';
 import type {
   InventoryItemInput,
+  InventoryDirectoryBody,
   PromoteInventoryItemBody,
 } from '../../schemas/discovery';
 import { assertWithinClaimedDirectory } from './paths';
@@ -191,6 +194,41 @@ export async function promoteInventoryItem(
       inventoryItem.sourceId,
       normalizedPath,
       ancestorsOf(normalizedPath),
+    )),
+  };
+}
+
+/**
+ * A human adds a queue item's whole directory to the inventory (approving the
+ * agent's proposal if there is one), which skips the active job's queued items
+ * beneath it.
+ */
+export async function inventoryDirectory(
+  queueItemId: string,
+  body: InventoryDirectoryBody,
+  actor: Actor,
+): Promise<
+  InventoriedDirectory & {
+    coveredBy: NestedInventoryItem[];
+    covers: NestedInventoryItem[];
+  }
+> {
+  const queueItem = await getQueueItemById(db, queueItemId);
+  if (!queueItem) throw new DiscoveryError('not_found', 'queue item not found');
+
+  const result = await inventoryQueueItemDirectoryRow(db, queueItemId, {
+    displayName: windowsPathName(queueItem.path),
+    note: body.note,
+    actor,
+  });
+
+  return {
+    ...result,
+    ...(await findNestedInventoryItems(
+      db,
+      result.inventoryItem.sourceId,
+      queueItem.normalizedPath,
+      ancestorsOf(queueItem.normalizedPath),
     )),
   };
 }

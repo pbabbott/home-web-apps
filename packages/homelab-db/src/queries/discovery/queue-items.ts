@@ -8,6 +8,7 @@ import {
   type QueueItemResult,
 } from '../../schema/discovery';
 import { skipExcludedQueueItems } from '../exclusion-rules';
+import { skipInventoriedQueueItems } from '../inventory-items';
 import { DiscoveryError } from '../shared';
 import {
   ACTIVE_JOB_STATUSES,
@@ -114,26 +115,27 @@ export const enqueueQueueItems = async (
       priority: input.priority,
     });
 
-    return refreshAfterExclusion(tx, job, inserted);
+    return refreshAfterSkips(tx, job, inserted);
   });
 
 /**
- * Applies exclusion rules to freshly queued paths in the same transaction, so
- * work under an `exclude_subtree` rule is `skipped` the moment it is queued
+ * Applies exclusion rules and approved directory inventory items to freshly
+ * queued paths in the same transaction, so work under an `exclude_subtree`
+ * rule or inside an approved directory is `skipped` the moment it is queued
  * rather than waiting for the next claim. Claim rechecks too, because rules
- * can change after work was queued. Returns the rows as they now stand.
+ * and approvals can change after work was queued. Returns the rows as they now stand.
  */
-const refreshAfterExclusion = async (
+const refreshAfterSkips = async (
   tx: Tx,
   job: { id: string; sourceId: string },
   queued: { item: DiscoveryQueueItem; created: boolean }[],
 ): Promise<{ item: DiscoveryQueueItem; created: boolean }[]> => {
   if (queued.length === 0) return queued;
 
-  const skipped = await skipExcludedQueueItems(tx, {
-    jobId: job.id,
-    sourceId: job.sourceId,
-  });
+  const scope = { jobId: job.id, sourceId: job.sourceId };
+  const skipped =
+    (await skipExcludedQueueItems(tx, scope)) +
+    (await skipInventoriedQueueItems(tx, scope));
   if (skipped === 0) return queued;
 
   const rows = await tx
@@ -217,6 +219,12 @@ export const claimNextQueueItem = async (
     // existed (or enqueued under one) is skipped here, under the job lock,
     // before it can be handed out.
     await skipExcludedQueueItems(tx, { jobId: job.id, sourceId: job.sourceId });
+    // Likewise for an approved directory inventory item: its subtree is
+    // covered, so nothing inside it is handed out.
+    await skipInventoriedQueueItems(tx, {
+      jobId: job.id,
+      sourceId: job.sourceId,
+    });
 
     const t = discoveryQueueItems;
     const [next] = await tx
@@ -473,7 +481,7 @@ export const completeQueueItem = async (
       .from(discoveryJobs)
       .where(eq(discoveryJobs.id, item.jobId));
 
-    return { item, children: await refreshAfterExclusion(tx, job, inserted) };
+    return { item, children: await refreshAfterSkips(tx, job, inserted) };
   });
 
 /** Rows already queued for a replayed completion's paths; nothing is inserted. */

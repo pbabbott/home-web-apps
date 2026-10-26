@@ -189,3 +189,12 @@ export const promoteInventoryItemBodySchema = z.object({
 export type PromoteInventoryItemBody = z.infer<
   typeof promoteInventoryItemBodySchema
 >;
+
+export const inventoryDirectoryBodySchema = z.object({
+  note: z.string().trim().min(1).max(1000).optional().meta({
+    description: 'Stored as the decision note.',
+  }),
+});
+export type InventoryDirectoryBody = z.infer<
+  typeof inventoryDirectoryBodySchema
+>;

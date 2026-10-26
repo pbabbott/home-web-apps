@@ -84,7 +84,7 @@ export const enqueueQueueItems = handle(
 export const claimQueueItemOperation = {
   summary: 'Claim the next directory to inspect',
   description:
-    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
+    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first, and queued items inside an approved directory inventory item or under an exclusion rule are skipped rather than handed out. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
   mcp: {
     name: 'claim_directory',
     description:

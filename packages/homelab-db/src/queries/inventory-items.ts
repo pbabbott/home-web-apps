@@ -12,14 +12,24 @@ import {
   type InventoryItem,
 } from '../schema/discovery';
 import { insertAuditEvent, type Actor } from './audit';
-import { activeClaim, claimMissError } from './discovery/claims';
+import {
+  ACTIVE_JOB_STATUSES,
+  activeClaim,
+  claimMissError,
+} from './discovery/claims';
 import {
   listApplicableRules,
   resolveExclusion,
   rulesBySource,
   type ExclusionResolution,
 } from './exclusion-rules';
-import { DiscoveryError, escapeLike, type Tx } from './shared';
+import {
+  DiscoveryError,
+  MAX_AUDITED_ITEM_IDS,
+  coversSql,
+  escapeLike,
+  type Tx,
+} from './shared';
 
 export type InventoryItemInput = {
   kind: InventoryItemKind;
@@ -293,12 +303,188 @@ export type DecideInventoryItemInput = {
 };
 
 /**
+ * Writes a decision onto a locked inventory item row, with its audit event.
+ * Returns the row unchanged (no event) when neither decision nor note differ.
+ * Approval requires the path to be free of exclusion rules.
+ */
+const applyDecision = async (
+  tx: Tx,
+  before: InventoryItem,
+  input: DecideInventoryItemInput,
+): Promise<InventoryItem> => {
+  const t = inventoryItems;
+
+  if (input.decision === 'approved') {
+    const rules = rulesBySource(
+      await listApplicableRules(tx, [before.sourceId]),
+      before.sourceId,
+    );
+    const { state, ruleIds } = resolveExclusion(
+      rules,
+      before.normalizedRootPath,
+    );
+
+    if (state !== 'none') {
+      throw new DiscoveryError(
+        'conflict',
+        'excluded paths cannot be approved',
+        {
+          state,
+          ruleIds,
+        },
+      );
+    }
+  }
+
+  const decisionChanged = before.decision !== input.decision;
+  const note =
+    input.note !== undefined
+      ? input.note
+      : decisionChanged
+        ? null
+        : before.decisionNote;
+
+  if (!decisionChanged && note === before.decisionNote) return before;
+
+  const pending = input.decision === 'pending';
+  const [after] = await tx
+    .update(t)
+    .set({
+      decision: input.decision,
+      decisionNote: note,
+      decidedAt: pending ? null : sql`now()`,
+      decidedBy: pending ? null : (input.actor.id ?? 'human'),
+      updatedAt: sql`now()`,
+    })
+    .where(eq(t.id, before.id))
+    .returning();
+
+  await insertAuditEvent(tx, {
+    eventType: 'inventory_item.decision_changed',
+    actor: input.actor,
+    sourceId: before.sourceId,
+    inventoryItemId: before.id,
+    details: {
+      path: before.rootPath,
+      from: before.decision,
+      to: after.decision,
+      note: after.decisionNote,
+      recommendation: before.recommendation,
+    },
+  });
+
+  return after;
+};
+
+/**
+ * Skips every still-queued item of the job that sits at or under an
+ * approved directory inventory item: approving a directory covers its whole
+ * subtree, so exploring inside it is wasted work. Called wherever work is
+ * handed out or queued (like `skipExcludedQueueItems`), and right after a
+ * human approves a directory, where `underPath` limits it to that directory. In-progress items are left to finish; completed and
+ * failed items are untouched. Records one system audit event when anything was
+ * skipped.
+ */
+export const skipInventoriedQueueItems = async (
+  tx: Tx,
+  input: {
+    jobId: string;
+    sourceId: string;
+    /**
+     * Only skip items at or beneath this normalized path. Set when a human just
+     * approved that directory, so the action touches nothing else; unset at
+     * claim and enqueue, where every approved directory is enforced.
+     */
+    underPath?: string;
+  },
+): Promise<number> => {
+  const q = discoveryQueueItems;
+  const i = inventoryItems;
+
+  const skipped = await tx
+    .update(q)
+    .set({
+      status: 'skipped',
+      lastError: 'skipped: covered by an approved inventory item',
+      completedAt: sql`now()`,
+      updatedAt: sql`now()`,
+    })
+    .where(
+      and(
+        eq(q.jobId, input.jobId),
+        eq(q.status, 'queued'),
+        input.underPath
+          ? coversSql(input.underPath, q.normalizedPath)
+          : undefined,
+        sql`exists (select 1 from ${i} where ${i.sourceId} = ${input.sourceId} and ${i.kind} = 'directory' and ${i.decision} = 'approved' and ${coversSql(i.normalizedRootPath, q.normalizedPath)})`,
+      ),
+    )
+    .returning({ id: q.id, normalizedPath: q.normalizedPath });
+
+  if (skipped.length === 0) return 0;
+
+  const paths = JSON.stringify(skipped.map((s) => s.normalizedPath));
+  const covering = await tx
+    .select({ id: i.id })
+    .from(i)
+    .where(
+      and(
+        eq(i.sourceId, input.sourceId),
+        eq(i.kind, 'directory'),
+        eq(i.decision, 'approved'),
+        sql`exists (select 1 from jsonb_array_elements_text(${paths}::jsonb) as p(path) where ${coversSql(i.normalizedRootPath, sql`p.path`)})`,
+      ),
+    );
+
+  await insertAuditEvent(tx, {
+    eventType: 'queue_items.inventoried',
+    actor: { type: 'system' },
+    sourceId: input.sourceId,
+    jobId: input.jobId,
+    details: {
+      count: skipped.length,
+      inventoryItemIds: covering.map((row) => row.id),
+      itemIds: skipped.slice(0, MAX_AUDITED_ITEM_IDS).map((s) => s.id),
+      truncated: skipped.length > MAX_AUDITED_ITEM_IDS,
+    },
+  });
+
+  return skipped.length;
+};
+
+/**
+ * `skipInventoriedQueueItems` for the source's active job, if it has one (at
+ * most one can). Run after a directory is approved so a running job's queue
+ * reflects it at once rather than at the next claim.
+ */
+const skipInventoriedInActiveJob = async (
+  tx: Tx,
+  sourceId: string,
+  underPath: string,
+): Promise<number> => {
+  const [job] = await tx
+    .select({ id: discoveryJobs.id })
+    .from(discoveryJobs)
+    .where(
+      and(
+        eq(discoveryJobs.sourceId, sourceId),
+        inArray(discoveryJobs.status, ACTIVE_JOB_STATUSES),
+      ),
+    );
+
+  return job
+    ? skipInventoriedQueueItems(tx, { jobId: job.id, sourceId, underPath })
+    : 0;
+};
+
+/**
  * Records a human's decision. Only a human actor may decide: agent
  * recommendations never approve or reject. Approval requires the path to be
  * free of exclusion rules. Any explicit change is allowed (including
  * reversing or resetting to `pending`) and audited; repeating the current
  * decision and note is a no-op with no event. Touches only the decision
- * columns.
+ * columns. Approving a directory skips the active job's queued items beneath
+ * it; reversing the approval does not requeue them.
  */
 export const decideInventoryItem = async (
   db: Database,
@@ -313,71 +499,24 @@ export const decideInventoryItem = async (
   }
 
   return db.transaction(async (tx) => {
-    const t = inventoryItems;
     const [before] = await tx
       .select()
-      .from(t)
-      .where(eq(t.id, id))
+      .from(inventoryItems)
+      .where(eq(inventoryItems.id, id))
       .for('update');
 
     if (!before)
       throw new DiscoveryError('not_found', 'inventory item not found');
 
-    if (input.decision === 'approved') {
-      const rules = rulesBySource(
-        await listApplicableRules(tx, [before.sourceId]),
-        before.sourceId,
-      );
-      const { state, ruleIds } = resolveExclusion(
-        rules,
-        before.normalizedRootPath,
-      );
+    const after = await applyDecision(tx, before, input);
 
-      if (state !== 'none') {
-        throw new DiscoveryError(
-          'conflict',
-          'excluded paths cannot be approved',
-          { state, ruleIds },
-        );
-      }
+    if (after.decision === 'approved' && after.kind === 'directory') {
+      await skipInventoriedInActiveJob(
+        tx,
+        after.sourceId,
+        after.normalizedRootPath,
+      );
     }
-
-    const decisionChanged = before.decision !== input.decision;
-    const note =
-      input.note !== undefined
-        ? input.note
-        : decisionChanged
-          ? null
-          : before.decisionNote;
-
-    if (!decisionChanged && note === before.decisionNote) return before;
-
-    const pending = input.decision === 'pending';
-    const [after] = await tx
-      .update(t)
-      .set({
-        decision: input.decision,
-        decisionNote: note,
-        decidedAt: pending ? null : sql`now()`,
-        decidedBy: pending ? null : (input.actor.id ?? 'human'),
-        updatedAt: sql`now()`,
-      })
-      .where(eq(t.id, id))
-      .returning();
-
-    await insertAuditEvent(tx, {
-      eventType: 'inventory_item.decision_changed',
-      actor: input.actor,
-      sourceId: before.sourceId,
-      inventoryItemId: before.id,
-      details: {
-        path: before.rootPath,
-        from: before.decision,
-        to: after.decision,
-        note: after.decisionNote,
-        recommendation: before.recommendation,
-      },
-    });
 
     return after;
   });
@@ -508,7 +647,164 @@ export const promoteInventoryItem = async (
       },
     });
 
+    if (row.kind === 'directory') {
+      await skipInventoriedInActiveJob(
+        tx,
+        row.sourceId,
+        row.normalizedRootPath,
+      );
+    }
+
     return row;
+  });
+};
+
+export type InventoryQueueItemDirectoryInput = {
+  /** Name for a new item; ignored when the agent already proposed the directory. */
+  displayName: string;
+  note?: string | null;
+  actor: Actor;
+};
+
+export type InventoriedDirectory = {
+  inventoryItem: InventoryItem;
+  /** False when the agent had already proposed the directory. */
+  created: boolean;
+  /** Queued items of the active job skipped because they sit inside it. */
+  skippedQueueItems: number;
+};
+
+/**
+ * A human adds a queue item's whole directory to the inventory: approves the
+ * agent's proposal for it when there is one (agent fields untouched, like
+ * any decision), otherwise creates an approved directory item. Either way the
+ * active job's queued items beneath it are skipped, so its subtree is not
+ * explored. Human only; a path under an exclusion rule is refused.
+ */
+export const inventoryQueueItemDirectory = async (
+  db: Database,
+  queueItemId: string,
+  input: InventoryQueueItemDirectoryInput,
+): Promise<InventoriedDirectory> => {
+  if (input.actor.type !== 'human') {
+    throw new DiscoveryError(
+      'conflict',
+      'only a human can add a whole directory to the inventory',
+    );
+  }
+
+  return db.transaction(async (tx) => {
+    const [queued] = await tx
+      .select({
+        jobId: discoveryQueueItems.jobId,
+        sourceId: discoveryJobs.sourceId,
+        path: discoveryQueueItems.path,
+        normalizedPath: discoveryQueueItems.normalizedPath,
+      })
+      .from(discoveryQueueItems)
+      .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
+      .where(eq(discoveryQueueItems.id, queueItemId));
+
+    if (!queued) throw new DiscoveryError('not_found', 'queue item not found');
+
+    const t = inventoryItems;
+    const [existing] = await tx
+      .select()
+      .from(t)
+      .where(
+        and(
+          eq(t.sourceId, queued.sourceId),
+          eq(t.normalizedRootPath, queued.normalizedPath),
+        ),
+      )
+      .for('update');
+
+    if (existing && existing.kind !== 'directory') {
+      throw new DiscoveryError(
+        'conflict',
+        'this path is already a file inventory item',
+        { inventoryItemId: existing.id },
+      );
+    }
+
+    const rules = rulesBySource(
+      await listApplicableRules(tx, [queued.sourceId]),
+      queued.sourceId,
+    );
+    const { state, ruleIds } = resolveExclusion(rules, queued.normalizedPath);
+    if (state !== 'none') {
+      throw new DiscoveryError(
+        'conflict',
+        'paths covered by an exclusion rule cannot be inventory items',
+        { blocked: [{ path: queued.path, state, ruleIds }] },
+      );
+    }
+
+    let inventoryItem: InventoryItem;
+    if (existing) {
+      inventoryItem = await applyDecision(tx, existing, {
+        decision: 'approved',
+        note: input.note,
+        actor: input.actor,
+      });
+    } else {
+      const humanId = input.actor.id ?? 'human';
+      [inventoryItem] = await tx
+        .insert(t)
+        .values({
+          sourceId: queued.sourceId,
+          firstJobId: queued.jobId,
+          lastJobId: queued.jobId,
+          kind: 'directory',
+          rootPath: queued.path,
+          normalizedRootPath: queued.normalizedPath,
+          displayName: input.displayName,
+          summary: 'Added as a whole directory by a human.',
+          recommendation: 'back_up',
+          confidence: 'high',
+          recommendationReason:
+            'Added by a human to back up as a whole, without exploring inside it.',
+          evidence: {
+            contentKinds: ['other'],
+            git: null,
+            reproducible: 'unknown',
+            sufficientInformation: false,
+            observations: [],
+            openQuestions: [],
+          },
+          recommendedBy: humanId,
+          decision: 'approved',
+          decisionNote: input.note ?? null,
+          decidedAt: sql`now()`,
+          decidedBy: humanId,
+        })
+        .returning();
+
+      await insertAuditEvent(tx, {
+        eventType: 'inventory_item.promoted',
+        actor: input.actor,
+        sourceId: queued.sourceId,
+        jobId: queued.jobId,
+        queueItemId,
+        inventoryItemId: inventoryItem.id,
+        details: {
+          path: inventoryItem.rootPath,
+          kind: inventoryItem.kind,
+          skipReason: null,
+          wholeDirectory: true,
+        },
+      });
+    }
+
+    return {
+      inventoryItem,
+      created: !existing,
+      skippedQueueItems: await skipInventoriedInActiveJob(
+        tx,
+        queued.sourceId,
+        queued.normalizedPath,
+      ),
+    };
   });
 };
 

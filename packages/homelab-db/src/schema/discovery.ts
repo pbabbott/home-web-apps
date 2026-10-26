@@ -474,6 +474,7 @@ export type AuditEventType =
   | 'exclusion_rule.updated'
   | 'exclusion_rule.deleted'
   | 'queue_items.excluded'
+  | 'queue_items.inventoried'
   | 'inventory_item.created'
   | 'inventory_item.recommendation_changed'
   | 'inventory_item.decision_changed'

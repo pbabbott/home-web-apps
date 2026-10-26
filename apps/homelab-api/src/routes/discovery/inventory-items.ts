@@ -7,6 +7,7 @@ import {
 import {
   decideInventoryItem,
   getInventoryItem,
+  inventoryDirectory,
   listSourceInventoryItems,
   promoteInventoryItem,
   proposeInventoryItems,
@@ -14,6 +15,7 @@ import {
 import { parseActor } from '../../lib/actor';
 import {
   decideInventoryItemBodySchema,
+  inventoryDirectoryBodySchema,
   promoteInventoryItemBodySchema,
   proposeInventoryItemsBodySchema,
   queueItemIdParamsSchema,
@@ -54,4 +56,11 @@ inventoryItemsRouter.post(
   validateParams(queueItemIdParamsSchema),
   validateBody(promoteInventoryItemBodySchema),
   promoteInventoryItem,
+);
+inventoryItemsRouter.post(
+  '/queue-items/:id/inventory-directory',
+  parseActor,
+  validateParams(queueItemIdParamsSchema),
+  validateBody(inventoryDirectoryBodySchema),
+  inventoryDirectory,
 );
