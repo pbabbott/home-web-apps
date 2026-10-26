@@ -1,12 +1,14 @@
 import {
   parseDecisionFilter,
+  parseKind,
   parseLayout,
+  parsePage,
   parseRecommendation,
 } from '../lib/inventory-display';
 import {
   getInventoryItems,
   getSources,
-  type InventoryItem,
+  type InventoryItemPage,
   type Source,
 } from '../sources/lib/homelab-api';
 import { InventoryClient } from './InventoryClient';
@@ -16,8 +18,11 @@ type PageProps = {
     source?: string;
     decision?: string;
     recommendation?: string;
+    kind?: string;
+    q?: string;
+    path?: string;
     view?: string;
-    after?: string;
+    page?: string;
   }>;
 };
 
@@ -41,17 +46,23 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
 
   const decision = parseDecisionFilter(query.decision);
   const recommendation = parseRecommendation(query.recommendation);
+  const kind = parseKind(query.kind);
+  const q = query.q?.trim().slice(0, 200) || undefined;
+  const path = query.path?.trim() || undefined;
   const layout = parseLayout(query.view);
-  const after = query.after || undefined;
+  const page = parsePage(query.page);
 
-  let inventoryItems: InventoryItem[] | null = null;
+  let inventoryPage: InventoryItemPage | null = null;
 
   if (source) {
     try {
-      inventoryItems = await getInventoryItems(source.id, {
+      inventoryPage = await getInventoryItems(source.id, {
         decision: decision === 'all' ? undefined : decision,
         recommendation,
-        after,
+        kind,
+        q,
+        path,
+        offset: (page - 1) * PAGE_SIZE,
         limit: PAGE_SIZE,
       });
     } catch (err) {
@@ -65,15 +76,14 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
       sourceId={source?.id ?? null}
       decision={decision}
       recommendation={recommendation}
+      kind={kind}
+      q={q}
+      path={path}
       layout={layout}
-      isFirstPage={!after}
-      inventoryItems={inventoryItems}
-      // A full page may have more behind it; the cursor is the last row seen.
-      nextCursor={
-        inventoryItems && inventoryItems.length === PAGE_SIZE
-          ? inventoryItems[inventoryItems.length - 1].normalizedRootPath
-          : null
-      }
+      page={page}
+      pageSize={PAGE_SIZE}
+      inventoryItems={inventoryPage?.items ?? null}
+      total={inventoryPage?.total ?? 0}
     />
   );
 }

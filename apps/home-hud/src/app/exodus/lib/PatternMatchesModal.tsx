@@ -20,7 +20,7 @@ import {
 import { listSkippedGroupMatches } from '../sources/lib/actions';
 import type { SkippedGroupMatches } from '../sources/lib/homelab-api';
 import { PromoteSkippedModal } from '../jobs/[id]/PromoteSkippedModal';
-import { formatSize } from './inventory-display';
+import { formatSize, inventoryItemUrl } from './inventory-display';
 import { PreviewButton } from './PreviewButton';
 
 type Loaded =
@@ -158,7 +158,7 @@ export function PatternMatchesModal({
                           <Td color="secondary">
                             {inventoried.has(entry.path.toLowerCase()) ? (
                               <Link
-                                href="/exodus/inventory"
+                                href={inventoryItemUrl(sourceId, entry.path)}
                                 className="text-neutral-400 underline"
                               >
                                 In inventory

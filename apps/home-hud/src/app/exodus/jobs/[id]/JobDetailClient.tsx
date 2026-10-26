@@ -37,6 +37,7 @@ import {
   QueueItemMessage,
   WorkerName,
 } from '../../lib/JobSummary';
+import { inventoryItemUrl } from '../../lib/inventory-display';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { PatternMatchesModal } from '../../lib/PatternMatchesModal';
@@ -410,7 +411,7 @@ function QueueItemDetails({
                       <div className="flex flex-wrap items-center gap-2">
                         {inventoried.has(skip.path.toLowerCase()) ? (
                           <Link
-                            href="/exodus/inventory"
+                            href={inventoryItemUrl(sourceId, skip.path)}
                             className="text-neutral-400 underline"
                           >
                             In inventory
@@ -463,7 +464,10 @@ function QueueItemDetails({
 
       <div className="flex flex-wrap items-center gap-2">
         {approved && (
-          <Link href="/exodus/inventory" className="text-neutral-400 underline">
+          <Link
+            href={inventoryItemUrl(sourceId, item.path)}
+            className="text-neutral-400 underline"
+          >
             Directory approved in inventory
           </Link>
         )}

@@ -2,6 +2,7 @@ import type { BadgeColor, CardColor } from '@abbottland/fui-components';
 import type {
   InventoryItemDecision,
   InventoryItemGitEvidence,
+  InventoryItemKind,
   InventoryItemRecommendation,
   InventoryItem,
 } from '../sources/lib/homelab-api';
@@ -65,6 +66,20 @@ export function parseRecommendation(
     : undefined;
 }
 
+/** What the kind filter shows: files, folders, or both (undefined). */
+export function parseKind(
+  value: string | undefined,
+): InventoryItemKind | undefined {
+  return value === 'file' || value === 'directory' ? value : undefined;
+}
+
+/** A 1-based page number from a URL parameter. Absent or invalid means the first page. */
+export function parsePage(value: string | undefined): number {
+  const page = Number(value);
+
+  return Number.isInteger(page) && page >= 1 ? page : 1;
+}
+
 /** How the inventory items are laid out: a dense table or roomy cards. */
 export type InventoryLayout = 'table' | 'cards';
 
@@ -112,10 +127,15 @@ export interface InventoryItemView {
   /** Defaults to pending, so it is omitted from the URL. */
   decision?: DecisionFilter;
   recommendation?: InventoryItemRecommendation;
+  kind?: InventoryItemKind;
+  /** Search text, matched by the server against path, name and summary. */
+  q?: string;
+  /** Exactly one inventory item, by its root path. */
+  path?: string;
   /** Defaults to the table, so it is omitted from the URL. */
   layout?: InventoryLayout;
-  /** Keyset cursor from the previous page. */
-  after?: string;
+  /** 1-based; the first page is the default, so it is omitted from the URL. */
+  page?: number;
 }
 
 const INVENTORY_ITEMS_PATH = '/exodus/inventory';
@@ -129,12 +149,70 @@ export function inventoryItemsUrl(view: InventoryItemView): string {
     params.set('decision', view.decision);
   }
   if (view.recommendation) params.set('recommendation', view.recommendation);
+  if (view.kind) params.set('kind', view.kind);
+  if (view.q) params.set('q', view.q);
+  if (view.path) params.set('path', view.path);
   if (view.layout && view.layout !== 'table') params.set('view', view.layout);
-  if (view.after) params.set('after', view.after);
+  if (view.page && view.page > 1) params.set('page', String(view.page));
 
   const query = params.toString();
 
   return query ? `${INVENTORY_ITEMS_PATH}?${query}` : INVENTORY_ITEMS_PATH;
+}
+
+/**
+ * Link to one inventory item. Every decision is included, because the item may
+ * be approved or rejected and the default view only lists pending ones.
+ */
+export function inventoryItemUrl(sourceId: string, rootPath: string): string {
+  return inventoryItemsUrl({
+    source: sourceId,
+    decision: 'all',
+    path: rootPath,
+  });
+}
+
+/** True when the view narrows the list beyond the default review queue. */
+export function hasActiveFilters(
+  view: Pick<
+    InventoryItemView,
+    'decision' | 'recommendation' | 'kind' | 'q' | 'path'
+  >,
+): boolean {
+  return Boolean(
+    (view.decision && view.decision !== 'pending') ||
+      view.recommendation ||
+      view.kind ||
+      view.q ||
+      view.path,
+  );
+}
+
+/**
+ * Page numbers to show: the first, the last and a window around the current
+ * page, with `'gap'` where numbers are left out.
+ */
+export function pageNumbers(
+  current: number,
+  totalPages: number,
+): (number | 'gap')[] {
+  const wanted = new Set(
+    [1, totalPages, current - 1, current, current + 1].filter(
+      (n) => n >= 1 && n <= totalPages,
+    ),
+  );
+  const sorted = [...wanted].sort((a, b) => a - b);
+  const result: (number | 'gap')[] = [];
+
+  sorted.forEach((n, i) => {
+    const previous = sorted[i - 1];
+
+    if (previous !== undefined && n - previous === 2) result.push(previous + 1);
+    else if (previous !== undefined && n - previous > 2) result.push('gap');
+    result.push(n);
+  });
+
+  return result;
 }
 
 export const formatSize = (bytes: number): string => {

@@ -62,18 +62,31 @@ export interface InventoryItemWithExclusion extends InventoryItem {
 export interface InventoryItemQuery {
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;
+  kind?: InventoryItemKind;
   /** Only inventory items at or beneath this path. */
   pathPrefix?: string;
+  /** Only the inventory item at exactly this path. */
+  path?: string;
+  /** Case-insensitive substring of the path, name or summary. */
+  q?: string;
   /** The `normalizedRootPath` of the last inventory item of the previous page. */
   after?: string;
+  /** Items to skip, for numbered pages. */
+  offset?: number;
   limit?: number;
+}
+
+export interface InventoryItemPage {
+  items: InventoryItem[];
+  /** Every item matching the filters, not just this page. */
+  total: number;
 }
 
 /** A page of a source's inventory items, ordered by normalized path. */
 export async function getInventoryItems(
   sourceId: string,
   query: InventoryItemQuery,
-): Promise<InventoryItem[]> {
+): Promise<InventoryItemPage> {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(query)) {
@@ -92,5 +105,5 @@ export async function getInventoryItems(
     );
   }
 
-  return (await res.json()) as InventoryItem[];
+  return (await res.json()) as InventoryItemPage;
 }

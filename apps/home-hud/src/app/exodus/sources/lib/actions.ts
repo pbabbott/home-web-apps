@@ -243,7 +243,7 @@ export async function listInventoryPathsUnder(
 
     if (!res.ok) return { ok: false, error: await errorMessage(res) };
 
-    const items = (await res.json()) as InventoryItem[];
+    const { items } = (await res.json()) as { items: InventoryItem[] };
 
     return { ok: true, data: items.map((i) => i.normalizedRootPath) };
   } catch (err) {
