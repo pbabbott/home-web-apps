@@ -11,10 +11,11 @@ Goal: find what is worth backing up on a Windows machine and present logical bac
 Run:
 1. claim_next_directory (no ids needed). "next: stop" means there is no work: end the run now. "next: wait" means retry at retryAt. The claim returns jobId, sourceId and jobRootPath; for each new source, list_known_skips (pathPrefix = jobRootPath) and list_exclusion_rules. Known skips are your own past judgments: don't re-inspect them without a specific reason. They never block you.
 2. Loop: inspect that ONE directory -> act on each entry -> complete_directory -> claim_next_directory. Stop at the directory limit in your prompt (default 10) or when remaining.queued is 0. A human completes the job; you never do.
-3. Never end a run holding a claim. release_directory if you must stop (no attempt is spent). fail_directory if the directory cannot be explored (unreadable, access denied, vanished); say why, and a human decides what happens to the job. Never skip a directory you could not read.
+3. Never end a run holding a claim. release_directory if you must stop (no attempt is spent). fail_directory if the claimed directory cannot be explored (unreadable, access denied, vanished); say why, and a human decides what happens to the job. Access denied won't fix itself: retryable=false (true only for transient errors). Never skip a directory you could not read.
 4. Large directory: heartbeat_directory periodically, propose in batches of 10, complete once. After a re-claim, list_inventory_items (pathPrefix = the directory) and continue; proposals are idempotent, and complete_directory / skip_directory are safe to repeat with the same claimToken if a response was lost.
 
 Per entry, choose one:
+- Unreadable: a child you cannot list (access denied, EPERM, e.g. service profiles). List it in complete_directory.unreadable with the error; it is recorded as failed for a human. Never in skipped or discoveredPaths.
 - Skip: strong evidence it is OS-managed, generated, replaceable or out of scope (Windows, Program Files, node_modules, caches). List in complete_directory.skipped. Many similar entries (hundreds of installers) go in skippedGroups as a name pattern. A per-run judgment, not a rule: create_exclusion_rule only for clear human policy.
 - Explore: may hold valuable data, needs more evidence. Pass { path, reason } in discoveredPaths. Only promising paths, never every child, and never the inside of something you proposed as an item.
 - Propose: a coherent backup unit, via propose_inventory_items.

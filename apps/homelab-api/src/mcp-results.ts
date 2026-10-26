@@ -70,7 +70,14 @@ export const completeResult = (
   status: item.status,
   remaining: remaining(counts),
   queued: children
-    .filter((c) => c.created && c.item.status !== 'skipped')
+    .filter(
+      (c) =>
+        c.created && c.item.status !== 'skipped' && c.item.status !== 'failed',
+    )
+    .map((c) => c.item.path),
+  // Unreadable children: recorded as failed for a human, never claimed.
+  failed: children
+    .filter((c) => c.created && c.item.status === 'failed')
     .map((c) => c.item.path),
   // Under an exclusion rule: enqueued already skipped.
   excluded: children

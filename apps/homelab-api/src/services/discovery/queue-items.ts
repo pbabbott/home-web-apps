@@ -103,6 +103,7 @@ export async function completeItem(
     summary?: string;
     skipped?: { path: string; reason: string }[];
     skippedGroups?: { pattern: string; count?: number; reason: string }[];
+    unreadable?: { path: string; error: string }[];
   } = {},
 ) {
   const queuePaths = discoveredPaths.map(toFollowUpPath);
@@ -111,7 +112,17 @@ export async function completeItem(
     reason: s.reason,
   }));
 
-  if (queuePaths.length > 0 || skipped.length > 0) {
+  const unreadable = (outcome.unreadable ?? []).map((u) => ({
+    ...normalizeWindowsPath(u.path),
+    error: u.error,
+  }));
+  const unreadablePaths: QueuePath[] = unreadable.map((u) => ({
+    path: u.path,
+    normalizedPath: u.normalizedPath,
+    failure: u.error,
+  }));
+
+  if (queuePaths.length > 0 || skipped.length > 0 || unreadable.length > 0) {
     const item = await getQueueItemById(db, id);
     if (!item) throw new DiscoveryError('not_found', 'queue item not found');
 
@@ -121,22 +132,36 @@ export async function completeItem(
       allowSelf: false,
       subject: 'skipped paths',
     });
+    assertWithinClaimedDirectory(item, unreadable, {
+      allowSelf: false,
+      subject: 'unreadable paths',
+    });
   }
 
   const skippedGroups = outcome.skippedGroups ?? [];
   const hasResult =
     outcome.summary !== undefined ||
     skipped.length > 0 ||
-    skippedGroups.length > 0;
+    skippedGroups.length > 0 ||
+    unreadable.length > 0;
 
   return completeQueueItem(db, id, {
     claimToken,
     discoveredPaths: queuePaths,
+    unreadablePaths,
     result: hasResult
       ? {
           ...(outcome.summary ? { summary: outcome.summary } : {}),
           skipped: skipped.map((s) => ({ path: s.path, reason: s.reason })),
           ...(skippedGroups.length > 0 ? { skippedGroups } : {}),
+          ...(unreadable.length > 0
+            ? {
+                unreadable: unreadable.map((u) => ({
+                  path: u.path,
+                  error: u.error,
+                })),
+              }
+            : {}),
         }
       : undefined,
   });

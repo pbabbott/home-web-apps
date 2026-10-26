@@ -202,3 +202,82 @@ describe('acknowledging a skipped path', () => {
     );
   });
 });
+
+describe('unreadable child directories', () => {
+  it('records them as failed at once, idempotently, and allows one human retry', async () => {
+    const sourceId = await createSource();
+    const job = (
+      await getRequest()
+        .post(`/sources/${sourceId}/discovery-jobs`)
+        .send({ rootPath: 'C:\\Users' })
+        .expect(201)
+    ).body as { id: string };
+    const item = (
+      await getRequest()
+        .post(`/discovery-jobs/${job.id}/queue-items/claim`)
+        .send({ workerId: 'w1', leaseSeconds: 300 })
+        .expect(200)
+    ).body.item as ClaimedItem;
+    const body = {
+      claimToken: item.claimToken,
+      unreadable: [
+        { path: 'C:\\Users\\DefaultAppPool', error: 'EPERM on realpath' },
+      ],
+    };
+
+    const first = await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send(body)
+      .expect(200);
+    expect(first.body.children[0]).toMatchObject({
+      status: 'failed',
+      attemptCount: 0,
+      lastError: 'EPERM on realpath',
+      created: true,
+    });
+
+    const replay = await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send(body)
+      .expect(200);
+    expect(replay.body.children).toHaveLength(1);
+
+    await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        unreadable: [{ path: 'C:\\Other\\x', error: 'EPERM' }],
+      })
+      .expect(409);
+
+    await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
+  });
+
+  it('lets a human retry an unreadable child while the job is active', async () => {
+    const sourceId = await createSource();
+    const job = (
+      await getRequest()
+        .post(`/sources/${sourceId}/discovery-jobs`)
+        .send({ rootPath: 'C:\\Users' })
+        .expect(201)
+    ).body as { id: string };
+    const item = (
+      await getRequest()
+        .post(`/discovery-jobs/${job.id}/queue-items/claim`)
+        .send({ workerId: 'w1', leaseSeconds: 300 })
+        .expect(200)
+    ).body.item as ClaimedItem;
+    const done = await getRequest()
+      .post(`/queue-items/${item.id}/complete`)
+      .send({
+        claimToken: item.claimToken,
+        unreadable: [{ path: 'C:\\Users\\Svc', error: 'EPERM' }],
+      })
+      .expect(200);
+
+    const retried = await getRequest()
+      .post(`/queue-items/${done.body.children[0].id}/retry`)
+      .expect(200);
+    expect(retried.body).toMatchObject({ status: 'queued', maxAttempts: 1 });
+  });
+});

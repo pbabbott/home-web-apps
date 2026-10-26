@@ -268,6 +268,7 @@ describe('MCP endpoint (/mcp)', () => {
       remaining: { queued: 4, inProgress: 1, failed: 2 },
       queued: ['C:\\a'],
       excluded: ['C:\\b'],
+      failed: [],
       alreadyQueued: 1,
     });
   });
@@ -294,6 +295,7 @@ describe('MCP endpoint (/mcp)', () => {
         summary: 'root assessed',
         skipped: [{ path: 'C:\\Windows', reason: 'operating system' }],
         skippedGroups: [],
+        unreadable: [],
       },
     );
   });
@@ -315,6 +317,7 @@ describe('MCP endpoint (/mcp)', () => {
       summary: undefined,
       skipped: [],
       skippedGroups: [group],
+      unreadable: [],
     });
 
     for (const pattern of ['*', 'installer.msi', '*\\*.msi', 'a/*.msi']) {

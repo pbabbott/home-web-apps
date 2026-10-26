@@ -238,13 +238,21 @@ export const createMcpServer = (): McpServer => {
       description: completeQueueItemOperation.mcp.description,
       inputSchema: { id: queueItemId, ...completeQueueItemBodySchema.shape },
     },
-    ({ id, claimToken, discoveredPaths, summary, skipped, skippedGroups }) =>
+    ({
+      id,
+      claimToken,
+      discoveredPaths,
+      summary,
+      skipped,
+      skippedGroups,
+      unreadable,
+    }) =>
       run(completeQueueItemOperation.mcp.name, async () => {
         const { item, children } = await discoveryService.completeItem(
           id,
           claimToken,
           discoveredPaths,
-          { summary, skipped, skippedGroups },
+          { summary, skipped, skippedGroups, unreadable },
         );
 
         return completeResult(
