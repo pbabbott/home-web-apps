@@ -22,6 +22,20 @@ const ackKey = (normalizedPath: string, pattern = '') =>
   `${normalizedPath}|${pattern}`;
 
 /**
+ * Whether a directory is fully dealt with: every skip reviewed and no
+ * inventory item it proposed still waiting for a human decision. Null while
+ * the review itself is unknown (no result yet).
+ */
+export function directoryReviewed(
+  skipReview: SkipReview,
+  pendingInventory: number,
+): boolean | null {
+  if (skipReview.reviewed === null) return null;
+
+  return skipReview.reviewed && pendingInventory === 0;
+}
+
+/**
  * Whether every skip of a directory has been dealt with. A skipped path counts
  * when acknowledged or promoted to the inventory (the human acted on it); a
  * skipped pattern counts when acknowledged.

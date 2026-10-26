@@ -69,19 +69,29 @@ export const discoveryJobResponseSchema =
 export const queueItemListEntrySchema = discoveryQueueItemSelectSchema.extend({
   inventoryCount: z.number().int().meta({
     description:
-      'Inventory items last proposed or added from this directory; a later job may take one over.',
+      'Inventory items last proposed or added from this directory; a later job may take one over. The sum of `inventoryByDecision`.',
   }),
+  inventoryByDecision: z
+    .object({
+      pending: z.number().int(),
+      approved: z.number().int(),
+      rejected: z.number().int(),
+    })
+    .meta({ description: 'Those inventory items by human decision.' }),
 });
 
-/** A job's listed queue item, with whether a human has dealt with all of its skips. */
+const reviewedSchema = z.boolean().nullable().meta({
+  description:
+    'True when every skipped path is acknowledged or in the inventory, every skipped pattern is acknowledged, and no inventory item the directory proposed is still pending a decision; null until the directory has a result.',
+});
+
+/** A job's listed queue item, with whether a human has dealt with all of it. */
 export const jobQueueItemListEntrySchema = queueItemListEntrySchema.extend({
-  skipsReviewed: z.boolean().nullable().meta({
-    description:
-      'True when every skipped path is acknowledged or in the inventory and every skipped pattern is acknowledged; null until the directory has a result.',
-  }),
+  reviewed: reviewedSchema,
 });
 
 export const queueItemDetailSchema = queueItemListEntrySchema.extend({
+  reviewed: reviewedSchema,
   job: z.object({
     id: z.uuid(),
     sourceId: z.uuid(),

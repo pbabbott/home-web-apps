@@ -31,6 +31,7 @@ import { db } from '../../db';
 import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
 import {
+  directoryReviewed,
   reviewSkips,
   type ReviewContext,
   type SkipReview,
@@ -215,8 +216,8 @@ async function loadReviewContext(
 }
 
 export type QueueItemListEntry = QueueItemWithInventoryCount & {
-  /** Whether a human has dealt with every skip; null until the directory has a result. */
-  skipsReviewed: boolean | null;
+  /** Every skip reviewed and no inventory decision pending; null until the directory has a result. */
+  reviewed: boolean | null;
 };
 
 export async function listJobQueueItems(
@@ -231,12 +232,17 @@ export async function listJobQueueItems(
 
   return items.map((item) => ({
     ...item,
-    skipsReviewed: reviewSkips(item.path, item.result, context).reviewed,
+    reviewed: directoryReviewed(
+      reviewSkips(item.path, item.result, context),
+      item.inventoryByDecision.pending,
+    ),
   }));
 }
 
 export type QueueItemDetail = QueueItemWithInventoryCount & {
   job: Pick<DiscoveryJob, 'id' | 'sourceId' | 'rootPath' | 'status'>;
+  /** As on the list: skips reviewed and no inventory decision pending. */
+  reviewed: boolean | null;
   skipReview: SkipReview;
   /** The directory itself is an approved inventory item. */
   directoryApproved: boolean;
@@ -257,6 +263,8 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
     }),
   ]);
 
+  const skipReview = reviewSkips(item.path, item.result, context);
+
   return {
     ...item,
     job: {
@@ -265,7 +273,8 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
       rootPath: job.rootPath,
       status: job.status,
     },
-    skipReview: reviewSkips(item.path, item.result, context),
+    reviewed: directoryReviewed(skipReview, item.inventoryByDecision.pending),
+    skipReview,
     directoryApproved: approved.length > 0,
   };
 }

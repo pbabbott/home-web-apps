@@ -214,17 +214,17 @@ describe('skip review on a job’s directories', () => {
         .expect(200)
     ).body.find((entry: { id: string }) => entry.id === item.id);
 
-  it('flips skipsReviewed once every path and pattern is acknowledged, and flags each skip on the item', async () => {
+  it('flips reviewed once every path and pattern is acknowledged, and flags each skip on the item', async () => {
     const sourceId = await createSource();
     const item = await skipInJob(sourceId);
 
-    expect((await listed(item)).skipsReviewed).toBe(false);
+    expect((await listed(item)).reviewed).toBe(false);
 
     await acknowledge(item, { path: KEEPER }).expect(201);
-    expect((await listed(item)).skipsReviewed).toBe(false);
+    expect((await listed(item)).reviewed).toBe(false);
 
     await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
-    expect((await listed(item)).skipsReviewed).toBe(true);
+    expect((await listed(item)).reviewed).toBe(true);
 
     const detail = (
       await getRequest().get(`/queue-items/${item.id}`).expect(200)
@@ -238,7 +238,7 @@ describe('skip review on a job’s directories', () => {
     expect(detail.directoryApproved).toBe(false);
 
     await unacknowledge(item, { path: KEEPER }).expect(204);
-    expect((await listed(item)).skipsReviewed).toBe(false);
+    expect((await listed(item)).reviewed).toBe(false);
   });
 
   it('counts a promoted path as reviewed', async () => {
@@ -246,17 +246,41 @@ describe('skip review on a job’s directories', () => {
     const item = await skipInJob(sourceId);
     await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
 
-    await getRequest()
-      .post(`/queue-items/${item.id}/promote`)
-      .set(HUMAN)
-      .send({ path: KEEPER, kind: 'file' })
-      .expect(201);
+    const promoted = (
+      await getRequest()
+        .post(`/queue-items/${item.id}/promote`)
+        .set(HUMAN)
+        .send({ path: KEEPER, kind: 'file' })
+        .expect(201)
+    ).body as { id: string };
 
     const detail = (
       await getRequest().get(`/queue-items/${item.id}`).expect(200)
     ).body;
     expect(detail.skipReview.paths[0]).toMatchObject({ inventoried: true });
     expect(detail.skipReview.reviewed).toBe(true);
+    expect(detail).toMatchObject({
+      inventoryCount: 1,
+      inventoryByDecision: { pending: 0, approved: 1, rejected: 0 },
+    });
+    expect((await listed(item)).inventoryByDecision.approved).toBe(1);
+    expect((await listed(item)).reviewed).toBe(true);
+
+    // A pending inventory decision keeps the directory from counting as reviewed.
+    const decide = (decision: string) =>
+      getRequest()
+        .patch(`/inventory-items/${promoted.id}/decision`)
+        .set(HUMAN)
+        .send({ decision })
+        .expect(200);
+    await decide('pending');
+    expect((await listed(item)).reviewed).toBe(false);
+    expect(
+      (await getRequest().get(`/queue-items/${item.id}`).expect(200)).body,
+    ).toMatchObject({ reviewed: false });
+
+    await decide('rejected');
+    expect((await listed(item)).reviewed).toBe(true);
   });
 
   it('404s for an unknown queue item', async () => {

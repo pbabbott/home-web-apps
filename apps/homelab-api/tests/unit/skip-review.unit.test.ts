@@ -1,5 +1,8 @@
 import type { QueueItemResult } from '@abbottland/homelab-db';
-import { reviewSkips } from '../../src/services/discovery/skip-review';
+import {
+  directoryReviewed,
+  reviewSkips,
+} from '../../src/services/discovery/skip-review';
 
 const result: QueueItemResult = {
   skipped: [
@@ -67,5 +70,24 @@ describe('reviewSkips', () => {
     });
 
     expect(review.reviewed).toBe(false);
+  });
+});
+
+describe('directoryReviewed', () => {
+  const review = (reviewed: boolean | null) => ({
+    reviewed,
+    paths: [],
+    patterns: [],
+  });
+
+  it('is null while the skip review is unknown, even with pending inventory', () => {
+    expect(directoryReviewed(review(null), 0)).toBeNull();
+    expect(directoryReviewed(review(null), 2)).toBeNull();
+  });
+
+  it('needs every skip reviewed and no pending inventory decision', () => {
+    expect(directoryReviewed(review(true), 0)).toBe(true);
+    expect(directoryReviewed(review(true), 1)).toBe(false);
+    expect(directoryReviewed(review(false), 0)).toBe(false);
   });
 });
