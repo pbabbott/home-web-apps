@@ -218,6 +218,9 @@ export {
   type ScrollbarProps,
 } from './components/Scrollbar/Scrollbar';
 
+// Tooltip
+export { Tooltip, type TooltipProps } from './components/Tooltip/Tooltip';
+
 // Switch
 export { Switch, type SwitchProps } from './components/Switch/Switch';
 
