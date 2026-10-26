@@ -203,6 +203,69 @@ describe('acknowledging a skipped path', () => {
   });
 });
 
+describe('skip review on a job’s directories', () => {
+  const jobOf = async (item: ClaimedItem) =>
+    (await getRequest().get(`/queue-items/${item.id}`).expect(200)).body.job
+      .id as string;
+  const listed = async (item: ClaimedItem) =>
+    (
+      await getRequest()
+        .get(`/discovery-jobs/${await jobOf(item)}/queue-items`)
+        .expect(200)
+    ).body.find((entry: { id: string }) => entry.id === item.id);
+
+  it('flips skipsReviewed once every path and pattern is acknowledged, and flags each skip on the item', async () => {
+    const sourceId = await createSource();
+    const item = await skipInJob(sourceId);
+
+    expect((await listed(item)).skipsReviewed).toBe(false);
+
+    await acknowledge(item, { path: KEEPER }).expect(201);
+    expect((await listed(item)).skipsReviewed).toBe(false);
+
+    await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
+    expect((await listed(item)).skipsReviewed).toBe(true);
+
+    const detail = (
+      await getRequest().get(`/queue-items/${item.id}`).expect(200)
+    ).body;
+    expect(detail.skipReview).toEqual({
+      reviewed: true,
+      paths: [{ path: KEEPER, acknowledged: true, inventoried: false }],
+      patterns: [{ pattern: '*.msi', acknowledged: true }],
+    });
+    expect(detail.job.sourceId).toBe(sourceId);
+    expect(detail.directoryApproved).toBe(false);
+
+    await unacknowledge(item, { path: KEEPER }).expect(204);
+    expect((await listed(item)).skipsReviewed).toBe(false);
+  });
+
+  it('counts a promoted path as reviewed', async () => {
+    const sourceId = await createSource();
+    const item = await skipInJob(sourceId);
+    await acknowledge(item, { path: DOWNLOADS, pattern: '*.msi' }).expect(201);
+
+    await getRequest()
+      .post(`/queue-items/${item.id}/promote`)
+      .set(HUMAN)
+      .send({ path: KEEPER, kind: 'file' })
+      .expect(201);
+
+    const detail = (
+      await getRequest().get(`/queue-items/${item.id}`).expect(200)
+    ).body;
+    expect(detail.skipReview.paths[0]).toMatchObject({ inventoried: true });
+    expect(detail.skipReview.reviewed).toBe(true);
+  });
+
+  it('404s for an unknown queue item', async () => {
+    await getRequest()
+      .get('/queue-items/123e4567-e89b-42d3-a456-426614174000')
+      .expect(404);
+  });
+});
+
 describe('unreadable child directories', () => {
   it('records them as failed at once, idempotently, and allows one human retry', async () => {
     const sourceId = await createSource();

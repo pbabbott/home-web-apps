@@ -174,3 +174,27 @@ export const listSkipAcknowledgements = async (
     .orderBy(asc(t.normalizedPath), asc(t.pattern))
     .limit(Math.min(options.limit ?? LIST_DEFAULT_LIMIT, LIST_MAX_LIMIT));
 };
+
+/** Keys (`normalizedPath|pattern`) of every acknowledgement at or beneath a path, with no page limit. */
+export const listAcknowledgedSkipKeys = async (
+  db: Database,
+  sourceId: string,
+  normalizedPathPrefix: string,
+): Promise<string[]> => {
+  const t = skipAcknowledgements;
+  const dir = normalizedPathPrefix.replace(/\\$/, '');
+  const rows = await db
+    .select({ path: t.normalizedPath, pattern: t.pattern })
+    .from(t)
+    .where(
+      and(
+        eq(t.sourceId, sourceId),
+        or(
+          eq(t.normalizedPath, dir),
+          sql`${t.normalizedPath} like ${`${escapeLike(dir)}\\%`} escape '!'`,
+        ),
+      ),
+    );
+
+  return rows.map((row) => `${row.path}|${row.pattern}`);
+};

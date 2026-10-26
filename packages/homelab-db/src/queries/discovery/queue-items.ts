@@ -95,6 +95,38 @@ export const listQueueItems = async (
   }));
 };
 
+/** One queue item with the inventory count and the job it belongs to, or undefined. */
+export const getQueueItemWithJob = async (
+  db: Database,
+  id: string,
+): Promise<
+  | {
+      item: QueueItemWithInventoryCount;
+      job: typeof discoveryJobs.$inferSelect;
+    }
+  | undefined
+> => {
+  const [row] = await db
+    .select({
+      item: discoveryQueueItems,
+      job: discoveryJobs,
+      inventoryCount: sql<number>`(
+        select count(*)::int from ${inventoryItems}
+        where ${inventoryItems.lastQueueItemId} = ${discoveryQueueItems.id}
+      )`,
+    })
+    .from(discoveryQueueItems)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
+    .where(eq(discoveryQueueItems.id, id));
+
+  if (!row) return undefined;
+
+  return {
+    item: { ...row.item, inventoryCount: row.inventoryCount },
+    job: row.job,
+  };
+};
+
 export type EnqueueQueueItemsInput = {
   jobId: string;
   paths: QueuePath[];

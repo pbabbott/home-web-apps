@@ -119,6 +119,7 @@ export async function listSourceInventoryItems(
   sourceId: string,
   filters: {
     jobId?: string;
+    queueItemId?: string;
     recommendation?: InventoryItemRecommendation;
     decision?: InventoryItemDecision;
     kind?: InventoryItemKind;
@@ -137,6 +138,7 @@ export async function listSourceInventoryItems(
   const options = {
     sourceId,
     jobId: filters.jobId,
+    queueItemId: filters.queueItemId,
     recommendation: filters.recommendation,
     decision: filters.decision,
     kind: filters.kind,

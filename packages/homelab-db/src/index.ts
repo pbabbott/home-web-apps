@@ -113,6 +113,7 @@ export {
   skipInventoriedQueueItems,
   listInventoryItems,
   countInventoryItems,
+  listInventoriedPaths,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {
@@ -151,6 +152,7 @@ export {
   completeDiscoveryJob,
   getQueueItemById,
   listQueueItems,
+  getQueueItemWithJob,
   enqueueQueueItems,
   claimNextAcrossJobs,
   claimNextQueueItem,
@@ -166,6 +168,7 @@ export {
   acknowledgeSkip,
   unacknowledgeSkip,
   listSkipAcknowledgements,
+  listAcknowledgedSkipKeys,
   importSources,
   importDiscoveryJobs,
   importQueueItems,

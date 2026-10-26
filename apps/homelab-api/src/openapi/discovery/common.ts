@@ -73,6 +73,39 @@ export const queueItemListEntrySchema = discoveryQueueItemSelectSchema.extend({
   }),
 });
 
+/** A job's listed queue item, with whether a human has dealt with all of its skips. */
+export const jobQueueItemListEntrySchema = queueItemListEntrySchema.extend({
+  skipsReviewed: z.boolean().nullable().meta({
+    description:
+      'True when every skipped path is acknowledged or in the inventory and every skipped pattern is acknowledged; null until the directory has a result.',
+  }),
+});
+
+export const queueItemDetailSchema = queueItemListEntrySchema.extend({
+  job: z.object({
+    id: z.uuid(),
+    sourceId: z.uuid(),
+    rootPath: z.string(),
+    status: z.string(),
+  }),
+  skipReview: z.object({
+    reviewed: z.boolean().nullable(),
+    paths: z.array(
+      z.object({
+        path: z.string(),
+        acknowledged: z.boolean(),
+        inventoried: z.boolean(),
+      }),
+    ),
+    patterns: z.array(
+      z.object({ pattern: z.string(), acknowledged: z.boolean() }),
+    ),
+  }),
+  directoryApproved: z.boolean().meta({
+    description: 'The directory itself is an approved inventory item.',
+  }),
+});
+
 export const queueItemWithCreatedSchema = discoveryQueueItemSelectSchema.extend(
   {
     created: z.boolean().meta({

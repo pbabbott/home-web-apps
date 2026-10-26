@@ -57,6 +57,21 @@ export const listJobQueueItems = handle(
   },
 );
 
+// Does: fetch one queue item with its job, per-skip review flags and whether
+// the directory is an approved inventory item.
+// Who: human (home-hud directory detail page). No MCP tool.
+export const getQueueItemOperation = {
+  summary: 'Get a queue item',
+  description:
+    'The directory with its job, `skipReview` (which skipped paths and patterns a human acknowledged or promoted) and `directoryApproved`.',
+  hud: '/exodus/jobs/[id]/directories/[itemId]',
+} satisfies Operation;
+
+export const getQueueItem = handle('GET /queue-items/:id', async (req, res) => {
+  const { id } = req.params as QueueItemIdParams;
+  res.status(200).json(await discoveryService.getQueueItemDetail(id));
+});
+
 // Does: enqueue directory paths for a job; idempotent per path (`created` flag).
 // Who: human (home-hud job detail page), to add work to a running job. No MCP tool: agents add work through
 // complete_directory's discoveredPaths.

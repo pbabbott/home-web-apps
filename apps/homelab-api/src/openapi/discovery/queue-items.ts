@@ -4,6 +4,8 @@ import {
   completedQueueItemSchema,
   conflictResponse,
   discoveryNotFoundResponse,
+  jobQueueItemListEntrySchema,
+  queueItemDetailSchema,
   queueItemListEntrySchema,
   queueItemWithCreatedSchema,
 } from './common';
@@ -13,6 +15,7 @@ import {
   completeQueueItemOperation,
   enqueueQueueItemsOperation,
   failQueueItemOperation,
+  getQueueItemOperation,
   heartbeatQueueItemOperation,
   listJobQueueItemsOperation,
   listKnownSkipsOperation,
@@ -82,6 +85,22 @@ const messageResponse = (description: string) => ({
 });
 
 export const queueItemsPaths = {
+  '/queue-items/{id}': {
+    get: {
+      summary: getQueueItemOperation.summary,
+      'x-home-hud': getQueueItemOperation.hud,
+      description: getQueueItemOperation.description,
+      requestParams: { path: queueItemIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The queue item',
+          content: { 'application/json': { schema: queueItemDetailSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+      },
+    },
+  },
   '/queue-items/{id}/skipped-group-matches': {
     get: {
       summary: listSkippedGroupMatchesOperation.summary,
@@ -167,7 +186,7 @@ export const queueItemsPaths = {
           description: 'The queue items',
           content: {
             'application/json': {
-              schema: z.array(queueItemListEntrySchema),
+              schema: z.array(jobQueueItemListEntrySchema),
             },
           },
         },

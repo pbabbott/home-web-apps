@@ -7,7 +7,11 @@ import {
   failQueueItem,
   getQueueCounts,
   getQueueItemById,
+  getQueueItemWithJob,
   getSourceById,
+  listAcknowledgedSkipKeys,
+  listInventoriedPaths,
+  listInventoryItems as listInventoryItemRows,
   heartbeatQueueItem,
   listKnownSkips as listKnownSkipRows,
   listQueueItems as listQueueItemRows,
@@ -26,6 +30,11 @@ import {
 import { db } from '../../db';
 import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
+import {
+  reviewSkips,
+  type ReviewContext,
+  type SkipReview,
+} from './skip-review';
 import {
   assertWithinClaimedDirectory,
   toFollowUpPath,
@@ -188,13 +197,77 @@ export const retryFailedItems = (jobId: string) =>
 
 export const retryItem = (id: string) => retryQueueItem(db, id);
 
+/** Reads the acknowledgements and inventory paths beneath `rootPath` once, for reviewing many directories. */
+async function loadReviewContext(
+  sourceId: string,
+  rootPath: string,
+): Promise<ReviewContext> {
+  const { normalizedPath } = normalizeWindowsPath(rootPath);
+  const [acknowledged, inventoried] = await Promise.all([
+    listAcknowledgedSkipKeys(db, sourceId, normalizedPath),
+    listInventoriedPaths(db, sourceId, normalizedPath),
+  ]);
+
+  return {
+    acknowledged: new Set(acknowledged),
+    inventoried: new Set(inventoried),
+  };
+}
+
+export type QueueItemListEntry = QueueItemWithInventoryCount & {
+  /** Whether a human has dealt with every skip; null until the directory has a result. */
+  skipsReviewed: boolean | null;
+};
+
 export async function listJobQueueItems(
   jobId: string,
   filters: { status?: DiscoveryQueueItemStatus },
-): Promise<QueueItemWithInventoryCount[]> {
-  await requireJob(jobId);
+): Promise<QueueItemListEntry[]> {
+  const job = await requireJob(jobId);
+  const [items, context] = await Promise.all([
+    listQueueItemRows(db, { jobId, ...filters }),
+    loadReviewContext(job.sourceId, job.rootPath),
+  ]);
 
-  return listQueueItemRows(db, { jobId, ...filters });
+  return items.map((item) => ({
+    ...item,
+    skipsReviewed: reviewSkips(item.path, item.result, context).reviewed,
+  }));
+}
+
+export type QueueItemDetail = QueueItemWithInventoryCount & {
+  job: Pick<DiscoveryJob, 'id' | 'sourceId' | 'rootPath' | 'status'>;
+  skipReview: SkipReview;
+  /** The directory itself is an approved inventory item. */
+  directoryApproved: boolean;
+};
+
+export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
+  const found = await getQueueItemWithJob(db, id);
+  if (!found) throw new DiscoveryError('not_found', 'queue item not found');
+
+  const { item, job } = found;
+  const [context, approved] = await Promise.all([
+    loadReviewContext(job.sourceId, item.path),
+    listInventoryItemRows(db, {
+      sourceId: job.sourceId,
+      normalizedPath: item.normalizedPath,
+      decision: 'approved',
+      limit: 1,
+    }),
+  ]);
+
+  return {
+    ...item,
+    job: {
+      id: job.id,
+      sourceId: job.sourceId,
+      rootPath: job.rootPath,
+      status: job.status,
+    },
+    skipReview: reviewSkips(item.path, item.result, context),
+    directoryApproved: approved.length > 0,
+  };
 }
 
 /**
