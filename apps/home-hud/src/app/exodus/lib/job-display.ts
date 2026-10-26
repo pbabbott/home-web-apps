@@ -105,6 +105,22 @@ export function relativeToDirectory(directory: string, path: string): string {
   return startsWithBase && /^[\\/]/.test(rest) ? rest.slice(1) : path;
 }
 
+/**
+ * Orders paths folder by folder, case-insensitively, so a directory is followed
+ * by what is inside it (`a`, `a\\b`, `a-old`) rather than `a-old` splitting them,
+ * as a plain string compare would since `-` sorts before `\\`.
+ */
+export function comparePaths(a: string, b: string): number {
+  const left = a.toLowerCase().split(/[\\/]+/);
+  const right = b.toLowerCase().split(/[\\/]+/);
+
+  for (let i = 0; i < Math.min(left.length, right.length); i++) {
+    if (left[i] !== right[i]) return left[i] < right[i] ? -1 : 1;
+  }
+
+  return left.length - right.length;
+}
+
 /** One line for the table: `3 skipped, 2 patterns`, or an empty string when nothing was skipped. */
 export function describeSkips(result: QueueItemResult | null): string {
   if (!result) return '';

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Fragment,
   useEffect,
+  useMemo,
   useState,
   type FormEvent,
   type ReactNode,
@@ -28,6 +29,7 @@ import {
 import {
   JOB_STATUS_COLOR,
   QUEUE_STATUS_COLOR,
+  comparePaths,
   describeSkips,
   formatDuration,
   isStaleClaim,
@@ -46,6 +48,7 @@ import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { PatternMatchesModal } from '../../lib/PatternMatchesModal';
 import { PreviewButton } from '../../lib/PreviewButton';
+import { InventoryDirectoryModal } from './InventoryDirectoryModal';
 import { PromoteSkippedModal } from './PromoteSkippedModal';
 import {
   acknowledgeSkip,
@@ -142,6 +145,8 @@ function AcknowledgeControl({
 interface SkipReview {
   /** Lowercased paths already in the inventory. */
   inventoried: ReadonlySet<string>;
+  /** Lowercased paths of approved inventory items: the human has taken them whole. */
+  approved: ReadonlySet<string>;
   /** `skipKey`s of the acknowledged skips. */
   acknowledged: ReadonlySet<string>;
   /** Null on success, else the error to show. */
@@ -152,6 +157,8 @@ interface SkipReview {
     reviewed: boolean,
   ) => Promise<string | null>;
   markInventoried: (path: string) => void;
+  /** Also marks the path as taken whole. */
+  markApproved: (path: string) => void;
 }
 
 function useSkipReview(
@@ -162,6 +169,7 @@ function useSkipReview(
   const [inventoried, setInventoried] = useState<ReadonlySet<string>>(
     new Set(),
   );
+  const [approved, setApproved] = useState<ReadonlySet<string>>(new Set());
   const [acknowledged, setAcknowledged] = useState<ReadonlySet<string>>(
     new Set(),
   );
@@ -171,6 +179,9 @@ function useSkipReview(
     let cancelled = false;
     void listInventoryPathsUnder(sourceId, rootPath).then((found) => {
       if (!cancelled && found.ok) setInventoried(new Set(found.data));
+    });
+    void listInventoryPathsUnder(sourceId, rootPath, true).then((found) => {
+      if (!cancelled && found.ok) setApproved(new Set(found.data));
     });
     void listAcknowledgedSkipsUnder(sourceId, rootPath).then((found) => {
       if (!cancelled && found.ok) setAcknowledged(new Set(found.data));
@@ -208,10 +219,15 @@ function useSkipReview(
 
   return {
     inventoried,
+    approved,
     acknowledged,
     setReviewed,
     markInventoried: (path) =>
       setInventoried((current) => new Set(current).add(path.toLowerCase())),
+    markApproved: (path) => {
+      setInventoried((current) => new Set(current).add(path.toLowerCase()));
+      setApproved((current) => new Set(current).add(path.toLowerCase()));
+    },
   };
 }
 
@@ -263,10 +279,13 @@ function QueueItemDetails({
   item,
   sourceId,
   review,
+  onInventoried,
 }: {
   item: QueueItem;
   sourceId: string;
   review: SkipReview;
+  /** After the whole directory was added: refresh the queue and say what happened. */
+  onInventoried: (path: string, skippedQueueItems: number) => void;
 }) {
   const result = item.result;
   const hasNothing = !item.reason && !result && !item.lastError;
@@ -277,6 +296,8 @@ function QueueItemDetails({
     path?: string;
     reason?: string;
   } | null>(null);
+  const approved = review.approved.has(item.path.toLowerCase());
+  const [inventoryingDirectory, setInventoryingDirectory] = useState(false);
   const [viewingPattern, setViewingPattern] = useState<{
     pattern: string;
     count?: number;
@@ -447,8 +468,22 @@ function QueueItemDetails({
         </div>
       )}
 
-      {result && (
-        <div>
+      <div className="flex flex-wrap items-center gap-2">
+        {approved && (
+          <Link href="/exodus/inventory" className="text-neutral-400 underline">
+            Directory approved in inventory
+          </Link>
+        )}
+        <OutlinedButton
+          size="small"
+          color="success"
+          onClick={() => setInventoryingDirectory(true)}
+        >
+          {approved
+            ? 'Skip queued subdirectories'
+            : 'Inventory whole directory'}
+        </OutlinedButton>
+        {result && (
           <OutlinedButton
             size="small"
             color="secondary"
@@ -456,7 +491,19 @@ function QueueItemDetails({
           >
             Promote a path…
           </OutlinedButton>
-        </div>
+        )}
+      </div>
+
+      {inventoryingDirectory && (
+        <InventoryDirectoryModal
+          open
+          onOpenChange={setInventoryingDirectory}
+          queueItem={item}
+          onInventoried={(path, skipped) => {
+            review.markApproved(path);
+            onInventoried(path, skipped);
+          }}
+        />
       )}
 
       {promoting && (
@@ -618,12 +665,18 @@ export function JobDetailClient({
 }: JobDetailClientProps) {
   const router = useRouter();
   const review = useSkipReview(job.sourceId, job.rootPath, items);
+  const sortedItems = useMemo(
+    () =>
+      items ? [...items].sort((a, b) => comparePaths(a.path, b.path)) : null,
+    [items],
+  );
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const active = isActiveJob(job);
   const [now, setNow] = useState<number | null>(null);
   const [retrying, setRetrying] = useState<string | 'all' | null>(null);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [retryNotice, setRetryNotice] = useState<string | null>(null);
+  const [inventoryNotice, setInventoryNotice] = useState<string | null>(null);
 
   // Set after mount: lease expiry compared against the server's clock at render
   // time would not match what the browser computes during hydration.
@@ -664,8 +717,8 @@ export function JobDetailClient({
     router.refresh();
   }
 
-  // The list is ordered by last change, so a refresh moves rows under the
-  // reader; hold it still while any row is open.
+  // A refresh can add rows or change a row's status under the reader; hold
+  // it still while any row is open.
   const paused = expanded.size > 0;
 
   useEffect(() => {
@@ -771,7 +824,7 @@ export function JobDetailClient({
         />
       )}
 
-      <Panel color="default" className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Typography variant="h5" component="h2">
             Directories
@@ -825,6 +878,15 @@ export function JobDetailClient({
             {retryNotice}
           </Typography>
         )}
+        {inventoryNotice && (
+          <Typography
+            variant="body2"
+            role="status"
+            className="text-success-400"
+          >
+            {inventoryNotice}
+          </Typography>
+        )}
         {active && expanded.size > 0 && (
           <Typography variant="body2" className="text-neutral-400">
             Auto-refresh is paused while a directory is open. Close it to
@@ -832,11 +894,11 @@ export function JobDetailClient({
           </Typography>
         )}
 
-        {items === null ? (
+        {sortedItems === null ? (
           <Typography variant="body2" className="text-error-400">
             Failed to load directories from homelab-api.
           </Typography>
-        ) : items.length === 0 ? (
+        ) : sortedItems.length === 0 ? (
           <Typography variant="body2" className="text-neutral-400">
             No directories{status ? ` with status ${status}` : ''}.
           </Typography>
@@ -857,11 +919,10 @@ export function JobDetailClient({
                     <Th>Lease</Th>
                     <Th>Last error</Th>
                     <Th>Completed</Th>
-                    <Th>&nbsp;</Th>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {items.map((item) => (
+                  {sortedItems.map((item) => (
                     <Fragment key={item.id}>
                       <TableRow>
                         <Td className="w-px px-2">
@@ -931,31 +992,40 @@ export function JobDetailClient({
                           )}
                         </Td>
                         <Td>
-                          <QueueItemMessage lastError={item.lastError} clamp />
+                          <div className="flex flex-col items-start gap-2">
+                            <QueueItemMessage
+                              lastError={item.lastError}
+                              clamp
+                            />
+                            {active && item.status === 'failed' && (
+                              <OutlinedButton
+                                size="small"
+                                color="warning"
+                                disabled={retrying !== null}
+                                onClick={() => void retry(item.id)}
+                              >
+                                {retrying === item.id ? 'Retrying…' : 'Retry'}
+                              </OutlinedButton>
+                            )}
+                          </div>
                         </Td>
                         <Td>
                           <LocalDateTime iso={item.completedAt} />
                         </Td>
-                        <Td>
-                          {active && item.status === 'failed' && (
-                            <OutlinedButton
-                              size="small"
-                              color="warning"
-                              disabled={retrying !== null}
-                              onClick={() => void retry(item.id)}
-                            >
-                              {retrying === item.id ? 'Retrying…' : 'Retry'}
-                            </OutlinedButton>
-                          )}
-                        </Td>
                       </TableRow>
                       {expanded.has(item.id) && (
                         <TableRow>
-                          <Td colSpan={10}>
+                          <Td colSpan={9}>
                             <QueueItemDetails
                               item={item}
                               sourceId={job.sourceId}
                               review={review}
+                              onInventoried={(path, skipped) => {
+                                setInventoryNotice(
+                                  `Added ${path} to the inventory; ${skipped} queued ${skipped === 1 ? 'directory' : 'directories'} inside it skipped.`,
+                                );
+                                router.refresh();
+                              }}
                             />
                           </Td>
                         </TableRow>
@@ -966,15 +1036,15 @@ export function JobDetailClient({
               </Table>
             </ScrollableTable>
 
-            {items.length >= JOB_QUEUE_ITEMS_LIMIT && (
+            {sortedItems.length >= JOB_QUEUE_ITEMS_LIMIT && (
               <Typography variant="body2" className="text-warning-400">
-                Showing the first {JOB_QUEUE_ITEMS_LIMIT} directories, most
-                recently changed first. Filter by status to narrow it down.
+                Showing the {JOB_QUEUE_ITEMS_LIMIT} most recently changed
+                directories, sorted by path. Filter by status to narrow it down.
               </Typography>
             )}
           </>
         )}
-      </Panel>
+      </section>
     </main>
   );
 }

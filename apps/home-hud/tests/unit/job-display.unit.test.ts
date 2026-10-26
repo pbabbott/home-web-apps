@@ -1,5 +1,6 @@
 import {
   classifyQueueMessage,
+  comparePaths,
   describeSkips,
   formatRelativeTime,
   guessKind,
@@ -215,5 +216,29 @@ describe('needsAttention', () => {
       needsAttention({ phase: 'work_remaining', queueCounts: counts() }),
     ).toBe(false);
     expect(needsAttention({ phase: null, queueCounts: counts(5) })).toBe(false);
+  });
+});
+
+describe('comparePaths', () => {
+  const sort = (paths: string[]) => [...paths].sort(comparePaths);
+
+  it('puts a directory before what is inside it, then its siblings', () => {
+    expect(
+      sort([
+        'C:\\Users\\me\\Google Drive-old',
+        'C:\\Users\\me\\Google Drive\\Finance',
+        'C:\\Users\\me\\Google Drive',
+        'C:\\Users\\me\\Documents',
+      ]),
+    ).toEqual([
+      'C:\\Users\\me\\Documents',
+      'C:\\Users\\me\\Google Drive',
+      'C:\\Users\\me\\Google Drive\\Finance',
+      'C:\\Users\\me\\Google Drive-old',
+    ]);
+  });
+
+  it('ignores case', () => {
+    expect(sort(['C:\\b', 'c:\\A'])).toEqual(['c:\\A', 'C:\\b']);
   });
 });
