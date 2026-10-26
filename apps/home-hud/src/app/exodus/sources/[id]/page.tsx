@@ -21,6 +21,7 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{ attention?: string }>;
 };
 
 function unwrap<T>(result: PromiseSettledResult<T>, label: string): T | null {
@@ -30,8 +31,12 @@ function unwrap<T>(result: PromiseSettledResult<T>, label: string): T | null {
   return null;
 }
 
-export default async function SourceDetailPage({ params }: PageProps) {
+export default async function SourceDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { id } = await params;
+  const { attention } = await searchParams;
 
   let sources: Source[];
 
@@ -91,6 +96,7 @@ export default async function SourceDetailPage({ params }: PageProps) {
       latestJob={latestJob}
       failedItems={failedItems}
       hasActiveJob={jobs?.some(isActiveJob) ?? false}
+      attentionOnly={attention === '1'}
     />
   );
 }

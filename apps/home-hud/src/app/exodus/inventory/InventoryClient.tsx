@@ -4,38 +4,22 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Badge,
   Button,
   Input,
   OutlinedButton,
-  ScrollableTable,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-  Switch,
-  Td,
-  Th,
   TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
 import { Icon } from '@abbottland/fui-icons';
 import {
-  changedSinceDecision,
   hasActiveFilters,
   inventoryItemsUrl,
-  DECISION_COLOR,
-  DECISION_LABELS,
   parseDecisionFilter,
   parseKind,
   parseRecommendation,
-  RECOMMENDATION_COLOR,
   RECOMMENDATION_LABELS,
   type DecisionFilter,
-  type InventoryLayout,
 } from '../lib/inventory-display';
-import { LocalDateTime } from '../lib/LocalDateTime';
-import { PreviewButton } from '../lib/PreviewButton';
 import { decideInventoryItem } from '../sources/lib/actions';
 import type {
   InventoryItemDecision,
@@ -44,7 +28,6 @@ import type {
   InventoryItem,
 } from '../sources/lib/homelab-api';
 import { InventoryItemCard } from './InventoryItemCard';
-import { InventoryItemDetailModal } from './InventoryItemDetailModal';
 import { InventoryPagination } from './InventoryPagination';
 
 interface InventoryClientProps {
@@ -59,7 +42,6 @@ interface InventoryClientProps {
   q: string | undefined;
   /** Set when the view is narrowed to exactly one inventory item. */
   path: string | undefined;
-  layout: InventoryLayout;
   page: number;
   pageSize: number;
   /** Null if the inventory items could not be loaded. */
@@ -79,14 +61,12 @@ export function InventoryClient({
   kind,
   q,
   path,
-  layout,
   page,
   pageSize,
   inventoryItems,
   total,
 }: InventoryClientProps) {
   const router = useRouter();
-  const [openId, setOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Reason typed per row, keyed by inventory item id.
@@ -99,11 +79,8 @@ export function InventoryClient({
     kind,
     q,
     path,
-    layout,
   };
   const filtered = hasActiveFilters(view);
-  // Looked up by id so the modal shows fresh data after a refresh.
-  const open = inventoryItems?.find((c) => c.id === openId) ?? null;
 
   async function quickDecide(
     inventoryItem: InventoryItem,
@@ -172,41 +149,11 @@ export function InventoryClient({
         </Typography>
       ) : (
         <TransparentPanel color="dark" className="flex flex-col gap-4 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Typography variant="body2">View mode</Typography>
-              <Typography
-                variant="small"
-                component="label"
-                htmlFor="inventory-layout"
-              >
-                Table
-              </Typography>
-              <Switch
-                id="inventory-layout"
-                aria-label="Show inventory items as cards"
-                checked={layout === 'cards'}
-                onCheckedChange={(checked) =>
-                  router.push(
-                    inventoryItemsUrl({
-                      ...view,
-                      layout: checked ? 'cards' : 'table',
-                    }),
-                  )
-                }
-              />
-              <Typography
-                variant="small"
-                component="label"
-                htmlFor="inventory-layout"
-              >
-                Cards
-              </Typography>
-            </div>
-            {filtered && (
+          {filtered && (
+            <div className="flex justify-end">
               <OutlinedButton
                 component={Link}
-                href={inventoryItemsUrl({ source: sourceId, layout })}
+                href={inventoryItemsUrl({ source: sourceId })}
                 color="secondary"
                 size="small"
               >
@@ -219,8 +166,8 @@ export function InventoryClient({
                   Clear filters
                 </span>
               </OutlinedButton>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="flex min-w-0 flex-col gap-1">
@@ -407,7 +354,7 @@ export function InventoryClient({
                   ? 'No inventory items match these filters.'
                   : 'Nothing waiting for review.'}
             </Typography>
-          ) : layout === 'cards' ? (
+          ) : (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {inventoryItems.map((inventoryItem) => (
                 <InventoryItemCard
@@ -422,162 +369,9 @@ export function InventoryClient({
                 />
               ))}
             </div>
-          ) : (
-            <ScrollableTable className="mb-0">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <Th>Path</Th>
-                    <Th>Approval</Th>
-                    <Th>Agent says</Th>
-                    <Th>Decision</Th>
-                    <Th>Updated</Th>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {inventoryItems.map((inventoryItem) => (
-                    <TableRow key={inventoryItem.id}>
-                      <Td className="break-all">
-                        <button
-                          type="button"
-                          onClick={() => setOpenId(inventoryItem.id)}
-                          className="text-left text-primary-400 hover:underline"
-                        >
-                          <Icon
-                            name={
-                              inventoryItem.kind === 'file'
-                                ? 'radix-file'
-                                : 'folder'
-                            }
-                            title={
-                              inventoryItem.kind === 'file' ? 'File' : 'Folder'
-                            }
-                            className="mr-1.5 inline-block align-text-bottom text-neutral-400"
-                          />
-                          {inventoryItem.rootPath}
-                        </button>
-                        {inventoryItem.kind === 'file' && (
-                          <PreviewButton
-                            sourceId={inventoryItem.sourceId}
-                            path={inventoryItem.rootPath}
-                            className="ml-1 align-text-bottom"
-                          />
-                        )}
-                        <div>
-                          <span className="text-neutral-400">What: </span>
-                          {inventoryItem.summary}
-                        </div>
-                        <div>
-                          <span className="text-neutral-400">Why: </span>
-                          {inventoryItem.recommendationReason}
-                        </div>
-                        <div>
-                          <Icon
-                            name="radix-eye-open"
-                            title="Looks like"
-                            className="mr-1.5 inline-block align-text-bottom text-neutral-400"
-                          />
-                          {inventoryItem.evidence.contentKinds.join(', ') ||
-                            'unclassified'}
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex flex-col gap-2">
-                          {inventoryItem.decision === 'pending' && (
-                            <Input
-                              color="primary"
-                              className="w-full min-w-48"
-                              placeholder="Reason (optional)"
-                              aria-label={`Reason for ${inventoryItem.displayName}`}
-                              maxLength={1000}
-                              disabled={busyId === inventoryItem.id}
-                              value={notes[inventoryItem.id] ?? ''}
-                              onChange={(e) =>
-                                setNotes((prev) => ({
-                                  ...prev,
-                                  [inventoryItem.id]: e.target.value,
-                                }))
-                              }
-                            />
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {inventoryItem.decision === 'pending' && (
-                              <>
-                                <Button
-                                  size="small"
-                                  disabled={busyId === inventoryItem.id}
-                                  onClick={() =>
-                                    quickDecide(inventoryItem, 'approved')
-                                  }
-                                >
-                                  Approve
-                                </Button>
-                                <OutlinedButton
-                                  size="small"
-                                  color="error"
-                                  disabled={busyId === inventoryItem.id}
-                                  onClick={() =>
-                                    quickDecide(inventoryItem, 'rejected')
-                                  }
-                                >
-                                  Reject
-                                </OutlinedButton>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex flex-col items-start gap-1">
-                          <Badge
-                            color={
-                              RECOMMENDATION_COLOR[inventoryItem.recommendation]
-                            }
-                          >
-                            {
-                              RECOMMENDATION_LABELS[
-                                inventoryItem.recommendation
-                              ]
-                            }
-                          </Badge>
-                          <Typography
-                            variant="small"
-                            className="text-neutral-400"
-                          >
-                            ({inventoryItem.confidence})
-                          </Typography>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <Badge color={DECISION_COLOR[inventoryItem.decision]}>
-                            {DECISION_LABELS[inventoryItem.decision]}
-                          </Badge>
-                          {changedSinceDecision(inventoryItem) && (
-                            <Badge color="warning">Agent changed</Badge>
-                          )}
-                        </div>
-                      </Td>
-                      <Td>
-                        <LocalDateTime iso={inventoryItem.recommendedAt} />
-                      </Td>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollableTable>
           )}
         </div>
       )}
-
-      <InventoryItemDetailModal
-        inventoryItem={open}
-        onClose={() => setOpenId(null)}
-        onDecided={() => {
-          setOpenId(null);
-          router.refresh();
-        }}
-      />
     </main>
   );
 }

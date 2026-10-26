@@ -119,7 +119,7 @@ export const promoteInventoryItemOperation = {
   summary: 'Promote a skipped path to an approved inventory item',
   description:
     'Corrects an agent skip. The path must be inside the queue item’s directory (usually one listed in its `skipped`). Creates an inventory item that is already `approved` (promoting is the human’s approval) with a `back_up` recommendation, and writes an `inventory_item.promoted` audit event. The queue item’s `result` is left as the agent wrote it. Only a human actor may promote (409 otherwise). Refused with 409 when the path already has an inventory item (`inventoryItemId` in the details, nothing is overwritten), when an exclusion rule covers it, or when it is outside the directory. Lists `coveredBy` / `covers` like a proposal.',
-  hud: '/exodus/jobs',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const promoteInventoryItem = handle(
@@ -141,7 +141,7 @@ export const inventoryDirectoryOperation = {
   summary: 'Add a whole directory to the inventory',
   description:
     'Approves the directory as one inventory item, so exploring inside it is unnecessary. Approves the agent’s proposal for the queue item’s directory when there is one (its agent fields are untouched, like any decision), otherwise creates an approved `directory` item with a `back_up` recommendation. Either way, the active job’s still-`queued` items inside the directory are marked `skipped`, and later enqueues or claims under it are skipped too (`queue_items.inventoried` audit event); in-progress and finished items are untouched. Only a human actor may do this (409 otherwise). Refused with 409 when an exclusion rule covers the path. `created` says whether the item is new; `skippedQueueItems` how many queue items were skipped now. Lists `coveredBy` / `covers` like a proposal.',
-  hud: '/exodus/jobs',
+  hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
 export const inventoryDirectory = handle(

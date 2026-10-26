@@ -1,7 +1,6 @@
 import {
   parseDecisionFilter,
   parseKind,
-  parseLayout,
   parsePage,
   parseRecommendation,
 } from '../lib/inventory-display';
@@ -21,7 +20,6 @@ type PageProps = {
     kind?: string;
     q?: string;
     path?: string;
-    view?: string;
     page?: string;
   }>;
 };
@@ -49,7 +47,6 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
   const kind = parseKind(query.kind);
   const q = query.q?.trim().slice(0, 200) || undefined;
   const path = query.path?.trim() || undefined;
-  const layout = parseLayout(query.view);
   const page = parsePage(query.page);
 
   let inventoryPage: InventoryItemPage | null = null;
@@ -79,7 +76,6 @@ export default async function ExodusInventoryPage({ searchParams }: PageProps) {
       kind={kind}
       q={q}
       path={path}
-      layout={layout}
       page={page}
       pageSize={PAGE_SIZE}
       inventoryItems={inventoryPage?.items ?? null}

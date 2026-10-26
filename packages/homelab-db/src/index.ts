@@ -171,6 +171,7 @@ export {
   importQueueItems,
   importInventoryItems,
   importExclusionRules,
+  importSkipAcknowledgements,
   importAuditEvents,
 } from './queries/discovery';
 export type {
@@ -185,6 +186,7 @@ export type {
   ListAllDiscoveryJobsOptions,
   DiscoveryJobWithSource,
   ListQueueItemsOptions,
+  QueueItemWithInventoryCount,
   EnqueueQueueItemsInput,
   ClaimQueueItemInput,
   ClaimQueueItemResult,

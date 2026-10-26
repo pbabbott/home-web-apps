@@ -14,6 +14,7 @@ erDiagram
     discovery_queue_items |o--o{ skip_acknowledgements : "queue_item_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "first_job_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "last_job_id (SET NULL)"
+    discovery_queue_items |o--o{ inventory_items : "last_queue_item_id (SET NULL)"
 
     hosts {
         uuid id PK
@@ -89,6 +90,7 @@ erDiagram
         uuid source_id FK "UK with normalized_root_path"
         uuid first_job_id FK "nullable"
         uuid last_job_id FK "nullable, most recent proposing job"
+        uuid last_queue_item_id FK "nullable, most recent proposing queue item"
         inventory_item_kind kind "file | directory"
         text root_path
         text normalized_root_path
@@ -158,5 +160,5 @@ erDiagram
 - **Catalogue removal (migration `0011`).** The old per-path `inventory_items` catalogue and `audit_events.inventory_item_id` were dropped, the legacy `inventory_item.review_*` audit events were deleted, and the `inventory_item_type` enum was renamed `candidate_kind`.
 - **Rename (migration `0012`).** `review_candidates` became `inventory_items`; the `candidate_*` enums became `inventory_item_*`; `audit_events.review_candidate_id` became `inventory_item_id`; `review_candidate.*` audit event types became `inventory_item.*`. Constraints and indexes were renamed to match; no data moved.
 - **Source connections (migration file `0012_source_connections`).** At most one per source (`source_id` is the primary key), cascading with the source. It holds the credentials the API uses to read files for preview. `secret_ciphertext` is AES-256-GCM output produced by `homelab-api`; this package never sees the key or the plaintext. Saving a connection clears the last test result.
-- **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory items. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory items. Deleting a host that a source references is blocked (`RESTRICT`).
+- **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory items. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory items; deleting a queue item nulls `last_queue_item_id`. Deleting a host that a source references is blocked (`RESTRICT`).
 - **Skip acknowledgements (migration `0013_skip_acknowledgements`).** A human's "I agree with this skip", unique per `(source_id, normalized_path, pattern)` so it holds across later jobs of the source. `pattern` is `''` for a path skip; for a pattern skip, `path` is the directory. The queue item's `result` is never changed. Writes audit `skip.acknowledged` / `skip.unacknowledged`.

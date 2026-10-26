@@ -30,7 +30,7 @@ interface InventoryItemCardProps {
   onDecide: (decision: InventoryItemDecision) => void;
 }
 
-/** One inventory item with everything the detail modal shows, colored by the agent's recommendation. */
+/** One inventory item with everything the agent found, colored by the agent's recommendation. */
 export function InventoryItemCard({
   inventoryItem,
   note,

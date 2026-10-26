@@ -20,6 +20,7 @@ import {
   type DiscoveryQueueItem,
   type DiscoveryQueueItemStatus,
   type KnownSkip,
+  type QueueItemWithInventoryCount,
   type QueuePath,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
@@ -81,7 +82,7 @@ export const claimAnyQueueItem = (
 export async function listSourceQueueItems(
   sourceId: string,
   filters: { status?: DiscoveryQueueItemStatus; jobId?: string },
-): Promise<DiscoveryQueueItem[]> {
+): Promise<QueueItemWithInventoryCount[]> {
   if (!(await getSourceById(db, sourceId))) {
     throw new DiscoveryError('not_found', 'source not found');
   }
@@ -190,7 +191,7 @@ export const retryItem = (id: string) => retryQueueItem(db, id);
 export async function listJobQueueItems(
   jobId: string,
   filters: { status?: DiscoveryQueueItemStatus },
-): Promise<DiscoveryQueueItem[]> {
+): Promise<QueueItemWithInventoryCount[]> {
   await requireJob(jobId);
 
   return listQueueItemRows(db, { jobId, ...filters });

@@ -99,6 +99,13 @@
       "when": 1792941067175,
       "tag": "0013_skip_acknowledgements",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793024931026,
+      "tag": "0014_inventory_last_queue_item",
+      "breakpoints": true
     }
   ]
 }

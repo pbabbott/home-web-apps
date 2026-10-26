@@ -59,7 +59,6 @@ export const listDiscoveryJobsOperation = {
     description:
       'Discovery jobs with their source. Find pending/running jobs to resume.',
   },
-  hud: '/exodus/jobs',
 } satisfies Operation;
 
 export const listDiscoveryJobs = handle(

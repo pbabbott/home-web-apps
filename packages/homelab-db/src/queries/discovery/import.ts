@@ -6,6 +6,7 @@ import {
   discoveryQueueItems,
   exclusionRules,
   inventoryItems,
+  skipAcknowledgements,
   sources,
   type AuditEvent,
   type DiscoveryJob,
@@ -13,6 +14,7 @@ import {
   type ExclusionRule,
   type InventoryItem,
   type NewSource,
+  type SkipAcknowledgement,
   type Source,
 } from '../../schema/discovery';
 
@@ -127,6 +129,8 @@ export const importInventoryItems = async (
         set: {
           firstJobId: sql`excluded.first_job_id`,
           lastJobId: sql`excluded.last_job_id`,
+          // A remote that predates the column sends none; keep the local link.
+          lastQueueItemId: sql`coalesce(excluded.last_queue_item_id, ${inventoryItems.lastQueueItemId})`,
           kind: sql`excluded.kind`,
           rootPath: sql`excluded.root_path`,
           displayName: sql`excluded.display_name`,
@@ -180,5 +184,32 @@ export const importAuditEvents = async (
 ): Promise<void> => {
   for (const batch of chunk(rows)) {
     await db.insert(auditEvents).values(batch).onConflictDoNothing();
+  }
+};
+
+/**
+ * Upserts skip acknowledgements by `(sourceId, normalizedPath, pattern)`. The
+ * source, and any `queueItemId` that is set, must already be imported.
+ */
+export const importSkipAcknowledgements = async (
+  db: Database,
+  rows: SkipAcknowledgement[],
+): Promise<void> => {
+  for (const batch of chunk(rows)) {
+    await db
+      .insert(skipAcknowledgements)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: [
+          skipAcknowledgements.sourceId,
+          skipAcknowledgements.normalizedPath,
+          skipAcknowledgements.pattern,
+        ],
+        set: {
+          path: sql`excluded.path`,
+          queueItemId: sql`excluded.queue_item_id`,
+          acknowledgedBy: sql`excluded.acknowledged_by`,
+        },
+      });
   }
 };

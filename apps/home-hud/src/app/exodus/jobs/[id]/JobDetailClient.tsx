@@ -35,9 +35,14 @@ import {
   JobActivity,
   JobProgress,
   QueueItemMessage,
-  WorkerName,
 } from '../../lib/JobSummary';
-import { inventoryItemUrl } from '../../lib/inventory-display';
+import {
+  DECISION_COLOR,
+  DECISION_LABELS,
+  RECOMMENDATION_COLOR,
+  RECOMMENDATION_LABELS,
+  inventoryItemUrl,
+} from '../../lib/inventory-display';
 import { LocalDateTime } from '../../lib/LocalDateTime';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { PatternMatchesModal } from '../../lib/PatternMatchesModal';
@@ -57,6 +62,7 @@ import {
   JOB_QUEUE_ITEMS_LIMIT,
   isActiveJob,
   type DiscoveryJobWithCounts,
+  type InventoryItem,
   type QueueItem,
   type QueueItemStatus,
   skipKey,
@@ -72,6 +78,41 @@ const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
   { status: 'skipped', label: 'Skipped' },
   { status: 'failed', label: 'Failed' },
 ];
+
+/** A titled block that starts hidden; the header button shows or hides its body. */
+function CollapsibleSection({
+  title,
+  children,
+}: {
+  title: ReactNode;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <OutlinedButton
+          size="small"
+          color="secondary"
+          aria-expanded={open}
+          aria-label={open ? 'Hide table' : 'Show table'}
+          onClick={() => setOpen((current) => !current)}
+          className="shrink-0 px-1.5"
+        >
+          <Icon
+            name={open ? 'radix-chevron-down' : 'radix-chevron-right'}
+            size={14}
+          />
+        </OutlinedButton>
+        <Typography variant="body1" className="text-neutral-400">
+          {title}
+        </Typography>
+      </div>
+      {open && children}
+    </div>
+  );
+}
 
 function Detail({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -273,16 +314,20 @@ function QueueItemDetails({
   item,
   sourceId,
   review,
+  inventoryItems,
   onInventoried,
 }: {
   item: QueueItem;
   sourceId: string;
   review: SkipReview;
+  /** What this directory last proposed or added to the inventory. */
+  inventoryItems: InventoryItem[];
   /** After the whole directory was added: refresh the queue and say what happened. */
   onInventoried: (path: string, skippedQueueItems: number) => void;
 }) {
   const result = item.result;
-  const hasNothing = !item.reason && !result && !item.lastError;
+  const hasNothing =
+    !item.reason && !result && !item.lastError && inventoryItems.length === 0;
   const { inventoried, acknowledged } = review;
   const [ackError, setAckError] = useState<string | null>(null);
   // `path` is absent when the user types one in.
@@ -330,11 +375,14 @@ function QueueItemDetails({
       )}
 
       {result?.skippedGroups && result.skippedGroups.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <Typography variant="body1" className="text-neutral-400">
-            Skipped by pattern · {reviewedGroups} / {skippedGroups.length}{' '}
-            reviewed
-          </Typography>
+        <CollapsibleSection
+          title={
+            <>
+              Skipped by pattern · {reviewedGroups} / {skippedGroups.length}{' '}
+              reviewed
+            </>
+          }
+        >
           <ScrollableTable className="mb-0">
             <Table size="small" color="secondary">
               <TableHead>
@@ -382,7 +430,7 @@ function QueueItemDetails({
               </TableBody>
             </Table>
           </ScrollableTable>
-        </div>
+        </CollapsibleSection>
       )}
 
       {result?.unreadable && result.unreadable.length > 0 && (
@@ -417,10 +465,13 @@ function QueueItemDetails({
       )}
 
       {result && result.skipped.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <Typography variant="body1" className="text-neutral-400">
-            Skipped paths · {reviewedPaths} / {skippedPaths.length} reviewed
-          </Typography>
+        <CollapsibleSection
+          title={
+            <>
+              Skipped paths · {reviewedPaths} / {skippedPaths.length} reviewed
+            </>
+          }
+        >
           {ackError && (
             <Typography variant="body2" className="text-error-400">
               {ackError}
@@ -490,7 +541,63 @@ function QueueItemDetails({
               </TableBody>
             </Table>
           </ScrollableTable>
-        </div>
+        </CollapsibleSection>
+      )}
+
+      {inventoryItems.length > 0 && (
+        <CollapsibleSection
+          title={<>Inventory items · {inventoryItems.length}</>}
+        >
+          <ScrollableTable className="mb-0">
+            <Table size="small" color="secondary">
+              <TableHead>
+                <TableRow>
+                  <Th color="secondary">Path</Th>
+                  <Th color="secondary">Kind</Th>
+                  <Th color="secondary">Recommendation</Th>
+                  <Th color="secondary">Decision</Th>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...inventoryItems]
+                  .sort((a, b) => comparePaths(a.rootPath, b.rootPath))
+                  .map((inventoryItem) => (
+                    <TableRow key={inventoryItem.id}>
+                      <Td color="secondary" className="break-all">
+                        <Link
+                          href={inventoryItemUrl(
+                            sourceId,
+                            inventoryItem.rootPath,
+                          )}
+                          className="underline"
+                        >
+                          {relativeToDirectory(
+                            item.path,
+                            inventoryItem.rootPath,
+                          )}
+                        </Link>
+                      </Td>
+                      <Td color="secondary">{inventoryItem.kind}</Td>
+                      <Td color="secondary">
+                        <Badge
+                          color={
+                            RECOMMENDATION_COLOR[inventoryItem.recommendation]
+                          }
+                        >
+                          {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
+                        </Badge>
+                      </Td>
+                      <Td color="secondary">
+                        <Badge color={DECISION_COLOR[inventoryItem.decision]}>
+                          {DECISION_LABELS[inventoryItem.decision]}
+                        </Badge>
+                      </Td>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </ScrollableTable>
+        </CollapsibleSection>
       )}
 
       <div className="flex flex-wrap items-center gap-2">
@@ -580,6 +687,8 @@ interface JobDetailClientProps {
   sourceName: string | null;
   /** Null if the queue items could not be loaded. */
   items: QueueItem[] | null;
+  /** Null if the inventory items could not be loaded. */
+  inventoryItems: InventoryItem[] | null;
   /** The `?status=` filter, if any. */
   status: QueueItemStatus | null;
 }
@@ -588,10 +697,23 @@ export function JobDetailClient({
   job,
   sourceName,
   items,
+  inventoryItems,
   status,
 }: JobDetailClientProps) {
   const router = useRouter();
   const review = useSkipReview(job.sourceId, job.rootPath, items);
+  // The inventory items each queue item last proposed, by queue item id.
+  const inventoryByQueueItem = useMemo(() => {
+    const grouped = new Map<string, InventoryItem[]>();
+    for (const inventoryItem of inventoryItems ?? []) {
+      if (!inventoryItem.lastQueueItemId) continue;
+      const group = grouped.get(inventoryItem.lastQueueItemId) ?? [];
+      group.push(inventoryItem);
+      grouped.set(inventoryItem.lastQueueItemId, group);
+    }
+
+    return grouped;
+  }, [inventoryItems]);
   const sortedItems = useMemo(
     () =>
       items ? [...items].sort((a, b) => comparePaths(a.path, b.path)) : null,
@@ -670,12 +792,12 @@ export function JobDetailClient({
       <div className="flex flex-col gap-2">
         <OutlinedButton
           component={Link}
-          href="/exodus/jobs"
+          href={`/exodus/sources/${job.sourceId}`}
           color="secondary"
           size="small"
           className="self-start"
         >
-          ← Jobs
+          ← {sourceName ?? 'Source'}
         </OutlinedButton>
         <div className="flex flex-wrap items-center gap-3">
           <Typography variant="h1" component="h1" className="break-all">
@@ -866,8 +988,8 @@ export function JobDetailClient({
                     <Th>Path</Th>
                     <Th>Status</Th>
                     <Th>Skipped</Th>
+                    <Th>Inventory</Th>
                     <Th>Attempts</Th>
-                    <Th>Worker</Th>
                     <Th>Lease</Th>
                     <Th>Last error</Th>
                     <Th>Completed</Th>
@@ -920,19 +1042,9 @@ export function JobDetailClient({
                           </Tooltip>
                         </Td>
                         <Td>{describeSkips(item.result) || '—'}</Td>
+                        <Td>{item.inventoryCount || '—'}</Td>
                         <Td>
                           {item.attemptCount} / {item.maxAttempts}
-                        </Td>
-                        <Td>
-                          {item.claimedBy ? (
-                            <WorkerName name={item.claimedBy} />
-                          ) : item.lastClaimedBy ? (
-                            <span className="text-neutral-400">
-                              <WorkerName name={item.lastClaimedBy} />
-                            </span>
-                          ) : (
-                            '—'
-                          )}
                         </Td>
                         <Td>
                           {item.leaseExpiresAt ? (
@@ -978,6 +1090,9 @@ export function JobDetailClient({
                               item={item}
                               sourceId={job.sourceId}
                               review={review}
+                              inventoryItems={
+                                inventoryByQueueItem.get(item.id) ?? []
+                              }
                               onInventoried={(path, skipped) => {
                                 setInventoryNotice(
                                   `Added ${path} to the inventory; ${skipped} queued ${skipped === 1 ? 'directory' : 'directories'} inside it skipped.`,

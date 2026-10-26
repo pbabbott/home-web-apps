@@ -9,20 +9,23 @@ import {
   importExclusionRules,
   importInventoryItems,
   importQueueItems,
+  importSkipAcknowledgements,
   importSources,
   runMigrationsWithLock,
   updateHost,
   type DiscoveryJob,
   type AuditEvent,
-  type DiscoveryQueueItem,
   type ExclusionRule,
   type ExporterType,
   type HostType,
   type InventoryItem,
+  type QueueItemWithInventoryCount,
+  type SkipAcknowledgement,
   type Source,
 } from '@abbottland/homelab-db';
 import { config, initConfig } from '../config';
-import { initDb, db } from '../db';
+import { db } from '../db';
+import { assertDatabaseIsLocal, initLocalDb } from './local-only';
 
 interface RemoteHost {
   id: string;
@@ -35,8 +38,13 @@ interface RemoteHost {
 }
 
 /**
- * Pulls the host list (physical + virtual) from a remote homelab-api — e.g.
- * production — and upserts it into the local database. Local resets lose
+ * ONE WAY ONLY: remote -> local. Reads (GET only) from a remote homelab-api —
+ * e.g. production — and overwrites the LOCAL database with it. The remote is
+ * only ever a source; `assertDatabaseIsLocal` refuses to run if
+ * POSTGRES_HOST is not this machine.
+ *
+ * Pulls the host list (physical + virtual) from the remote and upserts it into
+ * the local database. Local resets lose
  * hand-registered hosts; this re-seeds them without hand-typing IPs/instances
  * again. Matches existing rows by `ipAddress` rather than `id`, since `id`
  * is a per-environment UUID that will never line up across environments.
@@ -65,6 +73,9 @@ const DEFAULT_REMOTE_URL = 'https://homelab-api.local.abbottland.io';
 
 // The remote caps both inventory and audit-event pages at 500.
 const PAGE_SIZE = 500;
+
+// The remote's acknowledgement list is capped at 1000 and has no paging.
+const ACKNOWLEDGEMENT_LIMIT = 1000;
 
 /** JSON carries timestamps as strings; the DB layer wants Dates. */
 function reviveDates<T extends object>(row: T, fields: (keyof T)[]): T {
@@ -122,8 +133,11 @@ async function syncDiscovery(
     await importDiscoveryJobs(db, jobs);
 
     const queueItems = (
-      await fetchRemoteJson<DiscoveryQueueItem[]>(`${base}/queue-items`)
+      await fetchRemoteJson<QueueItemWithInventoryCount[]>(
+        `${base}/queue-items`,
+      )
     ).map((item) =>
+      // `inventoryCount` rides along but is not a column; the insert ignores it.
       reviveDates(item, [
         'availableAt',
         'leaseExpiresAt',
@@ -140,9 +154,9 @@ async function syncDiscovery(
       const query = new URLSearchParams({ limit: String(PAGE_SIZE) });
       if (after) query.set('after', after);
 
-      const page = await fetchRemoteJson<InventoryItem[]>(
-        `${base}/inventory-items?${query}`,
-      );
+      const { items: page } = await fetchRemoteJson<{
+        items: InventoryItem[];
+      }>(`${base}/inventory-items?${query}`);
       if (page.length === 0) break;
 
       await importInventoryItems(
@@ -163,8 +177,21 @@ async function syncDiscovery(
       if (page.length < PAGE_SIZE) break;
     }
 
+    // After queue items: acknowledgements may reference one.
+    const acknowledgements = (
+      await fetchRemoteJson<SkipAcknowledgement[]>(
+        `${base}/skip-acknowledgements?limit=${ACKNOWLEDGEMENT_LIMIT}`,
+      )
+    ).map((ack) => reviveDates({ ...ack, sourceId }, ['createdAt']));
+    if (acknowledgements.length >= ACKNOWLEDGEMENT_LIMIT) {
+      console.warn(
+        `  ! ${remoteSource.name}: acknowledgements hit the ${ACKNOWLEDGEMENT_LIMIT} cap; some were not pulled`,
+      );
+    }
+    await importSkipAcknowledgements(db, acknowledgements);
+
     console.log(
-      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s)`,
+      `  ~ ${remoteSource.name}: ${jobs.length} job(s), ${queueItems.length} queue item(s), ${inventoryCount} inventory item(s), ${acknowledgements.length} acknowledgement(s)`,
     );
   }
 
@@ -230,11 +257,15 @@ async function run() {
   const remoteUrl = process.env.REMOTE_HOMELAB_API_URL ?? DEFAULT_REMOTE_URL;
 
   await initConfig();
+  // Check the target before anything touches it, migrations included.
+  assertDatabaseIsLocal(config.postgres);
   // A freshly reset database has no tables yet; the API normally migrates at startup.
   await runMigrationsWithLock(config.postgres);
-  initDb();
+  initLocalDb(config.postgres);
 
-  console.log(`Fetching hosts from ${remoteUrl}/hosts ...`);
+  console.log(
+    `Pulling hosts FROM remote ${remoteUrl}/hosts INTO local database ...`,
+  );
   const remoteHosts = await fetchRemoteHosts(remoteUrl);
   console.log(`Got ${remoteHosts.length} host(s) from remote.`);
 

@@ -1,0 +1,3 @@
+
+# local SMB credentials saved across dev:sync-prod
+.local-connections.json

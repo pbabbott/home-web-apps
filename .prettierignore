@@ -9,3 +9,5 @@ packages/abctl/README.md
 packages/abctl/oclif.manifest.json
 
 claude-sessions/
+# local SMB credentials saved across local:reset-from-remote
+.local-connections.json

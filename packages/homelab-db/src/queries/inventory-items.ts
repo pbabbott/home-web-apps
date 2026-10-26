@@ -145,6 +145,7 @@ export const upsertInventoryItems = async (
           sourceId: claimed.sourceId,
           firstJobId: claimed.jobId,
           lastJobId: claimed.jobId,
+          lastQueueItemId: queueItemId,
           kind: c.kind,
           rootPath: c.rootPath,
           normalizedRootPath: c.normalizedRootPath,
@@ -217,6 +218,7 @@ export const upsertInventoryItems = async (
         .update(t)
         .set({
           lastJobId: claimed.jobId,
+          lastQueueItemId: queueItemId,
           lastSeenAt: sql`now()`,
           ...(changed
             ? {
@@ -608,6 +610,7 @@ export const promoteInventoryItem = async (
         sourceId: queued.sourceId,
         firstJobId: queued.jobId,
         lastJobId: queued.jobId,
+        lastQueueItemId: queueItemId,
         kind: input.kind,
         rootPath: input.rootPath,
         normalizedRootPath: input.normalizedRootPath,
@@ -756,6 +759,7 @@ export const inventoryQueueItemDirectory = async (
           sourceId: queued.sourceId,
           firstJobId: queued.jobId,
           lastJobId: queued.jobId,
+          lastQueueItemId: queueItemId,
           kind: 'directory',
           rootPath: queued.path,
           normalizedRootPath: queued.normalizedPath,
