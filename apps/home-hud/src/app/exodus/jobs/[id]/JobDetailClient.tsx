@@ -24,11 +24,13 @@ import {
   TableRow,
   Td,
   Th,
+  Tooltip,
   Typography,
 } from '@abbottland/fui-components';
 import {
   JOB_STATUS_COLOR,
   QUEUE_STATUS_COLOR,
+  QUEUE_STATUS_DESCRIPTION,
   comparePaths,
   describeSkips,
   formatDuration,
@@ -957,9 +959,15 @@ export function JobDetailClient({
                           </div>
                         </Td>
                         <Td>
-                          <Badge color={QUEUE_STATUS_COLOR[item.status]}>
-                            {item.status}
-                          </Badge>
+                          <Tooltip
+                            content={QUEUE_STATUS_DESCRIPTION[item.status]}
+                          >
+                            <span className="inline-flex">
+                              <Badge color={QUEUE_STATUS_COLOR[item.status]}>
+                                {item.status}
+                              </Badge>
+                            </span>
+                          </Tooltip>
                         </Td>
                         <Td>{describeSkips(item.result) || '—'}</Td>
                         <Td>

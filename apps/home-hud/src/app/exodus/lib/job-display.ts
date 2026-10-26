@@ -75,6 +75,16 @@ export const QUEUE_STATUS_COLOR: Record<QueueItemStatus, BadgeColor> = {
   skipped: 'dark',
 };
 
+/** Tooltip text: what each directory status means. */
+export const QUEUE_STATUS_DESCRIPTION: Record<QueueItemStatus, string> = {
+  queued: 'Waiting for the agent to explore this directory.',
+  in_progress: 'The agent has claimed this directory and is exploring it now.',
+  completed: 'Explored. Its subdirectories were queued as their own items.',
+  failed: 'Exploration errored. See Last error; retry while the job is active.',
+  skipped:
+    'Not explored on purpose: excluded by a rule, covered by an approved inventory directory, or skipped by a human.',
+};
+
 const QUEUE_STATUSES = Object.keys(QUEUE_STATUS_COLOR) as QueueItemStatus[];
 
 /** A `?status=` value, or undefined for anything that is not a queue item status. */
