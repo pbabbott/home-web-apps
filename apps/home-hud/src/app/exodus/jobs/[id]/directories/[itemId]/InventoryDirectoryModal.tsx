@@ -11,7 +11,7 @@ import {
   OutlinedButton,
   Typography,
 } from '@abbottland/fui-components';
-import { inventoryWholeDirectory } from '../../sources/lib/actions';
+import { inventoryWholeDirectory } from '../../../../sources/lib/actions';
 
 interface InventoryDirectoryModalProps {
   open: boolean;

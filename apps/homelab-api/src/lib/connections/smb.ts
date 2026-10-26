@@ -190,6 +190,15 @@ const shareFor = (target: ConnectionTarget, path: string): ResolvedShare => {
   return resolved;
 };
 
+/**
+ * Whether `allinfo` output describes a directory that exists. Windows answers
+ * a listing of a folder the account may not list (an IIS app-pool profile,
+ * say) with "not found", while `allinfo` on the same folder still works.
+ */
+export const reportsExistingDirectory = (allinfoOutput: string): boolean =>
+  !/NT_STATUS_/.test(allinfoOutput) &&
+  /^attributes:\s+[A-Z]*D[A-Z]*\s+\(/m.test(allinfoOutput);
+
 const SIZE_PATTERN = /stream: \[::\$DATA\], (\d+) bytes/;
 
 // `  name with spaces   AH   1234  Tue Mar  4 10:11:12 2025`
@@ -298,7 +307,24 @@ export const smbDriver: ConnectionDriver = {
     const entries = parseSmbListing(output);
 
     if (entries.length === 0 && /NT_STATUS_[A-Z_]+/.test(output)) {
-      throw new ConnectionError(errorCodeOf(output), describeSmbError(output));
+      const code = errorCodeOf(output);
+
+      if (code === 'not_found' && relativePath) {
+        const { output: info } = await runSmbclient(target, [
+          `//${target.address}/${share}`,
+          '-c',
+          `allinfo "${relativePath}"`,
+        ]);
+
+        if (reportsExistingDirectory(info)) {
+          throw new ConnectionError(
+            'auth',
+            'The directory exists, but this account is not allowed to list it (the server reports it as not found)',
+          );
+        }
+      }
+
+      throw new ConnectionError(code, describeSmbError(output));
     }
 
     return entries;

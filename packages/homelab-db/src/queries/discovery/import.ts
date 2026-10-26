@@ -6,6 +6,7 @@ import {
   discoveryQueueItems,
   exclusionRules,
   inventoryItems,
+  onDiskReviews,
   skipAcknowledgements,
   sources,
   type AuditEvent,
@@ -14,6 +15,7 @@ import {
   type ExclusionRule,
   type InventoryItem,
   type NewSource,
+  type OnDiskReview,
   type SkipAcknowledgement,
   type Source,
 } from '../../schema/discovery';
@@ -209,6 +211,29 @@ export const importSkipAcknowledgements = async (
           path: sql`excluded.path`,
           queueItemId: sql`excluded.queue_item_id`,
           acknowledgedBy: sql`excluded.acknowledged_by`,
+        },
+      });
+  }
+};
+
+/**
+ * Upserts on-disk reviews keyed by source + path. Each row's source, and any
+ * `queueItemId` that is set, must already be imported.
+ */
+export const importOnDiskReviews = async (
+  db: Database,
+  rows: OnDiskReview[],
+): Promise<void> => {
+  for (const batch of chunk(rows)) {
+    await db
+      .insert(onDiskReviews)
+      .values(batch)
+      .onConflictDoUpdate({
+        target: [onDiskReviews.sourceId, onDiskReviews.normalizedPath],
+        set: {
+          path: sql`excluded.path`,
+          queueItemId: sql`excluded.queue_item_id`,
+          reviewedBy: sql`excluded.reviewed_by`,
         },
       });
   }

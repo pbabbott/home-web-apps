@@ -8,6 +8,8 @@ import {
   claimAnyQueueItem,
   completeQueueItem,
   failQueueItem,
+  getDirectoryListing,
+  getQueueItem,
   heartbeatQueueItem,
   listSkippedGroupMatches,
   releaseQueueItem,
@@ -68,6 +70,16 @@ queueItemsRouter.post(
   retryQueueItem,
 );
 
+queueItemsRouter.get(
+  '/queue-items/:id',
+  validateParams(queueItemIdParamsSchema),
+  getQueueItem,
+);
+queueItemsRouter.get(
+  '/queue-items/:id/directory-listing',
+  validateParams(queueItemIdParamsSchema),
+  getDirectoryListing,
+);
 queueItemsRouter.get(
   '/queue-items/:id/skipped-group-matches',
   validateParams(queueItemIdParamsSchema),

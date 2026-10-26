@@ -67,6 +67,8 @@ export interface InventoryItemQuery {
   kind?: InventoryItemKind;
   /** Only inventory items last proposed by this job. */
   jobId?: string;
+  /** Only inventory items last proposed by this queue item. */
+  queueItemId?: string;
   /** Only inventory items at or beneath this path. */
   pathPrefix?: string;
   /** Only the inventory item at exactly this path. */
@@ -110,26 +112,4 @@ export async function getInventoryItems(
   }
 
   return (await res.json()) as InventoryItemPage;
-}
-
-const JOB_INVENTORY_PAGE_SIZE = 500;
-
-/** Every inventory item a job last proposed, for grouping under its queue items. */
-export async function getJobInventoryItems(
-  sourceId: string,
-  jobId: string,
-): Promise<InventoryItem[]> {
-  const items: InventoryItem[] = [];
-  let after: string | undefined;
-
-  for (;;) {
-    const { items: page } = await getInventoryItems(sourceId, {
-      jobId,
-      after,
-      limit: JOB_INVENTORY_PAGE_SIZE,
-    });
-    items.push(...page);
-    if (page.length < JOB_INVENTORY_PAGE_SIZE) return items;
-    after = page[page.length - 1].normalizedRootPath;
-  }
 }

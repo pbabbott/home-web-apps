@@ -46,6 +46,8 @@ export {
   auditEventSelectSchema,
   inventoryItemSelectSchema,
   skipAcknowledgementSelectSchema,
+  onDiskReviews,
+  onDiskReviewSelectSchema,
 } from './schema/discovery';
 export type {
   Source,
@@ -80,6 +82,8 @@ export type {
   AuditEventType,
   SkipAcknowledgement,
   NewSkipAcknowledgement,
+  OnDiskReview,
+  NewOnDiskReview,
 } from './schema/discovery';
 
 export { insertAuditEvent, listAuditEvents } from './queries/audit';
@@ -113,6 +117,8 @@ export {
   skipInventoriedQueueItems,
   listInventoryItems,
   countInventoryItems,
+  listInventoriedPaths,
+  listInventoryUnder,
   findNestedInventoryItems,
 } from './queries/inventory-items';
 export type {
@@ -126,6 +132,7 @@ export type {
   DecideInventoryItemInput,
   ListInventoryItemsOptions,
   NestedInventoryItem,
+  InventoryCoverage,
 } from './queries/inventory-items';
 
 export {
@@ -151,6 +158,8 @@ export {
   completeDiscoveryJob,
   getQueueItemById,
   listQueueItems,
+  getQueueItemWithJob,
+  listJobQueueStatusesAt,
   enqueueQueueItems,
   claimNextAcrossJobs,
   claimNextQueueItem,
@@ -166,6 +175,13 @@ export {
   acknowledgeSkip,
   unacknowledgeSkip,
   listSkipAcknowledgements,
+  listAcknowledgedSkipKeys,
+  reviewOnDisk,
+  unreviewOnDisk,
+  getOnDiskReview,
+  listOnDiskReviewedPaths,
+  listOnDiskReviews,
+  importOnDiskReviews,
   importSources,
   importDiscoveryJobs,
   importQueueItems,
@@ -187,6 +203,7 @@ export type {
   DiscoveryJobWithSource,
   ListQueueItemsOptions,
   QueueItemWithInventoryCount,
+  InventoryDecisionCounts,
   EnqueueQueueItemsInput,
   ClaimQueueItemInput,
   ClaimQueueItemResult,
@@ -194,6 +211,7 @@ export type {
   ListKnownSkipsOptions,
   SkipInput,
   ListSkipAcknowledgementsOptions,
+  ListOnDiskReviewsOptions,
   ClaimIdleReason,
   CompleteQueueItemInput,
   FailQueueItemInput,

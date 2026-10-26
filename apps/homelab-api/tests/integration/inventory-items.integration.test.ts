@@ -919,7 +919,16 @@ describe('discovery writes only queue items and inventory items', () => {
     await decide(id, { decision: 'approved' }).expect(200);
     await decide(id, { decision: 'rejected' }).expect(200);
 
-    expect(await queueOf(job.id)).toEqual(queueBefore);
+    // The queue's rows are untouched; only their count by decision follows.
+    const withoutDecisions = (items: Record<string, unknown>[]) =>
+      items.map(({ inventoryByDecision: _, ...rest }) => rest);
+    const queueAfter = await queueOf(job.id);
+    expect(withoutDecisions(queueAfter)).toEqual(withoutDecisions(queueBefore));
+    expect(queueAfter[0].inventoryByDecision).toEqual({
+      pending: 0,
+      approved: 0,
+      rejected: 1,
+    });
     const events = (
       await getRequest().get('/audit-events').query({ sourceId }).expect(200)
     ).body.map((e: any) => e.eventType);

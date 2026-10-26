@@ -1,12 +1,10 @@
 import { notFound } from 'next/navigation';
 import {
   getDiscoveryJob,
-  getJobInventoryItems,
   getJobQueueItems,
   getSources,
   type DiscoveryJobWithCounts,
-  type InventoryItem,
-  type QueueItem,
+  type JobQueueItem,
 } from '../../sources/lib/homelab-api';
 import { parseQueueStatus } from '../../lib/job-display';
 import { JobDetailClient } from './JobDetailClient';
@@ -44,14 +42,12 @@ export default async function ExodusJobDetailPage({
     notFound();
   }
 
-  const [itemsResult, sourcesResult, inventoryResult] =
-    await Promise.allSettled([
-      getJobQueueItems(id, status),
-      getSources(),
-      getJobInventoryItems(job.sourceId, id),
-    ]);
+  const [itemsResult, sourcesResult] = await Promise.allSettled([
+    getJobQueueItems(id, status),
+    getSources(),
+  ]);
 
-  let items: QueueItem[] | null = null;
+  let items: JobQueueItem[] | null = null;
 
   if (itemsResult.status === 'fulfilled') {
     items = itemsResult.value;
@@ -59,17 +55,6 @@ export default async function ExodusJobDetailPage({
     console.error(
       'Failed to load queue items from homelab-api:',
       itemsResult.reason,
-    );
-  }
-
-  let inventoryItems: InventoryItem[] | null = null;
-
-  if (inventoryResult.status === 'fulfilled') {
-    inventoryItems = inventoryResult.value;
-  } else {
-    console.error(
-      'Failed to load inventory items from homelab-api:',
-      inventoryResult.reason,
     );
   }
 
@@ -83,7 +68,6 @@ export default async function ExodusJobDetailPage({
       job={job}
       sourceName={sourceName}
       items={items}
-      inventoryItems={inventoryItems}
       status={status ?? null}
     />
   );

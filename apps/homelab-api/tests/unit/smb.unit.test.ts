@@ -1,5 +1,6 @@
 import {
   describeSmbError,
+  reportsExistingDirectory,
   parseSmbListing,
   resolveShare,
   smbclientInvocation,
@@ -138,5 +139,28 @@ describe('parseSmbListing', () => {
     expect(
       parseSmbListing('tree connect failed: NT_STATUS_BAD_NETWORK_NAME'),
     ).toEqual([]);
+  });
+});
+
+describe('reportsExistingDirectory', () => {
+  it('recognises allinfo output of a directory', () => {
+    const output = [
+      'altname: NETV4~1.5',
+      'create_time:    Sun Mar 14 22:54:40 2021 UTC',
+      'attributes: D (10)',
+    ].join('\n');
+
+    expect(reportsExistingDirectory(output)).toBe(true);
+    expect(reportsExistingDirectory('attributes: HD (12)\n')).toBe(true);
+  });
+
+  it('rejects a file, an error, and empty output', () => {
+    expect(reportsExistingDirectory('attributes: A (20)\n')).toBe(false);
+    expect(
+      reportsExistingDirectory(
+        'NT_STATUS_OBJECT_NAME_NOT_FOUND getting alt name for \\x',
+      ),
+    ).toBe(false);
+    expect(reportsExistingDirectory('')).toBe(false);
   });
 });

@@ -817,6 +817,8 @@ export type ListInventoryItemsOptions = {
   sourceId: string;
   /** Inventory items last proposed by this job. */
   jobId?: string;
+  /** Inventory items last proposed by this queue item. */
+  queueItemId?: string;
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;
   kind?: InventoryItemKind;
@@ -862,6 +864,9 @@ const filterConditions = (
   return [
     eq(t.sourceId, options.sourceId),
     options.jobId ? eq(t.lastJobId, options.jobId) : undefined,
+    options.queueItemId
+      ? eq(t.lastQueueItemId, options.queueItemId)
+      : undefined,
     options.recommendation
       ? eq(t.recommendation, options.recommendation)
       : undefined,
@@ -898,6 +903,45 @@ export const listInventoryItems = async (
       ),
     )
     .offset(options.offset ?? 0);
+};
+
+/** Normalized root paths of every inventory item at or beneath a path, with no page limit. */
+export const listInventoriedPaths = async (
+  db: Database | Tx,
+  sourceId: string,
+  normalizedPathPrefix: string,
+): Promise<string[]> => {
+  const t = inventoryItems;
+  const rows = await db
+    .select({ path: t.normalizedRootPath })
+    .from(t)
+    .where(and(eq(t.sourceId, sourceId), subtreeFilter(normalizedPathPrefix)));
+
+  return rows.map((row) => row.path);
+};
+
+/** What the directory page needs of an inventory item to say how it covers a path. */
+export type InventoryCoverage = Pick<
+  InventoryItem,
+  'normalizedRootPath' | 'decision' | 'recommendation'
+>;
+
+/** Every inventory item at or beneath a path, with no page limit. */
+export const listInventoryUnder = async (
+  db: Database | Tx,
+  sourceId: string,
+  normalizedPathPrefix: string,
+): Promise<InventoryCoverage[]> => {
+  const t = inventoryItems;
+
+  return db
+    .select({
+      normalizedRootPath: t.normalizedRootPath,
+      decision: t.decision,
+      recommendation: t.recommendation,
+    })
+    .from(t)
+    .where(and(eq(t.sourceId, sourceId), subtreeFilter(normalizedPathPrefix)));
 };
 
 /** How many inventory items match the filters, ignoring the paging options. */

@@ -13,6 +13,7 @@ jest.mock('../../src/services/discovery', () => {
     deleteConnection: jest.fn(),
     testConnection: jest.fn(),
     openPreview: jest.fn(),
+    getDirectoryListing: jest.fn(),
   };
 });
 
@@ -138,5 +139,56 @@ describe('source connection routes', () => {
         .query({ path: 'C:\\a\\x.jpg' })
         .expect(status);
     });
+  });
+});
+
+describe('directory listing route', () => {
+  afterEach(() => jest.resetAllMocks());
+
+  it('returns the listing with coverage', async () => {
+    const listing = {
+      path: 'C:\\Users\\You',
+      total: 1,
+      truncated: false,
+      uncovered: 1,
+      entries: [
+        {
+          name: 'a.txt',
+          path: 'C:\\Users\\You\\a.txt',
+          isDirectory: false,
+          size: 1,
+          modifiedAt: null,
+          coverage: { kind: 'uncovered' },
+        },
+      ],
+    };
+    mocked.getDirectoryListing.mockResolvedValue(listing as never);
+
+    const res = await supertest(createServer())
+      .get(`/queue-items/${ID}/directory-listing`)
+      .expect(200);
+
+    expect(res.body).toEqual(listing);
+    expect(mocked.getDirectoryListing).toHaveBeenCalledWith(ID);
+  });
+
+  it('maps a connection failure to its status', async () => {
+    mocked.getDirectoryListing.mockRejectedValue(
+      new HttpError(502, 'Could not reach the machine over SMB'),
+    );
+
+    const res = await supertest(createServer())
+      .get(`/queue-items/${ID}/directory-listing`)
+      .expect(502);
+
+    expect(res.body).toEqual({
+      message: 'Could not reach the machine over SMB',
+    });
+  });
+
+  it('rejects an id that is not a uuid', async () => {
+    await supertest(createServer())
+      .get('/queue-items/nope/directory-listing')
+      .expect(400);
   });
 });

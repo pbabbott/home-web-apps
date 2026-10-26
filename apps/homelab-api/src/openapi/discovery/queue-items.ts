@@ -4,6 +4,8 @@ import {
   completedQueueItemSchema,
   conflictResponse,
   discoveryNotFoundResponse,
+  jobQueueItemListEntrySchema,
+  queueItemDetailSchema,
   queueItemListEntrySchema,
   queueItemWithCreatedSchema,
 } from './common';
@@ -13,6 +15,8 @@ import {
   completeQueueItemOperation,
   enqueueQueueItemsOperation,
   failQueueItemOperation,
+  getDirectoryListingOperation,
+  getQueueItemOperation,
   heartbeatQueueItemOperation,
   listJobQueueItemsOperation,
   listKnownSkipsOperation,
@@ -74,6 +78,64 @@ const skippedGroupMatchesSchema = z.object({
   ),
 });
 
+const coverageSchema = z
+  .discriminatedUnion('kind', [
+    z.object({
+      kind: z.literal('inventory'),
+      decision: z.enum(['pending', 'approved', 'rejected']),
+      recommendation: z.enum(['back_up', 'skip', 'needs_review']),
+    }),
+    z.object({ kind: z.literal('inventory_parent') }),
+    z.object({
+      kind: z.literal('skipped'),
+      via: z.enum(['path', 'pattern']),
+      pattern: z.string().optional(),
+      acknowledged: z.boolean(),
+    }),
+    z.object({
+      kind: z.literal('queued'),
+      status: z.enum([
+        'queued',
+        'in_progress',
+        'completed',
+        'failed',
+        'skipped',
+      ]),
+    }),
+    z.object({ kind: z.literal('excluded') }),
+    z.object({
+      kind: z.literal('inventory_inside'),
+      count: z.number().int(),
+    }),
+    z.object({ kind: z.literal('uncovered') }),
+  ])
+  .meta({
+    description:
+      'How the entry is accounted for. inventory_parent: an inventory item at the directory or above covers it. queued: the job gave it a queue item of its own. inventory_inside: a directory with inventory items deeper down but none of its own. uncovered: nothing accounts for it.',
+  });
+
+const directoryListingSchema = z.object({
+  path: z.string().meta({ description: 'The queue item’s directory.' }),
+  total: z
+    .number()
+    .int()
+    .meta({ description: 'Entries found, before the cap.' }),
+  truncated: z.boolean(),
+  uncovered: z.number().int().meta({
+    description: 'Entries whose coverage is `uncovered`.',
+  }),
+  entries: z.array(
+    z.object({
+      name: z.string(),
+      path: z.string().meta({ description: 'Full path, usable for preview.' }),
+      isDirectory: z.boolean(),
+      size: z.number(),
+      modifiedAt: z.string().nullable(),
+      coverage: coverageSchema,
+    }),
+  ),
+});
+
 const messageResponse = (description: string) => ({
   description,
   content: {
@@ -82,6 +144,45 @@ const messageResponse = (description: string) => ({
 });
 
 export const queueItemsPaths = {
+  '/queue-items/{id}/directory-listing': {
+    get: {
+      summary: getDirectoryListingOperation.summary,
+      'x-home-hud': getDirectoryListingOperation.hud,
+      description: getDirectoryListingOperation.description,
+      requestParams: { path: queueItemIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The directory’s entries with their coverage',
+          content: {
+            'application/json': { schema: directoryListingSchema },
+          },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse(
+          'queue item, source connection or directory',
+        ),
+        '409': conflictResponse('The source is not linked to a host'),
+        '502': messageResponse('The source could not be read'),
+        '503': messageResponse('EXODUS_CREDENTIAL_KEY is not configured'),
+      },
+    },
+  },
+  '/queue-items/{id}': {
+    get: {
+      summary: getQueueItemOperation.summary,
+      'x-home-hud': getQueueItemOperation.hud,
+      description: getQueueItemOperation.description,
+      requestParams: { path: queueItemIdParamsSchema },
+      responses: {
+        '200': {
+          description: 'The queue item',
+          content: { 'application/json': { schema: queueItemDetailSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('queue item'),
+      },
+    },
+  },
   '/queue-items/{id}/skipped-group-matches': {
     get: {
       summary: listSkippedGroupMatchesOperation.summary,
@@ -167,7 +268,7 @@ export const queueItemsPaths = {
           description: 'The queue items',
           content: {
             'application/json': {
-              schema: z.array(queueItemListEntrySchema),
+              schema: z.array(jobQueueItemListEntrySchema),
             },
           },
         },

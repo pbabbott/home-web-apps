@@ -69,7 +69,57 @@ export const discoveryJobResponseSchema =
 export const queueItemListEntrySchema = discoveryQueueItemSelectSchema.extend({
   inventoryCount: z.number().int().meta({
     description:
-      'Inventory items last proposed or added from this directory; a later job may take one over.',
+      'Inventory items last proposed or added from this directory; a later job may take one over. The sum of `inventoryByDecision`.',
+  }),
+  inventoryByDecision: z
+    .object({
+      pending: z.number().int(),
+      approved: z.number().int(),
+      rejected: z.number().int(),
+    })
+    .meta({ description: 'Those inventory items by human decision.' }),
+});
+
+const reviewedSchema = z.boolean().nullable().meta({
+  description:
+    'True when every skipped path is acknowledged or in the inventory, every skipped pattern is acknowledged, and no inventory item the directory proposed is still pending a decision, and a human acknowledged the directory’s on-disk contents; null until the directory has a result.',
+});
+
+/** A job's listed queue item, with whether a human has dealt with all of it. */
+export const jobQueueItemListEntrySchema = queueItemListEntrySchema.extend({
+  reviewed: reviewedSchema,
+});
+
+export const queueItemDetailSchema = queueItemListEntrySchema.extend({
+  reviewed: reviewedSchema,
+  job: z.object({
+    id: z.uuid(),
+    sourceId: z.uuid(),
+    rootPath: z.string(),
+    status: z.string(),
+  }),
+  skipReview: z.object({
+    reviewed: z.boolean().nullable(),
+    paths: z.array(
+      z.object({
+        path: z.string(),
+        acknowledged: z.boolean(),
+        inventoried: z.boolean(),
+      }),
+    ),
+    patterns: z.array(
+      z.object({ pattern: z.string(), acknowledged: z.boolean() }),
+    ),
+  }),
+  onDiskReview: z
+    .object({ reviewedBy: z.string(), createdAt: z.iso.datetime() })
+    .nullable()
+    .meta({
+      description:
+        'Who acknowledged the on-disk contents of this directory, and when; null if no one has.',
+    }),
+  directoryApproved: z.boolean().meta({
+    description: 'The directory itself is an approved inventory item.',
   }),
 });
 

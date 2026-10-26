@@ -12,6 +12,8 @@ import type {
   SourceConnection,
   SourceConnectionType,
   SkipAcknowledgement,
+  DirectoryListing,
+  OnDiskReview,
   SkippedGroupMatches,
 } from './homelab-api';
 
@@ -280,32 +282,6 @@ export async function unacknowledgeSkip(
   );
 }
 
-/** Keys (see `skipKey`) of the source's acknowledged skips at or beneath `pathPrefix`. */
-export async function listAcknowledgedSkipsUnder(
-  sourceId: string,
-  pathPrefix: string,
-): Promise<ActionResult<string[]>> {
-  try {
-    const params = new URLSearchParams({ pathPrefix, limit: '1000' });
-    const res = await fetch(
-      `${HOMELAB_API_URL}/sources/${sourceId}/skip-acknowledgements?${params}`,
-      { cache: 'no-store' },
-    );
-
-    if (!res.ok) return { ok: false, error: await errorMessage(res) };
-
-    const rows = (await res.json()) as SkipAcknowledgement[];
-
-    return {
-      ok: true,
-      data: rows.map((r) => `${r.normalizedPath}|${r.pattern}`),
-    };
-  } catch (err) {
-    console.error(`GET skip-acknowledgements under ${pathPrefix} failed:`, err);
-    return { ok: false, error: 'Could not reach homelab-api' };
-  }
-}
-
 /** The source's connection, or null when it has none yet. */
 export async function getSourceConnection(
   sourceId: string,
@@ -364,4 +340,28 @@ export async function listSkippedGroupMatches(
     'GET',
     `/queue-items/${queueItemId}/skipped-group-matches?${new URLSearchParams({ pattern })}`,
   );
+}
+
+/** A queue item's directory as it is on the source, each entry marked by how it is covered. */
+export async function listDirectoryOnDisk(
+  queueItemId: string,
+): Promise<ActionResult<DirectoryListing>> {
+  return send<DirectoryListing>(
+    'GET',
+    `/queue-items/${queueItemId}/directory-listing`,
+  );
+}
+
+/** A human says they reviewed what is on disk in the queue item's directory. Sent as the default (human) actor. */
+export async function reviewOnDisk(
+  queueItemId: string,
+): Promise<ActionResult<OnDiskReview>> {
+  return post<OnDiskReview>(`/queue-items/${queueItemId}/on-disk-review`);
+}
+
+/** Takes that review back. */
+export async function unreviewOnDisk(
+  queueItemId: string,
+): Promise<ActionResult> {
+  return send('DELETE', `/queue-items/${queueItemId}/on-disk-review`);
 }

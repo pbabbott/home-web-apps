@@ -147,6 +147,9 @@ export const inventoryItemListQuerySchema = z
     jobId: z.uuid().optional().meta({
       description: 'Only inventory items last proposed by this job.',
     }),
+    queueItemId: z.uuid().optional().meta({
+      description: 'Only inventory items last proposed by this queue item.',
+    }),
     recommendation: inventoryItemRecommendationSchema.optional(),
     decision: z.enum(['pending', 'approved', 'rejected']).optional(),
     kind: z.enum(['file', 'directory']).optional(),

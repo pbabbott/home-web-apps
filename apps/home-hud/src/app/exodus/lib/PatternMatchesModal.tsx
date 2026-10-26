@@ -19,7 +19,7 @@ import {
 } from '@abbottland/fui-components';
 import { listSkippedGroupMatches } from '../sources/lib/actions';
 import type { SkippedGroupMatches } from '../sources/lib/homelab-api';
-import { PromoteSkippedModal } from '../jobs/[id]/PromoteSkippedModal';
+import { PromoteSkippedModal } from './PromoteSkippedModal';
 import { formatSize, inventoryItemUrl } from './inventory-display';
 import { PreviewButton } from './PreviewButton';
 

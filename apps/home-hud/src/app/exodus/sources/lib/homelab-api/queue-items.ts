@@ -1,5 +1,7 @@
 import { HOMELAB_API_URL } from './config';
+import type { DiscoveryJobStatus } from './discovery-jobs';
 import { getJson } from './http';
+import type { InventoryItemDecision } from './inventory-items';
 
 export type QueueItemStatus =
   | 'queued'
@@ -34,8 +36,42 @@ export interface QueueItem {
   result: QueueItemResult | null;
   /** Inventory items this directory last proposed or added; a later job may take one over. */
   inventoryCount: number;
+  /** `inventoryCount` split by human decision. */
+  inventoryByDecision: Record<InventoryItemDecision, number>;
   createdAt: string;
   completedAt: string | null;
+}
+
+/** A job's queue item, as listed on the job page. */
+export interface JobQueueItem extends QueueItem {
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
+  reviewed: boolean | null;
+}
+
+/** What a human has done about each skip of a directory. */
+export interface SkipReview {
+  /** Null when the directory has no result yet. */
+  reviewed: boolean | null;
+  /** One per `result.skipped`, in order. */
+  paths: { path: string; acknowledged: boolean; inventoried: boolean }[];
+  /** One per `result.skippedGroups`, in order. */
+  patterns: { pattern: string; acknowledged: boolean }[];
+}
+
+export interface QueueItemDetail extends QueueItem {
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
+  reviewed: boolean | null;
+  job: {
+    id: string;
+    sourceId: string;
+    rootPath: string;
+    status: DiscoveryJobStatus;
+  };
+  skipReview: SkipReview;
+  /** Who acknowledged the directory's on-disk contents; null if no one has. */
+  onDiskReview: { reviewedBy: string; createdAt: string } | null;
+  /** The directory itself is an approved inventory item. */
+  directoryApproved: boolean;
 }
 
 export interface QueueItemResult {
@@ -65,6 +101,44 @@ export interface SkippedGroupMatches {
   }[];
 }
 
+/** How something on disk is accounted for; see the API's `directory-listing`. */
+export type DiskCoverage =
+  | {
+      kind: 'inventory';
+      decision: InventoryItemDecision;
+      recommendation: string;
+    }
+  | { kind: 'inventory_parent' }
+  | {
+      kind: 'skipped';
+      via: 'path' | 'pattern';
+      pattern?: string;
+      acknowledged: boolean;
+    }
+  | { kind: 'queued'; status: QueueItemStatus }
+  | { kind: 'excluded' }
+  | { kind: 'inventory_inside'; count: number }
+  | { kind: 'uncovered' };
+
+/** A queue item's directory as it is on the source, each entry with its coverage. */
+export interface DirectoryListing {
+  path: string;
+  /** Entries found, before the API's cap. */
+  total: number;
+  truncated: boolean;
+  /** Entries nothing accounts for. */
+  uncovered: number;
+  entries: {
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    size: number;
+    /** Source-local time without a zone. */
+    modifiedAt: string | null;
+    coverage: DiskCoverage;
+  }[];
+}
+
 /** The API returns at most this many queue items for a job. */
 export const JOB_QUEUE_ITEMS_LIMIT = 500;
 
@@ -72,10 +146,16 @@ export const JOB_QUEUE_ITEMS_LIMIT = 500;
 export async function getJobQueueItems(
   jobId: string,
   status?: QueueItemStatus,
-): Promise<QueueItem[]> {
+): Promise<JobQueueItem[]> {
   const params = new URLSearchParams(status ? { status } : {});
 
-  return getJson<QueueItem[]>(`/discovery-jobs/${jobId}/queue-items?${params}`);
+  return getJson<JobQueueItem[]>(
+    `/discovery-jobs/${jobId}/queue-items?${params}`,
+  );
+}
+
+export async function getQueueItem(id: string): Promise<QueueItemDetail> {
+  return getJson<QueueItemDetail>(`/queue-items/${id}`);
 }
 
 export async function getQueueItems(

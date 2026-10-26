@@ -298,6 +298,40 @@ export const skipAcknowledgements = pgTable(
 );
 
 /**
+ * A human's "I looked at what is on disk in this directory". The listing
+ * itself is read live from the source and never stored, so this records only
+ * that someone reviewed it. Keyed by source + the directory's path, so it
+ * holds across later jobs that visit the same directory; `queueItemId` only
+ * records where it was acknowledged. It does not go stale when the directory's
+ * contents change: a human takes it back.
+ */
+export const onDiskReviews = pgTable(
+  'on_disk_reviews',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sourceId: uuid('source_id')
+      .notNull()
+      .references(() => sources.id, { onDelete: 'cascade' }),
+    path: text('path').notNull(),
+    normalizedPath: text('normalized_path').notNull(),
+    queueItemId: uuid('queue_item_id').references(
+      () => discoveryQueueItems.id,
+      { onDelete: 'set null' },
+    ),
+    reviewedBy: text('reviewed_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('on_disk_reviews_source_path_unique').on(
+      table.sourceId,
+      table.normalizedPath,
+    ),
+  ],
+);
+
+/**
  * A coherent, potentially valuable backup unit proposed by the agent for human
  * review: usually a directory (a project, a photo folder), occasionally a
  * standalone file. One inventory item covers its whole subtree, so a repository is
@@ -495,6 +529,8 @@ export type AuditEventType =
   | 'inventory_item.promoted'
   | 'skip.acknowledged'
   | 'skip.unacknowledged'
+  | 'on_disk.reviewed'
+  | 'on_disk.unreviewed'
   | 'source_connection.updated'
   | 'source_connection.deleted';
 
@@ -536,6 +572,8 @@ export type InventoryItemDecision =
 
 export type SkipAcknowledgement = typeof skipAcknowledgements.$inferSelect;
 export type NewSkipAcknowledgement = typeof skipAcknowledgements.$inferInsert;
+export type OnDiskReview = typeof onDiskReviews.$inferSelect;
+export type NewOnDiskReview = typeof onDiskReviews.$inferInsert;
 
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type NewAuditEvent = typeof auditEvents.$inferInsert;
@@ -589,6 +627,10 @@ export const skipAcknowledgementSelectSchema = createSelectSchema(
   skipAcknowledgements,
   { createdAt: dateTime },
 );
+
+export const onDiskReviewSelectSchema = createSelectSchema(onDiskReviews, {
+  createdAt: dateTime,
+});
 
 export const inventoryItemSelectSchema = createSelectSchema(inventoryItems, {
   recommendedAt: dateTime,

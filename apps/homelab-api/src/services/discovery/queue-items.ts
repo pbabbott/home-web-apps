@@ -7,7 +7,13 @@ import {
   failQueueItem,
   getQueueCounts,
   getQueueItemById,
+  getQueueItemWithJob,
   getSourceById,
+  getOnDiskReview,
+  listAcknowledgedSkipKeys,
+  listOnDiskReviewedPaths,
+  listInventoriedPaths,
+  listInventoryItems as listInventoryItemRows,
   heartbeatQueueItem,
   listKnownSkips as listKnownSkipRows,
   listQueueItems as listQueueItemRows,
@@ -26,6 +32,12 @@ import {
 import { db } from '../../db';
 import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
 import { requireJob } from './discovery-jobs';
+import {
+  directoryReviewed,
+  reviewSkips,
+  type ReviewContext,
+  type SkipReview,
+} from './skip-review';
 import {
   assertWithinClaimedDirectory,
   toFollowUpPath,
@@ -188,13 +200,99 @@ export const retryFailedItems = (jobId: string) =>
 
 export const retryItem = (id: string) => retryQueueItem(db, id);
 
+/** Reads the acknowledgements, inventory paths and on-disk reviews beneath `rootPath` once, for reviewing many directories. */
+async function loadReviewContext(
+  sourceId: string,
+  rootPath: string,
+): Promise<ReviewContext & { onDiskReviewed: ReadonlySet<string> }> {
+  const { normalizedPath } = normalizeWindowsPath(rootPath);
+  const [acknowledged, inventoried, onDiskReviewed] = await Promise.all([
+    listAcknowledgedSkipKeys(db, sourceId, normalizedPath),
+    listInventoriedPaths(db, sourceId, normalizedPath),
+    listOnDiskReviewedPaths(db, sourceId, normalizedPath),
+  ]);
+
+  return {
+    acknowledged: new Set(acknowledged),
+    inventoried: new Set(inventoried),
+    onDiskReviewed: new Set(onDiskReviewed),
+  };
+}
+
+export type QueueItemListEntry = QueueItemWithInventoryCount & {
+  /** Every skip reviewed, no inventory decision pending and the on-disk contents acknowledged; null until the directory has a result. */
+  reviewed: boolean | null;
+};
+
 export async function listJobQueueItems(
   jobId: string,
   filters: { status?: DiscoveryQueueItemStatus },
-): Promise<QueueItemWithInventoryCount[]> {
-  await requireJob(jobId);
+): Promise<QueueItemListEntry[]> {
+  const job = await requireJob(jobId);
+  const [items, context] = await Promise.all([
+    listQueueItemRows(db, { jobId, ...filters }),
+    loadReviewContext(job.sourceId, job.rootPath),
+  ]);
 
-  return listQueueItemRows(db, { jobId, ...filters });
+  return items.map((item) => ({
+    ...item,
+    reviewed: directoryReviewed(
+      reviewSkips(item.path, item.result, context),
+      item.inventoryByDecision.pending,
+      context.onDiskReviewed.has(item.normalizedPath),
+    ),
+  }));
+}
+
+export type QueueItemDetail = QueueItemWithInventoryCount & {
+  job: Pick<DiscoveryJob, 'id' | 'sourceId' | 'rootPath' | 'status'>;
+  /** As on the list: skips reviewed, no inventory decision pending and the on-disk contents acknowledged. */
+  reviewed: boolean | null;
+  skipReview: SkipReview;
+  /** Who acknowledged the on-disk contents of this directory, if anyone. */
+  onDiskReview: { reviewedBy: string; createdAt: Date } | null;
+  /** The directory itself is an approved inventory item. */
+  directoryApproved: boolean;
+};
+
+export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
+  const found = await getQueueItemWithJob(db, id);
+  if (!found) throw new DiscoveryError('not_found', 'queue item not found');
+
+  const { item, job } = found;
+  const [context, approved, review] = await Promise.all([
+    loadReviewContext(job.sourceId, item.path),
+    listInventoryItemRows(db, {
+      sourceId: job.sourceId,
+      normalizedPath: item.normalizedPath,
+      decision: 'approved',
+      limit: 1,
+    }),
+    getOnDiskReview(db, job.sourceId, item.normalizedPath),
+  ]);
+
+  const onDiskReview = review
+    ? { reviewedBy: review.reviewedBy, createdAt: review.createdAt }
+    : null;
+  const skipReview = reviewSkips(item.path, item.result, context);
+
+  return {
+    ...item,
+    job: {
+      id: job.id,
+      sourceId: job.sourceId,
+      rootPath: job.rootPath,
+      status: job.status,
+    },
+    reviewed: directoryReviewed(
+      skipReview,
+      item.inventoryByDecision.pending,
+      onDiskReview !== null,
+    ),
+    skipReview,
+    onDiskReview,
+    directoryApproved: approved.length > 0,
+  };
 }
 
 /**

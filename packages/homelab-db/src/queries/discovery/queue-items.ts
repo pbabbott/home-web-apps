@@ -50,10 +50,40 @@ export type ListQueueItemsOptions = {
 
 const LIST_QUEUE_ITEMS_LIMIT = 500;
 
+/** Inventory items a queue item last proposed or added, by human decision. */
+export type InventoryDecisionCounts = {
+  pending: number;
+  approved: number;
+  rejected: number;
+};
+
 /** A queue item plus how many inventory items it last proposed or added. */
 export type QueueItemWithInventoryCount = DiscoveryQueueItem & {
+  /** All of `inventoryByDecision` added up. */
   inventoryCount: number;
+  inventoryByDecision: InventoryDecisionCounts;
 };
+
+const inventoryDecisionCountsSql = sql<InventoryDecisionCounts>`(
+  select jsonb_build_object(
+    'pending', count(*) filter (where ${inventoryItems.decision} = 'pending'),
+    'approved', count(*) filter (where ${inventoryItems.decision} = 'approved'),
+    'rejected', count(*) filter (where ${inventoryItems.decision} = 'rejected')
+  ) from ${inventoryItems}
+  where ${inventoryItems.lastQueueItemId} = ${discoveryQueueItems.id}
+)`;
+
+const withInventoryCounts = (
+  item: DiscoveryQueueItem,
+  inventoryByDecision: InventoryDecisionCounts,
+): QueueItemWithInventoryCount => ({
+  ...item,
+  inventoryCount:
+    inventoryByDecision.pending +
+    inventoryByDecision.approved +
+    inventoryByDecision.rejected,
+  inventoryByDecision,
+});
 
 /**
  * Most recently changed first, so when a big job exceeds the limit it is the
@@ -66,10 +96,7 @@ export const listQueueItems = async (
   const rows = await db
     .select({
       item: discoveryQueueItems,
-      inventoryCount: sql<number>`(
-        select count(*)::int from ${inventoryItems}
-        where ${inventoryItems.lastQueueItemId} = ${discoveryQueueItems.id}
-      )`,
+      inventoryByDecision: inventoryDecisionCountsSql,
     })
     .from(discoveryQueueItems)
     .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
@@ -89,10 +116,62 @@ export const listQueueItems = async (
     .orderBy(desc(discoveryQueueItems.updatedAt), asc(discoveryQueueItems.path))
     .limit(LIST_QUEUE_ITEMS_LIMIT);
 
-  return rows.map((row) => ({
-    ...row.item,
-    inventoryCount: row.inventoryCount,
-  }));
+  return rows.map((row) =>
+    withInventoryCounts(row.item, row.inventoryByDecision),
+  );
+};
+
+/** One queue item with the inventory count and the job it belongs to, or undefined. */
+export const getQueueItemWithJob = async (
+  db: Database,
+  id: string,
+): Promise<
+  | {
+      item: QueueItemWithInventoryCount;
+      job: typeof discoveryJobs.$inferSelect;
+    }
+  | undefined
+> => {
+  const [row] = await db
+    .select({
+      item: discoveryQueueItems,
+      job: discoveryJobs,
+      inventoryByDecision: inventoryDecisionCountsSql,
+    })
+    .from(discoveryQueueItems)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
+    .where(eq(discoveryQueueItems.id, id));
+
+  if (!row) return undefined;
+
+  return {
+    item: withInventoryCounts(row.item, row.inventoryByDecision),
+    job: row.job,
+  };
+};
+
+/** Status of the job's queue items at exactly these (normalized) paths, keyed by path. */
+export const listJobQueueStatusesAt = async (
+  db: Database,
+  jobId: string,
+  normalizedPaths: string[],
+): Promise<Map<string, DiscoveryQueueItemStatus>> => {
+  if (normalizedPaths.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      path: discoveryQueueItems.normalizedPath,
+      status: discoveryQueueItems.status,
+    })
+    .from(discoveryQueueItems)
+    .where(
+      and(
+        eq(discoveryQueueItems.jobId, jobId),
+        inArray(discoveryQueueItems.normalizedPath, normalizedPaths),
+      ),
+    );
+
+  return new Map(rows.map((row) => [row.path, row.status]));
 };
 
 export type EnqueueQueueItemsInput = {

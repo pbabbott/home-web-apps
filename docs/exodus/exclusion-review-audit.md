@@ -38,6 +38,8 @@ Human review is a decision on an inventory item; see [Inventory Items](./invento
 | `queue_items.excluded`                  | claim skipped queued items under an exclusion rule (actor `system`) | count, ruleIds, up to 100 itemIds, truncated          |
 | `queue_items.inventoried`               | queued items skipped inside an approved directory (actor `system`)  | count, inventoryItemIds, up to 100 itemIds, truncated |
 | `inventory_item.promoted`               | a human promotes a skipped path or adds a whole directory           | path, kind, skipReason, wholeDirectory?               |
+| `on_disk.reviewed`                      | a human acknowledges a directory's on-disk contents                 | path                                                  |
+| `on_disk.unreviewed`                    | a human takes that acknowledgement back                             | path                                                  |
 
 Every event is inserted in the same transaction as the change it describes, so a rolled-back change leaves no event. Rejected requests (400/404/409) write nothing: there is deliberately no failure-logging framework. `GET /audit-events` is the only route; filters are `sourceId`, `jobId`, `exclusionRuleId`, `inventoryItemId`, `eventType`, `since`, `until`; newest first, `limit` up to 500, `before=<last event id>` for the next page.
 
