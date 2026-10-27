@@ -6,12 +6,12 @@ import {
   type DiscoveryJobWithCounts,
   type JobQueueItem,
 } from '../../sources/lib/homelab-api';
-import { parseQueueStatus } from '../../lib/job-display';
+import { parseQueueStatus, parseReviewFilter } from '../../lib/job-display';
 import { JobDetailClient } from './JobDetailClient';
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; review?: string }>;
 }
 
 const UUID_PATTERN =
@@ -21,15 +21,14 @@ export default async function ExodusJobDetailPage({
   params,
   searchParams,
 }: JobDetailPageProps) {
-  const [{ id }, { status: statusParam }] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+  const [{ id }, { status: statusParam, review: reviewParam }] =
+    await Promise.all([params, searchParams]);
 
   // A hand-edited id that is not a uuid would 400 the API.
   if (!UUID_PATTERN.test(id)) notFound();
 
   const status = parseQueueStatus(statusParam);
+  const reviewTodo = parseReviewFilter(reviewParam);
 
   let job: DiscoveryJobWithCounts;
 
@@ -69,6 +68,7 @@ export default async function ExodusJobDetailPage({
       sourceName={sourceName}
       items={items}
       status={status ?? null}
+      reviewTodo={reviewTodo}
     />
   );
 }

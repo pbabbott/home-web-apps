@@ -102,6 +102,8 @@ interface JobDetailClientProps {
   items: JobQueueItem[] | null;
   /** The `?status=` filter, if any. */
   status: QueueItemStatus | null;
+  /** The `?review=todo` filter: only directories with something still to review. */
+  reviewTodo: boolean;
 }
 
 export function JobDetailClient({
@@ -109,12 +111,17 @@ export function JobDetailClient({
   sourceName,
   items,
   status,
+  reviewTodo,
 }: JobDetailClientProps) {
   const router = useRouter();
   const sortedItems = useMemo(
     () =>
-      items ? [...items].sort((a, b) => comparePaths(a.path, b.path)) : null,
-    [items],
+      items
+        ? items
+            .filter((item) => !reviewTodo || item.reviewed === false)
+            .sort((a, b) => comparePaths(a.path, b.path))
+        : null,
+    [items, reviewTodo],
   );
   const active = isActiveJob(job);
   const [queueing, setQueueing] = useState(false);
@@ -299,7 +306,7 @@ export function JobDetailClient({
             >
               <OutlinedButton
                 component={Link}
-                href={jobDetailUrl(job.id)}
+                href={jobDetailUrl(job.id, undefined, reviewTodo)}
                 size="small"
                 color={status === null ? 'primary' : 'secondary'}
               >
@@ -309,13 +316,37 @@ export function JobDetailClient({
                 <OutlinedButton
                   key={s}
                   component={Link}
-                  href={jobDetailUrl(job.id, s)}
+                  href={jobDetailUrl(job.id, s, reviewTodo)}
                   size="small"
                   color={status === s ? 'primary' : 'secondary'}
                 >
                   {label}
                 </OutlinedButton>
               ))}
+            </TransparentPanel>
+            <TransparentPanel
+              color="dark"
+              className="flex flex-wrap items-center gap-2"
+            >
+              <OutlinedButton
+                component={Link}
+                href={jobDetailUrl(job.id, status ?? undefined)}
+                size="small"
+                color={reviewTodo ? 'secondary' : 'primary'}
+              >
+                All
+              </OutlinedButton>
+              <OutlinedButton
+                component={Link}
+                href={jobDetailUrl(job.id, status ?? undefined, true)}
+                size="small"
+                color={reviewTodo ? 'warning' : 'secondary'}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="radix-warning" size={14} />
+                  To review
+                </span>
+              </OutlinedButton>
             </TransparentPanel>
           </div>
         </div>
@@ -340,7 +371,8 @@ export function JobDetailClient({
           </Typography>
         ) : sortedItems.length === 0 ? (
           <Typography variant="body2" className="text-neutral-400">
-            No directories{status ? ` with status ${status}` : ''}.
+            No directories{status ? ` with status ${status}` : ''}
+            {reviewTodo ? ' still to review' : ''}.
           </Typography>
         ) : (
           <>
