@@ -163,7 +163,7 @@ Intended rule for the future copy workflow (not implemented there; nothing is in
 
 ## Checking a path's coverage
 
-A reviewer who finds a path deep in the filesystem wants to know whether it already rolls up to an inventory item. `GET /sources/:id/path-coverage?path=` (REST only, read-only, no audit event) answers for any path; it need not exist or have been visited. The **Check a path** panel on `/exodus/inventory` calls it.
+A reviewer who finds a path deep in the filesystem wants to know whether it already rolls up to an inventory item. `GET /sources/:id/path-coverage?path=` (REST only, read-only, no audit event) answers for any path; it need not exist or have been visited. The **Path coverage** tab on `/exodus/inventory` calls it.
 
 `status` follows the intended copy rule, using the item at the path and its ancestors, nearest first:
 

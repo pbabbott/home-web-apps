@@ -157,7 +157,7 @@ export function InventoryClient({
           <Tabs defaultValue="search" className="flex flex-col gap-6">
             <TabsList>
               <TabsTrigger value="search">Search inventory</TabsTrigger>
-              <TabsTrigger value="check">Check a path</TabsTrigger>
+              <TabsTrigger value="check">Path coverage</TabsTrigger>
             </TabsList>
 
             <TransparentPanel color="accent-purple" className="py-4">
@@ -202,8 +202,11 @@ export function InventoryClient({
                 color="dark"
                 className="flex flex-col gap-4 py-4"
               >
-                {filtered && (
-                  <div className="flex justify-end">
+                <div className="flex items-center justify-between gap-2">
+                  <Typography variant="h3" component="h2">
+                    Filter
+                  </Typography>
+                  {filtered && (
                     <OutlinedButton
                       component={Link}
                       href={inventoryItemsUrl({ source: sourceId })}
@@ -219,8 +222,8 @@ export function InventoryClient({
                         Clear filters
                       </span>
                     </OutlinedButton>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <label className="flex min-w-0 flex-col gap-1">

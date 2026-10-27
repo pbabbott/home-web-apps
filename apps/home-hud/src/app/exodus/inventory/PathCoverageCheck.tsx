@@ -84,6 +84,10 @@ export function PathCoverageCheck({ sourceId }: PathCoverageCheckProps) {
 
   return (
     <TransparentPanel color="dark" className="flex flex-col gap-4 py-4">
+      <Typography variant="h3" component="h2">
+        Path Coverage Scan
+      </Typography>
+
       <Typography variant="body2" className="text-neutral-400">
         Paste a path from anywhere in the filesystem to see whether it rolls up
         to an inventory item.
