@@ -8,3 +8,4 @@ export * from './inventory-items';
 export * from './source-connections';
 export * from './skip-acknowledgements';
 export * from './on-disk-reviews';
+export * from './path-coverage';

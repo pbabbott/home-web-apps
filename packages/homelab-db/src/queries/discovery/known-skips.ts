@@ -113,3 +113,77 @@ export const listKnownSkips = async (
     ...(row.count !== null && row.pattern ? { count: row.count } : {}),
   }));
 };
+
+/**
+ * Known skips that bear on one path: path skips at the path or any ancestor,
+ * and pattern skips recorded on any proper ancestor directory (the caller
+ * checks whether the pattern matches the path's segment under it). Same
+ * derivation as `listKnownSkips`, newest reason per path and pattern.
+ *
+ * `normalizedPaths` are the path and its normalized ancestors.
+ */
+export const findKnownSkipsAt = async (
+  db: Database,
+  sourceId: string,
+  normalizedPaths: string[],
+): Promise<KnownSkip[]> => {
+  if (normalizedPaths.length === 0) return [];
+
+  const paths = sql.join(
+    normalizedPaths.map((p) => sql`${p}`),
+    sql`, `,
+  );
+
+  const result = await db.execute<{
+    path: string;
+    reason: string;
+    pattern: string | null;
+    count: number | null;
+    skipped_at: Date;
+    job_id: string;
+  }>(sql`
+    select distinct on (lower(path), lower(coalesce(pattern, '')))
+      path, reason, pattern, count, skipped_at, job_id
+    from (
+      select
+        s.entry->>'path' as path,
+        s.entry->>'reason' as reason,
+        null::text as pattern,
+        null::int as count,
+        q.completed_at as skipped_at,
+        q.job_id as job_id
+      from discovery_queue_items q
+      join discovery_jobs j on j.id = q.job_id
+      cross join lateral jsonb_array_elements(q.result->'skipped') as s(entry)
+      where j.source_id = ${sourceId}
+        and q.result is not null
+        and jsonb_typeof(q.result->'skipped') = 'array'
+        and lower(s.entry->>'path') in (${paths})
+      union all
+      select
+        q.path as path,
+        g.entry->>'reason' as reason,
+        g.entry->>'pattern' as pattern,
+        (g.entry->>'count')::int as count,
+        q.completed_at as skipped_at,
+        q.job_id as job_id
+      from discovery_queue_items q
+      join discovery_jobs j on j.id = q.job_id
+      cross join lateral jsonb_array_elements(q.result->'skippedGroups') as g(entry)
+      where j.source_id = ${sourceId}
+        and q.result is not null
+        and jsonb_typeof(q.result->'skippedGroups') = 'array'
+        and q.normalized_path in (${paths})
+    ) all_skips
+    order by lower(path), lower(coalesce(pattern, '')), skipped_at desc nulls last
+  `);
+
+  return result.rows.map((row) => ({
+    path: row.path,
+    reason: row.reason,
+    skippedAt: new Date(row.skipped_at),
+    jobId: row.job_id,
+    ...(row.pattern ? { pattern: row.pattern } : {}),
+    ...(row.count !== null && row.pattern ? { count: row.count } : {}),
+  }));
+};

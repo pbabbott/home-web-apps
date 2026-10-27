@@ -1,5 +1,7 @@
 import type { BadgeColor, CardColor } from '@abbottland/fui-components';
 import type {
+  CoverageStatus,
+  PathCoverage,
   InventoryItemDecision,
   InventoryItemGitEvidence,
   InventoryItemKind,
@@ -35,6 +37,32 @@ export const DECISION_COLOR: Record<InventoryItemDecision, BadgeColor> = {
   pending: 'warning',
   approved: 'success',
   rejected: 'error',
+};
+
+export const COVERAGE_STATUS_LABELS: Record<CoverageStatus, string> = {
+  covered: 'Covered',
+  carved_out: 'Carved out',
+  rejected: 'Rejected',
+  pending: 'Pending review',
+  uncovered: 'Not covered',
+};
+
+export const COVERAGE_STATUS_DESCRIPTIONS: Record<CoverageStatus, string> = {
+  covered: 'An approved inventory item at or above this path covers it.',
+  carved_out:
+    'Rejected: an inventory item here is rejected, inside an approved one.',
+  rejected: 'The nearest decided inventory item at or above it is rejected.',
+  pending:
+    'Inventory items at or above this path exist, but none is decided yet.',
+  uncovered: 'No inventory item at or above this path.',
+};
+
+export const COVERAGE_STATUS_COLOR: Record<CoverageStatus, BadgeColor> = {
+  covered: 'success',
+  carved_out: 'error',
+  rejected: 'error',
+  pending: 'warning',
+  uncovered: 'dark',
 };
 
 /** Card colors follow the human decision: pending work stands out, decided work reads as done. */
@@ -218,3 +246,22 @@ export const formatSize = (bytes: number): string => {
 
   return `${value.toFixed(value < 10 ? 1 : 0)} ${units[unit]}`;
 };
+
+/**
+ * Whether a checked path can be promoted from the directory a job visited:
+ * nothing already sits at the path, no rule excludes it, nothing above
+ * approves it (or carves it out), and the visited directory is strictly above.
+ */
+export function canPromoteCheckedPath(coverage: PathCoverage): boolean {
+  const visited = coverage.visitedDirectory;
+
+  if (!visited || coverage.exact) return false;
+  if (coverage.exclusion.state === 'excluded') return false;
+  if (coverage.status === 'covered' || coverage.status === 'carved_out') {
+    return false;
+  }
+
+  const dir = visited.path.toLowerCase().replace(/\\+$/, '');
+
+  return coverage.normalizedPath.startsWith(`${dir}\\`);
+}

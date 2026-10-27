@@ -5,6 +5,7 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import {
+  checkPathCoverage,
   decideInventoryItem,
   getInventoryItem,
   inventoryDirectory,
@@ -21,6 +22,7 @@ import {
   queueItemIdParamsSchema,
   inventoryItemIdParamsSchema,
   inventoryItemListQuerySchema,
+  pathCoverageQuerySchema,
   sourceIdParamsSchema,
 } from '../../schemas/discovery';
 
@@ -37,6 +39,12 @@ inventoryItemsRouter.get(
   validateParams(sourceIdParamsSchema),
   validateQuery(inventoryItemListQuerySchema),
   listSourceInventoryItems,
+);
+inventoryItemsRouter.get(
+  '/sources/:id/path-coverage',
+  validateParams(sourceIdParamsSchema),
+  validateQuery(pathCoverageQuerySchema),
+  checkPathCoverage,
 );
 inventoryItemsRouter.get(
   '/inventory-items/:id',

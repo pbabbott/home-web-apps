@@ -7,6 +7,7 @@ import type {
   ExclusionRule,
   ExclusionRuleScope,
   InventoryItem,
+  PathCoverage,
   ShareMapping,
   Source,
   SourceConnection,
@@ -181,6 +182,17 @@ export async function decideInventoryItem(
     decision,
     ...(note !== undefined ? { note } : {}),
   });
+}
+
+/** Whether a path, at any depth, rolls up to an inventory item of the source. Read-only. */
+export async function checkPathCoverage(
+  sourceId: string,
+  path: string,
+): Promise<ActionResult<PathCoverage>> {
+  return send<PathCoverage>(
+    'GET',
+    `/sources/${sourceId}/path-coverage?${new URLSearchParams({ path })}`,
+  );
 }
 
 export interface PromoteSkippedPathInput {

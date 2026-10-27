@@ -113,3 +113,46 @@ export async function getInventoryItems(
 
   return (await res.json()) as InventoryItemPage;
 }
+
+export type CoverageStatus =
+  | 'covered'
+  | 'carved_out'
+  | 'rejected'
+  | 'pending'
+  | 'uncovered';
+
+/** The part of an inventory item worth showing next to a path check. */
+export type NestedInventoryItem = Pick<
+  InventoryItem,
+  'id' | 'kind' | 'rootPath' | 'displayName' | 'recommendation' | 'decision'
+>;
+
+export interface PathCoverage {
+  path: string;
+  normalizedPath: string;
+  status: CoverageStatus;
+  /** The item that decided `status`; the nearest item when pending. */
+  decidingItem: NestedInventoryItem | null;
+  /** The inventory item at exactly this path. */
+  exact: NestedInventoryItem | null;
+  /** Inventory items whose root is a proper ancestor, farthest first. */
+  coveredBy: NestedInventoryItem[];
+  /** Inventory items beneath the path (capped). */
+  covers: NestedInventoryItem[];
+  exclusion: { state: ExclusionState; ruleIds: string[] };
+  /** The deepest agent skip at or above the path. */
+  skip: {
+    path: string;
+    reason: string;
+    jobId: string;
+    skippedAt: string;
+    pattern?: string;
+  } | null;
+  /** The deepest queue item (any job) at or above the path. */
+  visitedDirectory: {
+    id: string;
+    jobId: string;
+    path: string;
+    status: string;
+  } | null;
+}

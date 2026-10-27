@@ -159,7 +159,29 @@ Proposing a path inside an existing inventory item (or above one) is **not rejec
 
 Each entry has `id`, `kind`, `rootPath`, `displayName`, `recommendation` and `decision`. The agent is told to reconsider when `coveredBy` is non-empty; a reviewer sees the same overlap. Matching is case-insensitive on path-segment boundaries (`C:\code\app` does not cover `C:\code\app2`). Batch siblings are reported to each other because the lookup runs after the upsert.
 
-Intended rule for the future copy workflow (not implemented; nothing is inherited today): a path is covered when any ancestor inventory item is approved; a nested `rejected` inventory item is a carve-out from that approval; a nested `approved` inventory item inside an approved ancestor is redundant, so the copy workflow dedupes.
+Intended rule for the future copy workflow (not implemented there; nothing is inherited today, but [Checking a path's coverage](#checking-a-paths-coverage) already applies it as a read-only answer): a path is covered when any ancestor inventory item is approved; a nested `rejected` inventory item is a carve-out from that approval; a nested `approved` inventory item inside an approved ancestor is redundant, so the copy workflow dedupes.
+
+## Checking a path's coverage
+
+A reviewer who finds a path deep in the filesystem wants to know whether it already rolls up to an inventory item. `GET /sources/:id/path-coverage?path=` (REST only, read-only, no audit event) answers for any path; it need not exist or have been visited. The **Check a path** panel on `/exodus/inventory` calls it.
+
+`status` follows the intended copy rule, using the item at the path and its ancestors, nearest first:
+
+| `status`     | Meaning                                                      |
+| ------------ | ------------------------------------------------------------ |
+| `covered`    | The nearest _decided_ item at or above the path is approved. |
+| `carved_out` | That item is rejected, and a farther ancestor is approved.   |
+| `rejected`   | That item is rejected and nothing above approves.            |
+| `pending`    | Items at or above the path exist, but none is decided.       |
+| `uncovered`  | No item at or above the path.                                |
+
+Pending items never decide: a pending item inside an approved one leaves the path `covered`. Alongside the status the response carries `decidingItem`, `exact` (the item at the path), `coveredBy` (ancestors, farthest first), `covers` (beneath, at most 50), and:
+
+- `exclusion` — how rules treat the path, as on an inventory item.
+- `skip` — the deepest [known skip](#remembering-skips-across-jobs) at or above the path (newest on a tie). A pattern skip counts when it matches the path's segment directly under the pattern's directory.
+- `visitedDirectory` — the deepest queue item at or above the path in _any_ job of the source.
+
+When nothing covers a path, the panel offers **Promote to inventory**, which reuses [promote](#promoting-a-skipped-path) with `visitedDirectory` as the queue item. It is shown only when no item sits at the path, no rule excludes it, nothing above approves it, and the visited directory is strictly above the path. A path no job has reached has no queue item to promote from; start a job at it or an ancestor.
 
 ## Rediscovery
 

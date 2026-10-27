@@ -1,4 +1,6 @@
+import type { PathCoverage } from '../../src/app/exodus/sources/lib/homelab-api';
 import {
+  canPromoteCheckedPath,
   changedSinceDecision,
   describeGit,
   hasActiveFilters,
@@ -212,5 +214,91 @@ describe('pageNumbers', () => {
 
   it('fills a one-page hole instead of showing a gap', () => {
     expect(pageNumbers(3, 8)).toEqual([1, 2, 3, 4, 'gap', 8]);
+  });
+});
+
+describe('canPromoteCheckedPath', () => {
+  const coverage = (overrides: Partial<PathCoverage> = {}): PathCoverage => ({
+    path: 'C:\\Code\\App\\src\\x.ts',
+    normalizedPath: 'c:\\code\\app\\src\\x.ts',
+    status: 'uncovered',
+    decidingItem: null,
+    exact: null,
+    coveredBy: [],
+    covers: [],
+    exclusion: { state: 'none', ruleIds: [] },
+    skip: null,
+    visitedDirectory: {
+      id: 'q',
+      jobId: 'j',
+      path: 'C:\\Code\\App',
+      status: 'completed',
+    },
+    ...overrides,
+  });
+
+  it('allows an uncovered path beneath a visited directory', () => {
+    expect(canPromoteCheckedPath(coverage())).toBe(true);
+  });
+
+  it.each(['covered', 'carved_out'] as const)('refuses a %s path', (status) => {
+    expect(canPromoteCheckedPath(coverage({ status }))).toBe(false);
+  });
+
+  it('allows a rejected or pending path with no item of its own', () => {
+    expect(canPromoteCheckedPath(coverage({ status: 'rejected' }))).toBe(true);
+    expect(canPromoteCheckedPath(coverage({ status: 'pending' }))).toBe(true);
+  });
+
+  it('refuses an excluded path, or one that already has an item', () => {
+    expect(
+      canPromoteCheckedPath(
+        coverage({ exclusion: { state: 'excluded', ruleIds: ['r'] } }),
+      ),
+    ).toBe(false);
+    expect(
+      canPromoteCheckedPath(
+        coverage({
+          exact: {
+            id: 'i',
+            kind: 'file',
+            rootPath: 'x',
+            displayName: 'x',
+            recommendation: 'back_up',
+            decision: 'pending',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('needs a visited directory strictly above the path', () => {
+    expect(canPromoteCheckedPath(coverage({ visitedDirectory: null }))).toBe(
+      false,
+    );
+    expect(
+      canPromoteCheckedPath(
+        coverage({
+          visitedDirectory: {
+            id: 'q',
+            jobId: 'j',
+            path: 'C:\\Code\\App\\src\\x.ts',
+            status: 'completed',
+          },
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      canPromoteCheckedPath(
+        coverage({
+          visitedDirectory: {
+            id: 'q',
+            jobId: 'j',
+            path: 'C:\\Code\\Ap',
+            status: 'completed',
+          },
+        }),
+      ),
+    ).toBe(false);
   });
 });

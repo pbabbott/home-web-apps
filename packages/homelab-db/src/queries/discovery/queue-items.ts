@@ -174,6 +174,48 @@ export const listJobQueueStatusesAt = async (
   return new Map(rows.map((row) => [row.path, row.status]));
 };
 
+/** The queue item of any job of the source that a path-coverage check can point at. */
+export type VisitedQueueItem = Pick<
+  DiscoveryQueueItem,
+  'id' | 'jobId' | 'path' | 'status'
+>;
+
+/**
+ * The deepest queue item of the source at one of these (normalized) paths, in
+ * any job; the newest wins a tie. Pass a path and its ancestors to find the
+ * nearest directory a job has visited.
+ */
+export const findDeepestQueueItemAt = async (
+  db: Database,
+  sourceId: string,
+  normalizedPaths: string[],
+): Promise<VisitedQueueItem | undefined> => {
+  if (normalizedPaths.length === 0) return undefined;
+
+  const [row] = await db
+    .select({
+      id: discoveryQueueItems.id,
+      jobId: discoveryQueueItems.jobId,
+      path: discoveryQueueItems.path,
+      status: discoveryQueueItems.status,
+    })
+    .from(discoveryQueueItems)
+    .innerJoin(discoveryJobs, eq(discoveryJobs.id, discoveryQueueItems.jobId))
+    .where(
+      and(
+        eq(discoveryJobs.sourceId, sourceId),
+        inArray(discoveryQueueItems.normalizedPath, normalizedPaths),
+      ),
+    )
+    .orderBy(
+      desc(sql`length(${discoveryQueueItems.normalizedPath})`),
+      desc(discoveryQueueItems.createdAt),
+    )
+    .limit(1);
+
+  return row;
+};
+
 export type EnqueueQueueItemsInput = {
   jobId: string;
   paths: QueuePath[];

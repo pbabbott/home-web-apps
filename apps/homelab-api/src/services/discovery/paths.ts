@@ -1,5 +1,9 @@
 import { DiscoveryError, type QueuePath } from '@abbottland/homelab-db';
-import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
+import {
+  isWithinPath,
+  normalizeWindowsPath,
+  windowsPathParent,
+} from '../../lib/windows-path';
 
 export const toQueuePath = (path: string): QueuePath =>
   normalizeWindowsPath(path);
@@ -41,4 +45,18 @@ export const assertWithinClaimedDirectory = (
       { paths: outside.map((p) => p.path) },
     );
   }
+};
+
+/** Normalized ancestors of a normalized path, nearest first (`C:\a\b` -> `C:\a`, `C:\`). */
+export const ancestorsOf = (normalizedPath: string): string[] => {
+  const ancestors: string[] = [];
+  for (
+    let parent = windowsPathParent(normalizedPath);
+    parent !== null;
+    parent = windowsPathParent(parent)
+  ) {
+    ancestors.push(parent);
+  }
+
+  return ancestors;
 };
