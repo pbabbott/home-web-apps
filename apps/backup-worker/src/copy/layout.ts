@@ -6,37 +6,38 @@ import { resolveWithinRoot } from '../lib/safe-path';
 export const MAX_NAME_BYTES = 255;
 export const STAGING_DIR = '.exodus-staging';
 
+const checkName = (name: string, whole: string): string => {
+  if (
+    name === '' ||
+    name === '.' ||
+    name === '..' ||
+    name.includes('\0') ||
+    name.includes('/')
+  ) {
+    throw new EntryFailure(
+      'unsupported_path',
+      `"${whole}" is not a path the destination can hold`,
+    );
+  }
+  if (Buffer.byteLength(name) > MAX_NAME_BYTES) {
+    throw new EntryFailure(
+      'name_too_long',
+      `a name in "${whole}" is longer than ${MAX_NAME_BYTES} bytes`,
+    );
+  }
+
+  return name;
+};
+
 /**
  * Splits a path relative to an item root (`\`-separated, `''` for the root
  * itself) into names, refusing anything that could leave the item or is not a
  * plain name. A name over 255 bytes is `name_too_long`.
  */
-export const splitRelPath = (relPath: string): string[] => {
-  if (relPath === '') return [];
-
-  return relPath.split('\\').map((name) => {
-    if (
-      name === '' ||
-      name === '.' ||
-      name === '..' ||
-      name.includes('\0') ||
-      name.includes('/')
-    ) {
-      throw new EntryFailure(
-        'unsupported_path',
-        `"${relPath}" is not a path the destination can hold`,
-      );
-    }
-    if (Buffer.byteLength(name) > MAX_NAME_BYTES) {
-      throw new EntryFailure(
-        'name_too_long',
-        `a name in "${relPath}" is longer than ${MAX_NAME_BYTES} bytes`,
-      );
-    }
-
-    return name;
-  });
-};
+export const splitRelPath = (relPath: string): string[] =>
+  relPath === ''
+    ? []
+    : relPath.split('\\').map((name) => checkName(name, relPath));
 
 /**
  * Where an entry goes, relative to `<source_dir_name>/`: the item's own path
@@ -47,7 +48,12 @@ export const entryDestRel = (
   itemDestRelPath: string,
   relPath: string,
 ): string =>
-  [...itemDestRelPath.split('/'), ...splitRelPath(relPath)].join('/');
+  [
+    ...itemDestRelPath
+      .split('/')
+      .map((name) => checkName(name, itemDestRelPath)),
+    ...splitRelPath(relPath),
+  ].join('/');
 
 /** The source path of an entry: the item's Windows root plus the relative path. */
 export const entrySourcePath = (rootPath: string, relPath: string): string =>
