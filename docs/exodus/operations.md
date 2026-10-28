@@ -15,6 +15,8 @@ pnpm dev          # UI on :4022, pages under /exodus
 
 Unit tests run with `pnpm test:unit` in `packages/homelab-db` and `apps/homelab-api`. `apps/homelab-api` also has its first integration test project (`pnpm test:int`, needs `dev:deps`): it runs end to end against the real local Postgres, covering concurrent claims, lease expiry and reclaim, retry exhaustion, completion rules, the cancel/fail and enqueue races, the database state checks, and the host/source filters, and deletes everything it creates. `apps/home-hud` has unit tests (`pnpm test:unit`) for the inventory item and audit display helpers. CI picks the project up automatically through the `test:int` task. See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md) and the [integration test guide](./test-guide-integration.md).
 
+The backup worker (`apps/backup-worker`) runs against the same database; see [Backup: Worker](./backup.md#worker). Its `pnpm test:int` uses the Postgres that `homelab-api`'s `pnpm dev:deps` started (both map port 5433, so only one of the two compose files can be up at a time).
+
 After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` loads it from `dist/` at runtime (including in Jest), so a stale build shows up as confusing "undefined" errors.
 
 ## Next steps

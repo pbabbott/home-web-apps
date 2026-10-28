@@ -4,7 +4,7 @@
 
 Copying approved inventory to an NFS destination. The design and the remaining milestones are in [backup-design](./backup-design/README.md); this page describes only what exists.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0), and the REST API in `apps/homelab-api` (M2). There is no worker yet, so a created job waits for one; there is no UI.
+**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0), the REST API in `apps/homelab-api` (M2), and the worker scaffold with destination validation in `apps/backup-worker` (M3). The worker does not copy yet, so a created job waits for the copy engine; there is no UI.
 
 ## Data model
 
@@ -65,8 +65,42 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 
 **Coverage report.** The query's report plus `source`, `destination`, `scope` (inventory items, with per-file verification for directory items, subject to the stated limits), `limits` (the five things coverage cannot promise: files hidden from the SMB account, inventory rather than the whole disk, a file modified during the copy, ACLs and other alternate streams, source access times), `notes` (kept-both files, not-followed entries) and `discoveryReview`. Rejected items are counted but left out of `items` unless `bucket=rejected` is asked for (`omittedRejected` says how many). `format=json` returns the full report (every item, `bucket` ignored) as an attachment named `backup-coverage-<source>-<destination>-<date>.json`. `discoveryReview` is display only and never changes `allAccounted`: across all of the source's `completed` discovery jobs it counts directories reviewed, not reviewed, unknown (no result) and not explored, with the same rule as the discovery pages. A directory several jobs visited is counted once, from the newest job that has it. `jobs` lists the jobs counted, and `truncated` says when a job has more directories than are counted (500 each).
 
+## Worker
+
+`apps/backup-worker` ([README](../../apps/backup-worker/README.md)) is modelled on `video-worker`: an Express server plus a poll loop, migrations at startup under the advisory lock, the image built with `samba-client`. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). It calls `homelab-db` queries directly and has no routes besides `GET /healthz` and `GET /readyz`. It does not claim or copy anything yet: `claimNextBackupItem` is not called, so a created job stays `planned`.
+
+**Configuration** (environment; defaults in `src/config.ts`, example in `sample.env`):
+
+| Variable                                                                 | Default          | Purpose                                                                                           |
+| ------------------------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------- |
+| `POSTGRES_HOST/PORT/DATABASE/USER/PASSWORD`                              | as the API       | The shared `homelab_api` database                                                                 |
+| `EXODUS_CREDENTIAL_KEY`                                                  | required         | 32 bytes, base64; the same value as `homelab-api`. Checked at startup, used by the copy engine    |
+| `BACKUP_DESTINATION_ID`                                                  | required         | UUID of the destination this worker serves                                                        |
+| `BACKUP_DESTINATION_PATH`                                                | required         | Absolute container path of the mounted export. Existence is checked by validation, not at startup |
+| `BACKUP_DESTINATION_MOUNT_CHECK`                                         | `nfs`            | `none` for local development only; the result then has `mountVerified: false`                     |
+| `BACKUP_STALL_TIMEOUT_SECONDS`                                           | `120`            | No-progress timeout for destination calls (the watchdog)                                          |
+| `POLL_INTERVAL_MS`                                                       | `5000`           | Poll interval; the API treats a worker as stale after 2 minutes (`WORKER_STALE_AFTER_MS`)         |
+| `BACKUP_PARALLELISM`, `BACKUP_HEARTBEAT_SECONDS`, `BACKUP_LEASE_SECONDS` | `1`, `60`, `300` | Read and validated, not used until the copy engine                                                |
+
+**Poll loop.** Every poll calls `touchBackupDestinationWorker` (`worker_seen_at`). The worker validates its destination on the first poll and whenever `validation_requested_at` is set, then stores the result with `recordBackupDestinationValidation`, which sets `health` (`ok` or `unhealthy`), `last_validated_at` and `last_validation`, clears the request, and writes the `validated` or `unhealthy` audit event. A request made while it validates is cleared too. A missing destination row or a database error is logged and the loop carries on.
+
+**Validation** (`src/destination/validate.ts`; `/proc/mounts`, the filesystem, the clock and the random id are injected). Checks run in order and stop at the first fatal one:
+
+1. `mount`: `BACKUP_DESTINATION_PATH` is a mount point whose entry is `nfs` or `nfs4` with device `settings.server:exportPath`. Skipped with the check set to `none`; `mountVerified` is then `false`.
+2. `root`: the mount path is a directory; `<mount>/<root_dir>` stays inside the mount, has no symlink in any existing component (`lstat`), and is created if missing.
+3. `probe`: in a transient `.exodus-probe-<random>/` folder under the root: write, `fsync`, read back and compare a SHA-256; `link()` and a second `link()` onto the same name that must fail with `EEXIST`; `rename`; `utimes` and a `stat` round trip; a 255-byte name; a case-variant pair; names with spaces, a trailing dot and non-ASCII. The folder is removed in a `finally`; a removal failure is its own failed check (`probe_cleanup`). Nothing else is written.
+
+`last_validation` holds `ok`, `mountVerified`, `checks` (`{ name, ok, message }`), `findings` and `rootEntries`. Findings: `mountPath`, `checkedAt`, `mount` (device, type, options), `utimesSupported`, `maxNameLength`, `rejects256ByteName`, `caseSensitive`, `uid`, `gid`, `freeBytes`, `totalBytes` (information only; a failed `statfs` is `statfsError`), and `rootEntriesTruncated` (the real count) when the listing was cut.
+
+**`rootEntries`** are the names directly under `<mount>/<root_dir>`, sorted, listed read-only before the probe writes, capped at 1000, without `.exodus-probe-*` and `.exodus-staging`. The API's plan warning (`destination_folder_exists` / `destination_folder_unknown`) reads it; before a validation has run there is none.
+
+**Watchdog and probes.** Every destination call (the whole validation today; copy I/O later) runs under `DestinationWatchdog`. A call that has not returned after `BACKUP_STALL_TIMEOUT_SECONDS` marks the destination `unhealthy` (once; audited on the transition) and makes `/readyz` answer `503`. `/healthz` answers `503` only after the call has been stalled for another stall timeout, so Kubernetes restarts the pod. A call blocked on a `hard` mount cannot be cancelled; the restart is the recovery. The part that stops heartbeating a leased item arrives with the claim loop (M5). `/readyz` is also `503` when PostgreSQL is unreachable or the schema is behind.
+
+**Local development.** Point `BACKUP_DESTINATION_PATH` at a scratch directory with the mount check `none`, create a destination through `POST /backup-destinations` and put its id in `BACKUP_DESTINATION_ID`, then `POST /backup-destinations/:id/validate`. Integration tests (`pnpm test:int` in the app, same Postgres as `homelab-api`) run the real loop against a scratch directory. The image build and CI follow `video-worker`; CI finds the app through its `docker:publish`, `test:unit` and `test:int` scripts, and `scripts/docker-retag-prod.sh` lists it for the production retag.
+
 ## Gotchas
 
 - `drizzle.config.ts` lists schema files explicitly: a new schema file must be added there or `drizzle-kit generate` silently leaves its tables out.
 - `homelab-api` compiles `homelab-db` from `src/` without `strictNullChecks`, so a union discriminated on `item: null` does not narrow there. Use an `in` check (`'job' in result`).
+- `homelab-db` is compiled without `strictNullChecks` in the apps, so `{ ok: false } | { ok: true }` unions do not narrow on `ok` either (`checkNfsMount` is narrowed with `'message' in result`).
 - Item responses are built without `claim_token` (`toItemView` in `services/backup/jobs.ts`), unlike discovery's queue item listings.

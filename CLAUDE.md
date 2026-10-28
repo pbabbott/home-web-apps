@@ -16,6 +16,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
+- `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it today, copies inventory later. See [Exodus backup](./docs/exodus/backup.md#worker).
 
 **Packages** (`/packages`):
 

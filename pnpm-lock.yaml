@@ -123,6 +123,70 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
 
+  apps/backup-worker:
+    dependencies:
+      '@abbottland/express':
+        specifier: workspace:*
+        version: link:../../packages/express
+      '@abbottland/homelab-db':
+        specifier: workspace:*
+        version: link:../../packages/homelab-db
+      '@abbottland/yaml-config':
+        specifier: workspace:*
+        version: link:../../packages/yaml-config
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
+      express:
+        specifier: 'catalog:'
+        version: 5.1.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+    devDependencies:
+      '@abbottland/abctl':
+        specifier: workspace:*
+        version: link:../../packages/abctl
+      '@abbottland/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@abbottland/jest-presets':
+        specifier: workspace:*
+        version: link:../../packages/jest-presets
+      '@abbottland/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/express':
+        specifier: 'catalog:'
+        version: 5.0.3
+      '@types/jest':
+        specifier: 'catalog:'
+        version: 29.5.14
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.18.8
+      '@types/supertest':
+        specifier: ^6.0.3
+        version: 6.0.3
+      jest:
+        specifier: 'catalog:'
+        version: 29.7.0(@types/node@22.18.8)(ts-node@10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.23))(@types/node@22.18.8)(typescript@5.9.3))
+      jest-junit:
+        specifier: ^16.0.0
+        version: 16.0.0
+      supertest:
+        specifier: ^7.1.4
+        version: 7.1.4
+      ts-node:
+        specifier: 'catalog:'
+        version: 10.9.2(@swc/core@1.13.5(@swc/helpers@0.5.23))(@types/node@22.18.8)(typescript@5.9.3)
+      tsc-watch:
+        specifier: ^6.3.1
+        version: 6.3.1(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   apps/blog:
     dependencies:
       '@abbottland/fui-components':
@@ -17549,7 +17613,7 @@ snapshots:
     dependencies:
       es-errors: 1.3.0
       hasown: 2.0.2
-      side-channel: 1.1.0
+      side-channel: 1.1.1
 
   interpret@1.4.0: {}
 

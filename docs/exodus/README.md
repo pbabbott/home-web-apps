@@ -36,6 +36,6 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [Exclusion Rules and Audit](./exclusion-review-audit.md) - rules, enforcement, and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
-- [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it (M1), and the API: destinations, planning, jobs, coverage (M2).
-- [Backup Design (proposal)](./backup-design/README.md) - facts and an implementation plan for copying inventory to an NFS destination. Mostly not built yet (M0 to M2 are); kept apart from the documented system on purpose.
+- [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it (M1), the API: destinations, planning, jobs, coverage (M2), and the worker scaffold with destination validation (M3).
+- [Backup Design (proposal)](./backup-design/README.md) - facts and an implementation plan for copying inventory to an NFS destination. Mostly not built yet (M0 to M3 are); kept apart from the documented system on purpose.
 - [Running, Testing and Next Steps](./operations.md) - how to run and test, and what is left.
