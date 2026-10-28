@@ -12,6 +12,7 @@ import { enumerateDirectory } from './enumerate';
 import { processEntry } from './entry';
 import { SourceUnreachableError } from './errors';
 import { classifyFailures } from './finish';
+import { runPool } from './pool';
 import { destAbs, entryDestRel, entrySourcePath, stagingDir } from './layout';
 
 /** Entries read, described and copied per round; also the `allinfo` batch size. */
@@ -81,9 +82,21 @@ const processPending = async (ctx: CopyContext): Promise<void> => {
     );
 
     await ctx.fault('item:after-allinfo');
-    for (let i = 0; i < entries.length; i++) {
-      await processEntry(ctx, entries[i], infos[i]);
-    }
+    // One entry that cannot go on (the source is gone, the destination is
+    // broken) stops the ones copying beside it instead of leaving them to
+    // run into the same wall.
+    const failed = new AbortController();
+    const pageCtx = {
+      ...ctx,
+      signal: AbortSignal.any([ctx.signal, failed.signal]),
+    };
+
+    await runPool(
+      ctx.parallelism,
+      entries.length,
+      (i) => processEntry(pageCtx, entries[i], infos[i]),
+      (error) => failed.abort(error),
+    );
   }
 };
 

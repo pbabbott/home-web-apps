@@ -33,6 +33,8 @@ export type CopyContext = {
   /** Aborted (with a `ClaimLostError`) when the heartbeat finds the lease gone. */
   signal: AbortSignal;
   fault: FaultHook;
+  /** Files of one item copied at once (`BACKUP_PARALLELISM`). */
+  parallelism: number;
   /** Run before the item starts: throws `DestinationUnhealthyError` when the mount is gone. */
   preflight: () => Promise<void>;
 };

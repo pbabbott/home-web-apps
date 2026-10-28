@@ -54,6 +54,8 @@ export type RunOptions = {
   pauses?: PauseTracker;
   /** Replaces the worker-wide shutdown signal. */
   shutdownSignal?: AbortSignal;
+  /** Files of one item copied at once; defaults to `BACKUP_PARALLELISM`. */
+  parallelism?: number;
   /** Heartbeat interval in ms; defaults to `BACKUP_HEARTBEAT_SECONDS`. */
   heartbeatMs?: number;
   /** Replaces the mount check that runs before each item. */
@@ -158,6 +160,7 @@ export const claimAndCopyNext = async (
         options.shutdownSignal ?? shutdownSignal(),
       ]),
       fault: options.fault ?? (() => undefined),
+      parallelism: options.parallelism ?? config.backupParallelism,
       preflight:
         options.preflight ??
         (() =>

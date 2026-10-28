@@ -52,7 +52,7 @@ export class ApplicationConfig {
   @EnvironmentVariable()
   backupDestinationMountCheck: string = 'nfs';
 
-  /** Files of one item copied at once (used by the copy engine). */
+  /** Files of one item copied at once. Each running copy is an `smbclient` child (about 33 MiB), so raise it together with the memory limit. */
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   backupParallelism: number = 1;
 
