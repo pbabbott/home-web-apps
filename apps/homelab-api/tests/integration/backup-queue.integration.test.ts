@@ -169,6 +169,11 @@ describe('leases', () => {
         backupJobId: job.id,
       }),
     ).toBe(3);
+    expect(
+      await auditCount('backup_job_items.lease_expired', {
+        destinationId: destination.id,
+      }),
+    ).toBe(3);
   });
 
   it('rejects a heartbeat from the worker whose lease was taken over', async () => {

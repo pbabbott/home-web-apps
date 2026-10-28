@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import { backupJobItems } from '../../schema/backup';
+import { backupJobItems, type BackupJob } from '../../schema/backup';
 import { insertAuditEvent } from '../audit';
 import { MAX_AUDITED_ITEM_IDS, type Tx } from '../shared';
 
@@ -8,11 +8,12 @@ import { MAX_AUDITED_ITEM_IDS, type Tx } from '../shared';
  * run out goes back to `queued`, or to `failed` once it has used all its
  * attempts. An abandoned claim spends its attempt. attemptCount, lastError
  * (worker and attempt) and lastClaimedBy are kept for debugging. One batched
- * audit event covers every item expired in this call.
+ * audit event covers every item expired in this call; it carries the source
+ * and destination ids so it shows under either filter.
  */
 export const expireBackupLeases = async (
   tx: Tx,
-  jobId: string,
+  job: Pick<BackupJob, 'id' | 'sourceId' | 'destinationId'>,
 ): Promise<{ expired: number; failed: number }> => {
   const t = backupJobItems;
 
@@ -29,7 +30,7 @@ export const expireBackupLeases = async (
     })
     .where(
       and(
-        eq(t.jobId, jobId),
+        eq(t.jobId, job.id),
         eq(t.status, 'in_progress'),
         sql`${t.leaseExpiresAt} < now()`,
       ),
@@ -42,7 +43,9 @@ export const expireBackupLeases = async (
     await insertAuditEvent(tx, {
       eventType: 'backup_job_items.lease_expired',
       actor: { type: 'system' },
-      backupJobId: jobId,
+      sourceId: job.sourceId,
+      destinationId: job.destinationId,
+      backupJobId: job.id,
       details: {
         count: rows.length,
         failed,
