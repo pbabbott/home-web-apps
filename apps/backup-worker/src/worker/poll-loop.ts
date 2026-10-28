@@ -6,7 +6,10 @@ import {
 import { db } from '../db';
 import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
-import { getWatchdog, workerId } from '../destination/runtime';
+import { DESTINATION_KEY } from '../copy/pause-tracker';
+import { resumeDestinationJobs, stallDestinationJobs } from '../copy/pauses';
+import { getWatchdog, runtimePauses, workerId } from '../destination/runtime';
+import { requestShutdown, resetShutdown } from './shutdown';
 import {
   defaultValidationDeps,
   validateDestination,
@@ -35,6 +38,8 @@ const scheduleNextPoll = (delayMs: number) => {
  */
 const copyWhileWorkExists = async (): Promise<void> => {
   const keepAlive = setInterval(() => {
+    // A worker stuck on a hung mount must look dead, not busy.
+    if (getWatchdog().state().stalled) return;
     touchBackupDestinationWorker(db, config.backupDestinationId).catch((err) =>
       console.error('❌ could not report that the worker is alive:', err),
     );
@@ -72,7 +77,12 @@ export const pollOnce = async (): Promise<void> => {
       console.error(
         `❌ backup destination ${config.backupDestinationId} does not exist`,
       );
-    } else if (!validatedOnce || destination.validationRequestedAt) {
+    } else if (
+      !validatedOnce ||
+      destination.validationRequestedAt ||
+      // An unhealthy destination is checked again by itself, with a backoff.
+      (destination.health === 'unhealthy' && runtimePauses.due(DESTINATION_KEY))
+    ) {
       const validation = await validateDestination(
         {
           destination,
@@ -89,6 +99,9 @@ export const pollOnce = async (): Promise<void> => {
         validation,
       });
       validatedOnce = true;
+
+      if (validation.ok) await resumeDestinationJobs();
+      else await stallDestinationJobs(runtimePauses);
 
       console.log(
         validation.ok
@@ -111,14 +124,19 @@ export const pollOnce = async (): Promise<void> => {
 export const startPollLoop = () => {
   stopped = false;
   validatedOnce = false;
+  resetShutdown();
   currentPoll = pollOnce().finally(() => {
     currentPoll = undefined;
   });
 };
 
-/** Stops scheduling polls and waits for one in flight to finish. */
+/**
+ * Stops scheduling polls, aborts the transfer in flight (its item is released
+ * with the attempt refunded) and waits for the poll to end.
+ */
 export const stopPollLoop = async (): Promise<void> => {
   stopped = true;
+  requestShutdown();
 
   if (pollTimeout) clearTimeout(pollTimeout);
   if (currentPoll) await currentPoll;

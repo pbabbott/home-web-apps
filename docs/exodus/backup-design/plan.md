@@ -6,7 +6,7 @@ Copy approved inventory items from a source machine (SMB) to an NFS destination,
 
 **Read [facts.md](./facts.md) first.** It holds the decisions that are fixed and the environment facts this plan relies on. This plan does not repeat them; it says what to build.
 
-**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M4 are built (see §7).
+**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M5 are built (see §7).
 
 ---
 
@@ -332,14 +332,9 @@ Implemented on `feat/exodus-backup-m3-worker`; the built behaviour is in [`docs/
 
 Implemented on `feat/exodus-backup-m4-copy`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#copy-engine) and the spike numbers are in §10. Tests: `apps/backup-worker/tests/integration/copy.integration.test.ts` (one test per bullet of the original list, including a run that kills the worker at every fault point of a directory copy and compares the rerun with an uninterrupted one) and unit tests beside it; the `source-access` parsers, the driver with a fake `smbclient` and the `FakeDriver` are under `packages/source-access/tests/unit/`. Decisions taken during it: verified entries are trusted and never re-read; an adopted identical file gets the source modified time; an item whose source stopped answering is released with the attempt refunded and the loop waits a poll (the real pause is M5); the dev source needs a share mapping for `C:\backup-test` before the first real run.
 
-### M5: resilience and operations
+### M5: resilience and operations — done
 
-Branch `feat/exodus-backup-m5-ops`.
-
-- Stall timeout and `BACKUP_PARALLELISM` behaviour; `SIGTERM` release with refund; `source_unreachable` and `destination_unhealthy` pauses with `stalled_reason` and `stalled`/`resumed` audit events; the destination I/O watchdog (stop heartbeating, fail probes); human retry, `retry-failed`, `rerun-unresolved`, cancel and fail semantics end to end; lease-expiry audit batching.
-- Turn the races and failure modes into integration tests, as `docs/exodus/decisions.md` recommends (probe races against the running API and worker, then keep each as a test).
-- Tests: no bytes for the stall timeout → transient `read_failed`; unreachable source → claims pause, no attempt spent, one `stalled` event, and `resumed` when it answers; a destination call that never returns → heartbeats stop, destination `unhealthy`, `/readyz` fails; `SIGTERM` mid-copy → staging deleted, item released with the attempt refunded, verified entries kept; cancelled job → late heartbeat/complete rejected; retry grants exactly one more attempt and only on an active job.
-- Re-measure memory with parallelism above 1 and the real NFS mount; M4 measured about 150 MiB for one large file (Appendix A asks for a 256Mi limit).
+Implemented on `feat/exodus-backup-m5-ops`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#pauses-and-shutdown) and the runbook in [`docs/exodus/operations.md`](../operations.md#running-the-backup-worker). Tests: `apps/backup-worker/tests/integration/resilience.integration.test.ts` (one test per failure mode of the original list, plus the NFS errno table, retry, rerun, lease-expiry batching and parallelism with a kill) and unit tests beside it; `FakeDriver` gained a `hang` fault and a read concurrency counter. No schema change. Decisions taken during it: a source is only called unreachable if a connection test also fails (otherwise the attempt counts); a source read stall is a transient `read_failed`, not a pause; an unhealthy destination is validated again by itself with a backoff; the item's staging is deleted when its claim is lost (a startup sweep of orphaned staging was left out); `BACKUP_PARALLELISM` is a pool within a page of entries. Memory: about 150 MiB at N=1 and 250 MiB at N=4 (smbclient children dominate), so 256Mi holds for the default and N of 3 or more needs a bigger limit. The real NFS mount is still unmeasured.
 
 ### M6: home-hud pages (last, minimal)
 
@@ -369,7 +364,7 @@ Documentation describes what exists, so write facts into the main Exodus docs as
 
 1. **Opening PRs.** The user has not said whether the agent may push branches and open PRs. Stop before pushing and ask.
 2. **Export permissions.** "uid 100" in the user's answer is taken as uid 1000; the validation probe confirms.
-3. **Unmeasured:** throughput over the dedicated cable (2.0 MB/s from the dev container, §10), the real total size of the approved set, and memory with `BACKUP_PARALLELISM` above 1 and the real NFS mount (about 150 MiB for one large file in M4, [backup.md](../backup.md#copy-engine)).
+3. **Unmeasured:** throughput over the dedicated cable (2.0 MB/s from the dev container, §10), the real total size of the approved set, and memory on the real NFS mount (the dev container cannot mount NFS; parallelism above 1 is measured in [backup.md](../backup.md#parallelism-and-memory)).
 
 ## 10. Spike results
 

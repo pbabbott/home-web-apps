@@ -2,7 +2,11 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { DestFs, defaultDestFsDeps } from '../../src/copy/dest-fs';
-import { DestConflictError, DestWriteError } from '../../src/copy/errors';
+import {
+  DestConflictError,
+  DestinationUnhealthyError,
+  DestWriteError,
+} from '../../src/copy/errors';
 import { UnsafePathError } from '../../src/lib/safe-path';
 
 async function* chunks(...parts: string[]) {
@@ -86,7 +90,10 @@ describe('DestFs', () => {
 
       await expect(
         failing.stage(path.join(base, 'staged'), chunks('x')),
-      ).rejects.toMatchObject({ name: 'DestWriteError', code: 'ENOSPC' });
+      ).rejects.toMatchObject({
+        name: 'DestinationUnhealthyError',
+        code: 'ENOSPC',
+      });
     });
   });
 
@@ -199,7 +206,9 @@ describe('DestFs', () => {
         run: (_op, fn) => fn(),
       });
 
-      await expect(failing.lstat(base)).rejects.toBeInstanceOf(DestWriteError);
+      await expect(failing.lstat(base)).rejects.toBeInstanceOf(
+        DestinationUnhealthyError,
+      );
     });
   });
 
@@ -244,5 +253,60 @@ describe('DestFs', () => {
     expect(operations).toEqual(
       expect.arrayContaining(['mkdir', 'open', 'write', 'fsync', 'close']),
     );
+  });
+
+  describe('errors that concern the whole destination', () => {
+    const failingWith = (code: string) =>
+      new DestFs(mount, base, {
+        fs: {
+          ...fs,
+          mkdir: async () => {
+            throw Object.assign(new Error(code), { code });
+          },
+          unlink: async () => {
+            throw Object.assign(new Error(code), { code });
+          },
+        } as never,
+        run: (_op, fn) => fn(),
+      });
+
+    it.each(['EIO', 'ESTALE', 'ENOTCONN', 'ENOSPC', 'EDQUOT', 'EROFS'])(
+      '%s anywhere makes the destination unhealthy',
+      async (code) => {
+        await expect(
+          failingWith(code).unlink(path.join(base, 'src', 'a', 'b.txt')),
+        ).rejects.toBeInstanceOf(DestinationUnhealthyError);
+      },
+    );
+
+    it.each([
+      ['the root folder', () => path.join(base, 'src')],
+      ['the mount', () => mount],
+      ['the staging area', () => path.join(base, '.exodus-staging', 'i', '1')],
+    ])('EACCES on %s makes the destination unhealthy', async (_name, where) => {
+      await expect(
+        failingWith('EACCES').unlink(where()),
+      ).rejects.toBeInstanceOf(DestinationUnhealthyError);
+    });
+
+    it('keeps EACCES under the source folder a failure of that file', async () => {
+      await expect(
+        failingWith('EACCES').unlink(path.join(base, 'src', 'a', 'b.txt')),
+      ).rejects.toBeInstanceOf(DestWriteError);
+    });
+
+    it('keeps an ordinary error a failure of that file', async () => {
+      await expect(
+        failingWith('EFBIG').unlink(path.join(base, 'src', 'b.txt')),
+      ).rejects.toMatchObject({ name: 'DestWriteError', code: 'EFBIG' });
+    });
+
+    it('refuses to start on a mount point that is not there', async () => {
+      const missing = new DestFs(path.join(mount, 'gone'), base);
+
+      await expect(missing.assertBaseSafe()).rejects.toBeInstanceOf(
+        DestinationUnhealthyError,
+      );
+    });
   });
 });

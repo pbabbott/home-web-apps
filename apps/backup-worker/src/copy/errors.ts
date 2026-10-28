@@ -16,6 +16,30 @@ export class SourceUnreachableError extends Error {
   }
 }
 
+/**
+ * The destination as a whole is broken (an I/O error, a stale or missing
+ * mount, no space, no access to the root): not this item's fault, so it is
+ * released with the attempt refunded and the destination is paused.
+ */
+export class DestinationUnhealthyError extends Error {
+  constructor(
+    readonly operation: string,
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'DestinationUnhealthyError';
+  }
+}
+
+/** The worker was asked to stop (SIGTERM): hand the item back and leave. */
+export class ShutdownError extends Error {
+  constructor(message = 'the worker is shutting down') {
+    super(message);
+    this.name = 'ShutdownError';
+  }
+}
+
 /** One entry cannot be copied; recorded on the entry, the rest of the item carries on. */
 export class EntryFailure extends Error {
   constructor(

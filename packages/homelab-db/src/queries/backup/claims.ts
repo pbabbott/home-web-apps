@@ -164,7 +164,7 @@ const claimInJob = async (
       };
     }
 
-    await expireBackupLeases(tx, job.id);
+    await expireBackupLeases(tx, job);
 
     const t = backupJobItems;
     const [next] = await tx

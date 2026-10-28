@@ -164,4 +164,52 @@ describe('FakeDriver', () => {
       'empty',
     ]);
   });
+  it('hangs after the given bytes and ends with stalled after the stall timeout', async () => {
+    const driver = build().fault('C:\\src\\sub\\b.bin', {
+      kind: 'hang',
+      afterBytes: 1000,
+    });
+    const chunks: Buffer[] = [];
+    const read = async () => {
+      for await (const chunk of driver.openStream(
+        target,
+        'C:\\src\\sub\\b.bin',
+        { stallTimeoutMs: 50 },
+      )) {
+        chunks.push(chunk);
+      }
+    };
+
+    await expect(read()).rejects.toMatchObject({ code: 'stalled' });
+    expect(Buffer.concat(chunks)).toHaveLength(1000);
+  });
+
+  it('ends a hanging read when it is aborted', async () => {
+    const driver = build().fault('C:\\src\\sub\\b.bin', {
+      kind: 'hang',
+      afterBytes: 0,
+    });
+    const controller = new AbortController();
+    const read = drain(
+      driver.openStream(target, 'C:\\src\\sub\\b.bin', {
+        stallTimeoutMs: 60_000,
+        signal: controller.signal,
+      }),
+    );
+
+    setTimeout(() => controller.abort(new Error('shutdown')), 20);
+    await expect(read).rejects.toThrow('shutdown');
+    expect(driver.activeReads).toBe(0);
+  });
+
+  it('counts reads in flight and the most at once', async () => {
+    const driver = build();
+    const open = () =>
+      driver.openStream(target, 'C:\\src\\sub\\b.bin', options);
+
+    await Promise.all([drain(open()), drain(open()), drain(open())]);
+
+    expect(driver.maxConcurrentReads).toBe(3);
+    expect(driver.activeReads).toBe(0);
+  });
 });

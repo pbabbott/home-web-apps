@@ -168,8 +168,11 @@ const copyFile = async (
     });
 
     try {
-      const result = await dest.stage(file, source, () =>
-        ctx.fault('stage:chunk', entry.relPath),
+      const result = await dest.stage(
+        file,
+        source,
+        () => ctx.fault('stage:chunk', entry.relPath),
+        ctx.signal,
       );
 
       if (result.bytes !== size) {
@@ -210,7 +213,7 @@ const copyFile = async (
         await dest.utimes(abs, modifiedAt);
         await ctx.fault('entry:after-utimes', entry.relPath);
 
-        const written = await dest.hashFile(abs);
+        const written = await dest.hashFile(abs, ctx.signal);
 
         if (written.sha256 !== sha256 || written.bytes !== size) {
           // Only the file this attempt created.
@@ -246,7 +249,7 @@ const copyFile = async (
 
       if (existing.size === size) {
         const { file, sha256 } = await stage();
-        const present = await dest.hashFile(abs);
+        const present = await dest.hashFile(abs, ctx.signal);
 
         if (present.sha256 === sha256 && present.bytes === size) {
           await dest.unlink(file);
@@ -317,6 +320,10 @@ export const processEntry = async (
     await record(ctx, entry, result);
     await ctx.fault('entry:after-record', entry.relPath);
   } catch (err) {
+    // An abort (shutdown, lost lease, stalled destination) explains whatever
+    // error it caused: it is not a failure of this entry.
+    assertLive(ctx);
+
     const failure = toEntryFailure(err);
 
     if (!failure) throw err;

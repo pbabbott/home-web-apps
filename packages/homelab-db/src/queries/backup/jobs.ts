@@ -438,7 +438,7 @@ export const completeBackupJobIfDone = async (
       return { job, finished: false };
     }
 
-    await expireBackupLeases(tx, job.id);
+    await expireBackupLeases(tx, job);
     const counts = await getBackupItemCounts(tx, job.id);
     if (counts.queued > 0 || counts.in_progress > 0) {
       return { job, finished: false };

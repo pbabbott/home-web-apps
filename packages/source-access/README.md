@@ -37,6 +37,6 @@ Things learned against a real source (details in the [backup plan, section 10](.
 
 ## Tests
 
-`pnpm test:unit`. The parsers are tested on captured `smbclient` output, the driver with a fake `smbclient` script first on `PATH` (stalls, aborts, exit codes), and `FakeDriver` has its own suite. `FakeDriver` supports files with content, times, attributes and streams; directories, unlistable directories and junctions (listed or hidden); faults on read (`short`, `error`, `stall`, `unreachable`, optionally a number of times); an `unreachable` switch; and a call log. Like the real source, reading a file moves its access time in the fake.
+`pnpm test:unit`. The parsers are tested on captured `smbclient` output, the driver with a fake `smbclient` script first on `PATH` (stalls, aborts, exit codes), and `FakeDriver` has its own suite. `FakeDriver` supports files with content, times, attributes and streams; directories, unlistable directories and junctions (listed or hidden); faults on read (`short`, `error`, `stall`, `hang` (sends some bytes, then nothing until the stall timeout or an abort), `unreachable`, optionally a number of times); an `unreachable` switch; `activeReads` and `maxConcurrentReads` (reads in flight, to prove a parallelism limit); and a call log. Like the real source, reading a file moves its access time in the fake.
 
 Build with `pnpm build` after changes: other packages load `dist/`.
