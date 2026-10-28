@@ -1,6 +1,6 @@
 # Exodus Backup: Design for Copying Inventory to an NFS Destination
 
-Status: design, revision 3. Incorporates the answers to rounds 1 and 3 in [backup-design-questions.md](./backup-design-questions.md) and [backup-design-questions-round-3.md](./backup-design-questions-round-3.md). Round 2 was left unanswered, so its recommendations are applied as defaults and marked **(default)** below. Nothing is implemented. When work starts, this becomes `docs/exodus/backup.md`.
+Status: **proposal, not built**, revision 3. Incorporates the answers to rounds 1 and 3 in [questions-round-1-2.md](./questions-round-1-2.md) and [questions-round-3.md](./questions-round-3.md). Round 2 was left unanswered, so its recommendations are applied as defaults and marked **(default)** below. Nothing is implemented. When work starts, this becomes `docs/exodus/backup.md`.
 
 ## Context
 

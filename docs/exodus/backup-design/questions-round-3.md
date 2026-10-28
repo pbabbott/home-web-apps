@@ -1,6 +1,6 @@
 # Exodus Backup: Design Questions, Round 3
 
-Round 1 and Round 2 are in [backup-design-questions.md](./backup-design-questions.md). **Round 2 there is still unanswered**; this file asks different things, so you can answer either one first. The design is [backup-design.md](./backup-design.md).
+Round 1 and Round 2 are in [questions-round-1-2.md](./questions-round-1-2.md). **Round 2 there is still unanswered**; this file asks different things, so you can answer either one first. The design is [design.md](./design.md).
 
 Round 3 covers what the first two rounds left out: the environment the worker runs in, speed and failure behaviour, what "finished" means for the retiring machine, and how you will operate it. Each question has a recommendation. Write "accept" to take it as is.
 

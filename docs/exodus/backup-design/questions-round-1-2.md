@@ -2,7 +2,7 @@
 
 Questions from the backup design that need your decision. Write your answer under each **Answer:** line, then the plan gets refined from it.
 
-Design: [backup-design.md](./backup-design.md) (section 14).
+Design: [design.md](./design.md) (section 14).
 
 Each question has a recommendation. Write "accept" to take it as is.
 
@@ -156,7 +156,7 @@ Things to confirm or add:
 
 # Round 2
 
-Your round-1 answers are folded into [backup-design.md](./backup-design.md) (section 0 lists each decision and its effect). These are the questions that came out of that. "accept" takes my recommendation.
+Your round-1 answers are folded into [design.md](./design.md) (section 0 lists each decision and its effect). These are the questions that came out of that. "accept" takes my recommendation.
 
 ---
 
