@@ -107,7 +107,7 @@ The plan is in [plan.md](./plan.md). The question-and-answer history that produc
 - One source, `alpha-centauri`, with an SMB connection (share mapping `C:\Users` to share `Users`).
 - 213 inventory items, all on `C:\`, none UNC, longest path 103 characters, none containing `;` or `"`.
 - Approved: **76 files and 60 directories**. Rejected: 55 files and 22 directories. **No pending items.**
-- **No nested pairs** (no inventory directory contains another item).
+- **Nested pairs exist** (re-checked 2026-10-28 during M2; the first observation said none): 25 approved items lie inside 6 approved directories (for example under `C:\Users\pabbo_000\Creative Cloud Files`). A plan of the whole approved set gives 111 items to copy and 25 `skipped` as `redundant_nested`.
 - Size estimates exist for 152 of 213 items; 28 of 60 approved directories and 32 of 76 approved files have none. The largest approved items are about 548 MB and 547 MB, then 235, 218, 164 and 148 MB. Expected data per source: a few hundred GB normally, 1 TB at most (for other sources).
 - Small items usable for a first run: `C:\Users\pabbo_000\Documents\GameMaker\Backups\ZeldaClone` (about 5 MB), `C:\Users\pabbo_000\Downloads\Photos (2)` (about 5 MB), and files such as `Downloads\BugFixesMerge.docx` (14 KB).
 - Latest migration is `0015_on_disk_reviews`.
