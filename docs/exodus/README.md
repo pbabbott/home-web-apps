@@ -36,4 +36,5 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [Exclusion Rules and Audit](./exclusion-review-audit.md) - rules, enforcement, and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
+- [Backup Design](./backup-design.md) - proposed copy workflow to an NFS destination (design only, not built); decision record in [questions](./backup-design-questions.md) and [round 3](./backup-design-questions-round-3.md).
 - [Running, Testing and Next Steps](./operations.md) - how to run and test, and what is left.
