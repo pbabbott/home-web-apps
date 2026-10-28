@@ -17,6 +17,7 @@ Routes:
 - `GET /hosts/:id/metrics/{cpu,memory,disk-io,temperature}` — per-host time series from Prometheus over a range.
 - `GET /hosts/:id/metrics/disk-space` — current filesystem usage snapshot.
 - `/sources`, `/discovery-jobs`, `/queue-items` — the exodus file-discovery queue (see [Exodus discovery queue](#exodus-discovery-queue)).
+- `/backup-destinations`, `/backup-jobs`, `/backup-job-items`, `/sources/:id/backup-jobs`, `/sources/:id/backup-coverage` — copying approved inventory to an NFS destination (see [Exodus backup](#exodus-backup)).
 - `GET /docs` — interactive Swagger UI for the routes above. The URL is also logged at startup.
 
 Schema and migrations live in `@abbottland/homelab-db` (`packages/homelab-db`); `homelab-api` applies pending migrations itself at startup, same pattern as `video-api`.
@@ -109,6 +110,23 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 - **On-disk review:** a human marks a directory's live contents (the “On disk” section) as reviewed. `POST /queue-items/:id/on-disk-review` (no body, human only, idempotent), `DELETE` the same route to undo, `GET /sources/:id/on-disk-reviews` (`pathPrefix`, `limit`) to list. Kept per source and directory path. A directory's `reviewed` flag needs it, with every skip reviewed and no inventory decision pending. Not MCP tools.
 - **Mixed directories (Downloads):** never propose the folder itself. Each keeper is its own `kind: file` item, junk goes in `skippedGroups`, archives are not extracted, and a large directory is heartbeated and proposed in batches of 10. See [Exodus inventory](../../docs/exodus/inventory.md#mixed-directories-downloads). A per-run judgment the agent may revisit, not an exclusion rule.
 - **Exclusions at enqueue:** follow-ups under an `exclude_subtree` rule are `skipped` as soon as they are queued, and each claim rechecks.
+
+## Exodus backup
+
+Copies approved inventory items from a source to an NFS destination. This API plans, controls and reports; it never touches the NAS. A separate worker (not built yet) claims the items, copies and verifies them. What is built and how it behaves: [`docs/exodus/backup.md`](../../docs/exodus/backup.md); the plan: [`docs/exodus/backup-design/`](../../docs/exodus/backup-design/README.md). Every route is REST-only and **human-only** (`X-Actor-Type` other than `human` gets `403`); there are no MCP tools.
+
+| Route                                                                                          | Purpose                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` / `GET /backup-destinations`, `GET` / `PATCH /backup-destinations/:id`                  | Register, list, fetch, edit an NFS destination. `settings` and `rootDir` are immutable once it has an active job or verified data (409). |
+| `POST /backup-destinations/:id/{validate,enable,disable}`                                      | `validate` answers `202` and only records the request; the worker validates. A disabled destination takes no jobs.                       |
+| `POST /sources/:id/backup-jobs/plan`                                                           | Dry run: what would be copied, skipped, excluded or left out; size estimate; warnings. Writes nothing.                                   |
+| `POST /sources/:id/backup-jobs`                                                                | Same planning, then creates a `planned` job with a frozen scope. There is no start: the worker's first claim makes it `running`.         |
+| `GET /backup-jobs`, `GET /backup-jobs/:id`                                                     | Jobs with derived `progress` and `stalledReason`.                                                                                        |
+| `POST /backup-jobs/:id/{cancel,fail}`                                                          | Guarded transitions; leases are released.                                                                                                |
+| `POST /backup-jobs/:id/retry-failed`, `POST /backup-job-items/:id/retry`                       | One more attempt per failed or blocked item; active job only.                                                                            |
+| `POST /backup-jobs/:id/rerun-unresolved`                                                       | New job for the failed and blocked items of a finished job, through the normal planning.                                                 |
+| `GET /backup-jobs/:id/items`, `GET /backup-job-items/:id`, `GET /backup-job-items/:id/entries` | Item results (keyset paged) and per-file entries with the captured source metadata. `claimToken` is never returned.                      |
+| `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`                          | Per-item coverage buckets and `allAccounted`, with `scope`, `limits` and display-only discovery review. `format=json` downloads it.      |
 
 ## Seeding hosts and exodus data from a remote environment
 

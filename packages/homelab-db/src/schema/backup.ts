@@ -91,6 +91,8 @@ export type BackupDestinationValidation = {
   mountVerified?: boolean;
   checks?: { name: string; ok: boolean; message?: string }[];
   findings?: Record<string, unknown>;
+  /** Names directly under the mount root (and `rootDir`), so the API can warn that a source folder exists. */
+  rootEntries?: string[];
 };
 
 /** Why part of a directory item is not copied. */

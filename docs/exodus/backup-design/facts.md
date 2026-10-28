@@ -77,6 +77,11 @@ The plan is in [plan.md](./plan.md). The question-and-answer history that produc
 - Non-production is **local**: a sample directory supplied through the destination environment variable. Production is the only remote environment. Writing is safe there because only net-new files are written.
 - The M3 milestone includes the Dockerfile, `abctl` configuration, image publication and CI wiring, following `video-worker`.
 
+### API (decided during M2)
+
+- There is **no "start" route** for a backup job. Creating a job makes it ready, and the worker's first claim moves it from `planned` to `running`. The UI's "Start backup job" button plans, confirms, then creates.
+- The API's "folder already exists" warning for a source folder comes from the destination's validation result (`rootEntries`, reported by the worker), not from the API reading the NAS.
+
 ### UI
 
 - Minimal home-hud pages, including an **ultra-simple "Start backup job" button**, under a **new "Backup" entry in the Exodus section of the nav**.
@@ -102,7 +107,7 @@ The plan is in [plan.md](./plan.md). The question-and-answer history that produc
 - One source, `alpha-centauri`, with an SMB connection (share mapping `C:\Users` to share `Users`).
 - 213 inventory items, all on `C:\`, none UNC, longest path 103 characters, none containing `;` or `"`.
 - Approved: **76 files and 60 directories**. Rejected: 55 files and 22 directories. **No pending items.**
-- **No nested pairs** (no inventory directory contains another item).
+- **Nested pairs exist** (re-checked 2026-10-28 during M2; the first observation said none): 25 approved items lie inside 6 approved directories (for example under `C:\Users\pabbo_000\Creative Cloud Files`). A plan of the whole approved set gives 111 items to copy and 25 `skipped` as `redundant_nested`.
 - Size estimates exist for 152 of 213 items; 28 of 60 approved directories and 32 of 76 approved files have none. The largest approved items are about 548 MB and 547 MB, then 235, 218, 164 and 148 MB. Expected data per source: a few hundred GB normally, 1 TB at most (for other sources).
 - Small items usable for a first run: `C:\Users\pabbo_000\Documents\GameMaker\Backups\ZeldaClone` (about 5 MB), `C:\Users\pabbo_000\Downloads\Photos (2)` (about 5 MB), and files such as `Downloads\BugFixesMerge.docx` (14 KB).
 - Latest migration is `0015_on_disk_reviews`.

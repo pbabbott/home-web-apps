@@ -308,6 +308,9 @@ export {
   getBackupCoverage,
   BACKUP_COVERAGE_BUCKETS,
   BLOCKING_BACKUP_COVERAGE_BUCKETS,
+  getBackupSourceDirNames,
+  getPriorVerifiedDestRelPaths,
+  listInventoryForBackupPlanning,
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
@@ -335,6 +338,7 @@ export type {
   BackupCoverageAttempt,
   BackupCoverageItem,
   BackupCoverageReport,
+  BackupPlanningInventoryItem,
 } from './queries/backup';
 
 export {
