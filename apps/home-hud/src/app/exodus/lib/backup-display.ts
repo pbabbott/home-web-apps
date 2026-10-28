@@ -56,6 +56,13 @@ export const STALLED_REASON_TEXT: Record<BackupStalledReason, string> = {
     'The destination is disabled, so nothing is copied. Enable it to continue.',
 };
 
+/** Short form for tables. */
+export const STALLED_REASON_LABEL: Record<BackupStalledReason, string> = {
+  source_unreachable: 'source not answering',
+  destination_unhealthy: 'destination unhealthy',
+  destination_disabled: 'destination disabled',
+};
+
 export const stalledReasonText = (reason: BackupStalledReason): string =>
   STALLED_REASON_TEXT[reason];
 
