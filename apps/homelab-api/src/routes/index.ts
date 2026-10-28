@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { backupDestinationsRouter } from './backup/destinations';
+import { backupJobsRouter } from './backup/jobs';
 import { auditEventsRouter } from './discovery/audit-events';
 import { discoveryJobsRouter } from './discovery/discovery-jobs';
 import { exclusionRulesRouter } from './discovery/exclusion-rules';
@@ -30,6 +31,7 @@ export const createRouter = (): Router => {
     skipAcknowledgementsRouter,
     onDiskReviewsRouter,
     backupDestinationsRouter,
+    backupJobsRouter,
     auditEventsRouter,
     mcpRouter,
   );

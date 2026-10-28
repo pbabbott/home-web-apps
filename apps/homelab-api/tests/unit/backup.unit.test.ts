@@ -13,6 +13,8 @@ jest.mock('../../src/services/backup', () => {
     updateDestination: jest.fn(),
     setDestinationEnabled: jest.fn(),
     requestValidation: jest.fn(),
+    planJob: jest.fn(),
+    createJob: jest.fn(),
   };
 });
 
@@ -160,6 +162,82 @@ describe('backup routes', () => {
         true,
         false,
       ]);
+    });
+  });
+
+  describe('backup job planning', () => {
+    const DEST = '223e4567-e89b-12d3-a456-426614174000';
+
+    it('plans with skipAlreadyCovered defaulting to true', async () => {
+      mocked.planJob.mockResolvedValue({ items: [] } as never);
+
+      await supertest(createServer())
+        .post(`/sources/${ID}/backup-jobs/plan`)
+        .send({ destinationId: DEST })
+        .expect(200);
+
+      expect(mocked.planJob).toHaveBeenCalledWith(ID, {
+        destinationId: DEST,
+        skipAlreadyCovered: true,
+      });
+    });
+
+    it.each([
+      ['no destination', {}],
+      ['a non-uuid item id', { destinationId: DEST, inventoryItemIds: ['x'] }],
+      ['a relative path prefix', { destinationId: DEST, pathPrefix: 'a\\b' }],
+      ['an unknown kind', { destinationId: DEST, kinds: ['symlink'] }],
+    ])('rejects %s', async (_label, body) => {
+      await supertest(createServer())
+        .post(`/sources/${ID}/backup-jobs/plan`)
+        .send(body)
+        .expect(400);
+    });
+
+    it('maps conflicts to 409 with their details', async () => {
+      mocked.planJob.mockRejectedValue(
+        new service.BackupError('conflict', 'nothing to back up', {
+          notEligible: [],
+        }),
+      );
+
+      const res = await supertest(createServer())
+        .post(`/sources/${ID}/backup-jobs/plan`)
+        .send({ destinationId: DEST })
+        .expect(409);
+
+      expect(res.body).toEqual({
+        message: 'nothing to back up',
+        notEligible: [],
+      });
+    });
+
+    it('creates a job as the human actor', async () => {
+      mocked.createJob.mockResolvedValue({ id: ID } as never);
+
+      await supertest(createServer())
+        .post(`/sources/${ID}/backup-jobs`)
+        .set('x-actor-id', 'brandon')
+        .send({ destinationId: DEST, kinds: ['file'] })
+        .expect(201);
+
+      expect(mocked.createJob).toHaveBeenCalledWith(
+        ID,
+        { destinationId: DEST, kinds: ['file'], skipAlreadyCovered: true },
+        { type: 'human', id: 'brandon' },
+      );
+    });
+
+    it('refuses a non-human actor for plan and create', async () => {
+      for (const path of ['/backup-jobs/plan', '/backup-jobs']) {
+        await supertest(createServer())
+          .post(`/sources/${ID}${path}`)
+          .set('x-actor-type', 'system')
+          .send({ destinationId: DEST })
+          .expect(403);
+      }
+      expect(mocked.planJob).not.toHaveBeenCalled();
+      expect(mocked.createJob).not.toHaveBeenCalled();
     });
   });
 });
