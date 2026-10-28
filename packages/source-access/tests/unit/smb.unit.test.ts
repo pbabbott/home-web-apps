@@ -92,6 +92,7 @@ describe('smbclientInvocation', () => {
       'HOME',
       'PASSWD',
       'PATH',
+      'TZ',
     ]);
     delete process.env.POSTGRES_PASSWORD;
   });
