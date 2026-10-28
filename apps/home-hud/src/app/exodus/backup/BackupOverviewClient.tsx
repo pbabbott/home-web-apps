@@ -162,10 +162,21 @@ export function BackupOverviewClient({
               <LocalDateTime iso={destination.lastValidatedAt} />
             </Typography>
 
+            <Typography
+              variant="caption"
+              className="break-all text-neutral-400"
+            >
+              Destination id (for the worker’s BACKUP_DESTINATION_ID):{' '}
+              {destination.id}
+            </Typography>
+
             {status?.noWorker && (
               <Typography variant="body2" className="text-warning-400">
-                No worker running for this destination. Validation and copying
-                wait until it is back.
+                {status.validationPending
+                  ? 'Validation was requested, but no worker is running for this destination, so nothing will happen until one starts. '
+                  : 'No worker running for this destination. Validation and copying wait until one starts. '}
+                Run the backup worker with BACKUP_DESTINATION_ID set to the id
+                above.
               </Typography>
             )}
             {status?.validationPending && !status.noWorker && (
