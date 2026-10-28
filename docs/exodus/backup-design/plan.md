@@ -21,7 +21,7 @@ home-hud  ──►  homelab-api  ──►  Postgres (homelab_api)  ◄──  
 ```
 
 - **`packages/homelab-db`**: the new tables, migrations and queries (including claim/lease queries the worker calls directly, as `video-worker` does).
-- **`packages/source-access`** (see the open question in §9): the SMB driver, Windows path helpers, secret box and connection-target builder, moved out of `homelab-api` so the worker can use them.
+- **`packages/source-access`**: the SMB driver, Windows path helpers, secret box and connection-target builder, moved out of `homelab-api` so the worker can use them.
 - **`apps/homelab-api`**: planning, job control, destination management, coverage and its JSON export. It never touches the NAS.
 - **`apps/backup-worker`**: the only process that reads the source and writes the NAS. One deployment per destination.
 - **`apps/home-hud`**: a minimal Backup section (last milestone).
@@ -390,10 +390,9 @@ Documentation describes what exists, so write facts into the main Exodus docs as
 
 ## 9. Open items
 
-1. **Where the SMB/crypto code lives (decides M0).** Default: new package `packages/source-access`, with schema/migrations/queries in `homelab-db` either way. The alternative is to put that code inside `homelab-db` (one fewer package, but `homelab-db` would start spawning processes and doing crypto). Ask the user once, before starting M0, if it is still unanswered.
-2. **Opening PRs.** The user has not said whether the agent may push branches and open PRs. Stop before pushing and ask.
-3. **Export permissions.** "uid 100" in the user's answer is taken as uid 1000; the validation probe confirms.
-4. **Unmeasured:** large-file throughput over the dedicated cable (M4 spike), the real total size of the approved set, and whether the memory limit in Appendix A holds (M5).
+1. **Opening PRs.** The user has not said whether the agent may push branches and open PRs. Stop before pushing and ask.
+2. **Export permissions.** "uid 100" in the user's answer is taken as uid 1000; the validation probe confirms.
+3. **Unmeasured:** large-file throughput over the dedicated cable (M4 spike), the real total size of the approved set, and whether the memory limit in Appendix A holds (M5).
 
 ## 10. Spike results
 
