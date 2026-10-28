@@ -308,6 +308,8 @@ export {
   getBackupCoverage,
   BACKUP_COVERAGE_BUCKETS,
   BLOCKING_BACKUP_COVERAGE_BUCKETS,
+  getBackupSourceDirNames,
+  getPriorVerifiedDestRelPaths,
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
