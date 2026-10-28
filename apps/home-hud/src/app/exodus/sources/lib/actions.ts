@@ -16,6 +16,13 @@ import type {
   DirectoryListing,
   OnDiskReview,
   SkippedGroupMatches,
+  BackupDestination,
+  BackupEntry,
+  BackupEntryIssueKind,
+  BackupEntryStatus,
+  BackupJob,
+  BackupJobItem,
+  BackupPlan,
 } from './homelab-api';
 
 const HOMELAB_API_URL = process.env.HOMELAB_API_URL ?? 'http://localhost:4003';
@@ -376,4 +383,87 @@ export async function unreviewOnDisk(
   queueItemId: string,
 ): Promise<ActionResult> {
   return send('DELETE', `/queue-items/${queueItemId}/on-disk-review`);
+}
+
+export async function validateBackupDestination(
+  destinationId: string,
+): Promise<ActionResult<BackupDestination>> {
+  return post<BackupDestination>(
+    `/backup-destinations/${destinationId}/validate`,
+  );
+}
+
+export async function setBackupDestinationEnabled(
+  destinationId: string,
+  enabled: boolean,
+): Promise<ActionResult<BackupDestination>> {
+  return post<BackupDestination>(
+    `/backup-destinations/${destinationId}/${enabled ? 'enable' : 'disable'}`,
+  );
+}
+
+/** The dry run behind "Start backup job": writes nothing. */
+export async function planBackupJob(
+  sourceId: string,
+  destinationId: string,
+): Promise<ActionResult<BackupPlan>> {
+  return post<BackupPlan>(`/sources/${sourceId}/backup-jobs/plan`, {
+    destinationId,
+  });
+}
+
+/** Plans again and inserts the job; the scope is frozen from here on. */
+export async function createBackupJob(
+  sourceId: string,
+  destinationId: string,
+): Promise<ActionResult<BackupJob>> {
+  return post<BackupJob>(`/sources/${sourceId}/backup-jobs`, {
+    destinationId,
+  });
+}
+
+export async function cancelBackupJob(
+  jobId: string,
+): Promise<ActionResult<BackupJob>> {
+  return post<BackupJob>(`/backup-jobs/${jobId}/cancel`);
+}
+
+export async function retryBackupJobItem(
+  itemId: string,
+): Promise<ActionResult<BackupJobItem>> {
+  return post<BackupJobItem>(`/backup-job-items/${itemId}/retry`);
+}
+
+export async function retryFailedBackupItems(
+  jobId: string,
+): Promise<ActionResult<{ retried: number }>> {
+  return post<{ retried: number }>(`/backup-jobs/${jobId}/retry-failed`);
+}
+
+/** Creates a new job from the failed and blocked items of a finished one. */
+export async function rerunUnresolvedBackupJob(
+  jobId: string,
+): Promise<ActionResult<BackupJob>> {
+  return post<BackupJob>(`/backup-jobs/${jobId}/rerun-unresolved`);
+}
+
+export interface BackupEntryFilter {
+  status?: BackupEntryStatus;
+  issueKind?: BackupEntryIssueKind;
+  /** The `next` of the previous page. */
+  after?: number;
+}
+
+/** One page of a job item's per-file results; loaded on demand. */
+export async function listBackupEntries(
+  itemId: string,
+  filter: BackupEntryFilter,
+): Promise<ActionResult<{ entries: BackupEntry[]; next: number | null }>> {
+  const query = new URLSearchParams({ limit: '200' });
+
+  if (filter.status) query.set('status', filter.status);
+  if (filter.issueKind) query.set('issueKind', filter.issueKind);
+  if (filter.after !== undefined) query.set('after', String(filter.after));
+
+  return send('GET', `/backup-job-items/${itemId}/entries?${query}`);
 }
