@@ -6,6 +6,6 @@
 
 - [Design](./design.md) - the proposal: entities, lifecycle, verification, coverage, API, phases, risks, acceptance criteria.
 - Decision record, in order:
-  - [Questions, rounds 1 and 2](./questions-round-1-2.md) - round 1 answered; round 2 unanswered (its recommendations were applied as defaults and carried into round 4).
+  - [Questions, rounds 1 and 2](./questions-round-1-2.md) - round 1 answered; round 2 unanswered (its recommendations were applied as defaults and confirmed in round 4).
   - [Questions, round 3](./questions-round-3.md) - answered.
-  - [Questions, round 4](./questions-round-4.md) - open.
+  - [Questions, round 4](./questions-round-4.md) - answered.

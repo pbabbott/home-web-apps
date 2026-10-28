@@ -1,6 +1,6 @@
 # Exodus Backup: Design Questions, Round 4
 
-Earlier rounds: [questions-round-1-2.md](./questions-round-1-2.md) (round 2 there is still unanswered) and [questions-round-3.md](./questions-round-3.md) (answered). The design is [design.md](./design.md), section 14 lists the open items these questions come from.
+Earlier rounds: [questions-round-1-2.md](./questions-round-1-2.md) (round 2 there was never answered directly; round 4 confirmed its defaults) and [questions-round-3.md](./questions-round-3.md) (answered). The design is [design.md](./design.md), section 14 lists the open items these questions come from.
 
 Write your answer under each **Answer:** line. "accept" takes my recommendation. Round 4 is mostly short confirmations, plus a few decisions that would be expensive to change later (naming, the metadata to record, permission to probe your source machine).
 
@@ -26,6 +26,14 @@ Round 2 was never answered, so I applied these defaults. Write "accept all" or l
 
 **Answer:**
 
+1. shared package - homelab-db is in fact the desired place for schema in this project.
+2. accept
+3. accept
+4. accept
+5. accept
+6. accept
+7. accept
+
 ---
 
 ## R4-2. Which NAS export holds the backup?
@@ -37,6 +45,8 @@ The destination row needs the real `server:exportPath`, and the worker's PVC mus
 - Is the folder writable by uid 1000, as the video worker's is?
 
 **Answer:**
+
+`192.168.4.124:/volume1/Dump` is the destination. there's a lot of junk in here already, so using the source name and drive schema as previously discussed is ideal. folder is writable by uid 100 just like video worker, yes.
 
 ---
 
@@ -51,6 +61,8 @@ If a daylight-saving boundary matters to you (old files near the changeover), te
 
 **Answer:**
 
+timezones all match. all machines in are in america/chicago (central time).
+
 ---
 
 ## R4-4. Junk files inside approved directories
@@ -61,6 +73,7 @@ You didn't answer this in Round 3, so the default is to copy everything inside a
 - **B. Skip a short built-in list** (`desktop.ini`, `Thumbs.db`, `~$*`, `.DS_Store`) and record each skipped file as an entry, so it is accounted for. This needs a small amount of pattern logic that does not exist today.
 
 **Answer:**
+accept answer a - a backup is a backup. i already have discovery jobs and an inventory process to determine what is good!
 
 ---
 
@@ -75,6 +88,8 @@ Pick any: owner/ACL, Zone.Identifier contents, neither. I recommend **Zone.Ident
 
 **Answer:**
 
+accepting the recommendation here
+
 ---
 
 ## R4-6. May I probe the real source machine during the spike?
@@ -88,6 +103,7 @@ The M4 spike (design risk R1/R6) needs to run `smbclient` against `alpha-centaur
 Is that OK? If so, any paths I should avoid or prefer, and is the machine available during working hours?
 
 **Answer:**
+yes, ok to probe. creds are the in db.
 
 ---
 
@@ -99,6 +115,8 @@ Discovery allows one active job per source. A backup job reads the same machine 
 - **B. Refuse to start a backup job while a discovery job is active for the source** (and the reverse), to avoid loading a retiring machine twice.
 
 **Answer:**
+
+accepted.
 
 ---
 
@@ -112,6 +130,8 @@ The design names tables `backup_destinations`, `backup_jobs`, `backup_job_items`
 
 **Answer:**
 
+accepted. option a.
+
 ---
 
 ## R4-9. Build, publish and CI wiring for the new app
@@ -122,6 +142,8 @@ A new app normally needs a Dockerfile, `abctl.yml`, image publication to Harbor,
 - **B. M3 only adds the app and local dev**; CI and publication become a separate milestone.
 
 **Answer:**
+
+accepted.
 
 ---
 
@@ -135,7 +157,7 @@ The draft is Appendix B of [design.md](./design.md).
 
 **Answer:**
 
----
+another claude session will grab the issue and implement over there at a later date.
 
 ## R4-11. home-hud placement
 
@@ -144,6 +166,9 @@ The draft is Appendix B of [design.md](./design.md).
 
 **Answer:**
 
+- yes, a new backup entry in the nav in the exodus section is prudent.
+- nothing special in the ui. focus largely on the backend api and database. we need to get the domain right before the ui gets fancy.
+
 ---
 
 ## R4-12. Where does the approved `C:\backup-test\…` data stand?
@@ -151,6 +176,8 @@ The draft is Appendix B of [design.md](./design.md).
 `C:\backup-test\Brandchelor Party.zip` (547 MB) is approved. It is also a good candidate for the **first real run** (a single real file, big enough to exercise heartbeats and hashing). Is it test data you are happy to copy, or should it be rejected or excluded before the first run?
 
 **Answer:**
+
+great first item. that works!
 
 ---
 
@@ -162,3 +189,5 @@ The draft is Appendix B of [design.md](./design.md).
 If A, should I create the M0 branch from `feat/exodus-refinement` and open the PR myself, or stop after the branch and let you open it?
 
 **Answer:**
+
+accepted
