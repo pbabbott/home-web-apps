@@ -723,7 +723,7 @@ describe('coverage', () => {
     expect(before.body.items.map((i: { bucket: string }) => i.bucket)).toEqual([
       'never_attempted',
     ]);
-    expect(before.body.discoveryReview).toMatchObject({ job: null });
+    expect(before.body.discoveryReview).toMatchObject({ jobs: [] });
 
     const rejected = await api().get(`${url}&bucket=rejected`).expect(200);
     expect(rejected.body.items).toHaveLength(1);
@@ -746,24 +746,54 @@ describe('coverage', () => {
     await makeInventoryItem(sourceId, 'C:\\data\\p.txt', {
       decision: 'pending',
     });
-    await api()
-      .post(`/sources/${sourceId}/discovery-jobs`)
-      .send({ rootPath: 'C:\\data' })
-      .expect(201);
+    const coverage = async () =>
+      (
+        await api()
+          .get(
+            `/sources/${sourceId}/backup-coverage?destinationId=${destination.id}`,
+          )
+          .expect(200)
+      ).body;
+    const discover = async () => {
+      const job = await api()
+        .post(`/sources/${sourceId}/discovery-jobs`)
+        .send({ rootPath: 'C:\\data' })
+        .expect(201);
 
-    const res = await api()
-      .get(
-        `/sources/${sourceId}/backup-coverage?destinationId=${destination.id}`,
-      )
-      .expect(200);
+      return job.body.id as string;
+    };
 
-    expect(res.body.allAccounted).toBe(false);
-    expect(res.body.counts.undecided).toBe(1);
-    expect(res.body.discoveryReview.job).toMatchObject({
-      rootPath: 'C:\\data',
-      status: 'pending',
+    // An unfinished discovery job is not counted.
+    const first = await discover();
+    const running = await coverage();
+    expect(running.allAccounted).toBe(false);
+    expect(running.counts.undecided).toBe(1);
+    expect(running.discoveryReview.jobs).toEqual([]);
+
+    // Completed jobs are, each directory once however many jobs visited it.
+    await db.$client.query(
+      "update discovery_jobs set status = 'completed', finished_at = now() where id = $1",
+      [first],
+    );
+    const second = await discover();
+    await db.$client.query(
+      "update discovery_jobs set status = 'completed', finished_at = now() where id = $1",
+      [second],
+    );
+
+    const done = await coverage();
+    expect(done.discoveryReview.jobs.map((j: { id: string }) => j.id)).toEqual([
+      second,
+      first,
+    ]);
+    expect(done.discoveryReview.directories).toEqual({
+      reviewed: 0,
+      notReviewed: 0,
+      unknown: 0,
+      notExplored: 1,
     });
-    expect(res.body.discoveryReview.directories.notExplored).toBe(1);
+    expect(done.discoveryReview.truncated).toBe(false);
+    expect(done.allAccounted).toBe(false);
   });
 
   it('downloads the full report as a file, including rejected items', async () => {

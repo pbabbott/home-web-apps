@@ -43,9 +43,13 @@ export const backupCoverageResponseSchema = z.object({
     }),
   }),
   discoveryReview: z.object({
-    job: z
-      .object({ id: z.uuid(), rootPath: z.string(), status: z.string() })
-      .nullable(),
+    jobs: z.array(
+      z.object({
+        id: z.uuid(),
+        rootPath: z.string(),
+        truncated: z.boolean(),
+      }),
+    ),
     directories: z.object({
       reviewed: z.number().int(),
       notReviewed: z.number().int(),
