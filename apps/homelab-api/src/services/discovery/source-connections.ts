@@ -22,9 +22,9 @@ import {
 import { Readable } from 'node:stream';
 import { db } from '../../db';
 import {
+  buildConnectionTarget,
   ConnectionError,
   CredentialKeyError,
-  decryptSecret,
   encryptSecret,
   getConnectionDriver,
   normalizeWindowsPath,
@@ -138,14 +138,7 @@ const loadTarget = async (
 
   return {
     connection,
-    target: {
-      address: host.ipAddress,
-      hostNames: [host.ipAddress, host.name],
-      username: connection.username,
-      domain: connection.domain,
-      password: decryptSecret(connection.secretCiphertext),
-      settings: connection.settings,
-    },
+    target: buildConnectionTarget(connection, host),
   };
 };
 
