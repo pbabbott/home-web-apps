@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { backupDestinationsRouter } from './backup/destinations';
 import { auditEventsRouter } from './discovery/audit-events';
 import { discoveryJobsRouter } from './discovery/discovery-jobs';
 import { exclusionRulesRouter } from './discovery/exclusion-rules';
@@ -28,6 +29,7 @@ export const createRouter = (): Router => {
     inventoryItemsRouter,
     skipAcknowledgementsRouter,
     onDiskReviewsRouter,
+    backupDestinationsRouter,
     auditEventsRouter,
     mcpRouter,
   );
