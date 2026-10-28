@@ -7,6 +7,7 @@ node_modules
 
 # testing
 coverage
+!apps/home-hud/src/app/exodus/backup/coverage
 
 # next.js
 .next/
