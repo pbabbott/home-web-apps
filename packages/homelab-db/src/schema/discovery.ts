@@ -434,6 +434,9 @@ export const auditEvents = pgTable(
     queueItemId: uuid('queue_item_id'),
     exclusionRuleId: uuid('exclusion_rule_id'),
     inventoryItemId: uuid('inventory_item_id'),
+    destinationId: uuid('destination_id'),
+    backupJobId: uuid('backup_job_id'),
+    backupJobItemId: uuid('backup_job_item_id'),
     eventType: text('event_type').$type<AuditEventType>().notNull(),
     actorType: auditActorTypeEnum('actor_type').notNull(),
     actorId: text('actor_id'),
@@ -455,6 +458,14 @@ export const auditEvents = pgTable(
     ),
     index('audit_events_inventory_item_idx').on(
       table.inventoryItemId,
+      table.createdAt.desc(),
+    ),
+    index('audit_events_destination_idx').on(
+      table.destinationId,
+      table.createdAt.desc(),
+    ),
+    index('audit_events_backup_job_idx').on(
+      table.backupJobId,
       table.createdAt.desc(),
     ),
   ],
@@ -532,7 +543,27 @@ export type AuditEventType =
   | 'on_disk.reviewed'
   | 'on_disk.unreviewed'
   | 'source_connection.updated'
-  | 'source_connection.deleted';
+  | 'source_connection.deleted'
+  | 'backup_destination.created'
+  | 'backup_destination.updated'
+  | 'backup_destination.enabled'
+  | 'backup_destination.disabled'
+  | 'backup_destination.validated'
+  | 'backup_destination.unhealthy'
+  | 'backup_job.created'
+  | 'backup_job.started'
+  | 'backup_job.completed'
+  | 'backup_job.completed_with_issues'
+  | 'backup_job.cancelled'
+  | 'backup_job.failed'
+  | 'backup_job.stalled'
+  | 'backup_job.resumed'
+  | 'backup_job_item.verified'
+  | 'backup_job_item.attempt_failed'
+  | 'backup_job_item.blocked'
+  | 'backup_job_item.failed'
+  | 'backup_job_item.retried'
+  | 'backup_job_items.lease_expired';
 
 export type SourceConnection = typeof sourceConnections.$inferSelect;
 export type NewSourceConnection = typeof sourceConnections.$inferInsert;

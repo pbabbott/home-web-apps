@@ -86,6 +86,47 @@ export type {
   NewOnDiskReview,
 } from './schema/discovery';
 
+export {
+  backupDestinations,
+  backupJobs,
+  backupJobItems,
+  backupEntries,
+  backupDestinationTypeEnum,
+  backupDestinationHealthEnum,
+  backupJobStatusEnum,
+  backupJobStalledReasonEnum,
+  backupJobItemStatusEnum,
+  backupEntryTypeEnum,
+  backupEntryStatusEnum,
+  backupEntryIssueKindEnum,
+  backupDestinationSelectSchema,
+  backupJobSelectSchema,
+  backupJobItemSelectSchema,
+  backupEntrySelectSchema,
+} from './schema/backup';
+export type {
+  BackupDestination,
+  NewBackupDestination,
+  BackupDestinationType,
+  BackupDestinationHealth,
+  BackupDestinationSettings,
+  BackupDestinationValidation,
+  BackupCarveOut,
+  BackupJobSelection,
+  BackupJob,
+  NewBackupJob,
+  BackupJobStatus,
+  BackupJobStalledReason,
+  BackupJobItem,
+  NewBackupJobItem,
+  BackupJobItemStatus,
+  BackupEntry,
+  NewBackupEntry,
+  BackupEntryType,
+  BackupEntryStatus,
+  BackupEntryIssueKind,
+} from './schema/backup';
+
 export { insertAuditEvent, listAuditEvents } from './queries/audit';
 export type {
   Actor,
