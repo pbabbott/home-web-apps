@@ -22,7 +22,10 @@ import {
   type UpsertedInventoryItem,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { normalizeWindowsPath, windowsPathName } from '../../lib/windows-path';
+import {
+  normalizeWindowsPath,
+  windowsPathName,
+} from '@abbottland/source-access';
 import type {
   InventoryItemInput,
   InventoryDirectoryBody,

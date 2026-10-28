@@ -4,7 +4,7 @@ import {
   parseSmbListing,
   resolveShare,
   smbclientInvocation,
-} from '../../src/lib/connections/smb';
+} from '../../src/connections/smb';
 
 describe('resolveShare', () => {
   it('uses the administrative share for a drive path by default', () => {

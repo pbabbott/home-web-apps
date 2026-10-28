@@ -30,7 +30,7 @@ import {
   type QueuePath,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
+import { isWithinPath, normalizeWindowsPath } from '@abbottland/source-access';
 import { requireJob } from './discovery-jobs';
 import {
   directoryReviewed,

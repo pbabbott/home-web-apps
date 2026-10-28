@@ -10,7 +10,7 @@ import {
   type ExclusionRuleScope,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { normalizeWindowsPath } from '../../lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 
 export async function listExclusionRules(filters: {
   sourceId?: string;

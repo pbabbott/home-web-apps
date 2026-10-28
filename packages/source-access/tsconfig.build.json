@@ -2,6 +2,7 @@
   "description": "Typescript configuration for building the project",
   "extends": "@abbottland/typescript-config/ts-lib-build.json",
   "compilerOptions": {
+    "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "./src"
   },

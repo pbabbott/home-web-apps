@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { normalizeWindowsPath } from '../../lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 
 const isValidWindowsPath = (value: string): boolean => {
   try {
