@@ -8,3 +8,4 @@ export * from './destinations';
 export * from './jobs';
 export * from './items';
 export { expireBackupLeases } from './leases';
+export * from './claims';

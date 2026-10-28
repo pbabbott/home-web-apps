@@ -293,6 +293,11 @@ export {
   retryFailedBackupJobItems,
   countUnresolvedBackupEntries,
   expireBackupLeases,
+  claimNextBackupItem,
+  heartbeatBackupItem,
+  completeBackupItem,
+  failBackupItem,
+  releaseBackupItem,
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
@@ -306,6 +311,10 @@ export type {
   BackupJobSummary,
   CompleteBackupJobResult,
   ListBackupJobItemsOptions,
+  ClaimBackupItemInput,
+  BackupClaimIdleReason,
+  ClaimBackupItemResult,
+  FailBackupItemInput,
 } from './queries/backup';
 
 export {
