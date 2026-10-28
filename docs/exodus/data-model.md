@@ -4,6 +4,8 @@
 
 Seven tables. The split that matters: a **job** is one run over a source and owns the lifecycle; a **queue item** is one bounded unit of work _within that job_ and tracks only its own state; a **inventory item** is the agent's proposed backup unit, which a human decides on.
 
+The `backup_*` tables (migration `0016`) are described in [backup.md](./backup.md).
+
 - **`sources`** — a machine being inventoried: `name` (unique), `source_type` (only `windows` today), and an optional `host_id` that references `hosts.id`, so a source can be joined to the registered host for its name and IP. Sources need not be linked to a host. The foreign key is `ON DELETE RESTRICT`: deleting a host that still has a source returns 409 instead of silently wiping its discovery history.
 - **`source_connections`** — at most one per source (`source_id` is the primary key, cascading). How the API reads that machine's files for preview: `connection_type` (`smb` today), `username`, optional `domain`, `secret_ciphertext` (the password, AES-256-GCM, see Decisions), `settings` (`shareMappings`: which share serves a path prefix) and the last test result.
 - **`discovery_jobs`** — one run over a source, rooted at `root_path`. Status: `pending` → `running` → `completed` | `failed` | `cancelled`. A partial unique index allows only **one active (pending/running) job per source**.

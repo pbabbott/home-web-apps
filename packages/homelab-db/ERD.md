@@ -17,6 +17,12 @@ erDiagram
     discovery_jobs |o--o{ inventory_items : "first_job_id (SET NULL)"
     discovery_jobs |o--o{ inventory_items : "last_job_id (SET NULL)"
     discovery_queue_items |o--o{ inventory_items : "last_queue_item_id (SET NULL)"
+    sources ||--o{ backup_jobs : "source_id (CASCADE)"
+    backup_destinations ||--o{ backup_jobs : "destination_id (RESTRICT)"
+    backup_jobs ||--o{ backup_job_items : "job_id (CASCADE)"
+    inventory_items |o--o{ backup_job_items : "inventory_item_id (SET NULL)"
+    backup_job_items |o--o{ backup_job_items : "covered_by_job_item_id (SET NULL)"
+    backup_job_items ||--o{ backup_entries : "job_item_id (CASCADE)"
 
     hosts {
         uuid id PK
@@ -146,6 +152,93 @@ erDiagram
         timestamptz created_at
     }
 
+    backup_destinations {
+        uuid id PK
+        text name UK
+        backup_destination_type connection_type "nfs"
+        jsonb settings "expected mount identity { server, exportPath }"
+        text root_dir "nullable, relative folder under the mount"
+        boolean enabled
+        backup_destination_health health "unknown | ok | unhealthy (worker)"
+        timestamptz last_validated_at "nullable"
+        jsonb last_validation "nullable, probe findings"
+        timestamptz validation_requested_at "nullable, set by the API, cleared by the worker"
+        timestamptz worker_seen_at "nullable, worker's last poll"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    backup_jobs {
+        uuid id PK
+        uuid source_id FK
+        uuid destination_id FK
+        backup_job_status status "planned | running | completed | completed_with_issues | failed | cancelled"
+        backup_job_stalled_reason stalled_reason "nullable, destination_unhealthy | destination_disabled | source_unreachable"
+        timestamptz stalled_since "nullable, set with stalled_reason"
+        jsonb selection "the request as made"
+        text source_dir_name "destination folder for this source, frozen"
+        text error "nullable"
+        text created_by "nullable"
+        timestamptz created_at
+        timestamptz started_at "nullable"
+        timestamptz finished_at "nullable, set once not planned/running"
+        timestamptz updated_at
+    }
+
+    backup_job_items {
+        uuid id PK
+        uuid job_id FK
+        uuid inventory_item_id FK "nullable; UK with job_id"
+        inventory_item_kind kind "file | directory"
+        text root_path
+        text normalized_root_path
+        text dest_rel_path "path under the destination source folder"
+        jsonb carve_outs "rejected items and exclusion rules inside a directory"
+        uuid covered_by_job_item_id FK "nullable, redundant nested item"
+        bigint estimated_size_bytes "nullable"
+        backup_job_item_status status "queued | in_progress | verified | failed | blocked | skipped | excluded"
+        text status_reason "nullable"
+        int attempt_count
+        int max_attempts "3 file, 5 directory"
+        timestamptz available_at
+        text claimed_by "nullable"
+        text last_claimed_by "nullable"
+        uuid claim_token "nullable"
+        timestamptz lease_expires_at "nullable"
+        text last_error "nullable"
+        boolean enumeration_complete
+        timestamptz enumerated_at "nullable"
+        timestamptz started_at "nullable"
+        timestamptz completed_at "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    backup_entries {
+        bigint id PK "identity"
+        uuid job_item_id FK
+        text rel_path "empty for the item root"
+        text normalized_rel_path "UK with job_item_id"
+        backup_entry_type entry_type "file | directory"
+        backup_entry_status status "pending | verified | failed | not_followed"
+        backup_entry_issue_kind issue_kind "nullable, required when failed"
+        text message "nullable"
+        bigint size_bytes "nullable"
+        text sha256 "nullable, source stream hash"
+        text dest_rel_path "nullable, path actually written"
+        timestamptz src_created_at "nullable"
+        timestamptz src_modified_at "nullable"
+        timestamptz src_accessed_at "nullable"
+        timestamptz src_changed_at "nullable"
+        text src_attributes "nullable"
+        jsonb src_streams "nullable"
+        text src_zone_identifier "nullable"
+        int attempt
+        timestamptz verified_at "nullable"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
     audit_events {
         uuid id PK
         uuid source_id "no FK"
@@ -153,6 +246,9 @@ erDiagram
         uuid queue_item_id "no FK"
         uuid exclusion_rule_id "no FK"
         uuid inventory_item_id "no FK"
+        uuid destination_id "no FK, backup destination"
+        uuid backup_job_id "no FK"
+        uuid backup_job_item_id "no FK"
         text event_type
         audit_actor_type actor_type "human | openclaw | system"
         text actor_id "nullable"
@@ -175,3 +271,7 @@ erDiagram
 - **Delete behavior.** Deleting a source cascades to its jobs, queue items and inventory items. Cancelling or failing a job returns its in-progress queue items to `queued` with the claim cleared. Deleting a job cascades to its queue items but only nulls `first_job_id`/`last_job_id` on inventory items; deleting a queue item nulls `last_queue_item_id`. Deleting a host that a source references is blocked (`RESTRICT`).
 - **Skip acknowledgements (migration `0013_skip_acknowledgements`).** A human's "I agree with this skip", unique per `(source_id, normalized_path, pattern)` so it holds across later jobs of the source. `pattern` is `''` for a path skip; for a pattern skip, `path` is the directory. The queue item's `result` is never changed. Writes audit `skip.acknowledged` / `skip.unacknowledged`.
 - **On-disk reviews (migration `0015_on_disk_reviews`).** A human's "I looked at what is on disk in this directory", unique per `(source_id, normalized_path)` so it holds across later jobs of the source. The listing itself is read live and never stored; `queue_item_id` only records where it was acknowledged. Writes audit `on_disk.reviewed` / `on_disk.unreviewed`.
+- **Backup (migration `0016_backup`).** The design is in `docs/exodus/backup-design/plan.md`. `backup_jobs` has a partial unique index on `(source_id, destination_id)` where status is `planned` or `running`; `destination_id` is `RESTRICT`, `source_id` cascades. A job's items are inserted with it and never added later. `backup_job_items` is unique on `(job_id, inventory_item_id)`; deleting an inventory item nulls the reference so the backup record survives. `backup_entries` is unique on `(job_item_id, normalized_rel_path)`.
+- **Backup state checks.** `backup_job_items`: `0 <= attempt_count <= max_attempts`, `max_attempts > 0`, `in_progress` requires the claim fields, `verified` requires `completed_at` and `enumeration_complete`. `backup_entries`: `verified` requires `verified_at` and, for a file, `sha256` and `dest_rel_path`; `failed` requires `issue_kind`. `backup_jobs`: `stalled_reason` and `stalled_since` are set together, and a finished job has `finished_at`. `backup_destinations.root_dir` is relative and has no `..` segment.
+- **Backup counts are derived** from job items and entries, never stored. Coverage is derived too: an inventory item is covered at a destination when some `verified` job item for it exists in a job to that destination.
+- **Backup audit.** `audit_events` gained `destination_id`, `backup_job_id` and `backup_job_item_id`, with no foreign keys for the same reason as the others.

@@ -309,7 +309,9 @@ Branch `feat/exodus-backup-m0-source-access`.
 - Docs: root `CLAUDE.md` package list, `docs/dev-guide-monorepo-architecture.md` if it lists packages.
 - Acceptance: Given the refactor, when the full homelab-api suites run, then they pass unchanged; the API's SMB test connection and preview still work against the dev source.
 
-### M1: schema and queries (`packages/homelab-db`)
+### M1: schema and queries (`packages/homelab-db`) — done
+
+Implemented on `feat/exodus-backup-m1-schema` (migration `0016_backup`); the built behaviour is in [`docs/exodus/backup.md`](../backup.md). Integration tests are `apps/homelab-api/tests/integration/backup-*.integration.test.ts`.
 
 Branch `feat/exodus-backup-m1-schema`.
 
