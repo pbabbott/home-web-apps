@@ -108,7 +108,7 @@ Allowed under R4-6. What ran: `allinfo` on one file and one directory, 20 `allin
 
 The SMB driver, `secret-box`, `windows-path` and the target-building helper live inside `apps/homelab-api`, so a separate worker app cannot import them. Extract them first as a behaviour-preserving refactor:
 
-- New package `@abbottland/source-access` under `packages/source-access`: `connections/{types,smb,index}.ts`, `windows-path.ts`, `secret-box.ts`, and a pure `buildConnectionTarget(connection, host)` split out of the `source-connections.ts` helper. It takes already-loaded rows and does no DB access, so `homelab-db` is not a dependency. Schema, migrations and queries for the new tables stay in `homelab-db` (R4-1.1).
+- New package `@abbottland/source-access` under `packages/source-access`: `connections/{types,smb,index}.ts`, `windows-path.ts`, `secret-box.ts`, and a pure `buildConnectionTarget(connection, host)` split out of the `source-connections.ts` helper. It takes already-loaded rows and does no DB access. It would import two types from `homelab-db` (`SourceConnectionType`, `SourceConnectionSettings`), type-only, so the package depends on `homelab-db` at compile time but not at run time. Schema, migrations and queries for the new tables stay in `homelab-db` (R4-1.1).
 - `homelab-api` imports from the package, and its unit tests (`smb`, `windows-path`, `secret-box`, `paths`) move with the code.
 - `backup-worker` loads the connection row via `homelab-db` and calls `buildConnectionTarget`.
 - The worker image needs `smbclient` (`apk add samba-client`, as in the API image) and the `EXODUS_CREDENTIAL_KEY` secret.
@@ -760,7 +760,7 @@ Each milestone is its own branch and PR (R3-15), **started from `feat/exodus-ref
 
 Nothing blocks starting M0. What remains are confirmations and things only the later milestones can answer.
 
-1. **Reading of R4-1.1.** The package answer was taken as: the SMB code goes into the new shared package `packages/source-access`, and the schema stays in `homelab-db`. Say so if you meant the SMB code should also go into `homelab-db`.
+1. **Where the SMB and crypto code lives (R4-1.1 follow-up in [questions-round-4.md](./questions-round-4.md)).** Taken as a new package `packages/source-access`, with schema, migrations and queries in `homelab-db` either way. The alternative is to put that code inside `homelab-db` itself. This decides what M0 contains.
 2. **Export permissions.** "uid 100" was read as uid 1000. The validation probe will confirm that the worker can create files and set times on `/volume1/Dump`.
 3. **Second small first-run item.** The zip is settled; the small directory (a ~5 MB candidate is named above) is a suggestion to confirm when the first run happens.
 4. **The `home-kubernetes` issue** is created at the start of M3 (Appendix B), written for another Claude session to implement. Say if you would rather have it earlier.

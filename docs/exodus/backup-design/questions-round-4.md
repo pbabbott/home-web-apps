@@ -191,3 +191,33 @@ If A, should I create the M0 branch from `feat/exodus-refinement` and open the P
 **Answer:**
 
 accepted
+
+---
+
+## Follow-up to R4-1, item 1: where does the SMB and crypto code live?
+
+Your answer was "shared package - homelab-db is in fact the desired place for schema in this project". I read that as two separate things and want to check I read it right.
+
+**Settled either way:** the new tables, migrations and queries (`backup_destinations`, `backup_jobs`, `backup_job_items`, `backup_entries`) go in `packages/homelab-db`, like every other Exodus table.
+
+**The open point is a different, smaller thing:** about five files of code that today sit inside `apps/homelab-api` and that both the API and the new `backup-worker` need. An app cannot import another app, so they have to move into a package:
+
+- the SMB driver (`lib/connections/smb.ts`, `types.ts`, `index.ts`): spawns `smbclient` and parses its output;
+- `windows-path.ts`: pure string helpers for Windows paths;
+- `secret-box.ts`: AES-256-GCM encryption using `EXODUS_CREDENTIAL_KEY`;
+- a function that turns a `source_connections` row plus its host into the `ConnectionTarget` the driver needs (today inside `services/discovery/source-connections.ts`).
+
+**Option A: a new package `packages/source-access`** (my recommendation).
+
+- `homelab-db` stays what it is: schema, migrations and queries, with dependencies `drizzle-orm`, `drizzle-zod`, `pg`, `zod`. It does not gain process spawning or crypto.
+- The new package imports two types from `homelab-db` (`SourceConnectionType`, `SourceConnectionSettings`), type-only. Build order is `homelab-db` first, then `source-access`; there is no cycle.
+- Cost: one more package to set up (`package.json`, tsconfig, ESLint, Jest, Turbo and CI wiring). Both `homelab-api` and `backup-worker` depend on both packages.
+
+**Option B: put that code inside `homelab-db`** (for example under `src/source-access/`).
+
+- One fewer package, and the two types are no longer imported across a package boundary.
+- But `homelab-db` would start spawning child processes and doing crypto, and everything that imports it would carry that code. Its `CLAUDE.md` describes it as schema and queries split by subdomain, so this changes what the package is for.
+
+M0 (the first thing built) is exactly this move, so the answer decides its contents.
+
+**Answer:** (A or B; "A" if my reading above was right)
