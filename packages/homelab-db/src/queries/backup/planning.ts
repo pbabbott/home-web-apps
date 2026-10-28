@@ -1,6 +1,11 @@
-import { and, desc, eq, isNotNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, sql } from 'drizzle-orm';
 import type { Database } from '../../client';
 import { backupJobItems, backupJobs } from '../../schema/backup';
+import {
+  inventoryItems,
+  type InventoryItemDecision,
+  type InventoryItemKind,
+} from '../../schema/discovery';
 
 /**
  * The destination folder each source already uses at a destination, taken
@@ -51,4 +56,37 @@ export const getPriorVerifiedDestRelPaths = async (
     .orderBy(backupJobItems.completedAt);
 
   return new Map(rows.map((r) => [r.inventoryItemId as string, r.destRelPath]));
+};
+
+export type BackupPlanningInventoryItem = {
+  id: string;
+  kind: InventoryItemKind;
+  rootPath: string;
+  normalizedRootPath: string;
+  decision: InventoryItemDecision;
+  /** From the discovery evidence; null when the agent gave no estimate. */
+  estimatedSizeBytes: number | null;
+};
+
+/** Every inventory item of a source, in path order: all planning needs to read. */
+export const listInventoryForBackupPlanning = async (
+  db: Database,
+  sourceId: string,
+): Promise<BackupPlanningInventoryItem[]> => {
+  const t = inventoryItems;
+
+  return db
+    .select({
+      id: t.id,
+      kind: t.kind,
+      rootPath: t.rootPath,
+      normalizedRootPath: t.normalizedRootPath,
+      decision: t.decision,
+      estimatedSizeBytes: sql<
+        number | null
+      >`(${t.evidence}->>'estimatedSizeBytes')::float8`,
+    })
+    .from(t)
+    .where(eq(t.sourceId, sourceId))
+    .orderBy(asc(t.normalizedRootPath));
 };
