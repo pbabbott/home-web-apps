@@ -15,6 +15,16 @@ jest.mock('../../src/services/backup', () => {
     requestValidation: jest.fn(),
     planJob: jest.fn(),
     createJob: jest.fn(),
+    listJobs: jest.fn(),
+    getJob: jest.fn(),
+    cancelJob: jest.fn(),
+    failJob: jest.fn(),
+    retryFailedItems: jest.fn(),
+    rerunUnresolved: jest.fn(),
+    listJobItems: jest.fn(),
+    getJobItem: jest.fn(),
+    listItemEntries: jest.fn(),
+    retryItem: jest.fn(),
   };
 });
 
@@ -238,6 +248,135 @@ describe('backup routes', () => {
       }
       expect(mocked.planJob).not.toHaveBeenCalled();
       expect(mocked.createJob).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('backup jobs, items and entries', () => {
+    const human = { type: 'human', id: null };
+
+    it('lists jobs with filters and a default limit', async () => {
+      mocked.listJobs.mockResolvedValue([]);
+
+      await supertest(createServer())
+        .get(`/backup-jobs?sourceId=${ID}&status=running`)
+        .expect(200);
+      expect(mocked.listJobs).toHaveBeenCalledWith({
+        sourceId: ID,
+        status: 'running',
+        limit: 50,
+      });
+
+      await supertest(createServer())
+        .get('/backup-jobs?status=bogus')
+        .expect(400);
+    });
+
+    it('fetches a job and maps an unknown one to 404', async () => {
+      mocked.getJob.mockRejectedValue(
+        new service.BackupError('not_found', 'backup job not found'),
+      );
+
+      await supertest(createServer()).get(`/backup-jobs/${ID}`).expect(404);
+      await supertest(createServer()).get('/backup-jobs/nope').expect(400);
+    });
+
+    it('cancels, and maps a finished job to 409', async () => {
+      mocked.cancelJob.mockResolvedValue({ id: ID } as never);
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/cancel`)
+        .expect(200);
+      expect(mocked.cancelJob).toHaveBeenCalledWith(ID, human);
+
+      mocked.cancelJob.mockRejectedValue(
+        new service.BackupError('conflict', 'job is already completed'),
+      );
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/cancel`)
+        .expect(409);
+    });
+
+    it('requires a reason to fail a job', async () => {
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/fail`)
+        .send({})
+        .expect(400);
+
+      mocked.failJob.mockResolvedValue({ id: ID } as never);
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/fail`)
+        .send({ error: 'source is being reinstalled' })
+        .expect(200);
+      expect(mocked.failJob).toHaveBeenCalledWith(
+        ID,
+        'source is being reinstalled',
+        human,
+      );
+    });
+
+    it('retries failed items and reruns unresolved ones', async () => {
+      mocked.retryFailedItems.mockResolvedValue({ retried: 0, items: [] });
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/retry-failed`)
+        .expect(200);
+
+      mocked.rerunUnresolved.mockResolvedValue({ id: ID } as never);
+      await supertest(createServer())
+        .post(`/backup-jobs/${ID}/rerun-unresolved`)
+        .expect(201);
+      expect(mocked.rerunUnresolved).toHaveBeenCalledWith(ID, human);
+    });
+
+    it('refuses a non-human actor on every job and item action', async () => {
+      for (const path of [
+        `/backup-jobs/${ID}/cancel`,
+        `/backup-jobs/${ID}/retry-failed`,
+        `/backup-jobs/${ID}/rerun-unresolved`,
+        `/backup-job-items/${ID}/retry`,
+      ]) {
+        await supertest(createServer())
+          .post(path)
+          .set('x-actor-type', 'openclaw')
+          .expect(403);
+      }
+    });
+
+    it('pages items and entries with defaults', async () => {
+      mocked.listJobItems.mockResolvedValue({ items: [], next: null });
+      await supertest(createServer())
+        .get(`/backup-jobs/${ID}/items?status=failed`)
+        .expect(200);
+      expect(mocked.listJobItems).toHaveBeenCalledWith(ID, {
+        status: 'failed',
+        limit: 100,
+      });
+
+      mocked.listItemEntries.mockResolvedValue({ entries: [], next: null });
+      await supertest(createServer())
+        .get(`/backup-job-items/${ID}/entries?issueKind=kept_both&after=7`)
+        .expect(200);
+      expect(mocked.listItemEntries).toHaveBeenCalledWith(ID, {
+        issueKind: 'kept_both',
+        after: 7,
+        limit: 200,
+      });
+
+      await supertest(createServer())
+        .get(`/backup-job-items/${ID}/entries?limit=5000`)
+        .expect(400);
+    });
+
+    it('fetches and retries an item', async () => {
+      mocked.getJobItem.mockResolvedValue({ id: ID } as never);
+      await supertest(createServer())
+        .get(`/backup-job-items/${ID}`)
+        .expect(200);
+
+      mocked.retryItem.mockRejectedValue(
+        new service.BackupError('conflict', 'job is not active'),
+      );
+      await supertest(createServer())
+        .post(`/backup-job-items/${ID}/retry`)
+        .expect(409);
     });
   });
 });

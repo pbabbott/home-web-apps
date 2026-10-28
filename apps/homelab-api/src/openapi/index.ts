@@ -1,6 +1,7 @@
 import { createDocument, type ZodOpenApiPathsObject } from 'zod-openapi';
 import { auditEventsPaths } from './discovery/audit-events';
 import { backupDestinationsPaths } from './backup/destinations';
+import { backupItemsPaths } from './backup/items';
 import { backupJobsPaths } from './backup/jobs';
 import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
@@ -79,6 +80,7 @@ export const openApiSpec = createDocument({
     ...tagged('Queue Items', onDiskReviewsPaths),
     ...tagged('Backup Destinations', backupDestinationsPaths),
     ...tagged('Backup Jobs', backupJobsPaths),
+    ...tagged('Backup Jobs', backupItemsPaths),
     ...tagged('Audit Events', auditEventsPaths),
     ...tagged('Hosts', hostsPaths),
   },

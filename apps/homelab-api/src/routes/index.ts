@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { backupDestinationsRouter } from './backup/destinations';
+import { backupItemsRouter } from './backup/items';
 import { backupJobsRouter } from './backup/jobs';
 import { auditEventsRouter } from './discovery/audit-events';
 import { discoveryJobsRouter } from './discovery/discovery-jobs';
@@ -32,6 +33,7 @@ export const createRouter = (): Router => {
     onDiskReviewsRouter,
     backupDestinationsRouter,
     backupJobsRouter,
+    backupItemsRouter,
     auditEventsRouter,
     mcpRouter,
   );
