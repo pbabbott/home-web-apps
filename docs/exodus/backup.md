@@ -4,7 +4,7 @@
 
 Copying approved inventory to an NFS destination. The design and the remaining milestones are in [backup-design](./backup-design/README.md); this page describes only what exists.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), and the shared SMB package `packages/source-access` (M0). There are no API routes and no worker yet.
+**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0), and the REST API in `apps/homelab-api` (M2). There is no worker yet, so a created job waits for one; there is no UI.
 
 ## Data model
 
@@ -28,9 +28,45 @@ All in `packages/homelab-db/src/queries/backup/`, exported from the package.
 - **Human retry** grants exactly one more attempt to a `failed` or `blocked` item, only while the job is active.
 - **Job outcome** (`completeBackupJobIfDone`): `completed` when every item is verified, skipped or excluded; `completed_with_issues` if any is failed or blocked. Cancel and fail release leases and leave `queued` items queued.
 - **Entries.** `upsertBackupEntries` is guarded by the item's claim, sorts each batch by path (one lock order) and writes in chunks of 500. A re-enumeration never duplicates a row, never changes a `verified` entry, makes a `failed` one `pending` again, and never overwrites a recorded `src_*` value (first capture wins, also in `captureBackupEntryMetadata`). `Zone.Identifier` is cut at 4096 characters. `normalized_rel_path` is lowercased, relative to the item root and backslash-separated, because coverage compares it with inventory paths.
-- **Coverage** (`getBackupCoverage`) has no table: it derives one bucket per inventory item for a (source, destination) from job items and entries and reports `allAccounted`. `undecided`, `pending`, `failed`, `blocked` and `never_attempted` block it. `never_attempted` also holds approved items whose jobs ended without trying them (a cancelled job leaves them `queued`). Verified data is never deleted, so a later failure does not revoke `covered`; `latestAttempt` shows the newest job item beside it. Discovery review status is not included yet (display only; it belongs to the API milestone).
+- **Coverage** (`getBackupCoverage`) has no table: it derives one bucket per inventory item for a (source, destination) from job items and entries and reports `allAccounted`. `undecided`, `pending`, `failed`, `blocked` and `never_attempted` block it. `never_attempted` also holds approved items whose jobs ended without trying them (a cancelled job leaves them `queued`). Verified data is never deleted, so a later failure does not revoke `covered`; `latestAttempt` shows the newest job item beside it. Discovery review status is added by the API (below), not here.
+
+## API
+
+All in `apps/homelab-api` (`services/backup/`, `controllers/backup/`, `routes/backup/`, OpenAPI under `/docs`), REST only and **human only**: a request with another `X-Actor-Type` gets `403`. There are no MCP tools. The services pass an `Actor` to the queries, which write the audit events; the API writes none itself, so a rejected request writes none.
+
+| Route                                                                                          | Purpose                                                                                       |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `POST` / `GET /backup-destinations`, `GET` / `PATCH /backup-destinations/:id`                  | Register, list, fetch, edit a destination                                                     |
+| `POST /backup-destinations/:id/{validate,enable,disable}`                                      | `validate` is `202` and sets `validation_requested_at`; enable and disable are idempotent     |
+| `POST /sources/:id/backup-jobs/plan`                                                           | Dry run                                                                                       |
+| `POST /sources/:id/backup-jobs`                                                                | Create a `planned` job                                                                        |
+| `GET /backup-jobs`, `GET /backup-jobs/:id`                                                     | Jobs with `progress` (counts derived from items and entries) and `stalledReason`              |
+| `POST /backup-jobs/:id/{cancel,fail}`                                                          | Guarded transitions (`fail` takes `{ error }`)                                                |
+| `POST /backup-jobs/:id/retry-failed`, `POST /backup-job-items/:id/retry`                       | One more attempt each; only while the job is active                                           |
+| `POST /backup-jobs/:id/rerun-unresolved`                                                       | New job from the failed and blocked items of a finished job                                   |
+| `GET /backup-jobs/:id/items`, `GET /backup-job-items/:id`, `GET /backup-job-items/:id/entries` | Item results and per-file entries; paged with `next` as `after`; `claimToken` is not returned |
+| `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`                          | Coverage report and its JSON download                                                         |
+
+**There is no `start` route.** Creating a job makes it ready; the destination's worker claims its first item and that moves it from `planned` to `running` (the same as a discovery job).
+
+**Destinations.** `server` is a host name or address, `exportPath` is absolute with no `..`, `rootDir` is relative with no `..` or backslash (blank means the mount root). The response adds `workerStale`: true when `worker_seen_at` is older than two minutes or unset, i.e. no worker would pick up a validation request. Changing `settings` or `rootDir` is refused (409) while the destination has a `planned` or `running` job or any verified item; a rename is always allowed.
+
+**Planning** (`services/backup/planner.ts` is a pure function; `planning.ts` loads the inputs). For the source's inventory matching the selection (`inventoryItemIds`, `pathPrefix`, `kinds`; `skipAlreadyCovered` defaults to true), in path order:
+
+1. not `approved`: listed under `notEligible`, not part of the job;
+2. under an `exclude_subtree` rule: `excluded` (`excluded_by_rule`);
+3. inside an approved directory that this job copies, with no rejected item in between: `skipped` (`redundant_nested`), covered by that directory;
+4. already covered at the destination (coverage bucket `covered` or `redundant_covered`): `skipped` (`already_covered`);
+5. otherwise `queued`, 3 attempts for a file and 5 for a directory. A queued directory records `carve_outs`: the rejected inventory items and `exclude_subtree` rules inside it, outermost only.
+
+A directory the job does not copy (already covered, excluded) does not cover what is inside it; the nested item is planned on its own, where identical files are adopted. `dest_rel_path` is `C:\Users\Me` -> `C/Users/Me` (`UNC/server/share/…` for UNC paths), or the path of an earlier verified copy so a changed spelling cannot split the tree. `source_dir_name` is a slug of the source name, reused from the source's latest job at the destination; a name another source already uses there is a 409. The plan reports counts, the summed size estimate and how many queued items have none (the estimate is then a floor), and warnings: `discovery_job_active`, and `destination_folder_exists` / `destination_folder_unknown` from `last_validation.rootEntries`, which the worker reports (the API cannot see the NAS). A source that already used the folder gets no folder warning. It is refused with 409 for a disabled destination, an active job for the (source, destination), a taken folder name, or nothing to back up (the selection matches no inventory items, or none is approved; the body then lists up to 50 `notEligible` items). `create` runs the same code and inserts in one transaction; the scope is frozen from then on.
+
+**Rerun.** `rerun-unresolved` collects the inventory items of the finished job's `failed` and `blocked` items and creates a new job for them through the normal planning, so anything verified since is skipped and current decisions and rules apply.
+
+**Coverage report.** The query's report plus `source`, `destination`, `scope` (inventory items, with per-file verification for directory items, subject to the stated limits), `limits` (the five things coverage cannot promise: files hidden from the SMB account, inventory rather than the whole disk, a file modified during the copy, ACLs and other alternate streams, source access times), `notes` (kept-both files, not-followed entries) and `discoveryReview`. Rejected items are counted but left out of `items` unless `bucket=rejected` is asked for (`omittedRejected` says how many). `format=json` returns the full report (every item, `bucket` ignored) as an attachment named `backup-coverage-<source>-<destination>-<date>.json`. `discoveryReview` is display only and never changes `allAccounted`: for the source's newest discovery job it counts directories reviewed, not reviewed, unknown (no result) and not explored, with the same rule as the discovery pages, and says when the job has more directories than are counted (500).
 
 ## Gotchas
 
 - `drizzle.config.ts` lists schema files explicitly: a new schema file must be added there or `drizzle-kit generate` silently leaves its tables out.
 - `homelab-api` compiles `homelab-db` from `src/` without `strictNullChecks`, so a union discriminated on `item: null` does not narrow there. Use an `in` check (`'job' in result`).
+- Item responses are built without `claim_token` (`toItemView` in `services/backup/jobs.ts`), unlike discovery's queue item listings.

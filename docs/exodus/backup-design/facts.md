@@ -77,6 +77,11 @@ The plan is in [plan.md](./plan.md). The question-and-answer history that produc
 - Non-production is **local**: a sample directory supplied through the destination environment variable. Production is the only remote environment. Writing is safe there because only net-new files are written.
 - The M3 milestone includes the Dockerfile, `abctl` configuration, image publication and CI wiring, following `video-worker`.
 
+### API (decided during M2)
+
+- There is **no "start" route** for a backup job. Creating a job makes it ready, and the worker's first claim moves it from `planned` to `running`. The UI's "Start backup job" button plans, confirms, then creates.
+- The API's "folder already exists" warning for a source folder comes from the destination's validation result (`rootEntries`, reported by the worker), not from the API reading the NAS.
+
 ### UI
 
 - Minimal home-hud pages, including an **ultra-simple "Start backup job" button**, under a **new "Backup" entry in the Exodus section of the nav**.

@@ -260,14 +260,14 @@ All REST, human actor only, documented in OpenAPI (`/docs`).
 | `POST /sources/:id/backup-jobs/plan`                                     | Dry run (§4.1).                                                                |
 | `POST /sources/:id/backup-jobs`                                          | Create a `planned` job with a frozen scope.                                    |
 | `GET /backup-jobs`, `GET /backup-jobs/:id`                               | Jobs with derived counts and `stalledReason`.                                  |
-| `POST /backup-jobs/:id/{start,cancel,fail}`                              | Guarded transitions.                                                           |
+| `POST /backup-jobs/:id/{cancel,fail}`                                    | Guarded transitions. There is no `start`: the first claim runs the job.        |
 | `GET /backup-jobs/:id/items?status=`, `GET /backup-job-items/:id`        | Item-level results.                                                            |
 | `GET /backup-job-items/:id/entries?status=&issueKind=`                   | Paged per-file results and metadata.                                           |
 | `POST /backup-job-items/:id/retry`, `POST /backup-jobs/:id/retry-failed` | One more attempt each; active job only.                                        |
 | `POST /backup-jobs/:id/rerun-unresolved`                                 | New job from the failed and blocked items of a finished job.                   |
 | `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`    | Coverage report; `format=json` downloads the full report.                      |
 
-**home-hud (last milestone, minimal):** a new **Backup** entry under Exodus (`/exodus/backup`). Overview: destination health (and "no worker running" when `worker_seen_at` is stale), a Validate button, and one **Start backup job** button that runs `plan`, shows the numbers (items to copy, excluded, not eligible, estimated size, items without an estimate, warnings) and on confirm creates and starts the job. Job page: status and `stalledReason`, derived progress, item list with status and last error, Cancel. Coverage page: buckets, `allAccounted`, discovery status, Download JSON. Follow the existing Exodus pages: all text through `Typography` with no font or colour overrides, `fui-components` only from client components, server actions return results instead of throwing (`docs/exodus/ui.md`, `decisions.md`).
+**home-hud (last milestone, minimal):** a new **Backup** entry under Exodus (`/exodus/backup`). Overview: destination health (and "no worker running" when `worker_seen_at` is stale), a Validate button, and one **Start backup job** button that runs `plan`, shows the numbers (items to copy, excluded, not eligible, estimated size, items without an estimate, warnings) and on confirm creates the job (the worker picks it up). Job page: status and `stalledReason`, derived progress, item list with status and last error, Cancel. Coverage page: buckets, `allAccounted`, discovery status, Download JSON. Follow the existing Exodus pages: all text through `Typography` with no font or colour overrides, `fui-components` only from client components, server actions return results instead of throwing (`docs/exodus/ui.md`, `decisions.md`).
 
 ---
 
@@ -320,21 +320,16 @@ Branch `feat/exodus-backup-m1-schema`.
 - Tests: schema unit tests (like `src/schema/discovery.unit.test.ts`); integration tests in `apps/homelab-api/tests/integration/` against the dev database: concurrent claims never return the same item; lease expiry requeues and spends the attempt, and fails on the last attempt; idempotent complete; late worker rejected after cancel; CHECKs reject illegal states; entry upsert is idempotent and does not overwrite captured metadata; coverage buckets per destination (verified at A only → `never_attempted` at B; verified then failed → still `covered`).
 - Acceptance: per the tests above.
 
-### M2: API (`apps/homelab-api`)
+### M2: API (`apps/homelab-api`) — done
 
-Branch `feat/exodus-backup-m2-api`.
-
-- Services (`services/backup/`), controllers, routes, schemas and OpenAPI for §5, following the discovery layout (`controllers/discovery/handle.ts` etc.). Planning (§4.1) reuses `resolveExclusion`, the path helpers (`isWithinPath`, `ancestorsOf`) and the nested-item lookup used by path coverage. Coverage and the JSON download. Destination invariants (§3.1). `validate` only sets `validation_requested_at`.
-- No MCP changes. Update `apps/homelab-api/README.md` and the OpenAPI docs.
-- Docs: start `docs/exodus/backup.md` with the facts of what is built (data model, API); link it from `docs/exodus/README.md`, `data-model.md` and `api.md`.
-- Tests: unit and integration for every route; planning cases (unapproved excluded from the job and listed, `exclude_subtree` → `excluded`, nested → `skipped`, already covered → `skipped`, carve-outs recorded, empty selection rejected, active job conflict, disabled destination, discovery-active warning, existing-folder warning); a running job's scope does not change when inventory changes; every state change writes exactly one audit event in its transaction and a rejected request writes none.
+Implemented on `feat/exodus-backup-m2-api`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#api). Integration tests are `apps/homelab-api/tests/integration/backup-api.integration.test.ts`, unit tests `backup*.unit.test.ts`. Two decisions were taken during it: there is **no `start` route** (the first claim moves `planned` to `running`), and the existing-folder warning reads `last_validation.rootEntries`, which M3 must fill.
 
 ### M3: `apps/backup-worker` scaffold, validation, build and CI
 
 Branch `feat/exodus-backup-m3-worker`.
 
 - App copied from `apps/video-worker`'s structure (`config.ts` with §6, `db.ts`, `server.ts`, `process.ts`, `worker/poll-loop.ts`, `lib/safe-path.ts` plus the symlink check, Dockerfile with `apk add samba-client`, `abctl.yml`/`abctl.base.yml`, `docker-compose.yaml` for local dev against a sample directory, `sample.env`, README).
-- Destination validation (§6) with injectable `/proc/mounts`, filesystem and clock; `worker_seen_at` and `validation_requested_at` handling; the destination watchdog and `/readyz` behaviour. The worker does not copy yet.
+- Destination validation (§6) with injectable `/proc/mounts`, filesystem and clock. **Also report `rootEntries`**: the names directly under `<mount>/<root_dir>` (a read-only listing, capped), stored in `last_validation.rootEntries`; the API uses it to warn that a source folder already exists; `worker_seen_at` and `validation_requested_at` handling; the destination watchdog and `/readyz` behaviour. The worker does not copy yet.
 - Image build, publication and CI wiring following `video-worker` (`docs/dev-guide-publication.md`, `.github/CLAUDE.md`).
 - Create the **GitHub issue in `pbabbott/home-kubernetes`** with the body in Appendix A (use `gh`; **confirm the text with the user before creating**). Do not touch that repository otherwise.
 - Tests: validation unit tests (wrong mount type, wrong `server:exportPath`, symlinked root, probe failures, `mountVerified: false` when the check is `none`, the probe folder removed, nothing left under the root); integration: `POST …/validate` → worker clears the request and writes `last_validation`.
