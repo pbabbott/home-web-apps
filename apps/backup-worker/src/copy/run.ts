@@ -54,6 +54,8 @@ export type RunOptions = {
   pauses?: PauseTracker;
   /** Replaces the worker-wide shutdown signal. */
   shutdownSignal?: AbortSignal;
+  /** No-progress timeout for source reads in ms; defaults to `BACKUP_STALL_TIMEOUT_SECONDS`. */
+  stallTimeoutMs?: number;
   /** Files of one item copied at once; defaults to `BACKUP_PARALLELISM`. */
   parallelism?: number;
   /** Heartbeat interval in ms; defaults to `BACKUP_HEARTBEAT_SECONDS`. */
@@ -153,7 +155,8 @@ export const claimAndCopyNext = async (
       driver: options.driver ?? getConnectionDriver(connectionType),
       target,
       dest: makeDestFs(destination?.rootDir, options.fsDeps),
-      stallTimeoutMs: config.backupStallTimeoutSeconds * 1000,
+      stallTimeoutMs:
+        options.stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
       signal: AbortSignal.any([
         heartbeat.signal,
         stalled.signal,
