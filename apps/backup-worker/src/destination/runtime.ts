@@ -1,4 +1,6 @@
 import { config } from '../config';
+import path from 'path';
+import { DestFs, defaultDestFsDeps, type DestFsDeps } from '../copy/dest-fs';
 import { PauseTracker } from '../copy/pause-tracker';
 import { pauseDestination } from '../copy/pauses';
 import { workerId } from '../worker-id';
@@ -53,3 +55,15 @@ export const resetWatchdogForTests = (stallTimeoutMs?: number): void => {
     stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
   );
 };
+
+/** The destination's filesystem, every call under the watchdog unless `fsDeps` replaces it. */
+export const makeDestFs = (
+  rootDir: string | null | undefined,
+  fsDeps?: DestFsDeps,
+): DestFs =>
+  new DestFs(
+    config.backupDestinationPath,
+    path.join(config.backupDestinationPath, rootDir ?? ''),
+    fsDeps ??
+      defaultDestFsDeps((operation, fn) => getWatchdog().run(operation, fn)),
+  );

@@ -18,18 +18,21 @@ import { config } from '../config';
 import { db } from '../db';
 import {
   getWatchdog,
+  makeDestFs,
   onDestinationStall,
   runtimePauses,
   workerId,
 } from '../destination/runtime';
 import type { CopyContext, FaultHook } from './context';
-import { DestFs, defaultDestFsDeps, type DestFsDeps } from './dest-fs';
+import type { DestFsDeps } from './dest-fs';
 import {
   ClaimLostError,
   DestinationUnhealthyError,
   FaultInjectedError,
+  ShutdownError,
   SourceUnreachableError,
 } from './errors';
+import { stagingDir } from './layout';
 import { DESTINATION_KEY, sourceKey, type PauseTracker } from './pause-tracker';
 import {
   pauseDestination,
@@ -40,7 +43,7 @@ import { assertMounted } from './preflight';
 import { startHeartbeat } from './heartbeat';
 import { processItem } from './item';
 import { loadSourceTarget } from './source';
-import path from 'path';
+import { shutdownSignal } from '../worker/shutdown';
 
 /** What tests replace; production uses the defaults. */
 export type RunOptions = {
@@ -49,6 +52,8 @@ export type RunOptions = {
   fsDeps?: DestFsDeps;
   /** Backoff state for paused jobs; tests pass one with a fake clock. */
   pauses?: PauseTracker;
+  /** Replaces the worker-wide shutdown signal. */
+  shutdownSignal?: AbortSignal;
   /** Heartbeat interval in ms; defaults to `BACKUP_HEARTBEAT_SECONDS`. */
   heartbeatMs?: number;
   /** Replaces the mount check that runs before each item. */
@@ -66,6 +71,7 @@ export type RunResult =
         | 'claim_lost'
         | 'source_unreachable'
         | 'destination_unhealthy'
+        | 'shutdown'
         | 'error';
     };
 
@@ -144,16 +150,13 @@ export const claimAndCopyNext = async (
       item,
       driver: options.driver ?? getConnectionDriver(connectionType),
       target,
-      dest: new DestFs(
-        config.backupDestinationPath,
-        path.join(config.backupDestinationPath, destination?.rootDir ?? ''),
-        options.fsDeps ??
-          defaultDestFsDeps((operation, fn) =>
-            getWatchdog().run(operation, fn),
-          ),
-      ),
+      dest: makeDestFs(destination?.rootDir, options.fsDeps),
       stallTimeoutMs: config.backupStallTimeoutSeconds * 1000,
-      signal: AbortSignal.any([heartbeat.signal, stalled.signal]),
+      signal: AbortSignal.any([
+        heartbeat.signal,
+        stalled.signal,
+        options.shutdownSignal ?? shutdownSignal(),
+      ]),
       fault: options.fault ?? (() => undefined),
       preflight:
         options.preflight ??
@@ -206,6 +209,21 @@ const failTransient = (itemId: string, claimToken: string, error: string) =>
     ),
   );
 
+/** Deletes the item's staging folder; the destination may be hung, so a failure is only logged. */
+const removeStaging = async (
+  ctx: CopyContext | undefined,
+  itemId: string,
+): Promise<void> => {
+  if (!ctx) return;
+
+  try {
+    await ctx.dest.removeItemStaging(stagingDir(ctx.dest.baseRoot, itemId));
+    await ctx.dest.removeStagingRootIfEmpty();
+  } catch (err) {
+    console.error(`⚠️  could not remove the staging of item ${itemId}:`, err);
+  }
+};
+
 const abandon = async ({
   ctx,
   item,
@@ -217,11 +235,22 @@ const abandon = async ({
   // A test crash must look like a dead process: nothing is cleaned up.
   if (err instanceof FaultInjectedError) throw err;
 
+  if (err instanceof ShutdownError) {
+    console.log(`🛑 shutting down, releasing item ${item.id}`);
+    await removeStaging(ctx, item.id);
+    await release(item.id, claimToken);
+
+    return { kind: 'backoff', reason: 'shutdown' };
+  }
+
   if (
     err instanceof ClaimLostError ||
     (err instanceof BackupError && err.code === 'conflict')
   ) {
     console.error(`⚠️  lost the claim on item ${item.id}: ${describe(err)}`);
+    // The item is not ours any more (a cancelled job's items are never
+    // claimed again), so nothing would clean up after it.
+    await removeStaging(ctx, item.id);
 
     return { kind: 'backoff', reason: 'claim_lost' };
   }

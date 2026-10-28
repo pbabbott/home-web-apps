@@ -1,4 +1,8 @@
 import * as homelabDb from '@abbottland/homelab-db';
+import * as pauses from '../../src/copy/pauses';
+import * as staging from '../../src/copy/staging-cleanup';
+import { DESTINATION_KEY } from '../../src/copy/pause-tracker';
+import { runtimePauses } from '../../src/destination/runtime';
 import * as validate from '../../src/destination/validate';
 import { startPollLoop, stopPollLoop } from '../../src/worker/poll-loop';
 
@@ -13,6 +17,11 @@ jest.mock('@abbottland/homelab-db', () => ({
 }));
 
 jest.mock('../../src/db', () => ({ db: {} }));
+
+// Real file I/O would not settle under fake timers.
+jest.mock('../../src/copy/staging-cleanup', () => ({
+  removeStaleStaging: jest.fn().mockResolvedValue([]),
+}));
 
 jest.mock('../../src/copy/pauses', () => ({
   resumeReachableSources: jest.fn(),
@@ -69,6 +78,81 @@ describe('poll loop', () => {
   });
 
   const tick = (ms: number) => jest.advanceTimersByTimeAsync(ms);
+
+  describe('an unhealthy destination', () => {
+    const unhealthy = {
+      id: 'dest-1',
+      validationRequestedAt: null,
+      health: 'unhealthy',
+    };
+
+    beforeEach(() => runtimePauses.reset(DESTINATION_KEY));
+    afterEach(() => runtimePauses.reset(DESTINATION_KEY));
+
+    it('is validated again by itself once its backoff is over, not before', async () => {
+      startPollLoop();
+      await tick(0);
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+
+      mocked.getBackupDestination.mockResolvedValue(unhealthy);
+      runtimePauses.fail(DESTINATION_KEY);
+      await tick(1000);
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+
+      await tick(28_000);
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+
+      // A passing validation makes the destination healthy again.
+      mocked.recordBackupDestinationValidation.mockImplementation(async () => {
+        mocked.getBackupDestination.mockResolvedValue({
+          ...unhealthy,
+          health: 'ok',
+        });
+      });
+      await tick(5000);
+      expect(validateSpy).toHaveBeenCalledTimes(2);
+
+      await tick(5000);
+      expect(validateSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('resumes its jobs when validation passes and pauses them when it fails', async () => {
+      startPollLoop();
+      await tick(0);
+      expect(pauses.resumeDestinationJobs).toHaveBeenCalledTimes(1);
+      expect(pauses.stallDestinationJobs).not.toHaveBeenCalled();
+
+      validateSpy.mockResolvedValue({
+        ok: false,
+        mountVerified: false,
+        checks: [{ name: 'probe', ok: false, message: 'EIO' }],
+        rootEntries: [],
+      });
+      mocked.getBackupDestination.mockResolvedValue({
+        ...unhealthy,
+        validationRequestedAt: new Date(),
+      });
+      await tick(1000);
+
+      expect(pauses.stallDestinationJobs).toHaveBeenCalledTimes(1);
+      expect(pauses.resumeDestinationJobs).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('removes stale staging after the first validation only', async () => {
+    startPollLoop();
+    await tick(0);
+    expect(staging.removeStaleStaging).toHaveBeenCalledTimes(1);
+
+    mocked.getBackupDestination.mockResolvedValue({
+      id: 'dest-1',
+      validationRequestedAt: new Date(),
+    });
+    await tick(1000);
+
+    expect(validateSpy).toHaveBeenCalledTimes(2);
+    expect(staging.removeStaleStaging).toHaveBeenCalledTimes(1);
+  });
 
   it('touches worker_seen_at on every poll', async () => {
     startPollLoop();
