@@ -298,6 +298,16 @@ export {
   completeBackupItem,
   failBackupItem,
   releaseBackupItem,
+  upsertBackupEntries,
+  captureBackupEntryMetadata,
+  recordBackupEntryResult,
+  listBackupEntries,
+  getBackupEntryCounts,
+  ZONE_IDENTIFIER_MAX_CHARS,
+  classifyBackupCoverage,
+  getBackupCoverage,
+  BACKUP_COVERAGE_BUCKETS,
+  BLOCKING_BACKUP_COVERAGE_BUCKETS,
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
@@ -315,6 +325,16 @@ export type {
   BackupClaimIdleReason,
   ClaimBackupItemResult,
   FailBackupItemInput,
+  BackupEntrySourceMetadata,
+  BackupEntryInput,
+  BackupEntryResult,
+  ListBackupEntriesOptions,
+  BackupItemEntryCounts,
+  BackupCoverageBucket,
+  BackupCoverageFacts,
+  BackupCoverageAttempt,
+  BackupCoverageItem,
+  BackupCoverageReport,
 } from './queries/backup';
 
 export {

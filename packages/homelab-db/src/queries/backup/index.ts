@@ -9,3 +9,5 @@ export * from './jobs';
 export * from './items';
 export { expireBackupLeases } from './leases';
 export * from './claims';
+export * from './entries';
+export * from './coverage';
