@@ -172,6 +172,7 @@ export const processItem = async (ctx: CopyContext): Promise<void> => {
   const itemStaging = stagingDir(dest.baseRoot, item.id);
 
   assertLive(ctx);
+  await ctx.preflight();
   await dest.assertBaseSafe();
   await dest.removeItemStaging(itemStaging);
   await ctx.fault('item:start');

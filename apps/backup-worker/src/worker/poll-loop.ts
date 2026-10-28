@@ -6,7 +6,9 @@ import {
 import { db } from '../db';
 import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
-import { getWatchdog, workerId } from '../destination/runtime';
+import { DESTINATION_KEY } from '../copy/pause-tracker';
+import { resumeDestinationJobs, stallDestinationJobs } from '../copy/pauses';
+import { getWatchdog, runtimePauses, workerId } from '../destination/runtime';
 import {
   defaultValidationDeps,
   validateDestination,
@@ -72,7 +74,12 @@ export const pollOnce = async (): Promise<void> => {
       console.error(
         `❌ backup destination ${config.backupDestinationId} does not exist`,
       );
-    } else if (!validatedOnce || destination.validationRequestedAt) {
+    } else if (
+      !validatedOnce ||
+      destination.validationRequestedAt ||
+      // An unhealthy destination is checked again by itself, with a backoff.
+      (destination.health === 'unhealthy' && runtimePauses.due(DESTINATION_KEY))
+    ) {
       const validation = await validateDestination(
         {
           destination,
@@ -89,6 +96,9 @@ export const pollOnce = async (): Promise<void> => {
         validation,
       });
       validatedOnce = true;
+
+      if (validation.ok) await resumeDestinationJobs();
+      else await stallDestinationJobs(runtimePauses);
 
       console.log(
         validation.ok

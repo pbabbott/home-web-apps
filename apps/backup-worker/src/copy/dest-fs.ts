@@ -3,7 +3,12 @@ import fsPromises from 'fs/promises';
 import type { Stats } from 'fs';
 import path from 'path';
 import { assertNoSymlinks, UnsafePathError } from '../lib/safe-path';
-import { DestConflictError, DestWriteError, EntryFailure } from './errors';
+import {
+  DestConflictError,
+  DestinationUnhealthyError,
+  DestWriteError,
+  EntryFailure,
+} from './errors';
 import { STAGING_DIR } from './layout';
 
 /** The filesystem calls the copy makes, so tests can inject faults. */
@@ -35,6 +40,16 @@ const READ_CHUNK = 1024 * 1024;
 const errnoOf = (err: unknown): string =>
   (err as NodeJS.ErrnoException)?.code ?? 'ERROR';
 
+/** An I/O error, a stale or lost mount, no space or a read-only mount: the whole destination is broken. */
+const DESTINATION_WIDE_ERRNO = new Set([
+  'EIO',
+  'ESTALE',
+  'ENOTCONN',
+  'ENOSPC',
+  'EDQUOT',
+  'EROFS',
+]);
+
 /**
  * Every destination operation of the copy. Each call runs under the watchdog
  * on its own (never a whole file: a 500 MB file legitimately takes minutes,
@@ -54,23 +69,59 @@ export class DestFs {
     private readonly deps: DestFsDeps = defaultDestFsDeps(),
   ) {}
 
-  private async call<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  /**
+   * Whether a failure of `abs` says something about the whole destination.
+   * Access errors count only where every copy depends on it (the mount, the
+   * root folder, the source folder's parent and the staging area); under the
+   * source's own folder they belong to one file.
+   */
+  private isDestinationWide(code: string, abs: string): boolean {
+    if (DESTINATION_WIDE_ERRNO.has(code)) return true;
+
+    const target = path.resolve(abs);
+    const staging = path.join(this.baseRoot, STAGING_DIR);
+
+    if (code === 'ENOENT') return target === path.resolve(this.mountRoot);
+    if (code === 'EACCES' || code === 'EPERM') {
+      return (
+        target === path.resolve(this.mountRoot) ||
+        target === path.resolve(this.baseRoot) ||
+        path.dirname(target) === path.resolve(this.baseRoot) ||
+        target === staging ||
+        target.startsWith(staging + path.sep)
+      );
+    }
+
+    return false;
+  }
+
+  private failure(operation: string, abs: string, err: unknown): Error {
+    const code = errnoOf(err);
+    const message = `${operation}: ${code}: ${err instanceof Error ? err.message : String(err)}`;
+
+    return this.isDestinationWide(code, abs)
+      ? new DestinationUnhealthyError(operation, code, message)
+      : new DestWriteError(operation, code, message);
+  }
+
+  private async call<T>(
+    operation: string,
+    abs: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
     try {
       return await this.deps.run(operation, fn);
     } catch (err) {
       if (
         err instanceof DestWriteError ||
+        err instanceof DestinationUnhealthyError ||
         err instanceof EntryFailure ||
         err instanceof DestConflictError ||
         err instanceof UnsafePathError
       ) {
         throw err;
       }
-      throw new DestWriteError(
-        operation,
-        errnoOf(err),
-        `${operation}: ${errnoOf(err)}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      throw this.failure(operation, abs, err);
     }
   }
 
@@ -80,18 +131,25 @@ export class DestFs {
       return await this.deps.run('lstat', () => this.deps.fs.lstat(abs));
     } catch (err) {
       if (errnoOf(err) === 'ENOENT' || errnoOf(err) === 'ENOTDIR') return null;
-      throw new DestWriteError(
-        'lstat',
-        errnoOf(err),
-        `lstat: ${errnoOf(err)}: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      throw this.failure('lstat', abs, err);
     }
   }
 
-  /** Refuses a base folder that has a symlink on the way (checked once per item). */
+  /**
+   * Refuses a base folder that has a symlink on the way (checked once per
+   * item), and a mount point that is not there: writing would then create it
+   * in the container's own filesystem.
+   */
   async assertBaseSafe(): Promise<void> {
+    if (!(await this.lstat(this.mountRoot))) {
+      throw new DestinationUnhealthyError(
+        'lstat',
+        'ENOENT',
+        `lstat: ENOENT: the destination ${this.mountRoot} does not exist`,
+      );
+    }
     await assertNoSymlinks(this.mountRoot, this.baseRoot, (p) =>
-      this.call('lstat', () => this.deps.fs.lstat(p)),
+      this.call('lstat', p, () => this.deps.fs.lstat(p)),
     );
   }
 
@@ -119,7 +177,7 @@ export class DestFs {
 
       if (!stat) {
         try {
-          await this.call('mkdir', () => this.deps.fs.mkdir(current));
+          await this.call('mkdir', current, () => this.deps.fs.mkdir(current));
         } catch (err) {
           // Someone else made it between our lstat and mkdir: look again.
           if (!(err instanceof DestWriteError && err.code === 'EEXIST')) {
@@ -159,21 +217,25 @@ export class DestFs {
     file: string,
     source: AsyncIterable<Buffer>,
     onChunk?: () => void | Promise<void>,
+    signal?: AbortSignal,
   ): Promise<{ sha256: string; bytes: number }> {
-    await this.call('mkdir', () =>
+    await this.call('mkdir', path.dirname(file), () =>
       this.deps.fs.mkdir(path.dirname(file), { recursive: true }),
     );
-    const handle = await this.call('open', () => this.deps.fs.open(file, 'w'));
+    const handle = await this.call('open', file, () =>
+      this.deps.fs.open(file, 'w'),
+    );
     const hash = createHash('sha256');
     let bytes = 0;
 
     try {
       for await (const chunk of source) {
+        signal?.throwIfAborted();
         hash.update(chunk);
         let offset = 0;
 
         while (offset < chunk.length) {
-          const written = await this.call('write', () =>
+          const written = await this.call('write', file, () =>
             handle.write(chunk, offset, chunk.length - offset),
           );
 
@@ -182,24 +244,32 @@ export class DestFs {
         bytes += chunk.length;
         await onChunk?.();
       }
-      await this.call('fsync', () => handle.sync());
+      await this.call('fsync', file, () => handle.sync());
     } finally {
-      await this.call('close', () => handle.close()).catch(() => undefined);
+      await this.call('close', file, () => handle.close()).catch(
+        () => undefined,
+      );
     }
 
     return { sha256: hash.digest('hex'), bytes };
   }
 
   /** Reads a file back and hashes it. */
-  async hashFile(abs: string): Promise<{ sha256: string; bytes: number }> {
-    const handle = await this.call('open', () => this.deps.fs.open(abs, 'r'));
+  async hashFile(
+    abs: string,
+    signal?: AbortSignal,
+  ): Promise<{ sha256: string; bytes: number }> {
+    const handle = await this.call('open', abs, () =>
+      this.deps.fs.open(abs, 'r'),
+    );
     const hash = createHash('sha256');
     const buffer = Buffer.allocUnsafe(READ_CHUNK);
     let bytes = 0;
 
     try {
       for (;;) {
-        const { bytesRead } = await this.call('read', () =>
+        signal?.throwIfAborted();
+        const { bytesRead } = await this.call('read', abs, () =>
           handle.read(buffer, 0, READ_CHUNK, null),
         );
 
@@ -208,7 +278,9 @@ export class DestFs {
         bytes += bytesRead;
       }
     } finally {
-      await this.call('close', () => handle.close()).catch(() => undefined);
+      await this.call('close', abs, () => handle.close()).catch(
+        () => undefined,
+      );
     }
 
     return { sha256: hash.digest('hex'), bytes };
@@ -217,7 +289,7 @@ export class DestFs {
   /** Hard-links `from` to `to`; returns false if `to` already exists (never clobbers). */
   async link(from: string, to: string): Promise<boolean> {
     try {
-      await this.call('link', () => this.deps.fs.link(from, to));
+      await this.call('link', to, () => this.deps.fs.link(from, to));
 
       return true;
     } catch (err) {
@@ -228,19 +300,31 @@ export class DestFs {
 
   async unlink(abs: string): Promise<void> {
     try {
-      await this.call('unlink', () => this.deps.fs.unlink(abs));
+      await this.call('unlink', abs, () => this.deps.fs.unlink(abs));
     } catch (err) {
       if (!(err instanceof DestWriteError && err.code === 'ENOENT')) throw err;
     }
   }
 
   async utimes(abs: string, time: Date): Promise<void> {
-    await this.call('utimes', () => this.deps.fs.utimes(abs, time, time));
+    await this.call('utimes', abs, () => this.deps.fs.utimes(abs, time, time));
+  }
+
+  /** The item ids that have a staging folder (leftovers of killed attempts). */
+  async listStaging(): Promise<string[]> {
+    const root = path.join(this.baseRoot, STAGING_DIR);
+
+    try {
+      return await this.call('readdir', root, () => this.deps.fs.readdir(root));
+    } catch (err) {
+      if (err instanceof DestWriteError && err.code === 'ENOENT') return [];
+      throw err;
+    }
   }
 
   /** Deletes the staging folder of an item (leftovers of a killed attempt). */
   async removeItemStaging(stagingItemDir: string): Promise<void> {
-    await this.call('rm', () =>
+    await this.call('rm', stagingItemDir, () =>
       this.deps.fs.rm(stagingItemDir, { recursive: true, force: true }),
     );
   }
@@ -250,7 +334,7 @@ export class DestFs {
     const root = path.join(this.baseRoot, STAGING_DIR);
 
     try {
-      await this.call('rmdir', () => this.deps.fs.rmdir(root));
+      await this.call('rmdir', root, () => this.deps.fs.rmdir(root));
     } catch (err) {
       if (
         err instanceof DestWriteError &&

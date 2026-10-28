@@ -33,6 +33,8 @@ export type CopyContext = {
   /** Aborted (with a `ClaimLostError`) when the heartbeat finds the lease gone. */
   signal: AbortSignal;
   fault: FaultHook;
+  /** Run before the item starts: throws `DestinationUnhealthyError` when the mount is gone. */
+  preflight: () => Promise<void>;
 };
 
 export const claimTokenOf = (ctx: CopyContext): string =>

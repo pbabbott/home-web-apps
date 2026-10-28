@@ -14,6 +14,14 @@ jest.mock('@abbottland/homelab-db', () => ({
 
 jest.mock('../../src/db', () => ({ db: {} }));
 
+jest.mock('../../src/copy/pauses', () => ({
+  resumeReachableSources: jest.fn(),
+  resumeDestinationJobs: jest.fn(),
+  stallDestinationJobs: jest.fn(),
+  pauseDestination: jest.fn(),
+  pauseSource: jest.fn(),
+}));
+
 jest.mock('../../src/config', () => ({
   config: {
     backupDestinationId: 'dest-1',

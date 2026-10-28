@@ -1,10 +1,14 @@
-import os from 'os';
 import { markBackupDestinationUnhealthy } from '@abbottland/homelab-db';
 import { config } from '../config';
 import { db } from '../db';
+import { PauseTracker } from '../copy/pause-tracker';
+import { workerId } from '../worker-id';
 import { DestinationWatchdog } from './watchdog';
 
-export const workerId = `${os.hostname()}-${process.pid}`;
+export { workerId };
+
+/** Backoff for paused jobs and an unhealthy destination, shared by the poll loop and the copy. */
+export const runtimePauses = new PauseTracker();
 
 let watchdog: DestinationWatchdog | undefined;
 
