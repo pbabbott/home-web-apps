@@ -140,7 +140,9 @@ const abandon = async (
     err instanceof SourceUnreachableError ||
     (err instanceof ConnectionError && err.code === 'unreachable')
   ) {
-    console.error(`⚠️  source unreachable, releasing item ${itemId}`);
+    console.error(
+      `⚠️  source unreachable, releasing item ${itemId}: ${describe(err)}`,
+    );
     await releaseBackupItem(db, itemId, { claimToken }).catch(() => undefined);
 
     return { kind: 'backoff', reason: 'source_unreachable' };
