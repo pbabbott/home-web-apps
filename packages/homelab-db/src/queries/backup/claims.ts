@@ -112,7 +112,7 @@ export const claimNextBackupItem = async (
       throw err;
     }
 
-    if (result.item) return result;
+    if ('job' in result) return result;
 
     if (result.drained) drainedJobIds.push(id);
     if (IDLE_RANK[result.reason] > IDLE_RANK[outcome.reason]) {
