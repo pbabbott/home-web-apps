@@ -4,6 +4,7 @@ import {
   touchBackupDestinationWorker,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
+import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
 import { getWatchdog, workerId } from '../destination/runtime';
 import {
@@ -28,9 +29,33 @@ const scheduleNextPoll = (delayMs: number) => {
 };
 
 /**
- * One iteration: report that the worker is alive, then validate the
- * destination at startup and whenever the API has asked for it. The worker
- * does not claim work yet (the copy engine is a later milestone).
+ * Claims and copies items until there is nothing to claim or one cannot be
+ * finished (then the next poll tries again). `worker_seen_at` keeps ticking
+ * while an item is copied, so a long copy does not look like a dead worker.
+ */
+const copyWhileWorkExists = async (): Promise<void> => {
+  const keepAlive = setInterval(() => {
+    touchBackupDestinationWorker(db, config.backupDestinationId).catch((err) =>
+      console.error('❌ could not report that the worker is alive:', err),
+    );
+  }, config.pollIntervalMs);
+
+  try {
+    while (!stopped) {
+      const result = await claimAndCopyNext();
+
+      if (result.kind !== 'settled') return;
+    }
+  } finally {
+    clearInterval(keepAlive);
+  }
+};
+
+/**
+ * One iteration: report that the worker is alive, validate the destination at
+ * startup and whenever the API has asked for it, then copy whatever is
+ * claimable. A validation request made during a long copy waits for the item
+ * to end.
  */
 export const pollOnce = async (): Promise<void> => {
   if (stopped) return;
@@ -74,6 +99,8 @@ export const pollOnce = async (): Promise<void> => {
               .join('; ')}`,
       );
     }
+
+    if (destination) await copyWhileWorkExists();
   } catch (err) {
     console.error('❌ poll failed:', err);
   }

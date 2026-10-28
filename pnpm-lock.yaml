@@ -131,6 +131,9 @@ importers:
       '@abbottland/homelab-db':
         specifier: workspace:*
         version: link:../../packages/homelab-db
+      '@abbottland/source-access':
+        specifier: workspace:*
+        version: link:../../packages/source-access
       '@abbottland/yaml-config':
         specifier: workspace:*
         version: link:../../packages/yaml-config

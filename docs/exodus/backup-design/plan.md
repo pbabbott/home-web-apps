@@ -6,7 +6,7 @@ Copy approved inventory items from a source machine (SMB) to an NFS destination,
 
 **Read [facts.md](./facts.md) first.** It holds the decisions that are fixed and the environment facts this plan relies on. This plan does not repeat them; it says what to build.
 
-**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M3 are built (see §7).
+**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M4 are built (see §7).
 
 ---
 
@@ -328,25 +328,9 @@ Implemented on `feat/exodus-backup-m2-api`; the built behaviour is in [`docs/exo
 
 Implemented on `feat/exodus-backup-m3-worker`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#worker). Unit tests are `apps/backup-worker/tests/unit/`, the validation round trip (request, worker answers, `last_validation` and `rootEntries` written) is `tests/integration/validation.integration.test.ts` in the worker, not in `homelab-api`, so no app imports another. The `home-kubernetes` issue (Appendix A) is [pbabbott/home-kubernetes#27](https://github.com/pbabbott/home-kubernetes/issues/27).
 
-### M4: the copy engine
+### M4: the copy engine — done
 
-Branch `feat/exodus-backup-m4-copy`.
-
-- **Spike first (time-boxed, read-only, approved paths only, scratch directory only; permission is in facts.md).** Measure large-file throughput (the 547 MB zip), many-small-file behaviour (batched `get` or tar streaming only if per-file `get` is too slow), a safe `allinfo` batch size, and how `ls` flags reparse points. Write results into this plan (§10) before building on them.
-- Extend the `source-access` driver interface and the SMB driver: `TZ=UTC` in the child environment; a tree listing (`recurse ON; ls`); batched `allinfo` with parsing of times, attributes and streams; a streaming read (`get … -`) that supports a stall timeout; reading a small named stream (`Zone.Identifier`). Add a **fake driver** for tests.
-- Worker: §4.3 end to end, first for file items, then directory items (enumeration into entries, carve-outs, redundant nested resolution, resume, bottom-up directory times), keep-both and adoption, staging and `link()`, entry metadata capture, the retry/finish rules of §4.2 step 6.
-- Tests (temp directories and the fake driver, `BACKUP_DESTINATION_MOUNT_CHECK=none`):
-  - Given a file item, the destination hash equals the source hash, the modified time matches, no staging file remains, and the item is `verified` with a complete entry.
-  - Given the stream ends before the stat size, the entry fails with `read_failed` and the staging file is discarded.
-  - Given an identical destination file, it is adopted; given a different one, it is untouched, the copy exists at the suffixed name, the entry is `verified` with `kept_both`, and a retry does not duplicate it.
-  - Given a file where a directory must go, the item is `blocked` with `dest_conflict`.
-  - Given a missing source file, the item is `blocked` with `source_missing`.
-  - Given a directory with one unreadable descendant, everything else is verified, the item is not, and a retry copies only the missing file.
-  - Given a worker killed at any point mid-directory (inject faults between steps), a rerun produces a tree identical to an uninterrupted run, with no overwrite, no duplicate and no staging file.
-  - Given a junction, it is not traversed and a `not_followed` entry exists.
-  - Given a path that escapes the root or crosses a symlink, nothing is written and the entry fails with `unsupported_path`.
-  - Given a retry, captured `src_*` metadata is unchanged.
-  - Given existing unrelated files and folders at the destination, none is read, changed or removed, and no marker, manifest or report is created.
+Implemented on `feat/exodus-backup-m4-copy`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#copy-engine) and the spike numbers are in §10. Tests: `apps/backup-worker/tests/integration/copy.integration.test.ts` (one test per bullet of the original list, including a run that kills the worker at every fault point of a directory copy and compares the rerun with an uninterrupted one) and unit tests beside it; the `source-access` parsers, the driver with a fake `smbclient` and the `FakeDriver` are under `packages/source-access/tests/unit/`. Decisions taken during it: verified entries are trusted and never re-read; an adopted identical file gets the source modified time; an item whose source stopped answering is released with the attempt refunded and the loop waits a poll (the real pause is M5); the dev source needs a share mapping for `C:\backup-test` before the first real run.
 
 ### M5: resilience and operations
 
@@ -355,7 +339,7 @@ Branch `feat/exodus-backup-m5-ops`.
 - Stall timeout and `BACKUP_PARALLELISM` behaviour; `SIGTERM` release with refund; `source_unreachable` and `destination_unhealthy` pauses with `stalled_reason` and `stalled`/`resumed` audit events; the destination I/O watchdog (stop heartbeating, fail probes); human retry, `retry-failed`, `rerun-unresolved`, cancel and fail semantics end to end; lease-expiry audit batching.
 - Turn the races and failure modes into integration tests, as `docs/exodus/decisions.md` recommends (probe races against the running API and worker, then keep each as a test).
 - Tests: no bytes for the stall timeout → transient `read_failed`; unreachable source → claims pause, no attempt spent, one `stalled` event, and `resumed` when it answers; a destination call that never returns → heartbeats stop, destination `unhealthy`, `/readyz` fails; `SIGTERM` mid-copy → staging deleted, item released with the attempt refunded, verified entries kept; cancelled job → late heartbeat/complete rejected; retry grants exactly one more attempt and only on an active job.
-- Measure memory against the limits in Appendix A and adjust the issue if needed.
+- Re-measure memory with parallelism above 1 and the real NFS mount; M4 measured about 150 MiB for one large file (Appendix A asks for a 256Mi limit).
 
 ### M6: home-hud pages (last, minimal)
 
@@ -385,11 +369,21 @@ Documentation describes what exists, so write facts into the main Exodus docs as
 
 1. **Opening PRs.** The user has not said whether the agent may push branches and open PRs. Stop before pushing and ask.
 2. **Export permissions.** "uid 100" in the user's answer is taken as uid 1000; the validation probe confirms.
-3. **Unmeasured:** large-file throughput over the dedicated cable (M4 spike), the real total size of the approved set, and whether the memory limit in Appendix A holds (M5).
+3. **Unmeasured:** throughput over the dedicated cable (2.0 MB/s from the dev container, §10), the real total size of the approved set, and memory with `BACKUP_PARALLELISM` above 1 and the real NFS mount (about 150 MiB for one large file in M4, [backup.md](../backup.md#copy-engine)).
 
 ## 10. Spike results
 
-_(Filled in during M4.)_
+Measured 2026-10-28 on `alpha-centauri`, read-only (`TZ=UTC smbclient`, output to a scratch directory), from the dev container over the office network, **not** the dedicated cable.
+
+| Question                                                                          | Result                                                                                                                                                                                                                                                                                              | Decision                                                                                                                                                                                                      |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Large-file throughput (`C:\backup-test\Brandchelor Party.zip`, 547,027,116 bytes) | `get ... -` piped to `sha256sum` 2.2 MB/s; `get` to a file 2.1 MB/s (252 s). The SHA-256 of both is identical (`36d9b13c...ccab8c1`). `smbclient` peak RSS 26 MB.                                                                                                                                   | Network-bound here; expect far more on the dedicated cable. Streaming `get ... -` is fine. Stall timeout 120 s is generous at this speed.                                                                     |
+| Many small files (100 files of `ZeldaClone`, 0.1 to 5 KB)                         | One `smbclient` per file about 105 ms (about 50 ms of that is the probe's own helper); 20 `get`s in one session 0.31 s (15 ms each).                                                                                                                                                                | Per-file `get` is fast enough (100,000 files is about 3 h at worst). No batched `get`, no tar.                                                                                                                |
+| `allinfo` batch size                                                              | 100 paths in one session: 2.6 s (about 26 ms each), a 9.8 KB command line, 100 blocks back. A missing path yields one line, `NT_STATUS_OBJECT_NAME_NOT_FOUND getting alt name for \<path>`, in its place; a directory block has no `stream:` lines.                                                 | Batch of **100 paths and at most 64 KB** of command text (argv limit is 128 KB). Split the output by block (a block starts at `altname:`/`NT_STATUS_`); if the count differs from the batch, redo one by one. |
+| Recursive `ls`                                                                    | `recurse ON; ls "dir\*"`: a header line `\dir\sub` per directory, then entries; 808 lines in 1.0 s for ZeldaClone, 85,746 lines in 90 s (about 950 lines/s) for `Documents` before the probe's timeout. No errors seen. Directory failures print `NT_STATUS_... listing \dir\*`.                    | Stream and parse line by line; never hold the output. Treat the `listing` line as an `unlistable` directory.                                                                                                  |
+| Reparse points                                                                    | `ls` does **not** show junctions such as `Cookies` or `Application Data` at all, and `ls` flags are only `ADHSRNI`. `allinfo` on `Cookies` prints `attributes: NHSD (2016)`: the number is **hex** (`0x2016`), no `0x400` reparse bit, and listing it fails with `NT_STATUS_OBJECT_NAME_NOT_FOUND`. | Junctions are mostly invisible to enumeration. If a directory is unlistable, check its `allinfo` attributes for the reparse bit `0x400`: set means `not_followed`, otherwise `unlistable`.                    |
+| Share access                                                                      | `C$` answers `NT_STATUS_ACCESS_DENIED` for this account; a plain share `C` works. The source has only the mapping `C:\Users` to `Users`.                                                                                                                                                            | **Before the real run, `C:\backup-test` needs a share mapping** (for example `C:\` to `C`), or the first item cannot be read. Raised with the user.                                                           |
+| Access times                                                                      | The probe touched the access time of the zip (four reads) and of the 100 `ZeldaClone` files and a few directories.                                                                                                                                                                                  | Unavoidable; original times of copied files are recorded before reading.                                                                                                                                      |
 
 ---
 

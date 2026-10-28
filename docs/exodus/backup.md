@@ -4,7 +4,7 @@
 
 Copying approved inventory to an NFS destination. The design and the remaining milestones are in [backup-design](./backup-design/README.md); this page describes only what exists.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0), the REST API in `apps/homelab-api` (M2), and the worker scaffold with destination validation in `apps/backup-worker` (M3). The worker does not copy yet, so a created job waits for the copy engine; there is no UI.
+**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3) and the copy engine in `apps/backup-worker` (M4). A created job is now claimed and copied. Not built yet: the resilience work (stall and shutdown handling, source and destination pauses, M5) and the UI (M6).
 
 ## Data model
 
@@ -67,22 +67,23 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 
 ## Worker
 
-`apps/backup-worker` ([README](../../apps/backup-worker/README.md)) is modelled on `video-worker`: an Express server plus a poll loop, migrations at startup under the advisory lock, the image built with `samba-client`. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). It calls `homelab-db` queries directly and has no routes besides `GET /healthz` and `GET /readyz`. It does not claim or copy anything yet: `claimNextBackupItem` is not called, so a created job stays `planned`.
+`apps/backup-worker` ([README](../../apps/backup-worker/README.md)) is modelled on `video-worker`: an Express server plus a poll loop, migrations at startup under the advisory lock, the image built with `samba-client`. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). It calls `homelab-db` queries directly and has no routes besides `GET /healthz` and `GET /readyz`. The poll loop claims and copies items (see [Copy engine](#copy-engine)).
 
 **Configuration** (environment; defaults in `src/config.ts`, example in `sample.env`):
 
-| Variable                                                                 | Default          | Purpose                                                                                           |
-| ------------------------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------- |
-| `POSTGRES_HOST/PORT/DATABASE/USER/PASSWORD`                              | as the API       | The shared `homelab_api` database                                                                 |
-| `EXODUS_CREDENTIAL_KEY`                                                  | required         | 32 bytes, base64; the same value as `homelab-api`. Checked at startup, used by the copy engine    |
-| `BACKUP_DESTINATION_ID`                                                  | required         | UUID of the destination this worker serves                                                        |
-| `BACKUP_DESTINATION_PATH`                                                | required         | Absolute container path of the mounted export. Existence is checked by validation, not at startup |
-| `BACKUP_DESTINATION_MOUNT_CHECK`                                         | `nfs`            | `none` for local development only; the result then has `mountVerified: false`                     |
-| `BACKUP_STALL_TIMEOUT_SECONDS`                                           | `120`            | No-progress timeout for destination calls (the watchdog)                                          |
-| `POLL_INTERVAL_MS`                                                       | `5000`           | Poll interval; the API treats a worker as stale after 2 minutes (`WORKER_STALE_AFTER_MS`)         |
-| `BACKUP_PARALLELISM`, `BACKUP_HEARTBEAT_SECONDS`, `BACKUP_LEASE_SECONDS` | `1`, `60`, `300` | Read and validated, not used until the copy engine                                                |
+| Variable                                           | Default     | Purpose                                                                                           |
+| -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `POSTGRES_HOST/PORT/DATABASE/USER/PASSWORD`        | as the API  | The shared `homelab_api` database                                                                 |
+| `EXODUS_CREDENTIAL_KEY`                            | required    | 32 bytes, base64; the same value as `homelab-api`. Checked at startup, used by the copy engine    |
+| `BACKUP_DESTINATION_ID`                            | required    | UUID of the destination this worker serves                                                        |
+| `BACKUP_DESTINATION_PATH`                          | required    | Absolute container path of the mounted export. Existence is checked by validation, not at startup |
+| `BACKUP_DESTINATION_MOUNT_CHECK`                   | `nfs`       | `none` for local development only; the result then has `mountVerified: false`                     |
+| `BACKUP_STALL_TIMEOUT_SECONDS`                     | `120`       | No-progress timeout for destination calls (the watchdog) and for source reads                     |
+| `POLL_INTERVAL_MS`                                 | `5000`      | Poll interval; the API treats a worker as stale after 2 minutes (`WORKER_STALE_AFTER_MS`)         |
+| `BACKUP_HEARTBEAT_SECONDS`, `BACKUP_LEASE_SECONDS` | `60`, `300` | Lease length and how often it is extended while an item is copied                                 |
+| `BACKUP_PARALLELISM`                               | `1`         | Read and validated, not used yet: items copy one file at a time (M5)                              |
 
-**Poll loop.** Every poll calls `touchBackupDestinationWorker` (`worker_seen_at`). The worker validates its destination on the first poll and whenever `validation_requested_at` is set, then stores the result with `recordBackupDestinationValidation`, which sets `health` (`ok` or `unhealthy`), `last_validated_at` and `last_validation`, clears the request, and writes the `validated` or `unhealthy` audit event. A request made while it validates is cleared too. A missing destination row or a database error is logged and the loop carries on.
+**Poll loop.** Every poll calls `touchBackupDestinationWorker` (`worker_seen_at`). The worker validates its destination on the first poll and whenever `validation_requested_at` is set, then stores the result with `recordBackupDestinationValidation`, which sets `health` (`ok` or `unhealthy`), `last_validated_at` and `last_validation`, clears the request, and writes the `validated` or `unhealthy` audit event. A request made while it validates is cleared too. Then it copies (below). A missing destination row or a database error is logged and the loop carries on.
 
 **Validation** (`src/destination/validate.ts`; `/proc/mounts`, the filesystem, the clock and the random id are injected). Checks run in order and stop at the first fatal one:
 
@@ -98,9 +99,52 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 
 **Local development.** Point `BACKUP_DESTINATION_PATH` at a scratch directory with the mount check `none`, create a destination through `POST /backup-destinations` and put its id in `BACKUP_DESTINATION_ID`, then `POST /backup-destinations/:id/validate`. Integration tests (`pnpm test:int` in the app, same Postgres as `homelab-api`) run the real loop against a scratch directory. The image build and CI follow `video-worker`; CI finds the app through its `docker:publish`, `test:unit` and `test:int` scripts, and `scripts/docker-retag-prod.sh` lists it for the production retag.
 
+## Copy engine
+
+`apps/backup-worker/src/copy/`. Every step is safe to interrupt and repeat; the progress lives in `backup_entries`, the destination is only ever added to, and the one thing a killed attempt leaves behind (its staging files) is deleted when the next attempt starts.
+
+**Claiming.** After validation each poll calls `claimAndCopyNext` (`copy/run.ts`) until there is nothing to claim or an item cannot be finished. An idle claim runs `completeBackupJobIfDone` for each drained job id (that is how a job becomes `completed`). While an item is copied, a timer keeps `worker_seen_at` fresh every `POLL_INTERVAL_MS` and a second timer (`copy/heartbeat.ts`) extends the lease every `BACKUP_HEARTBEAT_SECONDS`, including while a large file is hashed. A validation request made during a long copy waits for the item to end. A rejected heartbeat (job cancelled, lease expired) aborts the transfer and the item is left alone: nothing more is written or recorded.
+
+**An item** (`copy/item.ts`):
+
+1. Check that `<mount>/<root_dir>` has no symlink on the way and delete the item's leftover staging folder.
+2. A **file item** has one entry with an empty `rel_path`. A **directory item** is listed once (`recurse ON; ls`, streamed) and every file and directory is upserted as a `pending` entry in batches of 500, with the root as `''`; entries inside a **carve-out** (a rejected nested item or an `exclude_subtree` rule) are skipped with their whole subtree. A subdirectory that cannot be listed becomes `failed` `unlistable`, or `not_followed` if `allinfo` shows the reparse bit. Then `enumeration_complete` is set. A retry lists again; nothing is duplicated.
+3. Entries are processed 100 at a time, in id order, only the `pending` ones (a `verified` entry is trusted and never touched again). The page is described first with one batched `allinfo`, before any of it is read.
+4. Directory entries are created (empty ones too). After all entries, the source modified time is set on every verified directory, deepest first, because writing children changes a directory's time.
+5. Remove the item's staging folder (and `.exodus-staging` when empty), then settle the item.
+
+**A file entry:**
+
+1. **Metadata first**, from `allinfo`: creation, access, write and change times, attribute letters, alternate stream names and sizes; then, if there is a `Zone.Identifier` stream, its text (4 KiB at most). Written to the entry only if not recorded yet (first capture wins), so a retry never replaces the originals even though the first read moved the source's access time.
+2. The destination path is `<source_dir_name>/<item dest_rel_path>/<rel_path>` with `\` as `/`; a name over 255 bytes is `name_too_long`; a path that resolves outside the source folder, or any symlink on the way, is `unsupported_path` and nothing is written.
+3. Parent directories are created one component at a time with an `lstat` of each (checked once per directory per process). A file where a directory must be is `dest_conflict`.
+4. The source is streamed into `.exodus-staging/<job item id>/<entry id>` while the SHA-256 is computed, then `fsync`ed. A stream shorter than the size `allinfo` reported is `read_failed` (a failing `smbclient` also is: see the gotcha below).
+5. **Placing never clobbers.** If the final path is free, `link(staging, final)` (a lost race, `EEXIST`, looks at the path again). If it holds a regular file of the same size and the same SHA-256, it is **adopted** (and given the source modified time if it has another). If it holds anything else, the copy goes to `<stem>.exodus-<first 8 characters of the job id><ext>` in the same folder (`kept_both`); that name holding identical content is adopted too, different content is `dest_conflict`, and a directory in the way is `dest_conflict`. The old file is never touched.
+6. Unlink the staging file, `utimes` the final file to the source modified time, read the destination back and compare the hash and size (`verify_mismatch` deletes only the file this attempt created).
+7. Record the entry `verified` with `sha256`, `size_bytes` and `dest_rel_path` (the path actually written, relative to `<source_dir_name>/`, suffix included).
+
+A junction or link (`allinfo` reparse bit) is recorded `not_followed` and left alone; it does not stop an item from being verified.
+
+**Settling an item** (`copy/finish.ts`, plan §4.2 step 6): no failed entry means `completeBackupItem`. Otherwise `failBackupItem` with a summary of the failures: one non-transient issue (`source_missing`, `name_too_long`, `unsupported_path`, `dest_conflict`, `unlistable`) blocks the item at once; only `read_failed`, `write_failed` and `verify_mismatch` requeue it behind the backoff until its attempts are used up, then it is `failed`. An unreadable root (the file or directory is gone) is a failed `source_missing` or `unlistable` root entry and a blocked item. A retry re-lists and copies only what is missing.
+
+**An item that does not settle** (`copy/run.ts`): a lost claim is left to the job; a source that stopped answering (`SourceUnreachableError`) is released with the attempt refunded and the loop waits for the next poll (the proper `source_unreachable` pause is M5); any other error fails the attempt as transient.
+
+**Writing to the destination.** Every call (`lstat`, `mkdir`, `open`, each `write`, `fsync`, `link`, `utimes`, each read of the hash pass) runs under the `DestinationWatchdog` on its own, not the whole file: a 500 MB file legitimately takes minutes, one write that takes minutes means a hung mount. Filesystem errors become `write_failed` entries with the errno; the release-and-mark-unhealthy handling of `EIO`, `ESTALE` and `ENOSPC` is M5.
+
+**Source access** (`packages/source-access`, [README](../../packages/source-access/README.md)). Findings of the M4 spike that shape the code (numbers in the [plan](./backup-design/plan.md#10-spike-results)):
+
+- Large file: 2.0 to 2.2 MB/s from the dev container (547 MB in about 4.5 minutes), network-bound.
+- Per-file `get` is about 100 ms: no batched `get` or tar. `allinfo` is batched, 100 paths and at most 64 KB of commands per `smbclient` session.
+- `ls` shows no junctions at all and cannot flag reparse points; the reparse bit (`0x400`) is in the hex attributes of `allinfo`.
+- `get ... -` prints its errors on **stdout**, in the data stream, and exits 1. The driver turns a non-zero exit into a `ConnectionError` on the stream; a consumer must not trust bytes read before that.
+- The account needs a share for a path: `C$` is denied for `alpha-centauri`, and the source only maps `C:\Users`. **`C:\backup-test\...` needs a mapping such as `C:\` to `C` before the first real run.**
+
+**Memory** (real run, 547 MB zip from `alpha-centauri` into a scratch directory, through the worker's claim-and-copy code): the Node process peaked at 117 MiB RSS (80 MiB idle, 30 MiB heap) and the `smbclient` child at 33 MiB, so about 150 MiB for the pod. The limit in the `home-kubernetes` issue is 256Mi, which leaves about 100 MiB; page cache from the NFS writes is counted by Kubernetes but is reclaimable. Watch `container_memory_working_set_bytes` in the first real run. Hash verification adds no memory (1 MiB read buffer).
+
 ## Gotchas
 
 - `drizzle.config.ts` lists schema files explicitly: a new schema file must be added there or `drizzle-kit generate` silently leaves its tables out.
-- `homelab-api` compiles `homelab-db` from `src/` without `strictNullChecks`, so a union discriminated on `item: null` does not narrow there. Use an `in` check (`'job' in result`).
+- The apps compile `homelab-db` and `source-access` from `src/` without `strictNullChecks`; `homelab-api` compiles `homelab-db` from `src/` without `strictNullChecks`, so a union discriminated on `item: null` does not narrow there. Use an `in` check (`'job' in result`).
 - `homelab-db` is compiled without `strictNullChecks` in the apps, so `{ ok: false } | { ok: true }` unions do not narrow on `ok` either (`checkNfsMount` is narrowed with `'message' in result`).
+- `smbclient ... get "path" -` reports a missing file, access denied or a dropped connection as text on stdout with exit code 1, never on stderr. Only the exit code tells data from an error.
 - Item responses are built without `claim_token` (`toItemView` in `services/backup/jobs.ts`), unlike discovery's queue item listings.

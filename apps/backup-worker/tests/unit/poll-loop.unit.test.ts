@@ -8,6 +8,7 @@ jest.mock('@abbottland/homelab-db', () => ({
   getBackupDestination: jest.fn(),
   recordBackupDestinationValidation: jest.fn(),
   claimNextBackupItem: jest.fn(),
+  completeBackupJobIfDone: jest.fn(),
   markBackupDestinationUnhealthy: jest.fn(),
 }));
 
@@ -43,6 +44,12 @@ describe('poll loop', () => {
     mocked.getBackupDestination.mockResolvedValue({
       id: 'dest-1',
       validationRequestedAt: null,
+    });
+    mocked.claimNextBackupItem.mockResolvedValue({
+      item: null,
+      reason: 'queue_empty',
+      retryAt: null,
+      drainedJobIds: [],
     });
   });
 
@@ -92,9 +99,44 @@ describe('poll loop', () => {
     expect(validateSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('never claims work', async () => {
+  it('claims once per poll when there is nothing to copy', async () => {
     startPollLoop();
-    await tick(3000);
+    await tick(0);
+    await tick(1000);
+
+    expect(mocked.claimNextBackupItem).toHaveBeenCalledTimes(2);
+    expect(mocked.claimNextBackupItem).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ destinationId: 'dest-1' }),
+    );
+  });
+
+  it('runs the completion check for every drained job', async () => {
+    mocked.claimNextBackupItem.mockResolvedValue({
+      item: null,
+      reason: 'queue_empty',
+      retryAt: null,
+      drainedJobIds: ['job-1', 'job-2'],
+    });
+    startPollLoop();
+    await tick(0);
+
+    expect(mocked.completeBackupJobIfDone).toHaveBeenCalledWith(
+      {},
+      'job-1',
+      expect.objectContaining({ type: 'system' }),
+    );
+    expect(mocked.completeBackupJobIfDone).toHaveBeenCalledWith(
+      {},
+      'job-2',
+      expect.objectContaining({ type: 'system' }),
+    );
+  });
+
+  it('does not claim when the destination row is missing', async () => {
+    mocked.getBackupDestination.mockResolvedValue(undefined);
+    startPollLoop();
+    await tick(2000);
 
     expect(mocked.claimNextBackupItem).not.toHaveBeenCalled();
   });

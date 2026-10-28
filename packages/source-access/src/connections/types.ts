@@ -24,6 +24,7 @@ export class ConnectionError extends Error {
       | 'no_share'
       | 'unreachable'
       | 'unsupported_path'
+      | 'stalled'
       | 'failed',
     message: string,
   ) {
@@ -39,6 +40,53 @@ export type DirEntry = {
   size: number;
   /** ISO timestamp; the source reports local time without a zone. */
   modifiedAt: string | null;
+};
+
+/** One item of a recursive listing. Paths are relative to the listed root, `\\`-separated. */
+export type TreeEntry =
+  | {
+      kind: 'entry';
+      relPath: string;
+      name: string;
+      isDirectory: boolean;
+      size: number;
+      /** Write time in UTC, to the second. */
+      modifiedAt: Date | null;
+      /** Attribute letters from the listing (`A`, `D`, `H`, `S`, `R`, `N`, `I`). */
+      attributes: string;
+    }
+  | {
+      /** A directory the listing could not enter. */
+      kind: 'error';
+      relPath: string;
+      code: ConnectionError['code'];
+      message: string;
+    };
+
+/** What `allinfo` reports about one path. Times are absolute instants. */
+export type FileInfo = {
+  isDirectory: boolean;
+  /** Size of the default data stream; 0 for a directory. */
+  size: number;
+  createdAt: Date;
+  accessedAt: Date;
+  modifiedAt: Date;
+  changedAt: Date;
+  /** Attribute letters, for example `A` or `RHS`. */
+  attributes: string;
+  /** The raw attribute bits (the number `allinfo` prints in hex). */
+  attributeBits: number;
+  /** Alternate data streams (never the default one). */
+  streams: { name: string; size: number }[];
+  /** The reparse-point bit: a junction or symbolic link. */
+  isReparsePoint: boolean;
+};
+
+export type OpenStreamOptions = {
+  /** Fails with `ConnectionError('stalled')` when no bytes arrive for this long. */
+  stallTimeoutMs: number;
+  /** Aborting kills the transfer; the stream is destroyed with the abort reason. */
+  signal?: AbortSignal;
 };
 
 /**
@@ -68,4 +116,40 @@ export interface ConnectionDriver {
   ): Promise<Buffer>;
   /** The direct children of a directory (no `.`/`..`). Throws ConnectionError. */
   list(target: ConnectionTarget, path: string): Promise<DirEntry[]>;
+  /**
+   * Every descendant of a directory, depth first, in one session (times in
+   * UTC). Streamed: the listing is never held in memory. Stop iterating to
+   * stop the transfer. Subdirectories that cannot be listed come as
+   * `kind: 'error'`. Throws ConnectionError if the root itself cannot be listed.
+   */
+  listTree(target: ConnectionTarget, path: string): AsyncIterable<TreeEntry>;
+  /**
+   * Metadata of many paths, one session per share and batch. The result has
+   * one item per input path, in order: the info, or the ConnectionError for
+   * that path (for example `not_found`). Never throws for a single path.
+   */
+  allinfo(
+    target: ConnectionTarget,
+    paths: string[],
+  ): Promise<(FileInfo | ConnectionError)[]>;
+  /**
+   * Streams a file. A stream that ends early gives no error, so compare the
+   * byte count with the size. Errors that happen after it starts are emitted
+   * on the stream (`ConnectionError`, including `stalled`).
+   */
+  openStream(
+    target: ConnectionTarget,
+    path: string,
+    options: OpenStreamOptions,
+  ): Readable;
+  /**
+   * The text of a small alternate stream (`Zone.Identifier`), cut at
+   * `maxBytes`; null if the file has no such stream.
+   */
+  readNamedStream(
+    target: ConnectionTarget,
+    path: string,
+    streamName: string,
+    maxBytes: number,
+  ): Promise<string | null>;
 }
