@@ -271,8 +271,10 @@ const toConnectionError = (err: unknown): ConnectionError =>
         err instanceof Error ? err.message : String(err),
       );
 
+// `in` rather than `ok`: apps compile this source without strictNullChecks,
+// where unions discriminated on a literal do not narrow.
 const blockToResult = (block: AllinfoBlock): FileInfo | ConnectionError =>
-  block.ok
+  'info' in block
     ? block.info
     : new ConnectionError(block.code, describeSmbError(block.message));
 

@@ -3,9 +3,9 @@ FROM ${BASE_IMAGE} AS builder
 
 FROM node:22-alpine AS runner
 
-# Reads files from the Windows source over SMB (packages/source-access, once
-# the copy engine lands). Installed here rather than in the shared runner
-# stage so other apps' images stay small; same reason as homelab-api.
+# Reads files from the Windows source over SMB (packages/source-access).
+# Installed here rather than in the shared runner stage so other apps'
+# images stay small; same reason as homelab-api.
 RUN apk add --no-cache samba-client
 
 RUN addgroup --system --gid 1001 nodejs \

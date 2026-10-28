@@ -22,6 +22,7 @@
   "dependencies": {
     "@abbottland/express": "workspace:*",
     "@abbottland/homelab-db": "workspace:*",
+    "@abbottland/source-access": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
     "dotenv": "^16.6.1",
     "express": "catalog:",
