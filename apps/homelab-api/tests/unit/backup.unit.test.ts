@@ -25,6 +25,7 @@ jest.mock('../../src/services/backup', () => {
     getJobItem: jest.fn(),
     listItemEntries: jest.fn(),
     retryItem: jest.fn(),
+    getCoverage: jest.fn(),
   };
 });
 
@@ -377,6 +378,70 @@ describe('backup routes', () => {
       await supertest(createServer())
         .post(`/backup-job-items/${ID}/retry`)
         .expect(409);
+    });
+  });
+
+  describe('backup coverage', () => {
+    const DEST = '223e4567-e89b-12d3-a456-426614174000';
+    const report = {
+      source: { id: ID, name: 'Alpha Centauri' },
+      destination: { id: DEST, name: 'Dump' },
+      generatedAt: new Date('2026-10-28T12:00:00Z'),
+      allAccounted: false,
+      items: [],
+    };
+
+    it('requires a destination and a known bucket', async () => {
+      await supertest(createServer())
+        .get(`/sources/${ID}/backup-coverage`)
+        .expect(400);
+      await supertest(createServer())
+        .get(
+          `/sources/${ID}/backup-coverage?destinationId=${DEST}&bucket=bogus`,
+        )
+        .expect(400);
+    });
+
+    it('answers the report as JSON, passing the bucket', async () => {
+      mocked.getCoverage.mockResolvedValue(report as never);
+
+      const res = await supertest(createServer())
+        .get(
+          `/sources/${ID}/backup-coverage?destinationId=${DEST}&bucket=failed`,
+        )
+        .expect(200);
+
+      expect(res.headers['content-disposition']).toBeUndefined();
+      expect(mocked.getCoverage).toHaveBeenCalledWith(
+        ID,
+        { destinationId: DEST, bucket: 'failed' },
+        false,
+      );
+    });
+
+    it('downloads the full report as a named file with format=json', async () => {
+      mocked.getCoverage.mockResolvedValue(report as never);
+
+      const res = await supertest(createServer())
+        .get(`/sources/${ID}/backup-coverage?destinationId=${DEST}&format=json`)
+        .expect(200);
+
+      expect(res.headers['content-disposition']).toBe(
+        'attachment; filename="backup-coverage-alpha-centauri-dump-2026-10-28.json"',
+      );
+      expect(res.headers['content-type']).toMatch(/application\/json/);
+      expect(JSON.parse(res.text).allAccounted).toBe(false);
+      expect(mocked.getCoverage.mock.calls[0][2]).toBe(true);
+    });
+
+    it('maps an unknown source to 404', async () => {
+      mocked.getCoverage.mockRejectedValue(
+        new service.BackupError('not_found', 'source not found'),
+      );
+
+      await supertest(createServer())
+        .get(`/sources/${ID}/backup-coverage?destinationId=${DEST}`)
+        .expect(404);
     });
   });
 });

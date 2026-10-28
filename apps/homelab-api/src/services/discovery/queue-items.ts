@@ -201,7 +201,7 @@ export const retryFailedItems = (jobId: string) =>
 export const retryItem = (id: string) => retryQueueItem(db, id);
 
 /** Reads the acknowledgements, inventory paths and on-disk reviews beneath `rootPath` once, for reviewing many directories. */
-async function loadReviewContext(
+export async function loadReviewContext(
   sourceId: string,
   rootPath: string,
 ): Promise<ReviewContext & { onDiskReviewed: ReadonlySet<string> }> {
