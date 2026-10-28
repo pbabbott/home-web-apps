@@ -4,7 +4,7 @@ import {
   normalizeWindowsPath,
   windowsPathName,
   windowsPathParent,
-} from '../../src/lib/windows-path';
+} from '../../src/windows-path';
 
 describe('normalizeWindowsPath', () => {
   it('lowercases the key but keeps original case for display', () => {

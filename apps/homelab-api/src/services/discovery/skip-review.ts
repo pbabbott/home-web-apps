@@ -1,5 +1,5 @@
 import type { QueueItemResult } from '@abbottland/homelab-db';
-import { normalizeWindowsPath } from '../../lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 
 /** What a human has done about the skips beneath a path. */
 export type ReviewContext = {

@@ -22,10 +22,15 @@ import {
 import { Readable } from 'node:stream';
 import { db } from '../../db';
 import {
+  buildConnectionTarget,
   ConnectionError,
+  CredentialKeyError,
+  encryptSecret,
   getConnectionDriver,
+  normalizeWindowsPath,
+  windowsPathParent,
   type ConnectionTarget,
-} from '../../lib/connections';
+} from '@abbottland/source-access';
 import { HttpError } from '../../lib/http-error';
 import { matchesNamePattern } from '../../lib/name-pattern';
 import { previewTypeOf, type PreviewType } from '../../lib/preview-types';
@@ -35,15 +40,6 @@ import {
   parseCentralDirectory,
   type ZipEntry,
 } from '../../lib/zip-listing';
-import {
-  CredentialKeyError,
-  decryptSecret,
-  encryptSecret,
-} from '../../lib/secret-box';
-import {
-  normalizeWindowsPath,
-  windowsPathParent,
-} from '../../lib/windows-path';
 import type { SaveSourceConnectionBody } from '../../schemas/discovery';
 import { childOf, classifyEntries, type DiskEntry } from './disk-coverage';
 import { reviewSkips } from './skip-review';
@@ -142,14 +138,7 @@ const loadTarget = async (
 
   return {
     connection,
-    target: {
-      address: host.ipAddress,
-      hostNames: [host.ipAddress, host.name],
-      username: connection.username,
-      domain: connection.domain,
-      password: decryptSecret(connection.secretCiphertext),
-      settings: connection.settings,
-    },
+    target: buildConnectionTarget(connection, host),
   };
 };
 

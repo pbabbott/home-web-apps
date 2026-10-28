@@ -3,7 +3,7 @@ import {
   isWithinPath,
   normalizeWindowsPath,
   windowsPathParent,
-} from '../../lib/windows-path';
+} from '@abbottland/source-access';
 
 export const toQueuePath = (path: string): QueuePath =>
   normalizeWindowsPath(path);

@@ -9,7 +9,7 @@ import {
   type SkipAcknowledgement,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { normalizeWindowsPath } from '../../lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 import type { SkipAcknowledgementBody } from '../../schemas/discovery';
 import { assertWithinClaimedDirectory } from './paths';
 

@@ -26,6 +26,7 @@
   "dependencies": {
     "@abbottland/express": "workspace:*",
     "@abbottland/homelab-db": "workspace:*",
+    "@abbottland/source-access": "workspace:*",
     "@abbottland/yaml-config": "workspace:*",
     "@kubernetes/client-node": "catalog:",
     "@modelcontextprotocol/sdk": "^1.32.1",

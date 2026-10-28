@@ -1,4 +1,4 @@
-import { decryptSecret, encryptSecret } from '../../src/lib/secret-box';
+import { decryptSecret, encryptSecret } from '../../src/secret-box';
 
 const KEY = Buffer.alloc(32, 7).toString('base64');
 

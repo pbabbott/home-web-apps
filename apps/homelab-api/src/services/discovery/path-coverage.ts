@@ -13,7 +13,7 @@ import {
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
 import { matchesNamePattern } from '../../lib/name-pattern';
-import { isWithinPath, normalizeWindowsPath } from '../../lib/windows-path';
+import { isWithinPath, normalizeWindowsPath } from '@abbottland/source-access';
 import { ancestorsOf } from './paths';
 
 /**

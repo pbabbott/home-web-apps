@@ -26,6 +26,12 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `eslint-config` — Shared ESLint presets (`server`, `library`, `react-internal`)
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
+- `source-access` — SMB driver, Windows path helpers, credential secret box, and connection-target builder shared by `homelab-api` (and the planned `backup-worker`). Schema stays in `homelab-db`.
+- `homelab-db` — Drizzle ORM schema, migrations, and query helpers for `homelab-api` (Postgres, Exodus). See [`packages/homelab-db/CLAUDE.md`](./packages/homelab-db/CLAUDE.md).
+- `fui-icons` — Icon components (simple-icons backed, lazy loading, plus hand-crafted custom SVGs). See [`packages/fui-icons/CLAUDE.md`](./packages/fui-icons/CLAUDE.md).
+- `next-middleware` — Shared Next.js route handlers (`healthz`, `metrics`) for the frontend apps
+- `logger` — Minimal shared logging helper
+- `node-22-alpine`, `node-22-dev` — Base Docker images (Alpine runtime; full Debian dev image) built with `abctl`
 - `video-db` — Drizzle ORM schema, migrations, and query helpers for `video-api` (Postgres). See [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
 
 ## Architecture
