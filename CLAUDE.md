@@ -26,6 +26,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `eslint-config` — Shared ESLint presets (`server`, `library`, `react-internal`)
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
+- `source-access` — SMB driver, Windows path helpers, credential secret box, and connection-target builder shared by `homelab-api` (and the planned `backup-worker`). Schema stays in `homelab-db`.
 - `video-db` — Drizzle ORM schema, migrations, and query helpers for `video-api` (Postgres). See [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
 
 ## Architecture

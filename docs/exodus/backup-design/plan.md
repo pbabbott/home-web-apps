@@ -295,7 +295,9 @@ All REST, human actor only, documented in OpenAPI (`/docs`).
 
 Each milestone is its own branch and PR, **started from `feat/exodus-refinement`** (a milestone that needs an unmerged earlier one branches from that milestone's branch). Each leaves the repo green: `pnpm build`, lint, `pnpm test:unit`, and where a database is involved `pnpm test:int` (needs `pnpm dev:deps`; **rebuild `homelab-db` after changing it**, `homelab-api` loads its `dist/`). Update docs in the same change (§8).
 
-### M0: extract the shared SMB code (pure refactor)
+### M0: extract the shared SMB code (pure refactor) — done
+
+Implemented on `feat/exodus-backup-m0-source-access`; tests moved to `packages/source-access/tests/unit/`.
 
 Branch `feat/exodus-backup-m0-source-access`.
 
