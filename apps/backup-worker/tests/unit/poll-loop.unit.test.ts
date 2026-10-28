@@ -1,6 +1,5 @@
 import * as homelabDb from '@abbottland/homelab-db';
 import * as pauses from '../../src/copy/pauses';
-import * as staging from '../../src/copy/staging-cleanup';
 import { DESTINATION_KEY } from '../../src/copy/pause-tracker';
 import { runtimePauses } from '../../src/destination/runtime';
 import * as validate from '../../src/destination/validate';
@@ -17,11 +16,6 @@ jest.mock('@abbottland/homelab-db', () => ({
 }));
 
 jest.mock('../../src/db', () => ({ db: {} }));
-
-// Real file I/O would not settle under fake timers.
-jest.mock('../../src/copy/staging-cleanup', () => ({
-  removeStaleStaging: jest.fn().mockResolvedValue([]),
-}));
 
 jest.mock('../../src/copy/pauses', () => ({
   resumeReachableSources: jest.fn(),
@@ -137,21 +131,6 @@ describe('poll loop', () => {
       expect(pauses.stallDestinationJobs).toHaveBeenCalledTimes(1);
       expect(pauses.resumeDestinationJobs).toHaveBeenCalledTimes(1);
     });
-  });
-
-  it('removes stale staging after the first validation only', async () => {
-    startPollLoop();
-    await tick(0);
-    expect(staging.removeStaleStaging).toHaveBeenCalledTimes(1);
-
-    mocked.getBackupDestination.mockResolvedValue({
-      id: 'dest-1',
-      validationRequestedAt: new Date(),
-    });
-    await tick(1000);
-
-    expect(validateSpy).toHaveBeenCalledTimes(2);
-    expect(staging.removeStaleStaging).toHaveBeenCalledTimes(1);
   });
 
   it('touches worker_seen_at on every poll', async () => {

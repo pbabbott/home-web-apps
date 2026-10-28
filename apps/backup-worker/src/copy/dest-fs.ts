@@ -310,18 +310,6 @@ export class DestFs {
     await this.call('utimes', abs, () => this.deps.fs.utimes(abs, time, time));
   }
 
-  /** The item ids that have a staging folder (leftovers of killed attempts). */
-  async listStaging(): Promise<string[]> {
-    const root = path.join(this.baseRoot, STAGING_DIR);
-
-    try {
-      return await this.call('readdir', root, () => this.deps.fs.readdir(root));
-    } catch (err) {
-      if (err instanceof DestWriteError && err.code === 'ENOENT') return [];
-      throw err;
-    }
-  }
-
   /** Deletes the staging folder of an item (leftovers of a killed attempt). */
   async removeItemStaging(stagingItemDir: string): Promise<void> {
     await this.call('rm', stagingItemDir, () =>

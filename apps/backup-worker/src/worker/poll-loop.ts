@@ -1,21 +1,14 @@
 import {
   getBackupDestination,
-  getBackupJobItem,
   recordBackupDestinationValidation,
   touchBackupDestinationWorker,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
 import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
-import { removeStaleStaging } from '../copy/staging-cleanup';
 import { DESTINATION_KEY } from '../copy/pause-tracker';
 import { resumeDestinationJobs, stallDestinationJobs } from '../copy/pauses';
-import {
-  getWatchdog,
-  makeDestFs,
-  runtimePauses,
-  workerId,
-} from '../destination/runtime';
+import { getWatchdog, runtimePauses, workerId } from '../destination/runtime';
 import { requestShutdown, resetShutdown } from './shutdown';
 import {
   defaultValidationDeps,
@@ -36,23 +29,6 @@ const scheduleNextPoll = (delayMs: number) => {
       currentPoll = undefined;
     });
   }, delayMs);
-};
-
-/** At startup, deletes staging left by cancelled jobs and killed attempts. */
-const cleanStaleStaging = async (rootDir: string | null): Promise<void> => {
-  try {
-    const removed = await removeStaleStaging(
-      makeDestFs(rootDir),
-      async (itemId) =>
-        (await getBackupJobItem(db, itemId))?.status === 'in_progress',
-    );
-
-    if (removed.length > 0) {
-      console.log(`🧹 removed stale staging of ${removed.length} item(s)`);
-    }
-  } catch (err) {
-    console.error('⚠️  could not clean stale staging:', err);
-  }
 };
 
 /**
@@ -122,16 +98,10 @@ export const pollOnce = async (): Promise<void> => {
         workerId,
         validation,
       });
-      const firstValidation = !validatedOnce;
-
       validatedOnce = true;
 
-      if (validation.ok) {
-        await resumeDestinationJobs();
-        if (firstValidation) await cleanStaleStaging(destination.rootDir);
-      } else {
-        await stallDestinationJobs(runtimePauses);
-      }
+      if (validation.ok) await resumeDestinationJobs();
+      else await stallDestinationJobs(runtimePauses);
 
       console.log(
         validation.ok

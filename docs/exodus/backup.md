@@ -85,7 +85,7 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 
 **Poll loop.** Every poll calls `touchBackupDestinationWorker` (`worker_seen_at`). The worker validates its destination on the first poll and whenever `validation_requested_at` is set, then stores the result with `recordBackupDestinationValidation`, which sets `health` (`ok` or `unhealthy`), `last_validated_at` and `last_validation`, clears the request, and writes the `validated` or `unhealthy` audit event. A request made while it validates is cleared too. Then it copies (below). A missing destination row or a database error is logged and the loop carries on.
 
-A destination whose `health` is `unhealthy` is **validated again by itself** once its backoff is over (30 s, doubling to 5 minutes), without waiting for a human to press Validate. A validation that passes resumes the jobs paused as `destination_unhealthy`; one that fails pauses them (see [Pauses](#pauses-and-shutdown)). After the first validation of a process, staging folders of items that are not `in_progress` are deleted (leftovers of cancelled jobs and killed attempts; names that are not item ids are left alone).
+A destination whose `health` is `unhealthy` is **validated again by itself** once its backoff is over (30 s, doubling to 5 minutes), without waiting for a human to press Validate. A validation that passes resumes the jobs paused as `destination_unhealthy`; one that fails pauses them (see [Pauses](#pauses-and-shutdown)).
 
 **Validation** (`src/destination/validate.ts`; `/proc/mounts`, the filesystem, the clock and the random id are injected). Checks run in order and stop at the first fatal one:
 
