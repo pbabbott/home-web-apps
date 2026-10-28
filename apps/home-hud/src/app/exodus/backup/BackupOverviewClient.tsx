@@ -33,6 +33,7 @@ import {
   validateBackupDestination,
 } from '../sources/lib/actions';
 import type { BackupDestination, BackupJob } from '../sources/lib/homelab-api';
+import { AddDestinationModal } from './AddDestinationModal';
 import { BackupPicker } from './BackupPicker';
 import { StartBackupModal } from './StartBackupModal';
 
@@ -56,6 +57,7 @@ export function BackupOverviewClient({
 }: Props) {
   const router = useRouter();
   const [startOpen, setStartOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,21 +89,26 @@ export function BackupOverviewClient({
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
-      <div className="flex flex-col gap-2">
-        <Typography variant="h1" component="h1">
-          Backup
-        </Typography>
-        <Typography variant="body2" className="text-neutral-400">
-          Copies approved inventory to an NFS destination and checks every file
-          by hash.
-        </Typography>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-2">
+          <Typography variant="h1" component="h1">
+            Backup
+          </Typography>
+          <Typography variant="body2" className="text-neutral-400">
+            Copies approved inventory to an NFS destination and checks every
+            file by hash.
+          </Typography>
+        </div>
+        <OutlinedButton size="small" onClick={() => setAddOpen(true)}>
+          + Add Destination
+        </OutlinedButton>
       </div>
 
       {!sourceId || !destination ? (
         <Typography variant="body2" className="text-neutral-400">
           {sources.length === 0
             ? 'No sources yet.'
-            : 'No backup destination is registered. Register one with POST /backup-destinations on homelab-api (see the Exodus operations guide), then validate it here.'}
+            : 'No backup destination is registered. Add one to continue.'}
         </Typography>
       ) : (
         <>
@@ -289,6 +296,15 @@ export function BackupOverviewClient({
             />
           )}
         </>
+      )}
+
+      {addOpen && (
+        <AddDestinationModal
+          onOpenChange={setAddOpen}
+          onCreated={(created) =>
+            router.push(backupOverviewUrl(sourceId ?? undefined, created.id))
+          }
+        />
       )}
     </main>
   );

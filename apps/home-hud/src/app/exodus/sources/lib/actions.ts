@@ -467,3 +467,22 @@ export async function listBackupEntries(
 
   return send('GET', `/backup-job-items/${itemId}/entries?${query}`);
 }
+
+export interface CreateBackupDestinationInput {
+  name: string;
+  server: string;
+  exportPath: string;
+  /** Folder under the mount; omit for the mount root. */
+  rootDir?: string;
+}
+
+/** Registers an NFS destination. Where it is mounted is the worker's environment, not this. */
+export async function createBackupDestination(
+  input: CreateBackupDestinationInput,
+): Promise<ActionResult<BackupDestination>> {
+  return post<BackupDestination>('/backup-destinations', {
+    name: input.name,
+    settings: { server: input.server, exportPath: input.exportPath },
+    rootDir: input.rootDir || null,
+  });
+}

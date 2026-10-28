@@ -338,7 +338,7 @@ Implemented on `feat/exodus-backup-m5-ops`; the built behaviour is in [`docs/exo
 
 ### M6: home-hud pages — done
 
-Implemented on `feat/exodus-backup-m6-ui`; the built pages are in [`docs/exodus/ui.md`](../ui.md#backup). No backend or schema change. Unit tests for the display helpers: `apps/home-hud/tests/unit/backup-display.unit.test.ts`; the pages themselves have no automated test and were not exercised against a live API (type-check, lint and `next build` pass). Decisions taken during it: the overview offers Validate and Enable/Disable but not creating or editing a destination (still the API, per the runbook); the Start dialog plans on open and creates on confirm; the JSON download goes through a same-origin route; the root `.gitignore` had to un-ignore the `backup/coverage` route folder.
+Implemented on `feat/exodus-backup-m6-ui`; the built pages are in [`docs/exodus/ui.md`](../ui.md#backup). No backend or schema change. Unit tests for the display helpers: `apps/home-hud/tests/unit/backup-display.unit.test.ts`; the pages themselves have no automated test and were not exercised against a live API (type-check, lint and `next build` pass). Decisions taken during it: the overview offers Add Destination, Validate and Enable/Disable but not editing a destination (still the API); the Start dialog plans on open and creates on confirm; the JSON download goes through a same-origin route; the root `.gitignore` had to un-ignore the `backup/coverage` route folder.
 
 ### First real run (runbook, after M0 to M5)
 
