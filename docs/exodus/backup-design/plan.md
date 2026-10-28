@@ -6,7 +6,7 @@ Copy approved inventory items from a source machine (SMB) to an NFS destination,
 
 **Read [facts.md](./facts.md) first.** It holds the decisions that are fixed and the environment facts this plan relies on. This plan does not repeat them; it says what to build.
 
-**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. Nothing here is built yet.
+**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M3 are built (see §7).
 
 ---
 
@@ -324,15 +324,9 @@ Branch `feat/exodus-backup-m1-schema`.
 
 Implemented on `feat/exodus-backup-m2-api`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#api). Integration tests are `apps/homelab-api/tests/integration/backup-api.integration.test.ts`, unit tests `backup*.unit.test.ts`. Two decisions were taken during it: there is **no `start` route** (the first claim moves `planned` to `running`), and the existing-folder warning reads `last_validation.rootEntries`, which M3 must fill.
 
-### M3: `apps/backup-worker` scaffold, validation, build and CI
+### M3: `apps/backup-worker` scaffold, validation, build and CI — done
 
-Branch `feat/exodus-backup-m3-worker`.
-
-- App copied from `apps/video-worker`'s structure (`config.ts` with §6, `db.ts`, `server.ts`, `process.ts`, `worker/poll-loop.ts`, `lib/safe-path.ts` plus the symlink check, Dockerfile with `apk add samba-client`, `abctl.yml`/`abctl.base.yml`, `docker-compose.yaml` for local dev against a sample directory, `sample.env`, README).
-- Destination validation (§6) with injectable `/proc/mounts`, filesystem and clock. **Also report `rootEntries`**: the names directly under `<mount>/<root_dir>` (a read-only listing, capped), stored in `last_validation.rootEntries`; the API uses it to warn that a source folder already exists; `worker_seen_at` and `validation_requested_at` handling; the destination watchdog and `/readyz` behaviour. The worker does not copy yet.
-- Image build, publication and CI wiring following `video-worker` (`docs/dev-guide-publication.md`, `.github/CLAUDE.md`).
-- Create the **GitHub issue in `pbabbott/home-kubernetes`** with the body in Appendix A (use `gh`; **confirm the text with the user before creating**). Do not touch that repository otherwise.
-- Tests: validation unit tests (wrong mount type, wrong `server:exportPath`, symlinked root, probe failures, `mountVerified: false` when the check is `none`, the probe folder removed, nothing left under the root); integration: `POST …/validate` → worker clears the request and writes `last_validation`.
+Implemented on `feat/exodus-backup-m3-worker`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#worker). Unit tests are `apps/backup-worker/tests/unit/`, the validation round trip (request, worker answers, `last_validation` and `rootEntries` written) is `tests/integration/validation.integration.test.ts` in the worker, not in `homelab-api`, so no app imports another. The `home-kubernetes` issue (Appendix A) is pending the user's confirmation of its text.
 
 ### M4: the copy engine
 
