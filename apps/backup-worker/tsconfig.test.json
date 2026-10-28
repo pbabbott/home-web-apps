@@ -1,0 +1,8 @@
+{
+  "description": "Typescript configuration for running tests",
+  "extends": "@abbottland/typescript-config/ts-server-test.json",
+  "compilerOptions": {
+    "skipLibCheck": true
+  },
+  "include": ["**/*.test.ts"]
+}
