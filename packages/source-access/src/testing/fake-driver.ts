@@ -38,6 +38,8 @@ export type FakeFault =
   | { kind: 'short'; bytes: number; times?: number }
   | { kind: 'error'; afterBytes: number; times?: number }
   | { kind: 'stall'; afterBytes: number; times?: number }
+  /** Sends `afterBytes`, then nothing: ends with `stalled` after the stall timeout, or when aborted. */
+  | { kind: 'hang'; afterBytes: number; times?: number }
   | { kind: 'unreachable'; times?: number };
 
 const DEFAULT_TIME = new Date('2020-01-02T03:04:05Z');
@@ -56,6 +58,9 @@ export class FakeDriver implements ConnectionDriver {
   readonly calls: string[] = [];
   /** When true every call fails as an unreachable machine would. */
   unreachable = false;
+  /** Reads in flight now, and the most there have been at once. */
+  activeReads = 0;
+  maxConcurrentReads = 0;
   private readonly nodes = new Map<string, Node>();
   private readonly faults = new Map<string, FakeFault[]>();
   /** Called before each chunk of a read is emitted; throw to abort. */
@@ -283,6 +288,23 @@ export class FakeDriver implements ConnectionDriver {
     options: OpenStreamOptions,
   ): AsyncGenerator<Buffer> {
     this.assertReachable();
+    this.activeReads += 1;
+    this.maxConcurrentReads = Math.max(
+      this.maxConcurrentReads,
+      this.activeReads,
+    );
+
+    try {
+      yield* this.readNode(path, options);
+    } finally {
+      this.activeReads -= 1;
+    }
+  }
+
+  private async *readNode(
+    path: string,
+    options: OpenStreamOptions,
+  ): AsyncGenerator<Buffer> {
     const fault = this.nextFault(path);
 
     if (fault?.kind === 'unreachable') {
@@ -296,7 +318,9 @@ export class FakeDriver implements ConnectionDriver {
     node.times.accessedAt = new Date(Math.floor(Date.now() / 1000) * 1000);
 
     const failsAfter =
-      fault?.kind === 'error' || fault?.kind === 'stall'
+      fault?.kind === 'error' ||
+      fault?.kind === 'stall' ||
+      fault?.kind === 'hang'
         ? fault.afterBytes
         : undefined;
     const limit = Math.min(
@@ -310,11 +334,35 @@ export class FakeDriver implements ConnectionDriver {
       this.onChunk?.(path, offset);
       yield node.content.subarray(offset, Math.min(offset + CHUNK, limit));
     }
+    if (fault?.kind === 'hang' && failsAfter! <= node.content.length) {
+      await this.hang(options);
+    }
     if (failsAfter !== undefined && failsAfter <= node.content.length) {
       throw fault?.kind === 'stall'
         ? new ConnectionError('stalled', 'no data from the source')
         : new ConnectionError('failed', 'read failed');
     }
+  }
+
+  /** Sends nothing until the stall timeout (then `stalled`) or the abort. */
+  private hang(options: OpenStreamOptions): Promise<never> {
+    return new Promise((_resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new ConnectionError('stalled', 'no data from the source')),
+        options.stallTimeoutMs,
+      );
+      const onAbort = () => {
+        clearTimeout(timer);
+        reject(
+          options.signal?.reason instanceof Error
+            ? options.signal.reason
+            : new Error('transfer aborted'),
+        );
+      };
+
+      if (options.signal?.aborted) return onAbort();
+      options.signal?.addEventListener('abort', onAbort, { once: true });
+    });
   }
 
   async readNamedStream(
