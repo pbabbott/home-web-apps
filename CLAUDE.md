@@ -16,7 +16,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
-- `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it today, copies inventory later. See [Exodus backup](./docs/exodus/backup.md#worker).
+- `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [Exodus backup](./docs/exodus/backup.md#worker).
 
 **Packages** (`/packages`):
 
@@ -27,7 +27,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `eslint-config` — Shared ESLint presets (`server`, `library`, `react-internal`)
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
-- `source-access` — SMB driver, Windows path helpers, credential secret box, and connection-target builder shared by `homelab-api` (and the planned `backup-worker`). Schema stays in `homelab-db`.
+- `source-access` — SMB driver (preview, tree listing, batched `allinfo`, streaming reads), Windows path helpers, credential secret box, connection-target builder and a fake driver for tests, shared by `homelab-api` and `backup-worker`. Schema stays in `homelab-db`. See [`packages/source-access/README.md`](./packages/source-access/README.md).
 - `homelab-db` — Drizzle ORM schema, migrations, and query helpers for `homelab-api` (Postgres, Exodus). See [`packages/homelab-db/CLAUDE.md`](./packages/homelab-db/CLAUDE.md).
 - `fui-icons` — Icon components (simple-icons backed, lazy loading, plus hand-crafted custom SVGs). See [`packages/fui-icons/CLAUDE.md`](./packages/fui-icons/CLAUDE.md).
 - `next-middleware` — Shared Next.js route handlers (`healthz`, `metrics`) for the frontend apps
