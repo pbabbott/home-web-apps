@@ -6,12 +6,12 @@ The purpose of this document is to explain what `backup-worker` is and how the a
 
 `backup-worker` copies approved Exodus inventory from a Windows source (SMB) to an NFS export. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). The design is in [`docs/exodus/backup-design`](../../docs/exodus/backup-design/README.md), what is built in [`docs/exodus/backup.md`](../../docs/exodus/backup.md#worker).
 
-It validates its destination, claims backup job items and copies them (hashed, staged, resumable; see [Copy engine](../../docs/exodus/backup.md#copy-engine)). Stall handling, `SIGTERM` release, source and destination pauses and `BACKUP_PARALLELISM` come in a later milestone. It calls `@abbottland/homelab-db` directly and has no HTTP routes besides `GET /healthz` and `GET /readyz`; the SMB access is `@abbottland/source-access`.
+It validates its destination, claims backup job items and copies them (hashed, staged, resumable; see [Copy engine](../../docs/exodus/backup.md#copy-engine)). It pauses a job whose source is unreachable and the jobs of a destination that is unhealthy (no attempts are spent), releases the item in flight on `SIGTERM`, stops extending the lease when a destination call stalls, and copies `BACKUP_PARALLELISM` files of an item at once (see [Pauses and shutdown](../../docs/exodus/backup.md#pauses-and-shutdown)). It calls `@abbottland/homelab-db` directly and has no HTTP routes besides `GET /healthz` and `GET /readyz`; the SMB access is `@abbottland/source-access`.
 
 The process runs two things side by side:
 
-- An Express server with `GET /healthz` (liveness) and `GET /readyz` (readiness). `/readyz` is `503` when PostgreSQL is unreachable, the schema is behind, or a destination call is stalled. `/healthz` is `503` only when a destination call has been stalled for longer than twice `BACKUP_STALL_TIMEOUT_SECONDS`, so Kubernetes restarts the pod.
-- A poll loop that, every `POLL_INTERVAL_MS`, updates `worker_seen_at`, validates the destination at startup and whenever `validation_requested_at` is set, and then claims and copies items until there is nothing to claim. While an item is copied, `worker_seen_at` and the item's lease are kept fresh by timers.
+- An Express server with `GET /healthz` (liveness) and `GET /readyz` (readiness). `/readyz` is `503` when PostgreSQL is unreachable, the schema is behind, or a destination call is stalled. `/healthz` is `503` only when a destination call has been stalled for longer than twice `BACKUP_STALL_TIMEOUT_SECONDS`, so Kubernetes restarts the pod; meanwhile the worker stops extending the item's lease and reporting `worker_seen_at`.
+- A poll loop that, every `POLL_INTERVAL_MS`, updates `worker_seen_at`, validates the destination at startup, whenever `validation_requested_at` is set and, with a backoff, while it is `unhealthy`, and then claims and copies items until there is nothing to claim. While an item is copied, `worker_seen_at` and the item's lease are kept fresh by timers.
 
 Migrations are applied at startup under the advisory lock, as in `video-worker`.
 
@@ -46,7 +46,7 @@ pnpm test:unit
 pnpm test:int   # needs pnpm dev:deps
 ```
 
-The copy tests (`tests/integration/copy.integration.test.ts`) use the `FakeDriver` from `@abbottland/source-access`, a temporary directory as the destination and the real local Postgres, which they clean up. They include a run that kills the worker at every fault point of a directory copy (the `fault` hook of `claimAndCopyNext`) and compares the rerun with an uninterrupted copy. One file: `pnpm exec jest --config jest.config.ts --selectProjects integration --runInBand --runTestsByPath tests/integration/copy.integration.test.ts`.
+The copy tests (`tests/integration/copy.integration.test.ts`) use the `FakeDriver` from `@abbottland/source-access`, a temporary directory as the destination and the real local Postgres, which they clean up. They include a run that kills the worker at every fault point of a directory copy (the `fault` hook of `claimAndCopyNext`) and compares the rerun with an uninterrupted copy. The resilience tests (`tests/integration/resilience.integration.test.ts`) cover the failure modes: a source that stops sending, an unreachable source, a destination call that never returns, NFS errnos, `SIGTERM` mid-copy, a cancelled job, human retry and rerun, lease expiry and `BACKUP_PARALLELISM` above 1. One file: `pnpm exec jest --config jest.config.ts --selectProjects integration --runInBand --runTestsByPath tests/integration/copy.integration.test.ts`.
 
 ## Docker image
 

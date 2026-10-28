@@ -2,7 +2,7 @@
 
 [← Project Exodus](../README.md)
 
-**Only milestones M0 to M4 are built** (see [backup.md](../backup.md) for what exists). This folder plans copying approved inventory items to an NFS destination. It lives apart from the rest of `docs/exodus/`, which describes what exists, so a proposal is not mistaken for a fact about the system.
+**Only milestones M0 to M5 are built** (see [backup.md](../backup.md) for what exists). This folder plans copying approved inventory items to an NFS destination. It lives apart from the rest of `docs/exodus/`, which describes what exists, so a proposal is not mistaken for a fact about the system.
 
 - [Facts](./facts.md) - what you confirmed, and what was observed in the environment. Read first.
 - [Plan](./plan.md) - the data model, behaviour, API, and the milestones (M0 to M6) to build, each sized for its own session, branch and PR.
