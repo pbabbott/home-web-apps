@@ -37,6 +37,8 @@ const scheduleNextPoll = (delayMs: number) => {
  */
 const copyWhileWorkExists = async (): Promise<void> => {
   const keepAlive = setInterval(() => {
+    // A worker stuck on a hung mount must look dead, not busy.
+    if (getWatchdog().state().stalled) return;
     touchBackupDestinationWorker(db, config.backupDestinationId).catch((err) =>
       console.error('❌ could not report that the worker is alive:', err),
     );

@@ -16,7 +16,12 @@ import {
 } from '@abbottland/source-access';
 import { config } from '../config';
 import { db } from '../db';
-import { getWatchdog, runtimePauses, workerId } from '../destination/runtime';
+import {
+  getWatchdog,
+  onDestinationStall,
+  runtimePauses,
+  workerId,
+} from '../destination/runtime';
 import type { CopyContext, FaultHook } from './context';
 import { DestFs, defaultDestFsDeps, type DestFsDeps } from './dest-fs';
 import {
@@ -44,6 +49,8 @@ export type RunOptions = {
   fsDeps?: DestFsDeps;
   /** Backoff state for paused jobs; tests pass one with a fake clock. */
   pauses?: PauseTracker;
+  /** Heartbeat interval in ms; defaults to `BACKUP_HEARTBEAT_SECONDS`. */
+  heartbeatMs?: number;
   /** Replaces the mount check that runs before each item. */
   preflight?: () => Promise<void>;
 };
@@ -106,8 +113,21 @@ export const claimAndCopyNext = async (
     { id: item.id, claimToken },
     {
       leaseSeconds: config.backupLeaseSeconds,
-      intervalMs: config.backupHeartbeatSeconds * 1000,
+      intervalMs: options.heartbeatMs ?? config.backupHeartbeatSeconds * 1000,
+      shouldBeat: () => !getWatchdog().state().stalled,
     },
+  );
+  // A stalled destination call cannot be cancelled, but the rest of the item
+  // (the source transfer, the next steps) stops as soon as it returns.
+  const stalled = new AbortController();
+  const stopListening = onDestinationStall((operation) =>
+    stalled.abort(
+      new DestinationUnhealthyError(
+        operation,
+        'STALLED',
+        `${operation} made no progress for ${Math.round(config.backupStallTimeoutSeconds)}s`,
+      ),
+    ),
   );
 
   let ctx: CopyContext | undefined;
@@ -133,7 +153,7 @@ export const claimAndCopyNext = async (
           ),
       ),
       stallTimeoutMs: config.backupStallTimeoutSeconds * 1000,
-      signal: heartbeat.signal,
+      signal: AbortSignal.any([heartbeat.signal, stalled.signal]),
       fault: options.fault ?? (() => undefined),
       preflight:
         options.preflight ??
@@ -158,6 +178,7 @@ export const claimAndCopyNext = async (
     return await abandon({ ctx, item, job, claimToken, err, pauses });
   } finally {
     heartbeat.stop();
+    stopListening();
   }
 };
 
