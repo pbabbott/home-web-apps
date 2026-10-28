@@ -113,7 +113,7 @@ Tools call the same service layer as the controllers; not-found/conflict errors 
 
 ## Exodus backup
 
-Copies approved inventory items from a source to an NFS destination. This API plans, controls and reports; it never touches the NAS. A separate worker (not built yet) claims the items, copies and verifies them. What is built and how it behaves: [`docs/exodus/backup.md`](../../docs/exodus/backup.md); the plan: [`docs/exodus/backup-design/`](../../docs/exodus/backup-design/README.md). Every route is REST-only and **human-only** (`X-Actor-Type` other than `human` gets `403`); there are no MCP tools.
+Copies approved inventory items from a source to an NFS destination. This API plans, controls and reports; it never touches the NAS. A separate worker (`apps/backup-worker`) claims the items, copies and verifies them. What is built and how it behaves: [`docs/exodus/backup.md`](../../docs/exodus/backup.md); the plan: [`docs/exodus/backup-design/`](../../docs/exodus/backup-design/README.md). Every route is REST-only and **human-only** (`X-Actor-Type` other than `human` gets `403`); there are no MCP tools.
 
 | Route                                                                                          | Purpose                                                                                                                                  |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |

@@ -2,9 +2,9 @@
 
 [← Project Exodus](./README.md)
 
-Copying approved inventory to an NFS destination. The design and the remaining milestones are in [backup-design](./backup-design/README.md); this page describes only what exists.
+Copying approved inventory to an NFS destination. The design is in [backup-design](./backup-design/README.md); this page describes only what exists.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3), the copy engine (M4) and its resilience (M5: pauses, shutdown, a stalled mount, parallelism) in `apps/backup-worker`. A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart. Not built yet: the UI (M6).
+**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3), the copy engine (M4) and its resilience (M5: pauses, shutdown, a stalled mount, parallelism) in `apps/backup-worker`. A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart. The home-hud pages (M6) show destination health, plan and create a job, follow it, and report coverage; see [UI](./ui.md#backup).
 
 ## Data model
 

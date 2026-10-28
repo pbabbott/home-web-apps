@@ -6,7 +6,7 @@ Copy approved inventory items from a source machine (SMB) to an NFS destination,
 
 **Read [facts.md](./facts.md) first.** It holds the decisions that are fixed and the environment facts this plan relies on. This plan does not repeat them; it says what to build.
 
-**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M5 are built (see §7).
+**Working in a fresh session:** pick one milestone from §7, read §3 to §6 for the parts it touches, and follow the repo rules in facts.md §2 ("Existing code"). Each milestone is its own branch and PR (§7), and ends with updated docs. M0 to M6 are built (see §7).
 
 ---
 
@@ -267,7 +267,7 @@ All REST, human actor only, documented in OpenAPI (`/docs`).
 | `POST /backup-jobs/:id/rerun-unresolved`                                 | New job from the failed and blocked items of a finished job.                   |
 | `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`    | Coverage report; `format=json` downloads the full report.                      |
 
-**home-hud (last milestone, minimal):** a new **Backup** entry under Exodus (`/exodus/backup`). Overview: destination health (and "no worker running" when `worker_seen_at` is stale), a Validate button, and one **Start backup job** button that runs `plan`, shows the numbers (items to copy, excluded, not eligible, estimated size, items without an estimate, warnings) and on confirm creates the job (the worker picks it up). Job page: status and `stalledReason`, derived progress, item list with status and last error, Cancel. Coverage page: buckets, `allAccounted`, discovery status, Download JSON. Follow the existing Exodus pages: all text through `Typography` with no font or colour overrides, `fui-components` only from client components, server actions return results instead of throwing (`docs/exodus/ui.md`, `decisions.md`).
+**home-hud (M6, built):** a new **Backup** entry under Exodus (`/exodus/backup`). Overview: destination health (and "no worker running" when `worker_seen_at` is stale), a Validate button, and one **Start backup job** button that runs `plan`, shows the numbers (items to copy, excluded, not eligible, estimated size, items without an estimate, warnings) and on confirm creates the job (the worker picks it up). Job page: status and `stalledReason`, derived progress, item list with status and last error, Cancel. Coverage page: buckets, `allAccounted`, discovery status, Download JSON. Follow the existing Exodus pages: all text through `Typography` with no font or colour overrides, `fui-components` only from client components, server actions return results instead of throwing (`docs/exodus/ui.md`, `decisions.md`).
 
 ---
 
@@ -336,9 +336,9 @@ Implemented on `feat/exodus-backup-m4-copy`; the built behaviour is in [`docs/ex
 
 Implemented on `feat/exodus-backup-m5-ops`; the built behaviour is in [`docs/exodus/backup.md`](../backup.md#pauses-and-shutdown) and the runbook in [`docs/exodus/operations.md`](../operations.md#running-the-backup-worker). Tests: `apps/backup-worker/tests/integration/resilience.integration.test.ts` (one test per failure mode of the original list, plus the NFS errno table, retry, rerun, lease-expiry batching and parallelism with a kill) and unit tests beside it; `FakeDriver` gained a `hang` fault and a read concurrency counter. No schema change. Decisions taken during it: a source is only called unreachable if a connection test also fails (otherwise the attempt counts); a source read stall is a transient `read_failed`, not a pause; an unhealthy destination is validated again by itself with a backoff; the item's staging is deleted when its claim is lost (a startup sweep of orphaned staging was left out); `BACKUP_PARALLELISM` is a pool within a page of entries. Memory: about 150 MiB at N=1 and 250 MiB at N=4 (smbclient children dominate), so 256Mi holds for the default and N of 3 or more needs a bigger limit. The real NFS mount is still unmeasured.
 
-### M6: home-hud pages (last, minimal)
+### M6: home-hud pages — done
 
-Branch `feat/exodus-backup-m6-ui`. May start once M2 lands but is sequenced last. §5 "home-hud". Follow the Exodus page conventions; update `docs/exodus/ui.md`. Unit tests for display helpers as the existing pages do; never run Playwright snapshot tests locally.
+Implemented on `feat/exodus-backup-m6-ui`; the built pages are in [`docs/exodus/ui.md`](../ui.md#backup). No backend or schema change. Unit tests for the display helpers: `apps/home-hud/tests/unit/backup-display.unit.test.ts`; the pages themselves have no automated test and were not exercised against a live API (type-check, lint and `next build` pass). Decisions taken during it: the overview offers Validate and Enable/Disable but not creating or editing a destination (still the API, per the runbook); the Start dialog plans on open and creates on confirm; the JSON download goes through a same-origin route; the root `.gitignore` had to un-ignore the `backup/coverage` route folder.
 
 ### First real run (runbook, after M0 to M5)
 
