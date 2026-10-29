@@ -402,6 +402,21 @@ export async function setBackupDestinationEnabled(
   );
 }
 
+/**
+ * Edits a destination. The API refuses a change to the export or folder (409)
+ * while the destination has an active job or any verified item.
+ */
+export async function updateBackupDestination(
+  destinationId: string,
+  input: CreateBackupDestinationInput,
+): Promise<ActionResult<BackupDestination>> {
+  return patch<BackupDestination>(`/backup-destinations/${destinationId}`, {
+    name: input.name,
+    settings: { server: input.server, exportPath: input.exportPath },
+    rootDir: input.rootDir || null,
+  });
+}
+
 /** The dry run behind "Start backup job": writes nothing. */
 export async function planBackupJob(
   sourceId: string,

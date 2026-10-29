@@ -11,7 +11,10 @@ import {
   OutlinedButton,
   Typography,
 } from '@abbottland/fui-components';
-import { createBackupDestination } from '../sources/lib/actions';
+import {
+  createBackupDestination,
+  updateBackupDestination,
+} from '../sources/lib/actions';
 import type { BackupDestination } from '../sources/lib/homelab-api';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -26,20 +29,26 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /**
- * Registers an NFS destination, like Add Source does for a machine. Mount it
- * only while open, so each opening starts with an empty form.
+ * Registers an NFS destination, like Add Source does for a machine, or edits
+ * `destination` when given. Mount it only while open, so each opening starts
+ * from the destination's current values (or empty).
  */
 export function AddDestinationModal({
+  destination,
   onOpenChange,
-  onCreated,
+  onSaved,
 }: {
+  destination?: BackupDestination;
   onOpenChange: (open: boolean) => void;
-  onCreated: (destination: BackupDestination) => void;
+  onSaved: (destination: BackupDestination) => void;
 }) {
-  const [name, setName] = useState('');
-  const [server, setServer] = useState('');
-  const [exportPath, setExportPath] = useState('');
-  const [rootDir, setRootDir] = useState('');
+  const editing = destination !== undefined;
+  const [name, setName] = useState(destination?.name ?? '');
+  const [server, setServer] = useState(destination?.settings.server ?? '');
+  const [exportPath, setExportPath] = useState(
+    destination?.settings.exportPath ?? '',
+  );
+  const [rootDir, setRootDir] = useState(destination?.rootDir ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,12 +57,15 @@ export function AddDestinationModal({
     setSubmitting(true);
     setError(null);
 
-    const result = await createBackupDestination({
+    const input = {
       name: name.trim(),
       server: server.trim(),
       exportPath: exportPath.trim(),
       rootDir: rootDir.trim(),
-    });
+    };
+    const result = destination
+      ? await updateBackupDestination(destination.id, input)
+      : await createBackupDestination(input);
 
     setSubmitting(false);
 
@@ -63,17 +75,19 @@ export function AddDestinationModal({
     }
 
     onOpenChange(false);
-    onCreated(result.data);
+    onSaved(result.data);
   }
 
   return (
     <Modal open onOpenChange={onOpenChange}>
       <ModalContent color="secondary">
-        <ModalTitle>Add Destination</ModalTitle>
+        <ModalTitle>
+          {editing ? 'Edit Destination' : 'Add Destination'}
+        </ModalTitle>
         <ModalDescription>
-          Register the NFS export Exodus copies to. This is the export’s
-          identity; the backup worker with it mounted claims the destination by
-          itself. Validate it afterwards.
+          {editing
+            ? 'The export and folder cannot change while a job is active or anything is already verified here. Validate again afterwards.'
+            : 'Register the NFS export Exodus copies to. This is the export’s identity; the backup worker with it mounted claims the destination by itself. Validate it afterwards.'}
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -137,7 +151,13 @@ export function AddDestinationModal({
                 !exportPath.trim()
               }
             >
-              {submitting ? 'Adding…' : 'Add Destination'}
+              {submitting
+                ? editing
+                  ? 'Saving…'
+                  : 'Adding…'
+                : editing
+                  ? 'Save'
+                  : 'Add Destination'}
             </Button>
           </div>
         </form>

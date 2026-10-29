@@ -58,6 +58,7 @@ export function BackupOverviewClient({
   const router = useRouter();
   const [startOpen, setStartOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,6 +130,13 @@ export function BackupOverviewClient({
                 {status && <Badge color={status.color}>{status.label}</Badge>}
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <OutlinedButton
+                  size="small"
+                  disabled={busy}
+                  onClick={() => setEditOpen(true)}
+                >
+                  Edit
+                </OutlinedButton>
                 <OutlinedButton
                   size="small"
                   disabled={busy}
@@ -301,10 +309,18 @@ export function BackupOverviewClient({
         </>
       )}
 
+      {editOpen && destination && (
+        <AddDestinationModal
+          destination={destination}
+          onOpenChange={setEditOpen}
+          onSaved={() => router.refresh()}
+        />
+      )}
+
       {addOpen && (
         <AddDestinationModal
           onOpenChange={setAddOpen}
-          onCreated={(created) =>
+          onSaved={(created) =>
             router.push(backupOverviewUrl(sourceId ?? undefined, created.id))
           }
         />
