@@ -63,7 +63,7 @@ The plan is in [plan.md](./plan.md). The question-and-answer history that produc
 ### Architecture and naming
 
 - A **new `apps/backup-worker`**, built like `video-worker`. It takes the destination path from an **environment variable**; you will make sure the export is mounted into it.
-- **One worker deployment per destination.** Destination validation is requested through the database and run by the worker (the API cannot see the mount).
+- **One worker deployment per destination.** (Changed after M6: the worker no longer needs `BACKUP_DESTINATION_ID`; it claims the destination that is its mounted export, with a lease in the database. The id stays as an optional pin. See `docs/exodus/backup.md`.) Destination validation is requested through the database and run by the worker (the API cannot see the mount).
 - The worker holds the same `EXODUS_CREDENTIAL_KEY` as the API.
 - The shared SMB code (driver, Windows path helpers, secret box, connection-target builder) goes into a new package, **`packages/source-access`** (`@abbottland/source-access`). It does **not** go into `homelab-db`. **Schema, migrations and queries live in `homelab-db`.**
 - Names stay `backup_*` (tables, routes) and `backup-worker` (app).

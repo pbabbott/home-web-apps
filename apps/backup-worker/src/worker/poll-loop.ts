@@ -1,13 +1,18 @@
 import {
   getBackupDestination,
   recordBackupDestinationValidation,
-  touchBackupDestinationWorker,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
 import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
 import { DESTINATION_KEY } from '../copy/pause-tracker';
 import { resumeDestinationJobs, stallDestinationJobs } from '../copy/pauses';
+import {
+  CLAIM_FAILURE_TEXT,
+  claimDestination,
+  releaseDestinationClaim,
+  renewDestinationClaim,
+} from '../destination/claim';
 import { getWatchdog, runtimePauses, workerId } from '../destination/runtime';
 import { requestShutdown, resetShutdown } from './shutdown';
 import {
@@ -19,6 +24,12 @@ export { workerId };
 
 let stopped = false;
 let validatedOnce = false;
+/** The destination this worker holds the claim on; null until it has claimed one. */
+let claimedId: string | null = null;
+let lastClaimProblem: string | undefined;
+let claimLost = false;
+/** The configured pin, restored when a claim is dropped so the next claim is made afresh. */
+let pinned = '';
 let pollTimeout: NodeJS.Timeout | undefined;
 let currentPoll: Promise<void> | undefined;
 
@@ -40,9 +51,20 @@ const copyWhileWorkExists = async (): Promise<void> => {
   const keepAlive = setInterval(() => {
     // A worker stuck on a hung mount must look dead, not busy.
     if (getWatchdog().state().stalled) return;
-    touchBackupDestinationWorker(db, config.backupDestinationId).catch((err) =>
-      console.error('❌ could not report that the worker is alive:', err),
-    );
+    renewDestinationClaim(config.backupDestinationId)
+      .then((held) => {
+        if (held || claimLost) return;
+
+        // Another worker took the destination (this one was too slow to renew).
+        claimLost = true;
+        console.error(
+          '❌ the destination claim was lost; releasing the item in flight',
+        );
+        requestShutdown();
+      })
+      .catch((err) =>
+        console.error('❌ could not report that the worker is alive:', err),
+      );
   }, config.pollIntervalMs);
 
   try {
@@ -56,6 +78,51 @@ const copyWhileWorkExists = async (): Promise<void> => {
   }
 };
 
+/** Forgets the claim, so the next poll claims afresh (and validates the destination again). */
+const dropClaim = (): void => {
+  claimedId = null;
+  claimLost = false;
+  validatedOnce = false;
+  config.backupDestinationId = pinned;
+  resetShutdown();
+};
+
+/**
+ * Holds a destination: claims one if the worker has none, otherwise renews
+ * the claim (which also reports that the worker is alive). False means there
+ * is nothing to serve this poll; the reason is logged when it changes.
+ */
+const ensureClaim = async (): Promise<boolean> => {
+  if (claimedId) {
+    if (await renewDestinationClaim(claimedId)) return true;
+
+    console.error('❌ the destination claim was lost');
+    dropClaim();
+  }
+
+  const result = await claimDestination();
+
+  if (!('destination' in result)) {
+    const problem = CLAIM_FAILURE_TEXT[result.reason];
+
+    if (problem !== lastClaimProblem) {
+      console.error(`⚠️  not serving a destination: ${problem}`);
+      lastClaimProblem = problem;
+    }
+
+    return false;
+  }
+
+  lastClaimProblem = undefined;
+  claimedId = result.destination.id;
+  validatedOnce = false;
+  console.log(
+    `✅ serving destination ${result.destination.name} (${result.destination.id})`,
+  );
+
+  return true;
+};
+
 /**
  * One iteration: report that the worker is alive, validate the destination at
  * startup and whenever the API has asked for it, then copy whatever is
@@ -66,7 +133,10 @@ export const pollOnce = async (): Promise<void> => {
   if (stopped) return;
 
   try {
-    await touchBackupDestinationWorker(db, config.backupDestinationId);
+    if (!(await ensureClaim())) {
+      scheduleNextPoll(config.pollIntervalMs);
+      return;
+    }
 
     const destination = await getBackupDestination(
       db,
@@ -114,6 +184,8 @@ export const pollOnce = async (): Promise<void> => {
     }
 
     if (destination) await copyWhileWorkExists();
+
+    if (claimLost) dropClaim();
   } catch (err) {
     console.error('❌ poll failed:', err);
   }
@@ -123,6 +195,9 @@ export const pollOnce = async (): Promise<void> => {
 
 export const startPollLoop = () => {
   stopped = false;
+  pinned = config.backupDestinationId;
+  claimedId = null;
+  claimLost = false;
   validatedOnce = false;
   resetShutdown();
   currentPoll = pollOnce().finally(() => {
@@ -140,4 +215,10 @@ export const stopPollLoop = async (): Promise<void> => {
 
   if (pollTimeout) clearTimeout(pollTimeout);
   if (currentPoll) await currentPoll;
+  if (claimedId) {
+    await releaseDestinationClaim(claimedId).catch((err) =>
+      console.error('❌ could not release the destination claim:', err),
+    );
+    claimedId = null;
+  }
 };

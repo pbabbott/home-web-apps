@@ -8,3 +8,4 @@ export * from './architecture';
 export * from './source-connections';
 export * from './skip-acknowledgements';
 export * from './on-disk-reviews';
+export * from './backup';

@@ -69,3 +69,24 @@ export const checkNfsMount = (
 
   return { ok: true, entry };
 };
+
+/**
+ * The NFS export mounted at `mountPath` (its `server` and `exportPath`), or
+ * null when nothing NFS is mounted there. This is how a worker finds which
+ * destination it serves: the one that is this export.
+ */
+export const mountedExport = (
+  mounts: MountEntry[],
+  mountPath: string,
+): { server: string; exportPath: string } | null => {
+  const target = trimTrailingSlash(mountPath);
+  const entry = [...mounts]
+    .reverse()
+    .find((m) => trimTrailingSlash(m.mountPoint) === target);
+
+  if (!entry || !['nfs', 'nfs4'].includes(entry.fsType)) return null;
+
+  const match = /^(.+?):(\/.*)$/.exec(entry.device);
+
+  return match ? { server: match[1], exportPath: match[2] } : null;
+};

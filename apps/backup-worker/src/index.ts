@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import fs from 'fs';
 import { runMigrationsWithLock } from '@abbottland/homelab-db';
 import { config, initConfig, validateConfig } from './config';
 import { initDb } from './db';
@@ -16,6 +17,11 @@ const start = async () => {
     console.error('❌ Database migration failed:', err);
     errorExit();
     return;
+  }
+
+  // Local development: no mount to wait for, so the scratch directory is ours to make.
+  if (config.backupDestinationMountCheck === 'none') {
+    fs.mkdirSync(config.backupDestinationPath, { recursive: true });
   }
 
   initDb();

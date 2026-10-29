@@ -17,7 +17,7 @@ Unit tests run with `pnpm test:unit` in `packages/homelab-db` and `apps/homelab-
 
 The backup worker (`apps/backup-worker`) runs against the same database; see [Backup: Worker](./backup.md#worker). Its `pnpm test:int` uses the Postgres that `homelab-api`'s `pnpm dev:deps` started (both map port 5433, so only one of the two compose files can be up at a time).
 
-To run the copy engine locally, point `BACKUP_DESTINATION_PATH` at a scratch directory with `BACKUP_DESTINATION_MOUNT_CHECK=none`, register that destination through the API and put its id in `BACKUP_DESTINATION_ID` (see the [worker README](../../apps/backup-worker/README.md)). A job created through `POST /sources/:id/backup-jobs` is then claimed and copied within a poll. The source must be reachable over SMB and its connection needs a share mapping that serves the paths in the job (the dev source maps only `C:\Users`; `C$` is denied for its account). Tests need no source: they use `FakeDriver` from `packages/source-access` and temporary directories.
+To run the copy engine locally, point `BACKUP_DESTINATION_PATH` at a scratch directory with `BACKUP_DESTINATION_MOUNT_CHECK=none`, register that destination (Add Destination on `/exodus/backup`); the worker claims it by itself (see the [worker README](../../apps/backup-worker/README.md)). A job created through `POST /sources/:id/backup-jobs` is then claimed and copied within a poll. The source must be reachable over SMB and its connection needs a share mapping that serves the paths in the job (the dev source maps only `C:\Users`; `C$` is denied for its account). Tests need no source: they use `FakeDriver` from `packages/source-access` and temporary directories.
 
 ### Running the backup worker
 

@@ -4,7 +4,7 @@ The purpose of this document is to explain what `backup-worker` is and how the a
 
 ## Overview
 
-`backup-worker` copies approved Exodus inventory from a Windows source (SMB) to an NFS export. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). The design is in [`docs/exodus/backup-design`](../../docs/exodus/backup-design/README.md), what is built in [`docs/exodus/backup.md`](../../docs/exodus/backup.md#worker).
+`backup-worker` copies approved Exodus inventory from a Windows source (SMB) to an NFS export. **One worker serves one destination**, which it claims by itself: the one that is the export mounted at `BACKUP_DESTINATION_PATH`, or, locally, the only free one (`BACKUP_DESTINATION_ID` pins it explicitly). The design is in [`docs/exodus/backup-design`](../../docs/exodus/backup-design/README.md), what is built in [`docs/exodus/backup.md`](../../docs/exodus/backup.md#worker).
 
 It validates its destination, claims backup job items and copies them (hashed, staged, resumable; see [Copy engine](../../docs/exodus/backup.md#copy-engine)). It pauses a job whose source is unreachable and the jobs of a destination that is unhealthy (no attempts are spent), releases the item in flight on `SIGTERM`, stops extending the lease when a destination call stalls, and copies `BACKUP_PARALLELISM` files of an item at once (see [Pauses and shutdown](../../docs/exodus/backup.md#pauses-and-shutdown)). It calls `@abbottland/homelab-db` directly and has no HTTP routes besides `GET /healthz` and `GET /readyz`; the SMB access is `@abbottland/source-access`.
 
@@ -19,7 +19,7 @@ Migrations are applied at startup under the advisory lock, as in `video-worker`.
 
 ### Step 1 - Set environment variables
 
-Copy `sample.env` to `.env` and adjust. Locally, point `BACKUP_DESTINATION_PATH` at a scratch directory and set `BACKUP_DESTINATION_MOUNT_CHECK=none` (the result then records `mountVerified: false`). `EXODUS_CREDENTIAL_KEY` must be a 32-byte base64 value (`openssl rand -base64 32`); use the one `homelab-api` has. `BACKUP_DESTINATION_ID` is the id of a destination created through `POST /backup-destinations`.
+Run `pnpm env:generate` (needs `OP_CONNECT_HOST` and `OP_CONNECT_TOKEN`), then `pnpm dev`. It copies `sample.env` to `.env` and fills `EXODUS_CREDENTIAL_KEY` from 1Password (item `exodus-credential-key`, the same value `homelab-api` gets). The sample works as it is: `BACKUP_DESTINATION_PATH` is a scratch directory the worker creates because `BACKUP_DESTINATION_MOUNT_CHECK=none` (the result then records `mountVerified: false`), and `BACKUP_DESTINATION_ID` is empty, so the worker claims the destination you registered (Add Destination on `/exodus/backup`). With several destinations registered, set `BACKUP_DESTINATION_ID` to pick one.
 
 ### Step 2 - Start dependencies
 

@@ -2,15 +2,15 @@
 
 [← Project Exodus](./README.md)
 
-Copying approved inventory to an NFS destination. The design and the remaining milestones are in [backup-design](./backup-design/README.md); this page describes only what exists.
+Copying approved inventory to an NFS destination. The design is in [backup-design](./backup-design/README.md); this page describes only what exists.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3), the copy engine (M4) and its resilience (M5: pauses, shutdown, a stalled mount, parallelism) in `apps/backup-worker`. A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart. Not built yet: the UI (M6).
+**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3), the copy engine (M4) and its resilience (M5: pauses, shutdown, a stalled mount, parallelism) in `apps/backup-worker`. A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart. The home-hud pages (M6) show destination health, plan and create a job, follow it, and report coverage; see [UI](./ui.md#backup).
 
 ## Data model
 
 Four tables, drawn in [`packages/homelab-db/ERD.md`](../../packages/homelab-db/ERD.md):
 
-- `backup_destinations`: an NFS export (expected `server` and `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, and `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake.
+- `backup_destinations`: an NFS export (expected `server` and `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake, and `claimed_by` / `claimed_until`, the lease of the worker serving it (migration `0017`).
 - `backup_jobs`: one attempt to copy a frozen selection from a source to a destination. At most one `planned` or `running` job per (source, destination). `stalled_reason` pauses claims while the job stays `running`.
 - `backup_job_items`: the snapshot of one inventory item, the leased unit of work and its result. 3 attempts for a file, 5 for a directory.
 - `backup_entries`: one row per file or directory under a job item: the manifest, the resume state and the store for source metadata (times, attributes, streams, `Zone.Identifier`).
@@ -67,7 +67,7 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 
 ## Worker
 
-`apps/backup-worker` ([README](../../apps/backup-worker/README.md)) is modelled on `video-worker`: an Express server plus a poll loop, migrations at startup under the advisory lock, the image built with `samba-client`. **One worker serves one destination** (`BACKUP_DESTINATION_ID`). It calls `homelab-db` queries directly and has no routes besides `GET /healthz` and `GET /readyz`. The poll loop claims and copies items (see [Copy engine](#copy-engine)).
+`apps/backup-worker` ([README](../../apps/backup-worker/README.md)) is modelled on `video-worker`: an Express server plus a poll loop, migrations at startup under the advisory lock, the image built with `samba-client`. **One worker serves one destination**, which it claims by itself (see [Claiming a destination](#claiming-a-destination)). It calls `homelab-db` queries directly and has no routes besides `GET /healthz` and `GET /readyz`. The poll loop claims and copies items (see [Copy engine](#copy-engine)).
 
 **Configuration** (environment; defaults in `src/config.ts`, example in `sample.env`):
 
@@ -75,13 +75,21 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 | -------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
 | `POSTGRES_HOST/PORT/DATABASE/USER/PASSWORD`        | as the API  | The shared `homelab_api` database                                                                 |
 | `EXODUS_CREDENTIAL_KEY`                            | required    | 32 bytes, base64; the same value as `homelab-api`. Checked at startup, used by the copy engine    |
-| `BACKUP_DESTINATION_ID`                            | required    | UUID of the destination this worker serves                                                        |
+| `BACKUP_DESTINATION_ID`                            | empty       | Optional pin: serve exactly this destination (UUID). Empty means claim it, see below              |
 | `BACKUP_DESTINATION_PATH`                          | required    | Absolute container path of the mounted export. Existence is checked by validation, not at startup |
 | `BACKUP_DESTINATION_MOUNT_CHECK`                   | `nfs`       | `none` for local development only; the result then has `mountVerified: false`                     |
 | `BACKUP_STALL_TIMEOUT_SECONDS`                     | `120`       | No-progress timeout for destination calls (the watchdog) and for source reads                     |
 | `POLL_INTERVAL_MS`                                 | `5000`      | Poll interval; the API treats a worker as stale after 2 minutes (`WORKER_STALE_AFTER_MS`)         |
 | `BACKUP_HEARTBEAT_SECONDS`, `BACKUP_LEASE_SECONDS` | `60`, `300` | Lease length and how often it is extended while an item is copied                                 |
 | `BACKUP_PARALLELISM`                               | `1`         | Files of one item copied at once (see [Parallelism](#parallelism-and-memory))                     |
+
+**Claiming a destination.** A worker holds a lease on the destination it serves (`backup_destinations.claimed_by` / `claimed_until`, 60 s, renewed on every poll, which also sets `worker_seen_at`). At startup, and again whenever it has none, it picks one (`chooseBackupDestination` in `homelab-db`, a pure function):
+
+1. `BACKUP_DESTINATION_ID`, when set, is the destination.
+2. Otherwise the export mounted at `BACKUP_DESTINATION_PATH` decides: the destination whose `settings.server:exportPath` equals the device of that mount in `/proc/mounts`. A worker writes to its own mount, so it never serves another export's destination. The `server` in the destination must be spelled as in the mount (an address, not a name the kernel resolved).
+3. With `BACKUP_DESTINATION_MOUNT_CHECK=none` there is no mount, so any free destination can be served; if several are free the worker refuses to guess and logs that the pin is needed.
+
+A destination is free when it was never claimed, its lease expired, or it is this worker's own (a restart finds it again). A worker that finds none (none registered, no match, held by another worker, ambiguous) logs why once and polls again; it copies and validates nothing meanwhile. If its lease is lost (it was too slow to renew), it aborts the item in flight, which is released with the attempt refunded, and claims again. On `SIGTERM` it releases the claim so the next worker takes over at once. Two workers can therefore never serve one destination, whatever the deployment strategy. No audit event is written for a claim (it is not a change anyone decides).
 
 **Poll loop.** Every poll calls `touchBackupDestinationWorker` (`worker_seen_at`). The worker validates its destination on the first poll and whenever `validation_requested_at` is set, then stores the result with `recordBackupDestinationValidation`, which sets `health` (`ok` or `unhealthy`), `last_validated_at` and `last_validation`, clears the request, and writes the `validated` or `unhealthy` audit event. A request made while it validates is cleared too. Then it copies (below). A missing destination row or a database error is logged and the loop carries on.
 
@@ -99,7 +107,7 @@ A destination whose `health` is `unhealthy` is **validated again by itself** onc
 
 **Watchdog and probes.** Every destination call (the whole validation today; copy I/O later) runs under `DestinationWatchdog`. A call that has not returned after `BACKUP_STALL_TIMEOUT_SECONDS` marks the destination `unhealthy` (once; audited on the transition) and makes `/readyz` answer `503`. `/healthz` answers `503` only after the call has been stalled for another stall timeout, so Kubernetes restarts the pod. A call blocked on a `hard` mount cannot be cancelled; the restart is the recovery. While a call is stalled the worker also **stops extending the lease** of the item in flight and stops reporting `worker_seen_at` (so the UI shows no worker), aborts the item's source transfer, and pauses the destination's jobs as `destination_unhealthy`. The expired lease spends one attempt, as after any hard crash. `/readyz` is also `503` when PostgreSQL is unreachable or the schema is behind.
 
-**Local development.** Point `BACKUP_DESTINATION_PATH` at a scratch directory with the mount check `none`, create a destination through `POST /backup-destinations` and put its id in `BACKUP_DESTINATION_ID`, then `POST /backup-destinations/:id/validate`. Integration tests (`pnpm test:int` in the app, same Postgres as `homelab-api`) run the real loop against a scratch directory. The image build and CI follow `video-worker`; CI finds the app through its `docker:publish`, `test:unit` and `test:int` scripts, and `scripts/docker-retag-prod.sh` lists it for the production retag.
+**Local development.** Point `BACKUP_DESTINATION_PATH` at a scratch directory with the mount check `none`, register a destination (Add Destination on `/exodus/backup`, or `POST /backup-destinations`); the worker claims it, then `POST /backup-destinations/:id/validate`. Integration tests (`pnpm test:int` in the app, same Postgres as `homelab-api`) run the real loop against a scratch directory. The image build and CI follow `video-worker`; CI finds the app through its `docker:publish`, `test:unit` and `test:int` scripts, and `scripts/docker-retag-prod.sh` lists it for the production retag.
 
 ## Copy engine
 
