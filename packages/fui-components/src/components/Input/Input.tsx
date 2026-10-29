@@ -1,4 +1,4 @@
-import React, { useState, type FocusEvent } from 'react';
+import React, { useEffect, useRef, useState, type FocusEvent } from 'react';
 import ActiveOrnament from './ActiveOrnament';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 import type { InputColor } from './types';
@@ -34,13 +34,21 @@ export const Input: React.FC<InputProps> = ({
 }) => {
   const [isActive, setIsActive] = useState(false);
 
+  const deactivateTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(deactivateTimer.current), []);
+
   const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+    clearTimeout(deactivateTimer.current);
     setIsActive(true);
     onFocus?.(e);
   };
 
+  // Unmounting the ornament while focus is between two elements makes a
+  // focus trap (e.g. a Radix dialog) think the focused element was removed and
+  // pull focus back to itself, which breaks Tab. Wait until focus has moved on.
   const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
-    setIsActive(false);
+    deactivateTimer.current = setTimeout(() => setIsActive(false));
     onBlur?.(e);
   };
 
