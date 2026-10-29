@@ -276,6 +276,10 @@ export {
   recordBackupDestinationValidation,
   markBackupDestinationUnhealthy,
   touchBackupDestinationWorker,
+  chooseBackupDestination,
+  claimBackupDestination,
+  renewBackupDestinationClaim,
+  releaseBackupDestinationClaim,
   createBackupJob,
   getBackupJob,
   listBackupJobs,
@@ -314,6 +318,9 @@ export {
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
+  BackupDestinationClaimOptions,
+  BackupDestinationClaimFailure,
+  BackupDestinationClaimResult,
   UpdateBackupDestinationInput,
   RecordBackupDestinationValidationInput,
   PlannedBackupItem,

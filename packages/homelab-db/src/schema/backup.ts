@@ -132,6 +132,9 @@ export const backupDestinations = pgTable(
       withTimezone: true,
     }),
     workerSeenAt: timestamp('worker_seen_at', { withTimezone: true }),
+    /** The worker serving this destination (a lease the worker renews on every poll). */
+    claimedBy: text('claimed_by'),
+    claimedUntil: timestamp('claimed_until', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -140,6 +143,10 @@ export const backupDestinations = pgTable(
       .defaultNow(),
   },
   (table) => [
+    check(
+      'backup_destinations_claim_check',
+      sql`(${table.claimedBy} is null) = (${table.claimedUntil} is null)`,
+    ),
     check(
       'backup_destinations_root_dir_check',
       sql`${table.rootDir} is null or (${table.rootDir} !~ '^[/\\\\]' and ${table.rootDir} !~ '(^|[/\\\\])\\.\\.([/\\\\]|$)')`,
@@ -378,6 +385,7 @@ export const backupDestinationSelectSchema = createSelectSchema(
     lastValidatedAt: dateTime,
     validationRequestedAt: dateTime,
     workerSeenAt: dateTime,
+    claimedUntil: dateTime,
     createdAt: dateTime,
     updatedAt: dateTime,
   },

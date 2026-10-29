@@ -21,6 +21,8 @@ describe('backupDestinationSelectSchema', () => {
     lastValidation: null,
     validationRequestedAt: null,
     workerSeenAt: null,
+    claimedBy: null,
+    claimedUntil: null,
     createdAt: now,
     updatedAt: now,
   };
