@@ -19,7 +19,7 @@ Migrations are applied at startup under the advisory lock, as in `video-worker`.
 
 ### Step 1 - Set environment variables
 
-Copy `sample.env` to `.env` and adjust. Locally, point `BACKUP_DESTINATION_PATH` at a scratch directory and set `BACKUP_DESTINATION_MOUNT_CHECK=none` (the result then records `mountVerified: false`). `EXODUS_CREDENTIAL_KEY` must be a 32-byte base64 value (`openssl rand -base64 32`); use the one `homelab-api` has. `BACKUP_DESTINATION_ID` is the id of a destination created through `POST /backup-destinations`.
+Run `pnpm env:generate` (needs `OP_CONNECT_HOST` and `OP_CONNECT_TOKEN`): it copies `sample.env` to `.env` and fills `EXODUS_CREDENTIAL_KEY` from 1Password (item `exodus-credential-key`, the same value `homelab-api` gets). It overwrites `.env`, so values that are yours alone must be set again afterwards: `BACKUP_DESTINATION_ID`, the id of a destination you registered (Add Destination on `/exodus/backup`, or `POST /backup-destinations`; it differs per database), and `BACKUP_DESTINATION_PATH`, an existing scratch directory when working locally, with `BACKUP_DESTINATION_MOUNT_CHECK=none` (the result then records `mountVerified: false`).
 
 ### Step 2 - Start dependencies
 
