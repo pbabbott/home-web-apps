@@ -3,11 +3,14 @@ import * as pauses from '../../src/copy/pauses';
 import { DESTINATION_KEY } from '../../src/copy/pause-tracker';
 import { runtimePauses } from '../../src/destination/runtime';
 import * as validate from '../../src/destination/validate';
+import { config } from '../../src/config';
 import { startPollLoop, stopPollLoop } from '../../src/worker/poll-loop';
 
 jest.mock('@abbottland/homelab-db', () => ({
   ...jest.requireActual('@abbottland/homelab-db'),
-  touchBackupDestinationWorker: jest.fn(),
+  claimBackupDestination: jest.fn(),
+  renewBackupDestinationClaim: jest.fn(),
+  releaseBackupDestinationClaim: jest.fn(),
   getBackupDestination: jest.fn(),
   recordBackupDestinationValidation: jest.fn(),
   claimNextBackupItem: jest.fn(),
@@ -56,6 +59,12 @@ describe('poll loop', () => {
       id: 'dest-1',
       validationRequestedAt: null,
     });
+    config.backupDestinationId = 'dest-1';
+    mocked.claimBackupDestination.mockResolvedValue({
+      destination: { id: 'dest-1', name: 'Dump' },
+    });
+    mocked.renewBackupDestinationClaim.mockResolvedValue(true);
+    mocked.releaseBackupDestinationClaim.mockResolvedValue(undefined);
     mocked.claimNextBackupItem.mockResolvedValue({
       item: null,
       reason: 'queue_empty',
@@ -133,17 +142,77 @@ describe('poll loop', () => {
     });
   });
 
-  it('touches worker_seen_at on every poll', async () => {
-    startPollLoop();
-    await tick(0);
-    await tick(1000);
-    await tick(1000);
+  describe('claiming its destination', () => {
+    it('claims once, then renews the claim on every poll', async () => {
+      startPollLoop();
+      await tick(0);
+      await tick(1000);
+      await tick(1000);
 
-    expect(mocked.touchBackupDestinationWorker).toHaveBeenCalledTimes(3);
-    expect(mocked.touchBackupDestinationWorker).toHaveBeenCalledWith(
-      {},
-      'dest-1',
-    );
+      expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(1);
+      expect(mocked.renewBackupDestinationClaim).toHaveBeenCalledTimes(2);
+      expect(mocked.renewBackupDestinationClaim).toHaveBeenCalledWith(
+        {},
+        'dest-1',
+        expect.objectContaining({ leaseSeconds: 60 }),
+      );
+    });
+
+    it('serves the destination it claimed when none is pinned', async () => {
+      config.backupDestinationId = '';
+      mocked.claimBackupDestination.mockResolvedValue({
+        destination: { id: 'dest-9', name: 'Other' },
+      });
+      startPollLoop();
+      await tick(0);
+
+      expect(mocked.claimBackupDestination).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ destinationId: undefined, mount: null }),
+      );
+      expect(config.backupDestinationId).toBe('dest-9');
+      expect(mocked.claimNextBackupItem).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ destinationId: 'dest-9' }),
+      );
+    });
+
+    it('copies nothing and validates nothing while it has no destination', async () => {
+      mocked.claimBackupDestination.mockResolvedValue({
+        reason: 'held_by_other',
+      });
+      startPollLoop();
+      await tick(0);
+      await tick(1000);
+
+      expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(2);
+      expect(validateSpy).not.toHaveBeenCalled();
+      expect(mocked.claimNextBackupItem).not.toHaveBeenCalled();
+    });
+
+    it('claims again, and validates again, after losing the claim', async () => {
+      startPollLoop();
+      await tick(0);
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+
+      mocked.renewBackupDestinationClaim.mockResolvedValueOnce(false);
+      await tick(1000);
+
+      expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(2);
+      expect(validateSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('releases the claim when it stops', async () => {
+      startPollLoop();
+      await tick(0);
+      await stopPollLoop();
+
+      expect(mocked.releaseBackupDestinationClaim).toHaveBeenCalledWith(
+        {},
+        'dest-1',
+        expect.any(String),
+      );
+    });
   });
 
   it('validates at startup, then only when a request is pending', async () => {
@@ -218,18 +287,17 @@ describe('poll loop', () => {
     await tick(2000);
 
     expect(validateSpy).not.toHaveBeenCalled();
-    expect(mocked.touchBackupDestinationWorker).toHaveBeenCalledTimes(3);
+    expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(1);
+    expect(mocked.renewBackupDestinationClaim).toHaveBeenCalledTimes(2);
   });
 
   it('survives a database error and polls again', async () => {
-    mocked.touchBackupDestinationWorker.mockRejectedValueOnce(
-      new Error('down'),
-    );
+    mocked.claimBackupDestination.mockRejectedValueOnce(new Error('down'));
     startPollLoop();
     await tick(0);
     await tick(1000);
 
-    expect(mocked.touchBackupDestinationWorker).toHaveBeenCalledTimes(2);
+    expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(2);
   });
 
   it('stops polling after stopPollLoop', async () => {
@@ -238,6 +306,7 @@ describe('poll loop', () => {
     await stopPollLoop();
     await tick(5000);
 
-    expect(mocked.touchBackupDestinationWorker).toHaveBeenCalledTimes(1);
+    expect(mocked.claimBackupDestination).toHaveBeenCalledTimes(1);
+    expect(mocked.renewBackupDestinationClaim).not.toHaveBeenCalled();
   });
 });

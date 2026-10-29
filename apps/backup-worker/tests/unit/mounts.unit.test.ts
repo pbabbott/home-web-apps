@@ -1,4 +1,8 @@
-import { checkNfsMount, parseProcMounts } from '../../src/destination/mounts';
+import {
+  checkNfsMount,
+  mountedExport,
+  parseProcMounts,
+} from '../../src/destination/mounts';
 
 const expected = { server: '192.168.4.124', exportPath: '/volume1/Dump' };
 
@@ -65,5 +69,30 @@ describe('checkNfsMount', () => {
   it('uses the last entry when mounts are stacked', () => {
     const stacked = [mount(), mount({ fsType: 'tmpfs', device: 'tmpfs' })];
     expect(checkNfsMount(stacked, '/backup', expected).ok).toBe(false);
+  });
+});
+
+describe('mountedExport', () => {
+  const mounts = parseProcMounts(
+    [
+      '192.168.4.124:/volume1/Dump /backup nfs4 rw,hard 0 0',
+      'tmpfs /scratch tmpfs rw 0 0',
+    ].join('\n'),
+  );
+
+  it('names the NFS export mounted at the path', () => {
+    expect(mountedExport(mounts, '/backup')).toEqual({
+      server: '192.168.4.124',
+      exportPath: '/volume1/Dump',
+    });
+    expect(mountedExport(mounts, '/backup/')).toEqual({
+      server: '192.168.4.124',
+      exportPath: '/volume1/Dump',
+    });
+  });
+
+  it('is null for a path that is not an NFS mount point', () => {
+    expect(mountedExport(mounts, '/scratch')).toBeNull();
+    expect(mountedExport(mounts, '/elsewhere')).toBeNull();
   });
 });

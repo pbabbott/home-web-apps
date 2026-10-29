@@ -40,7 +40,11 @@ export class ApplicationConfig {
   @EnvironmentVariable()
   exodusCredentialKey: string = '';
 
-  /** The backup destination (`backup_destinations.id`) this worker serves. */
+  /**
+   * Optional pin: serve exactly this destination (`backup_destinations.id`).
+   * Left empty, the worker claims the destination that is the export mounted
+   * at `BACKUP_DESTINATION_PATH`; the claimed id is stored here at runtime.
+   */
   @EnvironmentVariable()
   backupDestinationId: string = '';
 
@@ -91,7 +95,7 @@ export const initConfig = async () => {
 export const findConfigProblems = (cfg: ApplicationConfig): string[] => {
   const problems: string[] = [];
 
-  if (!UUID_PATTERN.test(cfg.backupDestinationId)) {
+  if (cfg.backupDestinationId && !UUID_PATTERN.test(cfg.backupDestinationId)) {
     problems.push('BACKUP_DESTINATION_ID must be a UUID');
   }
 
@@ -130,7 +134,11 @@ export const validateConfig = () => {
   console.log('⚙️  backup-worker environment variables');
   formatEnvConfigStatus(statuses).forEach((line) => console.log(`  ${line}`));
 
-  const missing = statuses.filter((status) => status.isMissing);
+  // BACKUP_DESTINATION_ID is an optional pin: the worker claims its destination by itself.
+  const missing = statuses.filter(
+    (status) =>
+      status.isMissing && status.envVarName !== 'BACKUP_DESTINATION_ID',
+  );
 
   if (missing.length) {
     missing.forEach((status) => {
