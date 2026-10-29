@@ -72,8 +72,8 @@ export function AddDestinationModal({
         <ModalTitle>Add Destination</ModalTitle>
         <ModalDescription>
           Register the NFS export Exodus copies to. This is the export’s
-          identity; the backup worker for it must have it mounted and be given
-          this destination’s id. Validate it afterwards.
+          identity; the backup worker with it mounted claims the destination by
+          itself. Validate it afterwards.
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">

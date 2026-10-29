@@ -73,6 +73,9 @@ export interface BackupDestination {
   lastValidation: BackupDestinationValidation | null;
   validationRequestedAt: string | null;
   workerSeenAt: string | null;
+  /** The worker serving this destination, while its claim is renewed. */
+  claimedBy: string | null;
+  claimedUntil: string | null;
   /** True when no worker has polled recently (or ever). */
   workerStale: boolean;
 }

@@ -68,6 +68,8 @@ const destination = (
   lastValidation: null,
   validationRequestedAt: null,
   workerSeenAt: null,
+  claimedBy: null,
+  claimedUntil: null,
   workerStale: false,
   ...overrides,
 });

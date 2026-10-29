@@ -277,7 +277,7 @@ All REST, human actor only, documented in OpenAPI (`/docs`).
 | --------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------- |
 | `POSTGRES_HOST/PORT/DATABASE/USER/PASSWORD`         | as `video-worker` | The shared `homelab_api` database.                                                 |
 | `EXODUS_CREDENTIAL_KEY`                             | required          | Decrypts the source connection password.                                           |
-| `BACKUP_DESTINATION_ID`                             | required          | The destination this worker serves.                                                |
+| `BACKUP_DESTINATION_ID`                             | empty             | Optional pin. Empty: the worker claims the destination that is its mounted export. |
 | `BACKUP_DESTINATION_PATH`                           | required          | Container path of the mounted export (local dev: a sample directory).              |
 | `BACKUP_DESTINATION_MOUNT_CHECK`                    | `nfs`             | `none` only for local development; the result then records `mountVerified: false`. |
 | `BACKUP_PARALLELISM`                                | `1`               | Files of one item copied at once.                                                  |
@@ -342,7 +342,7 @@ Implemented on `feat/exodus-backup-m6-ui`; the built pages are in [`docs/exodus/
 
 ### First real run (runbook, after M0 to M5)
 
-1. Mount `192.168.4.124:/volume1/Dump` into the worker (the `home-kubernetes` work), set `BACKUP_DESTINATION_ID` and `BACKUP_DESTINATION_PATH`. Create the destination in the API and validate until `ok`; read the probe findings (uid, `utimes`, case sensitivity).
+1. Mount `192.168.4.124:/volume1/Dump` into the worker (the `home-kubernetes` work), set `BACKUP_DESTINATION_PATH` (the worker claims the destination that is that export; `BACKUP_DESTINATION_ID` is only a pin). Create the destination in the API and validate until `ok`; read the probe findings (uid, `utimes`, case sensitivity).
 2. Create a job selecting only `C:\backup-test\Brandchelor Party.zip` and one small directory (for example `…\GameMaker\Backups\ZeldaClone`). Start it.
 3. Check the NAS tree under `alpha-centauri/C/…`, the entries and metadata in the database, and the coverage report (both `covered`; others `never_attempted`). Kill the worker mid-copy once and confirm it resumes cleanly.
 4. Run the full approved set (136 items). Review `completed_with_issues` items, fix causes, `rerun-unresolved`. Download the JSON coverage report.
@@ -405,7 +405,7 @@ Title: **Add backup-worker (Deployment, PV/PVC, secrets) to the `home-hud` names
    - `terminationGracePeriodSeconds: 60` or more: on `SIGTERM` the worker aborts the transfer and releases its work item.
    - Container port `4004` (`PORT`). Probes: readiness `GET /readyz`, liveness `GET /healthz`. The worker fails `/readyz` when a NAS call stalls for 120 s and `/healthz` after a further 120 s, so ordinary liveness settings (for example `periodSeconds: 10`, `failureThreshold: 3`) are enough; the pod restarts about four minutes into a hung mount.
    - Resources, deliberately small: requests `cpu: 50m`, `memory: 128Mi`; limit `memory: 256Mi`, no CPU limit. (`video-worker` requests 100m/256Mi with a 1Gi limit.) The idle worker measured about 92 MiB RSS; copying (`smbclient` children, buffers) is unmeasured, so validate in the first real run.
-   - Environment: the Postgres variables **as `homelab-api` gets them** (the `homelab_api` database, not `video-worker`'s `video_api`); `BACKUP_DESTINATION_PATH=/backup`; `BACKUP_DESTINATION_ID=<uuid>` (supplied by the person running the migration; leave a clearly marked placeholder or a ConfigMap value); `BACKUP_DESTINATION_MOUNT_CHECK=nfs`. Leave the tuning variables at their defaults.
+   - Environment: the Postgres variables **as `homelab-api` gets them** (the `homelab_api` database, not `video-worker`'s `video_api`); `BACKUP_DESTINATION_PATH=/backup`; (no `BACKUP_DESTINATION_ID`: since M6 the worker claims the destination whose `server:exportPath` is the mounted export; set it only to pin one) `BACKUP_DESTINATION_MOUNT_CHECK=nfs`. Leave the tuning variables at their defaults.
    - Secrets: the Postgres credentials (as `homelab-api`) and `EXODUS_CREDENTIAL_KEY`, the **same value** `homelab-api` uses, referenced the same way.
 3. **Network.** The pod must reach the Windows machine on TCP 445 and the NAS over NFS. This works from the `home-hud` namespace; no NetworkPolicy change is expected.
 
