@@ -190,7 +190,7 @@ export function AddSourceModal({
         onOpenChange(next);
       }}
     >
-      <ModalContent color="secondary">
+      <ModalContent color="secondary" className="max-w-2xl">
         <ModalTitle>{editing ? 'Edit Source' : 'Add Source'}</ModalTitle>
         <ModalDescription>
           {editing
