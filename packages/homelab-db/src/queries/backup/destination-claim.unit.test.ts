@@ -1,5 +1,5 @@
-import type { BackupDestination } from '../../schema/backup';
 import { chooseBackupDestination } from './destinations';
+import type { BackupDestinationWithHost } from './destinations';
 
 const NOW = new Date('2026-10-29T12:00:00Z');
 const later = new Date('2026-10-29T12:01:00Z');
@@ -7,12 +7,14 @@ const earlier = new Date('2026-10-29T11:59:00Z');
 
 const destination = (
   id: string,
-  overrides: Partial<BackupDestination> = {},
-): BackupDestination => ({
+  overrides: Partial<BackupDestinationWithHost> = {},
+): BackupDestinationWithHost => ({
   id,
   name: id,
+  hostId: 'host-1',
+  host: { id: 'host-1', name: 'nas', ipAddress: '192.168.4.124' },
   connectionType: 'nfs',
-  settings: { server: '192.168.4.124', exportPath: '/volume1/Dump' },
+  settings: { exportPath: '/volume1/Dump' },
   rootDir: null,
   enabled: true,
   health: 'unknown',
@@ -42,7 +44,7 @@ describe('chooseBackupDestination', () => {
     it('takes the destination that is that export', () => {
       const dump = destination('dump');
       const media = destination('media', {
-        settings: { server: '192.168.4.124', exportPath: '/volume1/Media' },
+        settings: { exportPath: '/volume1/Media' },
       });
 
       expect(
@@ -50,9 +52,33 @@ describe('chooseBackupDestination', () => {
       ).toEqual({ destination: dump });
     });
 
+    it('matches the host name as well as its address', () => {
+      const dump = destination('dump');
+
+      expect(
+        chooseBackupDestination(
+          [dump],
+          { ...options, mount: { ...mount, server: 'NAS' } },
+          NOW,
+        ),
+      ).toEqual({ destination: dump });
+    });
+
+    it('never takes a destination on another host', () => {
+      const dump = destination('dump');
+
+      expect(
+        chooseBackupDestination(
+          [dump],
+          { ...options, mount: { ...mount, server: '10.0.0.9' } },
+          NOW,
+        ),
+      ).toEqual({ reason: 'no_match' });
+    });
+
     it('ignores a trailing slash on the export path', () => {
       const dump = destination('dump', {
-        settings: { server: '192.168.4.124', exportPath: '/volume1/Dump/' },
+        settings: { exportPath: '/volume1/Dump/' },
       });
 
       expect(
@@ -62,7 +88,7 @@ describe('chooseBackupDestination', () => {
 
     it('never takes a destination that is another export', () => {
       const media = destination('media', {
-        settings: { server: '192.168.4.124', exportPath: '/volume1/Media' },
+        settings: { exportPath: '/volume1/Media' },
       });
 
       expect(

@@ -24,6 +24,11 @@ import {
 
 export const backupDestinationResponseSchema =
   backupDestinationSelectSchema.extend({
+    host: z
+      .object({ id: z.uuid(), name: z.string(), ipAddress: z.string() })
+      .meta({
+        description: 'The host that serves the export (the NFS server).',
+      }),
     workerStale: z.boolean().meta({
       description:
         'No worker has polled recently (or ever): a validation request would not run.',
@@ -101,7 +106,7 @@ export const backupDestinationsPaths = {
         '403': humanOnlyResponse,
         '404': notFound,
         '409': conflictResponse(
-          'The name is taken, or the destination has an active job or verified data and its settings or rootDir would change',
+          'The name is taken, or the destination has an active job or verified data and its host, settings or rootDir would change',
         ),
       },
     },

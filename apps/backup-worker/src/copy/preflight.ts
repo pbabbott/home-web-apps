@@ -2,6 +2,7 @@ import fsPromises from 'fs/promises';
 import {
   checkNfsMount,
   parseProcMounts,
+  type ExpectedExport,
   type MountEntry,
 } from '../destination/mounts';
 import { DestinationUnhealthyError } from './errors';
@@ -17,7 +18,7 @@ export const readProcMounts = async (): Promise<MountEntry[]> =>
 export const assertMounted = async (input: {
   mountCheck: string;
   mountPath: string;
-  expected: { server: string; exportPath: string };
+  expected: ExpectedExport;
   readMounts?: () => Promise<MountEntry[]>;
   run?: <T>(operation: string, fn: () => Promise<T>) => Promise<T>;
 }): Promise<void> => {

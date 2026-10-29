@@ -7,7 +7,7 @@ import {
   updateBackupDestination as updateRow,
   BackupError,
   type Actor,
-  type BackupDestination,
+  type BackupDestinationWithHost,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
 import type {
@@ -18,13 +18,13 @@ import type {
 /** The worker polls every few seconds; a gap this long means none is running. */
 export const WORKER_STALE_AFTER_MS = 2 * 60 * 1000;
 
-export type BackupDestinationView = BackupDestination & {
+export type BackupDestinationView = BackupDestinationWithHost & {
   /** True when no worker has polled recently (or ever): validation will not run. */
   workerStale: boolean;
 };
 
 export const toDestinationView = (
-  row: BackupDestination,
+  row: BackupDestinationWithHost,
   now = Date.now(),
 ): BackupDestinationView => ({
   ...row,
@@ -35,7 +35,7 @@ export const toDestinationView = (
 
 export const requireDestination = async (
   id: string,
-): Promise<BackupDestination> => {
+): Promise<BackupDestinationWithHost> => {
   const row = await getBackupDestination(db, id);
   if (!row) throw new BackupError('not_found', 'backup destination not found');
 
@@ -46,7 +46,9 @@ export async function createDestination(
   body: CreateBackupDestinationBody,
   actor: Actor,
 ): Promise<BackupDestinationView> {
-  return toDestinationView(await createRow(db, body, actor));
+  const { id } = await createRow(db, body, actor);
+
+  return toDestinationView(await requireDestination(id));
 }
 
 export async function listDestinations(): Promise<BackupDestinationView[]> {
@@ -64,7 +66,9 @@ export async function updateDestination(
   body: UpdateBackupDestinationBody,
   actor: Actor,
 ): Promise<BackupDestinationView> {
-  return toDestinationView(await updateRow(db, id, body, actor));
+  await updateRow(db, id, body, actor);
+
+  return toDestinationView(await requireDestination(id));
 }
 
 export async function setDestinationEnabled(
@@ -72,14 +76,16 @@ export async function setDestinationEnabled(
   enabled: boolean,
   actor: Actor,
 ): Promise<BackupDestinationView> {
-  return toDestinationView(
-    await setBackupDestinationEnabled(db, id, enabled, actor),
-  );
+  await setBackupDestinationEnabled(db, id, enabled, actor);
+
+  return toDestinationView(await requireDestination(id));
 }
 
 /** Only records the request; the worker validates and clears it. */
 export async function requestValidation(
   id: string,
 ): Promise<BackupDestinationView> {
-  return toDestinationView(await requestBackupDestinationValidation(db, id));
+  await requestBackupDestinationValidation(db, id);
+
+  return toDestinationView(await requireDestination(id));
 }

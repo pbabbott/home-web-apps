@@ -4,7 +4,10 @@ import {
   parseProcMounts,
 } from '../../src/destination/mounts';
 
-const expected = { server: '192.168.4.124', exportPath: '/volume1/Dump' };
+const expected = {
+  serverNames: ['192.168.4.124', 'nas'],
+  exportPath: '/volume1/Dump',
+};
 
 describe('parseProcMounts', () => {
   it('parses fields and unescapes octal sequences', () => {
@@ -38,6 +41,16 @@ describe('checkNfsMount', () => {
     expect(checkNfsMount([mount()], '/backup', expected).ok).toBe(true);
     expect(
       checkNfsMount([mount({ fsType: 'nfs' })], '/backup/', expected).ok,
+    ).toBe(true);
+  });
+
+  it('accepts the host name as the server, in any case', () => {
+    expect(
+      checkNfsMount(
+        [mount({ device: 'NAS:/volume1/Dump' })],
+        '/backup',
+        expected,
+      ).ok,
     ).toBe(true);
   });
 

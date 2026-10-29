@@ -1,6 +1,6 @@
 import { and, asc, eq, sql } from 'drizzle-orm';
 import type { Database } from '../../client';
-import { isUniqueViolation } from '../../pg-errors';
+import { isForeignKeyViolation, isUniqueViolation } from '../../pg-errors';
 import {
   backupDestinations,
   backupJobItems,
@@ -10,12 +10,38 @@ import {
   type BackupDestinationType,
   type BackupDestinationValidation,
 } from '../../schema/backup';
+import { hosts, type Host } from '../../schema/hosts';
 import { insertAuditEvent, type Actor } from '../audit';
 import type { Tx } from '../shared';
 import { BackupError } from './shared';
 
+/** A destination with the host that serves its export. */
+export type BackupDestinationWithHost = BackupDestination & {
+  host: Pick<Host, 'id' | 'name' | 'ipAddress'>;
+};
+
+const hostColumns = {
+  id: hosts.id,
+  name: hosts.name,
+  ipAddress: hosts.ipAddress,
+};
+
+/**
+ * The names a mount's `server` may carry for this destination: the host's
+ * address or its name (an fstab line may use either).
+ */
+export const destinationServerNames = (
+  host: Pick<Host, 'name' | 'ipAddress'>,
+): string[] => [host.ipAddress, host.name];
+
+const unknownHost = (err: unknown): BackupError | undefined =>
+  isForeignKeyViolation(err)
+    ? new BackupError('not_found', 'host not found')
+    : undefined;
+
 export type CreateBackupDestinationInput = {
   name: string;
+  hostId: string;
   connectionType?: BackupDestinationType;
   settings: BackupDestinationSettings;
   rootDir?: string | null;
@@ -34,6 +60,7 @@ export const createBackupDestination = async (
         .insert(backupDestinations)
         .values({
           name: input.name,
+          hostId: input.hostId,
           connectionType: input.connectionType ?? 'nfs',
           settings: input.settings,
           rootDir: input.rootDir ?? null,
@@ -47,7 +74,7 @@ export const createBackupDestination = async (
           `backup destination named "${input.name}" already exists`,
         );
       }
-      throw err;
+      throw unknownHost(err) ?? err;
     }
 
     await insertAuditEvent(tx, {
@@ -56,6 +83,7 @@ export const createBackupDestination = async (
       destinationId: row.id,
       details: {
         name: row.name,
+        hostId: row.hostId,
         settings: row.settings,
         rootDir: row.rootDir,
         enabled: row.enabled,
@@ -68,28 +96,36 @@ export const createBackupDestination = async (
 export const getBackupDestination = async (
   db: Database | Tx,
   id: string,
-): Promise<BackupDestination | undefined> => {
+): Promise<BackupDestinationWithHost | undefined> => {
   const [row] = await db
-    .select()
+    .select({ destination: backupDestinations, host: hostColumns })
     .from(backupDestinations)
+    .innerJoin(hosts, eq(hosts.id, backupDestinations.hostId))
     .where(eq(backupDestinations.id, id));
 
-  return row;
+  return row && { ...row.destination, host: row.host };
 };
 
 export const listBackupDestinations = async (
   db: Database,
-): Promise<BackupDestination[]> =>
-  db.select().from(backupDestinations).orderBy(asc(backupDestinations.name));
+): Promise<BackupDestinationWithHost[]> =>
+  (
+    await db
+      .select({ destination: backupDestinations, host: hostColumns })
+      .from(backupDestinations)
+      .innerJoin(hosts, eq(hosts.id, backupDestinations.hostId))
+      .orderBy(asc(backupDestinations.name))
+  ).map((row) => ({ ...row.destination, host: row.host }));
 
 export type UpdateBackupDestinationInput = {
   name?: string;
+  hostId?: string;
   settings?: BackupDestinationSettings;
   rootDir?: string | null;
 };
 
 /**
- * Edits a destination. Where the data lives (`settings`, `rootDir`) cannot
+ * Edits a destination. Where the data lives (`hostId`, `settings`, `rootDir`) cannot
  * change while the destination has an active job or any verified job item:
  * moving the data means a new destination. The destination row is locked so
  * a job being created concurrently cannot slip past the check.
@@ -112,9 +148,9 @@ export const updateBackupDestination = async (
     }
 
     const changesIdentity =
+      (input.hostId !== undefined && input.hostId !== current.hostId) ||
       (input.settings !== undefined &&
-        (input.settings.server !== current.settings.server ||
-          input.settings.exportPath !== current.settings.exportPath)) ||
+        input.settings.exportPath !== current.settings.exportPath) ||
       (input.rootDir !== undefined && input.rootDir !== current.rootDir);
 
     if (changesIdentity) {
@@ -136,6 +172,7 @@ export const updateBackupDestination = async (
 
     const set = {
       ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.hostId !== undefined ? { hostId: input.hostId } : {}),
       ...(input.settings !== undefined ? { settings: input.settings } : {}),
       ...(input.rootDir !== undefined ? { rootDir: input.rootDir } : {}),
     };
@@ -155,7 +192,7 @@ export const updateBackupDestination = async (
           `backup destination named "${input.name}" already exists`,
         );
       }
-      throw err;
+      throw unknownHost(err) ?? err;
     }
 
     await insertAuditEvent(tx, {
@@ -165,10 +202,16 @@ export const updateBackupDestination = async (
       details: {
         before: {
           name: current.name,
+          hostId: current.hostId,
           settings: current.settings,
           rootDir: current.rootDir,
         },
-        after: { name: row.name, settings: row.settings, rootDir: row.rootDir },
+        after: {
+          name: row.name,
+          hostId: row.hostId,
+          settings: row.settings,
+          rootDir: row.rootDir,
+        },
       },
     });
 
@@ -343,7 +386,7 @@ export type BackupDestinationClaimFailure =
   | 'ambiguous';
 
 export type BackupDestinationClaimResult =
-  | { destination: BackupDestination }
+  | { destination: BackupDestinationWithHost }
   | { reason: BackupDestinationClaimFailure };
 
 const trimTrailingSlash = (value: string): string =>
@@ -354,8 +397,8 @@ const trimTrailingSlash = (value: string): string =>
  * rules are unit tested without a database:
  *
  * - a pin picks that destination;
- * - otherwise a mounted export picks the destination whose `server:exportPath`
- *   is that export (the worker writes to its own mount, so it must never serve
+ * - otherwise a mounted export picks the destination whose host and
+ *   `exportPath` are that export (the worker writes to its own mount, so it must never serve
  *   another one);
  * - otherwise (a local scratch directory) any destination can be served.
  *
@@ -364,20 +407,23 @@ const trimTrailingSlash = (value: string): string =>
  * a restart finds its own again. Several free matches are ambiguous.
  */
 export const chooseBackupDestination = (
-  destinations: BackupDestination[],
+  destinations: BackupDestinationWithHost[],
   options: BackupDestinationClaimOptions,
   now: Date,
 ): BackupDestinationClaimResult => {
   if (destinations.length === 0) return { reason: 'none_registered' };
 
+  const { mount } = options;
   const matches = options.destinationId
     ? destinations.filter((d) => d.id === options.destinationId)
-    : options.mount
+    : mount
       ? destinations.filter(
           (d) =>
-            d.settings.server === options.mount?.server &&
+            destinationServerNames(d.host).some(
+              (name) => name.toLowerCase() === mount.server.toLowerCase(),
+            ) &&
             trimTrailingSlash(d.settings.exportPath) ===
-              trimTrailingSlash(options.mount.exportPath),
+              trimTrailingSlash(mount.exportPath),
         )
       : destinations;
 
@@ -410,11 +456,14 @@ export const claimBackupDestination = async (
     const rows = await tx
       .select({ now: sql<Date>`now()` })
       .from(sql`(select 1) as t`);
-    const destinations = await tx
-      .select()
-      .from(backupDestinations)
-      .orderBy(asc(backupDestinations.name))
-      .for('update');
+    const destinations = (
+      await tx
+        .select({ destination: backupDestinations, host: hostColumns })
+        .from(backupDestinations)
+        .innerJoin(hosts, eq(hosts.id, backupDestinations.hostId))
+        .orderBy(asc(backupDestinations.name))
+        .for('update', { of: backupDestinations })
+    ).map((row) => ({ ...row.destination, host: row.host }));
     const chosen = chooseBackupDestination(
       destinations,
       options,
@@ -433,7 +482,7 @@ export const claimBackupDestination = async (
       .where(eq(backupDestinations.id, chosen.destination.id))
       .returning();
 
-    return { destination: row };
+    return { destination: { ...row, host: chosen.destination.host } };
   });
 
 /**

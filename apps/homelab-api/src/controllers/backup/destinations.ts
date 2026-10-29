@@ -63,7 +63,7 @@ export const getBackupDestination = handle(
 export const updateBackupDestinationOperation = {
   summary: 'Update a backup destination',
   description:
-    '`settings` and `rootDir` say where the data lives, so they cannot change while the destination has an active job or any verified job item (409): moving the data means a new destination. A rename is always allowed. Records an audit event.',
+    '`hostId`, `settings` and `rootDir` say where the data lives, so they cannot change while the destination has an active job or any verified job item (409): moving the data means a new destination. A rename is always allowed. Records an audit event.',
   hud: '/exodus/backup',
 } satisfies Operation;
 

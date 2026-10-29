@@ -11,7 +11,8 @@ import {
 } from '../../src/destination/validate';
 import type { MountEntry } from '../../src/destination/mounts';
 
-const settings = { server: '192.168.4.124', exportPath: '/volume1/Dump' };
+const host = { id: 'h', name: 'nas', ipAddress: '192.168.4.124' };
+const settings = { exportPath: '/volume1/Dump' };
 
 let tmp: string;
 let mountPath: string;
@@ -49,7 +50,7 @@ const input = (
   rootDir: string | null = null,
   mountCheck: 'nfs' | 'none' = 'nfs',
 ) => ({
-  destination: { settings, rootDir },
+  destination: { host, settings, rootDir },
   mountPath,
   mountCheck,
 });

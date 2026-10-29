@@ -39,6 +39,7 @@ import {
   pauseSource,
   resumeReachableSources,
 } from './pauses';
+import { expectedExport } from '../destination/mounts';
 import { assertMounted } from './preflight';
 import { startHeartbeat } from './heartbeat';
 import { processItem } from './item';
@@ -170,10 +171,10 @@ export const claimAndCopyNext = async (
           assertMounted({
             mountCheck: config.backupDestinationMountCheck,
             mountPath: config.backupDestinationPath,
-            expected: destination?.settings as {
-              server: string;
-              exportPath: string;
-            },
+            // Nothing matches an empty export, so a vanished destination fails the mount check.
+            expected: destination
+              ? expectedExport(destination)
+              : { serverNames: [], exportPath: '' },
             run: (operation, fn) => getWatchdog().run(operation, fn),
           })),
     };

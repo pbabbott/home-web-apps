@@ -15,7 +15,9 @@ import {
   createBackupDestination,
   updateBackupDestination,
 } from '../sources/lib/actions';
+import { HostSelectField } from '../sources/HostSelectField';
 import type { BackupDestination } from '../sources/lib/homelab-api';
+import type { Host } from '../../infra/hosts/lib/homelab-api';
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -35,16 +37,18 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
  */
 export function AddDestinationModal({
   destination,
+  hosts,
   onOpenChange,
   onSaved,
 }: {
   destination?: BackupDestination;
+  hosts: Host[];
   onOpenChange: (open: boolean) => void;
   onSaved: (destination: BackupDestination) => void;
 }) {
   const editing = destination !== undefined;
   const [name, setName] = useState(destination?.name ?? '');
-  const [server, setServer] = useState(destination?.settings.server ?? '');
+  const [hostId, setHostId] = useState(destination?.hostId ?? '');
   const [exportPath, setExportPath] = useState(
     destination?.settings.exportPath ?? '',
   );
@@ -59,7 +63,7 @@ export function AddDestinationModal({
 
     const input = {
       name: name.trim(),
-      server: server.trim(),
+      hostId,
       exportPath: exportPath.trim(),
       rootDir: rootDir.trim(),
     };
@@ -100,12 +104,12 @@ export function AddDestinationModal({
             />
           </Field>
 
-          <Field label="NFS server">
-            <Input
+          <Field label="NFS server (host)">
+            <HostSelectField
               required
-              value={server}
-              onChange={(e) => setServer(e.target.value)}
-              placeholder="192.168.4.124"
+              hosts={hosts}
+              value={hostId}
+              onChange={setHostId}
             />
           </Field>
 
@@ -145,10 +149,7 @@ export function AddDestinationModal({
               type="submit"
               size="small"
               disabled={
-                submitting ||
-                !name.trim() ||
-                !server.trim() ||
-                !exportPath.trim()
+                submitting || !name.trim() || !hostId || !exportPath.trim()
               }
             >
               {submitting

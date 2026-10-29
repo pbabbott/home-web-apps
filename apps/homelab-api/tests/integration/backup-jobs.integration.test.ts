@@ -340,7 +340,7 @@ describe('destinations', () => {
       updateBackupDestination(
         db,
         destination.id,
-        { settings: { server: '192.0.2.99', exportPath: '/volume1/Test' } },
+        { settings: { exportPath: '/volume1/Other' } },
         HUMAN,
       ),
       'conflict',

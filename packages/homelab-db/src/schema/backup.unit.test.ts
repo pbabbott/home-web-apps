@@ -12,8 +12,9 @@ describe('backupDestinationSelectSchema', () => {
   const row = {
     id,
     name: 'dump',
+    hostId: id,
     connectionType: 'nfs',
-    settings: { server: '192.168.4.124', exportPath: '/volume1/Dump' },
+    settings: { exportPath: '/volume1/Dump' },
     rootDir: null,
     enabled: true,
     health: 'unknown',

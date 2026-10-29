@@ -3,7 +3,7 @@ import {
   claimBackupDestination,
   releaseBackupDestinationClaim,
   renewBackupDestinationClaim,
-  type BackupDestination,
+  type BackupDestinationWithHost,
   type BackupDestinationClaimFailure,
 } from '@abbottland/homelab-db';
 import { db } from '../db';
@@ -33,7 +33,8 @@ export const CLAIM_FAILURE_TEXT: Record<BackupDestinationClaimFailure, string> =
  * engine reads.
  */
 export const claimDestination = async (): Promise<
-  { destination: BackupDestination } | { reason: BackupDestinationClaimFailure }
+  | { destination: BackupDestinationWithHost }
+  | { reason: BackupDestinationClaimFailure }
 > => {
   const mount =
     config.backupDestinationMountCheck === 'nfs'

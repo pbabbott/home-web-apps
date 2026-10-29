@@ -45,13 +45,18 @@ export const bytes = (length: number, seed = 1): Buffer => {
 
 /** Registers the destination row the setup file's id refers to. */
 export const createDestinationRow = async (): Promise<void> => {
+  const { rows } = await db.$client.query(
+    `insert into hosts (name, ip_address) values ($1, '192.0.2.10') returning id`,
+    [`copy-test-host-${DESTINATION_ID}`],
+  );
   await db.$client.query(
-    `insert into backup_destinations (id, name, connection_type, settings)
-     values ($1, $2, 'nfs', $3)`,
+    `insert into backup_destinations (id, name, host_id, connection_type, settings)
+     values ($1, $2, $3, 'nfs', $4)`,
     [
       DESTINATION_ID,
       `copy-test-${DESTINATION_ID}`,
-      JSON.stringify({ server: '192.0.2.10', exportPath: '/volume1/Test' }),
+      rows[0].id,
+      JSON.stringify({ exportPath: '/volume1/Test' }),
     ],
   );
 };
@@ -62,6 +67,9 @@ export const deleteDestinationRow = async (): Promise<void> => {
   ]);
   await db.$client.query('delete from backup_destinations where id = $1', [
     DESTINATION_ID,
+  ]);
+  await db.$client.query('delete from hosts where name = $1', [
+    `copy-test-host-${DESTINATION_ID}`,
   ]);
 };
 

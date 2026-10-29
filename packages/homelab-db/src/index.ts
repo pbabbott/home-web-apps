@@ -277,6 +277,7 @@ export {
   markBackupDestinationUnhealthy,
   touchBackupDestinationWorker,
   chooseBackupDestination,
+  destinationServerNames,
   claimBackupDestination,
   renewBackupDestinationClaim,
   releaseBackupDestinationClaim,
@@ -319,6 +320,7 @@ export {
 export type {
   CreateBackupDestinationInput,
   BackupDestinationClaimOptions,
+  BackupDestinationWithHost,
   BackupDestinationClaimFailure,
   BackupDestinationClaimResult,
   UpdateBackupDestinationInput,

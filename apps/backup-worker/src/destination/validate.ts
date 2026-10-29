@@ -2,15 +2,20 @@ import { createHash, randomBytes } from 'crypto';
 import fsPromises from 'fs/promises';
 import path from 'path';
 import type {
-  BackupDestination,
   BackupDestinationValidation,
+  BackupDestinationWithHost,
 } from '@abbottland/homelab-db';
 import {
   assertNoSymlinks,
   resolveWithinRoot,
   UnsafePathError,
 } from '../lib/safe-path';
-import { checkNfsMount, parseProcMounts, type MountEntry } from './mounts';
+import {
+  checkNfsMount,
+  expectedExport,
+  parseProcMounts,
+  type MountEntry,
+} from './mounts';
 
 export const PROBE_DIR_PREFIX = '.exodus-probe-';
 export const STAGING_DIR_NAME = '.exodus-staging';
@@ -45,7 +50,7 @@ export type ValidationDeps = {
 };
 
 export type ValidationInput = {
-  destination: Pick<BackupDestination, 'settings' | 'rootDir'>;
+  destination: Pick<BackupDestinationWithHost, 'host' | 'settings' | 'rootDir'>;
   mountPath: string;
   mountCheck: 'nfs' | 'none';
 };
@@ -121,7 +126,11 @@ export const validateDestination = async (
       return fail('mount', `could not read /proc/mounts: ${describe(err)}`);
     }
 
-    const result = checkNfsMount(mounts, mountPath, destination.settings);
+    const result = checkNfsMount(
+      mounts,
+      mountPath,
+      expectedExport(destination),
+    );
 
     if ('message' in result) {
       if (result.entry) {

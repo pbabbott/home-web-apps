@@ -18,6 +18,7 @@ import {
 import { createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { inventoryItemKindEnum, inventoryItems, sources } from './discovery';
+import { hosts } from './hosts';
 
 export const backupDestinationTypeEnum = pgEnum('backup_destination_type', [
   'nfs',
@@ -81,7 +82,6 @@ export const backupEntryIssueKindEnum = pgEnum('backup_entry_issue_kind', [
 
 /** The expected identity of an NFS mount; where it is mounted is the worker's environment. */
 export type BackupDestinationSettings = {
-  server: string;
   exportPath: string;
 };
 
@@ -120,6 +120,10 @@ export const backupDestinations = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull().unique(),
+    /** The host that serves the export; its address is the NFS server. RESTRICT so deleting a host cannot orphan a destination. */
+    hostId: uuid('host_id')
+      .notNull()
+      .references(() => hosts.id, { onDelete: 'restrict' }),
     connectionType: backupDestinationTypeEnum('connection_type').notNull(),
     settings: jsonb('settings').$type<BackupDestinationSettings>().notNull(),
     rootDir: text('root_dir'),

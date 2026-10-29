@@ -32,6 +32,7 @@ import {
   setBackupDestinationEnabled,
   validateBackupDestination,
 } from '../sources/lib/actions';
+import type { Host } from '../../infra/hosts/lib/homelab-api';
 import type { BackupDestination, BackupJob } from '../sources/lib/homelab-api';
 import { AddDestinationModal } from './AddDestinationModal';
 import { BackupPicker } from './BackupPicker';
@@ -42,6 +43,7 @@ const REFRESH_MS = 5000;
 interface Props {
   sources: { id: string; name: string }[];
   destinations: BackupDestination[];
+  hosts: Host[];
   sourceId: string | null;
   destinationId: string | null;
   /** Null if the jobs could not be loaded. */
@@ -51,6 +53,7 @@ interface Props {
 export function BackupOverviewClient({
   sources,
   destinations,
+  hosts,
   sourceId,
   destinationId,
   jobs,
@@ -164,7 +167,8 @@ export function BackupOverviewClient({
             </div>
 
             <Typography variant="body2" className="break-all text-neutral-400">
-              {destination.settings.server}:{destination.settings.exportPath}
+              {destination.host.name} ({destination.host.ipAddress}):
+              {destination.settings.exportPath}
               {destination.rootDir ? ` / ${destination.rootDir}` : ''}
               {' · last validated '}
               <LocalDateTime iso={destination.lastValidatedAt} />
@@ -312,6 +316,7 @@ export function BackupOverviewClient({
       {editOpen && destination && (
         <AddDestinationModal
           destination={destination}
+          hosts={hosts}
           onOpenChange={setEditOpen}
           onSaved={() => router.refresh()}
         />
@@ -319,6 +324,7 @@ export function BackupOverviewClient({
 
       {addOpen && (
         <AddDestinationModal
+          hosts={hosts}
           onOpenChange={setAddOpen}
           onSaved={(created) =>
             router.push(backupOverviewUrl(sourceId ?? undefined, created.id))

@@ -47,7 +47,8 @@ describe('backup routes', () => {
   describe('backup destinations', () => {
     const body = {
       name: 'Dump',
-      settings: { server: '192.168.4.124', exportPath: '/volume1/Dump' },
+      hostId: ID,
+      settings: { exportPath: '/volume1/Dump' },
     };
 
     it('creates a destination, defaulting type and enabled', async () => {
@@ -67,7 +68,6 @@ describe('backup routes', () => {
     it.each([
       ['a relative export path', { exportPath: 'volume1/Dump' }],
       ['a .. segment', { exportPath: '/volume1/../etc' }],
-      ['a server with a slash', { server: 'nas/x' }],
     ])('rejects %s', async (_label, settings) => {
       await supertest(createServer())
         .post('/backup-destinations')

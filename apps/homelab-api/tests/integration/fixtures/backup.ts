@@ -1,6 +1,7 @@
 import {
   createBackupDestination,
   createBackupJob,
+  createHost,
   createSource,
   inventoryItems,
   type BackupDestination,
@@ -18,6 +19,7 @@ export const WORKER = { type: 'system' as const, id: 'worker-a' };
 
 const sourceIds: string[] = [];
 const destinationIds: string[] = [];
+const hostIds: string[] = [];
 
 const unique = () => Math.random().toString(36).slice(2);
 
@@ -36,8 +38,25 @@ export const cleanupBackupFixtures = async (): Promise<void> => {
   await db.$client.query('delete from backup_destinations where id = any($1)', [
     destinationIds,
   ]);
+  await db.$client.query('delete from hosts where id = any($1)', [hostIds]);
   sourceIds.length = 0;
   destinationIds.length = 0;
+  hostIds.length = 0;
+};
+
+/** A host to link destinations to; removed with the other fixtures. */
+export const makeHost = async (): Promise<string> => {
+  const host = await createHost(db, {
+    name: `backup-host-${unique()}`,
+    ipAddress: '192.0.2.10',
+    hostType: 'physical',
+    exporterType: 'node_exporter',
+    instance: null,
+    model3d: null,
+  });
+  hostIds.push(host.id);
+
+  return host.id;
 };
 
 export const makeSource = async (): Promise<string> => {
@@ -54,7 +73,8 @@ export const makeDestination = async (
     db,
     {
       name: `backup-dest-${unique()}`,
-      settings: { server: '192.0.2.10', exportPath: '/volume1/Test' },
+      hostId: await makeHost(),
+      settings: { exportPath: '/volume1/Test' },
       ...overrides,
     },
     HUMAN,

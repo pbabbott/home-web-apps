@@ -1,13 +1,5 @@
 import { z } from 'zod';
 
-const serverSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(253)
-  .regex(/^[A-Za-z0-9._:-]+$/, 'must be a host name or address')
-  .meta({ example: '192.168.4.124' });
-
 const exportPathSchema = z
   .string()
   .trim()
@@ -20,7 +12,6 @@ const exportPathSchema = z
   .meta({ example: '/volume1/Dump' });
 
 const settingsSchema = z.object({
-  server: serverSchema,
   exportPath: exportPathSchema,
 });
 
@@ -46,6 +37,10 @@ const rootDirSchema = z
 
 export const createBackupDestinationBodySchema = z.object({
   name: z.string().trim().min(1).max(100),
+  hostId: z.uuid().meta({
+    description:
+      'The registered host that serves the export. Its address is the NFS server.',
+  }),
   connectionType: z.literal('nfs').default('nfs'),
   settings: settingsSchema.meta({
     description:
@@ -61,15 +56,19 @@ export type CreateBackupDestinationBody = z.infer<
 export const updateBackupDestinationBodySchema = z
   .object({
     name: z.string().trim().min(1).max(100).optional(),
+    hostId: z.uuid().optional().meta({
+      description: 'The registered host that serves the export.',
+    }),
     settings: settingsSchema.optional(),
     rootDir: rootDirSchema.optional(),
   })
   .refine(
     (body) =>
       body.name !== undefined ||
+      body.hostId !== undefined ||
       body.settings !== undefined ||
       body.rootDir !== undefined,
-    { message: 'provide name, settings and/or rootDir' },
+    { message: 'provide name, hostId, settings and/or rootDir' },
   );
 export type UpdateBackupDestinationBody = z.infer<
   typeof updateBackupDestinationBodySchema

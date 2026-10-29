@@ -53,13 +53,18 @@ const auditCount = async (): Promise<number> => {
 
 describe('destination validation round trip', () => {
   beforeAll(async () => {
+    const { rows } = await db.$client.query(
+      `insert into hosts (name, ip_address) values ($1, '192.0.2.10') returning id`,
+      [`worker-test-host-${DESTINATION_ID}`],
+    );
     await db.$client.query(
-      `insert into backup_destinations (id, name, connection_type, settings)
-       values ($1, $2, 'nfs', $3)`,
+      `insert into backup_destinations (id, name, host_id, connection_type, settings)
+       values ($1, $2, $3, 'nfs', $4)`,
       [
         DESTINATION_ID,
         `worker-test-${DESTINATION_ID}`,
-        JSON.stringify({ server: '192.0.2.10', exportPath: '/volume1/Test' }),
+        rows[0].id,
+        JSON.stringify({ exportPath: '/volume1/Test' }),
       ],
     );
     fs.mkdirSync(path.join(DESTINATION_PATH, 'unrelated-folder'));
@@ -74,6 +79,9 @@ describe('destination validation round trip', () => {
     );
     await db.$client.query('delete from backup_destinations where id = $1', [
       DESTINATION_ID,
+    ]);
+    await db.$client.query('delete from hosts where name = $1', [
+      `worker-test-host-${DESTINATION_ID}`,
     ]);
   });
 

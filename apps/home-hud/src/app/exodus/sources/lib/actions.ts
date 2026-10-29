@@ -412,7 +412,8 @@ export async function updateBackupDestination(
 ): Promise<ActionResult<BackupDestination>> {
   return patch<BackupDestination>(`/backup-destinations/${destinationId}`, {
     name: input.name,
-    settings: { server: input.server, exportPath: input.exportPath },
+    hostId: input.hostId,
+    settings: { exportPath: input.exportPath },
     rootDir: input.rootDir || null,
   });
 }
@@ -485,7 +486,7 @@ export async function listBackupEntries(
 
 export interface CreateBackupDestinationInput {
   name: string;
-  server: string;
+  hostId: string;
   exportPath: string;
   /** Folder under the mount; omit for the mount root. */
   rootDir?: string;
@@ -497,7 +498,8 @@ export async function createBackupDestination(
 ): Promise<ActionResult<BackupDestination>> {
   return post<BackupDestination>('/backup-destinations', {
     name: input.name,
-    settings: { server: input.server, exportPath: input.exportPath },
+    hostId: input.hostId,
+    settings: { exportPath: input.exportPath },
     rootDir: input.rootDir || null,
   });
 }

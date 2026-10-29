@@ -1,3 +1,8 @@
+import {
+  destinationServerNames,
+  type BackupDestinationWithHost,
+} from '@abbottland/homelab-db';
+
 export type MountEntry = {
   device: string;
   mountPoint: string;
@@ -26,6 +31,16 @@ export const parseProcMounts = (content: string): MountEntry[] =>
 const trimTrailingSlash = (value: string): string =>
   value.length > 1 ? value.replace(/\/+$/, '') : value;
 
+/** The export a destination expects at its mount point: any of its host's names, plus the path. */
+export type ExpectedExport = { serverNames: string[]; exportPath: string };
+
+export const expectedExport = (
+  destination: Pick<BackupDestinationWithHost, 'host' | 'settings'>,
+): ExpectedExport => ({
+  serverNames: destinationServerNames(destination.host),
+  exportPath: destination.settings.exportPath,
+});
+
 export type MountCheckResult =
   | { ok: true; entry: MountEntry }
   | { ok: false; message: string; entry?: MountEntry };
@@ -38,7 +53,7 @@ export type MountCheckResult =
 export const checkNfsMount = (
   mounts: MountEntry[],
   mountPath: string,
-  expected: { server: string; exportPath: string },
+  expected: ExpectedExport,
 ): MountCheckResult => {
   const target = trimTrailingSlash(mountPath);
   const entry = [...mounts]
@@ -57,13 +72,17 @@ export const checkNfsMount = (
     };
   }
 
-  const expectedDevice = `${expected.server}:${trimTrailingSlash(expected.exportPath)}`;
+  const exportPath = trimTrailingSlash(expected.exportPath);
+  const expectedDevices = expected.serverNames.map(
+    (name) => `${name}:${exportPath}`,
+  );
+  const device = trimTrailingSlash(entry.device).toLowerCase();
 
-  if (trimTrailingSlash(entry.device) !== expectedDevice) {
+  if (!expectedDevices.some((d) => d.toLowerCase() === device)) {
     return {
       ok: false,
       entry,
-      message: `${mountPath} is mounted from ${entry.device}, expected ${expectedDevice}`,
+      message: `${mountPath} is mounted from ${entry.device}, expected ${expectedDevices[0]}`,
     };
   }
 

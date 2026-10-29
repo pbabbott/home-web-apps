@@ -15,6 +15,7 @@ import {
   auditCount,
   cleanupBackupFixtures,
   makeDestination,
+  makeHost,
   makeInventoryItem,
   makeSource,
 } from './fixtures/backup';
@@ -81,9 +82,15 @@ const verifyAll = async (destinationId: string, jobId: string) => {
 };
 
 describe('destinations', () => {
+  let hostId: string;
+  beforeAll(async () => {
+    hostId = await makeHost();
+  });
+
   const body = () => ({
     name: `api-dest-${Math.random().toString(36).slice(2)}`,
-    settings: { server: '192.0.2.10', exportPath: '/volume1/Test' },
+    hostId,
+    settings: { exportPath: '/volume1/Test' },
   });
 
   it('creates one, audits once, and a duplicate name is 409 with no event', async () => {
@@ -101,6 +108,8 @@ describe('destinations', () => {
       health: 'unknown',
       rootDir: null,
       workerStale: true,
+      hostId,
+      host: { id: hostId, ipAddress: '192.0.2.10' },
     });
     expect(
       await auditCount('backup_destination.created', {
@@ -114,6 +123,13 @@ describe('destinations', () => {
         destinationId: res.body.id,
       }),
     ).toBe(1);
+  });
+
+  it('answers 404 for a host that does not exist', async () => {
+    await api()
+      .post('/backup-destinations')
+      .send({ ...body(), hostId: crypto.randomUUID() })
+      .expect(404);
   });
 
   it('refuses a non-human actor without writing', async () => {
@@ -192,7 +208,11 @@ describe('destinations', () => {
 
     await api()
       .patch(`/backup-destinations/${destination.id}`)
-      .send({ settings: { server: '192.0.2.99', exportPath: '/volume1/Test' } })
+      .send({ settings: { exportPath: '/volume1/Other' } })
+      .expect(409);
+    await api()
+      .patch(`/backup-destinations/${destination.id}`)
+      .send({ hostId: await makeHost() })
       .expect(409);
     await api()
       .patch(`/backup-destinations/${destination.id}`)

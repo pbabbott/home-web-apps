@@ -1,3 +1,4 @@
+import { getHosts, type Host } from '../../infra/hosts/lib/homelab-api';
 import {
   getBackupDestinations,
   getBackupJobs,
@@ -18,15 +19,17 @@ export default async function ExodusBackupPage({ searchParams }: PageProps) {
 
   let sources: Source[];
   let destinations: BackupDestination[];
+  let hosts: Host[];
 
   try {
-    [sources, destinations] = await Promise.all([
+    [sources, destinations, hosts] = await Promise.all([
       getSources(),
       getBackupDestinations(),
+      getHosts(),
     ]);
   } catch (err) {
     console.error('Failed to load backup data from homelab-api:', err);
-    return <BackupLoadError what="sources and destinations" />;
+    return <BackupLoadError what="sources, destinations and hosts" />;
   }
 
   // Falls back to the first of each, as the inventory page does.
@@ -51,6 +54,7 @@ export default async function ExodusBackupPage({ searchParams }: PageProps) {
     <BackupOverviewClient
       sources={sources.map(({ id, name }) => ({ id, name }))}
       destinations={destinations}
+      hosts={hosts}
       sourceId={source?.id ?? null}
       destinationId={destination?.id ?? null}
       jobs={jobs}

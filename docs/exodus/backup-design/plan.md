@@ -50,20 +50,20 @@ New migration after `0015_on_disk_reviews`. Follow the conventions in `docs/exod
 
 ### 3.1 `backup_destinations`
 
-| Column                                           | Notes                                                                                                                                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id` uuid PK, `name` text unique                 |                                                                                                                                                                              |
-| `connection_type` enum `backup_destination_type` | `nfs` only. Extensible; settings are typed per type.                                                                                                                         |
-| `settings` jsonb                                 | NFS: `{ server, exportPath }`, the _expected_ identity of the mount (`192.168.4.124`, `/volume1/Dump`). Where it is mounted comes from the worker's environment, not the DB. |
-| `root_dir` text nullable                         | Optional folder under the mount where Exodus writes. Empty means the mount root (the case for Dump). No `..`, not absolute.                                                  |
-| `enabled` boolean                                | Disabled: no new jobs; claims for its jobs answer `destination_disabled`.                                                                                                    |
-| `health` enum `unknown\|ok\|unhealthy`           | Written by the worker.                                                                                                                                                       |
-| `last_validated_at`, `last_validation` jsonb     | Checks and probe findings (mount type/options, case sensitivity, max name length, `utimes` support, effective uid/gid, free space, `mountVerified`).                         |
-| `validation_requested_at` timestamptz nullable   | Set by the API's validate route, cleared by the worker.                                                                                                                      |
-| `worker_seen_at` timestamptz nullable            | The worker's last poll, so the UI can say "no worker running".                                                                                                               |
-| `created_at`, `updated_at`                       |                                                                                                                                                                              |
+| Column                                           | Notes                                                                                                                                                                                                                   |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id` uuid PK, `name` text unique                 |                                                                                                                                                                                                                         |
+| `connection_type` enum `backup_destination_type` | `nfs` only. Extensible; settings are typed per type.                                                                                                                                                                    |
+| `settings` jsonb                                 | NFS: `{ exportPath }`, the _expected_ export of the mount (`/volume1/Dump`); the server is the linked host's address (`host_id`, added in `0018`). Where it is mounted comes from the worker's environment, not the DB. |
+| `root_dir` text nullable                         | Optional folder under the mount where Exodus writes. Empty means the mount root (the case for Dump). No `..`, not absolute.                                                                                             |
+| `enabled` boolean                                | Disabled: no new jobs; claims for its jobs answer `destination_disabled`.                                                                                                                                               |
+| `health` enum `unknown\|ok\|unhealthy`           | Written by the worker.                                                                                                                                                                                                  |
+| `last_validated_at`, `last_validation` jsonb     | Checks and probe findings (mount type/options, case sensitivity, max name length, `utimes` support, effective uid/gid, free space, `mountVerified`).                                                                    |
+| `validation_requested_at` timestamptz nullable   | Set by the API's validate route, cleared by the worker.                                                                                                                                                                 |
+| `worker_seen_at` timestamptz nullable            | The worker's last poll, so the UI can say "no worker running".                                                                                                                                                          |
+| `created_at`, `updated_at`                       |                                                                                                                                                                                                                         |
 
-Invariant: `settings.server`, `settings.exportPath` and `root_dir` cannot change while the destination has an active job or any verified job item. Moving the data means a new destination.
+Invariant: `host_id`, `settings.exportPath` and `root_dir` cannot change while the destination has an active job or any verified job item. Moving the data means a new destination.
 
 ### 3.2 `backup_jobs`
 

@@ -1,7 +1,10 @@
 import { DestinationUnhealthyError } from '../../src/copy/errors';
 import { assertMounted } from '../../src/copy/preflight';
 
-const expected = { server: '192.168.4.124', exportPath: '/volume1/Dump' };
+const expected = {
+  serverNames: ['192.168.4.124', 'nas'],
+  exportPath: '/volume1/Dump',
+};
 const mounted = {
   device: '192.168.4.124:/volume1/Dump',
   mountPoint: '/backup',

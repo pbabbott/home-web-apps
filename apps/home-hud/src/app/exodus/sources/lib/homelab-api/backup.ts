@@ -65,7 +65,10 @@ export interface BackupDestination {
   id: string;
   name: string;
   connectionType: 'nfs';
-  settings: { server: string; exportPath: string };
+  hostId: string;
+  /** The host that serves the export; its address is the NFS server. */
+  host: { id: string; name: string; ipAddress: string };
+  settings: { exportPath: string };
   rootDir: string | null;
   enabled: boolean;
   health: BackupDestinationHealth;

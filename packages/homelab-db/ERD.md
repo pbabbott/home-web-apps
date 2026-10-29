@@ -5,6 +5,7 @@ Entity-relationship diagram for the `homelab_api` database. Source of truth is `
 ```mermaid
 erDiagram
     hosts ||--o{ sources : "host_id (RESTRICT, optional)"
+    hosts ||--o{ backup_destinations : "host_id (RESTRICT)"
     sources ||--o{ discovery_jobs : "source_id (CASCADE)"
     discovery_jobs ||--o{ discovery_queue_items : "job_id (CASCADE)"
     sources |o--o{ exclusion_rules : "source_id (CASCADE)"
@@ -155,8 +156,9 @@ erDiagram
     backup_destinations {
         uuid id PK
         text name UK
+        uuid host_id FK "the NFS server"
         backup_destination_type connection_type "nfs"
-        jsonb settings "expected mount identity { server, exportPath }"
+        jsonb settings "expected export { exportPath }"
         text root_dir "nullable, relative folder under the mount"
         boolean enabled
         backup_destination_health health "unknown | ok | unhealthy (worker)"

@@ -10,7 +10,7 @@ Copying approved inventory to an NFS destination. The design is in [backup-desig
 
 Four tables, drawn in [`packages/homelab-db/ERD.md`](../../packages/homelab-db/ERD.md):
 
-- `backup_destinations`: an NFS export (expected `server` and `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake, and `claimed_by` / `claimed_until`, the lease of the worker serving it (migration `0017`).
+- `backup_destinations`: an NFS export (a required link to a `hosts` row, whose address is the NFS server, the expected `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake, and `claimed_by` / `claimed_until`, the lease of the worker serving it (migration `0017`). Migration `0018` added `host_id` (RESTRICT) and replaced `settings.server` with the host; it deleted the destinations and jobs that existed then.
 - `backup_jobs`: one attempt to copy a frozen selection from a source to a destination. At most one `planned` or `running` job per (source, destination). `stalled_reason` pauses claims while the job stays `running`.
 - `backup_job_items`: the snapshot of one inventory item, the leased unit of work and its result. 3 attempts for a file, 5 for a directory.
 - `backup_entries`: one row per file or directory under a job item: the manifest, the resume state and the store for source metadata (times, attributes, streams, `Zone.Identifier`).
@@ -49,7 +49,7 @@ All in `apps/homelab-api` (`services/backup/`, `controllers/backup/`, `routes/ba
 
 **There is no `start` route.** Creating a job makes it ready; the destination's worker claims its first item and that moves it from `planned` to `running` (the same as a discovery job).
 
-**Destinations.** `server` is a host name or address, `exportPath` is absolute with no `..`, `rootDir` is relative with no `..` or backslash (blank means the mount root). The response adds `workerStale`: true when `worker_seen_at` is older than two minutes or unset, i.e. no worker would pick up a validation request. Changing `settings` or `rootDir` is refused (409) while the destination has a `planned` or `running` job or any verified item; a rename is always allowed.
+**Destinations.** `hostId` is a registered host, required; its `ipAddress` is the NFS server, and the response carries `host` (`id`, `name`, `ipAddress`). `exportPath` is absolute with no `..`, `rootDir` is relative with no `..` or backslash (blank means the mount root). Editing a host's address is not guarded: it re-addresses the same machine. The response adds `workerStale`: true when `worker_seen_at` is older than two minutes or unset, i.e. no worker would pick up a validation request. Changing `hostId`, `settings` or `rootDir` is refused (409) while the destination has a `planned` or `running` job or any verified item; a rename is always allowed.
 
 **Planning** (`services/backup/planner.ts` is a pure function; `planning.ts` loads the inputs). For the source's inventory matching the selection (`inventoryItemIds`, `pathPrefix`, `kinds`; `skipAlreadyCovered` defaults to true), in path order:
 
@@ -86,7 +86,7 @@ A directory the job does not copy (already covered, excluded) does not cover wha
 **Claiming a destination.** A worker holds a lease on the destination it serves (`backup_destinations.claimed_by` / `claimed_until`, 60 s, renewed on every poll, which also sets `worker_seen_at`). At startup, and again whenever it has none, it picks one (`chooseBackupDestination` in `homelab-db`, a pure function):
 
 1. `BACKUP_DESTINATION_ID`, when set, is the destination.
-2. Otherwise the export mounted at `BACKUP_DESTINATION_PATH` decides: the destination whose `settings.server:exportPath` equals the device of that mount in `/proc/mounts`. A worker writes to its own mount, so it never serves another export's destination. The `server` in the destination must be spelled as in the mount (an address, not a name the kernel resolved).
+2. Otherwise the export mounted at `BACKUP_DESTINATION_PATH` decides: the destination whose host and `settings.exportPath` equal the device of that mount in `/proc/mounts`. The mount's server may be the host's address or its name (compared case-insensitively). A worker writes to its own mount, so it never serves another export's destination.
 3. With `BACKUP_DESTINATION_MOUNT_CHECK=none` there is no mount, so any free destination can be served; if several are free the worker refuses to guess and logs that the pin is needed.
 
 A destination is free when it was never claimed, its lease expired, or it is this worker's own (a restart finds it again). A worker that finds none (none registered, no match, held by another worker, ambiguous) logs why once and polls again; it copies and validates nothing meanwhile. If its lease is lost (it was too slow to renew), it aborts the item in flight, which is released with the attempt refunded, and claims again. On `SIGTERM` it releases the claim so the next worker takes over at once. Two workers can therefore never serve one destination, whatever the deployment strategy. No audit event is written for a claim (it is not a change anyone decides).
@@ -97,7 +97,7 @@ A destination whose `health` is `unhealthy` is **validated again by itself** onc
 
 **Validation** (`src/destination/validate.ts`; `/proc/mounts`, the filesystem, the clock and the random id are injected). Checks run in order and stop at the first fatal one:
 
-1. `mount`: `BACKUP_DESTINATION_PATH` is a mount point whose entry is `nfs` or `nfs4` with device `settings.server:exportPath`. Skipped with the check set to `none`; `mountVerified` is then `false`.
+1. `mount`: `BACKUP_DESTINATION_PATH` is a mount point whose entry is `nfs` or `nfs4` with device `<host address or name>:exportPath`. Skipped with the check set to `none`; `mountVerified` is then `false`.
 2. `root`: the mount path is a directory; `<mount>/<root_dir>` stays inside the mount, has no symlink in any existing component (`lstat`), and is created if missing.
 3. `probe`: in a transient `.exodus-probe-<random>/` folder under the root: write, `fsync`, read back and compare a SHA-256; `link()` and a second `link()` onto the same name that must fail with `EEXIST`; `rename`; `utimes` and a `stat` round trip; a 255-byte name; a case-variant pair; names with spaces, a trailing dot and non-ASCII. The folder is removed in a `finally`; a removal failure is its own failed check (`probe_cleanup`). Nothing else is written.
 

@@ -11,12 +11,14 @@ import { db } from '../../src/db';
 const exportPath = `/test-claim-${randomUUID()}`;
 const mount = { server: '10.255.255.1', exportPath };
 const ids: string[] = [];
+const hostName = `claim-test-host-${randomUUID()}`;
+let hostId: string;
 
 const create = async (name: string, path = exportPath): Promise<string> => {
   const { rows } = await db.$client.query(
-    `insert into backup_destinations (name, connection_type, settings)
-     values ($1, 'nfs', $2) returning id`,
-    [`${name}-${randomUUID()}`, { server: mount.server, exportPath: path }],
+    `insert into backup_destinations (name, host_id, connection_type, settings)
+     values ($1, $2, 'nfs', $3) returning id`,
+    [`${name}-${randomUUID()}`, hostId, { exportPath: path }],
   );
   ids.push(rows[0].id);
 
@@ -35,6 +37,18 @@ const claimRow = async (id: string) => {
 };
 
 describe('claiming a destination', () => {
+  beforeAll(async () => {
+    const { rows } = await db.$client.query(
+      'insert into hosts (name, ip_address) values ($1, $2) returning id',
+      [hostName, mount.server],
+    );
+    hostId = rows[0].id;
+  });
+
+  afterAll(async () => {
+    await db.$client.query('delete from hosts where id = $1', [hostId]);
+  });
+
   afterEach(async () => {
     if (ids.length) {
       await db.$client.query(
