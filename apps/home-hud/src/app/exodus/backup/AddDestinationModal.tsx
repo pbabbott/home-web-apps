@@ -55,9 +55,17 @@ export function AddDestinationModal({
   const [rootDir, setRootDir] = useState(destination?.rootDir ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hostMissing, setHostMissing] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    // The host picker is not a native input, so the browser cannot flag it.
+    if (!hostId) {
+      setHostMissing(true);
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -109,8 +117,16 @@ export function AddDestinationModal({
               required
               hosts={hosts}
               value={hostId}
-              onChange={setHostId}
+              onChange={(id) => {
+                setHostId(id);
+                setHostMissing(false);
+              }}
             />
+            {hostMissing && (
+              <Typography variant="body2" className="text-error-400">
+                Select the host that serves the export.
+              </Typography>
+            )}
           </Field>
 
           <Field label="Export path">
@@ -145,13 +161,7 @@ export function AddDestinationModal({
             >
               Cancel
             </OutlinedButton>
-            <Button
-              type="submit"
-              size="small"
-              disabled={
-                submitting || !name.trim() || !hostId || !exportPath.trim()
-              }
-            >
+            <Button type="submit" size="small" disabled={submitting}>
               {submitting
                 ? editing
                   ? 'Saving…'
