@@ -572,3 +572,33 @@ export const listActiveBackupJobs = async (
       ),
     )
     .orderBy(asc(backupJobs.createdAt), asc(backupJobs.id));
+
+/**
+ * The root path of the one inventory item each single-item job was made for,
+ * keyed by job id. Jobs of any other scope get no entry.
+ */
+export const getBackupJobScopeRootPaths = async (
+  db: Database | Tx,
+  jobIds: string[],
+): Promise<Map<string, string>> => {
+  if (jobIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({ jobId: backupJobs.id, rootPath: backupJobItems.rootPath })
+    .from(backupJobs)
+    .innerJoin(
+      backupJobItems,
+      and(
+        eq(backupJobItems.jobId, backupJobs.id),
+        sql`${backupJobItems.inventoryItemId}::text = ${backupJobs.selection}->'inventoryItemIds'->>0`,
+      ),
+    )
+    .where(
+      and(
+        inArray(backupJobs.id, jobIds),
+        sql`jsonb_array_length(coalesce(${backupJobs.selection}->'inventoryItemIds', '[]'::jsonb)) = 1`,
+      ),
+    );
+
+  return new Map(rows.map((r) => [r.jobId, r.rootPath]));
+};

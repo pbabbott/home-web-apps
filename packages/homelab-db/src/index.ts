@@ -287,6 +287,7 @@ export {
   listActiveBackupJobs,
   getBackupItemCounts,
   getBackupJobSummaries,
+  getBackupJobScopeRootPaths,
   transitionBackupJob,
   completeBackupJobIfDone,
   stallBackupJob,

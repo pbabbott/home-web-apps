@@ -5,6 +5,7 @@ import {
   completeBackupJobIfDone,
   createBackupJob,
   failBackupItem,
+  getBackupJobScopeRootPaths,
   getBackupJobSummaries,
   listAuditEvents,
   markBackupEnumerationComplete,
@@ -111,6 +112,49 @@ describe('creating a job', () => {
     expect(
       await auditCount('backup_job.created', { backupJobId: job.id }),
     ).toBe(1);
+  });
+
+  it('reports the root path only for a job limited to exactly one item', async () => {
+    const sourceId = await makeSource();
+    const destination = await makeDestination();
+    const a = await makeInventoryItem(sourceId, 'C:\\a\\one.txt');
+    const b = await makeInventoryItem(sourceId, 'C:\\a\\two.txt');
+
+    const create = (
+      inventoryItemIds: string[] | undefined,
+      items: (typeof a)[],
+    ) =>
+      createBackupJob(
+        db,
+        {
+          sourceId,
+          destinationId: destination.id,
+          selection: { inventoryItemIds },
+          sourceDirName: 'test-source',
+          items: items.map((i) => planned(i)),
+        },
+        HUMAN,
+      );
+
+    const single = await create([a.id], [a]);
+    await db.$client.query(
+      "update backup_jobs set status = 'cancelled', finished_at = now() where id = $1",
+      [single.id],
+    );
+    const multi = await create([a.id, b.id], [a, b]);
+    await db.$client.query(
+      "update backup_jobs set status = 'cancelled', finished_at = now() where id = $1",
+      [multi.id],
+    );
+    const whole = await create(undefined, [a, b]);
+
+    const paths = await getBackupJobScopeRootPaths(db, [
+      single.id,
+      multi.id,
+      whole.id,
+    ]);
+
+    expect([...paths]).toEqual([[single.id, 'C:\\a\\one.txt']]);
   });
 
   it('refuses a second active job for the same source and destination', async () => {

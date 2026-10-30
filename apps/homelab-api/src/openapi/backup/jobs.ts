@@ -60,8 +60,25 @@ const progressSchema = z
   })
   .meta({ description: 'Derived from the job’s items and entries.' });
 
+const scopeSchema = z
+  .discriminatedUnion('type', [
+    z.object({ type: z.literal('source') }),
+    z.object({
+      type: z.literal('inventory'),
+      itemCount: z.number().int(),
+      rootPath: z.string().nullable().meta({
+        description: 'The item’s path when the job covers exactly one item.',
+      }),
+    }),
+  ])
+  .meta({
+    description:
+      'What the job was asked to cover: the whole source, or chosen inventory items.',
+  });
+
 export const backupJobResponseSchema = backupJobSelectSchema.extend({
   progress: progressSchema,
+  scope: scopeSchema,
 });
 
 /** A job item as the API returns it: the lease token stays with the worker. */

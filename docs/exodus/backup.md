@@ -34,22 +34,24 @@ All in `packages/homelab-db/src/queries/backup/`, exported from the package.
 
 All in `apps/homelab-api` (`services/backup/`, `controllers/backup/`, `routes/backup/`, OpenAPI under `/docs`), REST only and **human only**: a request with another `X-Actor-Type` gets `403`. There are no MCP tools. The services pass an `Actor` to the queries, which write the audit events; the API writes none itself, so a rejected request writes none.
 
-| Route                                                                                          | Purpose                                                                                       |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `POST` / `GET /backup-destinations`, `GET` / `PATCH /backup-destinations/:id`                  | Register, list, fetch, edit a destination                                                     |
-| `POST /backup-destinations/:id/{validate,enable,disable}`                                      | `validate` is `202` and sets `validation_requested_at`; enable and disable are idempotent     |
-| `POST /sources/:id/backup-jobs/plan`                                                           | Dry run                                                                                       |
-| `POST /sources/:id/backup-jobs`                                                                | Create a `planned` job                                                                        |
-| `GET /backup-jobs`, `GET /backup-jobs/:id`                                                     | Jobs with `progress` (counts derived from items and entries) and `stalledReason`              |
-| `POST /backup-jobs/:id/{cancel,fail}`                                                          | Guarded transitions (`fail` takes `{ error }`)                                                |
-| `POST /backup-jobs/:id/retry-failed`, `POST /backup-job-items/:id/retry`                       | One more attempt each; only while the job is active                                           |
-| `POST /backup-jobs/:id/rerun-unresolved`                                                       | New job from the failed and blocked items of a finished job                                   |
-| `GET /backup-jobs/:id/items`, `GET /backup-job-items/:id`, `GET /backup-job-items/:id/entries` | Item results and per-file entries; paged with `next` as `after`; `claimToken` is not returned |
-| `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`                          | Coverage report and its JSON download                                                         |
+| Route                                                                                          | Purpose                                                                                                                   |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `POST` / `GET /backup-destinations`, `GET` / `PATCH /backup-destinations/:id`                  | Register, list, fetch, edit a destination                                                                                 |
+| `POST /backup-destinations/:id/{validate,enable,disable}`                                      | `validate` is `202` and sets `validation_requested_at`; enable and disable are idempotent                                 |
+| `POST /sources/:id/backup-jobs/plan`                                                           | Dry run                                                                                                                   |
+| `POST /sources/:id/backup-jobs`                                                                | Create a `planned` job                                                                                                    |
+| `GET /backup-jobs`, `GET /backup-jobs/:id`                                                     | Jobs with `progress` (derived counts), `stalledReason` and `scope` (`source`, or `inventory` with `itemCount`/`rootPath`) |
+| `POST /backup-jobs/:id/{cancel,fail}`                                                          | Guarded transitions (`fail` takes `{ error }`)                                                                            |
+| `POST /backup-jobs/:id/retry-failed`, `POST /backup-job-items/:id/retry`                       | One more attempt each; only while the job is active                                                                       |
+| `POST /backup-jobs/:id/rerun-unresolved`                                                       | New job from the failed and blocked items of a finished job                                                               |
+| `GET /backup-jobs/:id/items`, `GET /backup-job-items/:id`, `GET /backup-job-items/:id/entries` | Item results and per-file entries; paged with `next` as `after`; `claimToken` is not returned                             |
+| `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`                          | Coverage report and its JSON download                                                                                     |
 
 **There is no `start` route.** Creating a job makes it ready; the destination's worker claims its first item and that moves it from `planned` to `running` (the same as a discovery job).
 
 **Destinations.** `hostId` is a registered host, required; its `ipAddress` is the NFS server, and the response carries `host` (`id`, `name`, `ipAddress`). `exportPath` is absolute with no `..`, `rootDir` is relative with no `..` or backslash (blank means the mount root). Editing a host's address is not guarded: it re-addresses the same machine. The response adds `workerStale`: true when `worker_seen_at` is older than two minutes or unset, i.e. no worker would pick up a validation request. Changing `hostId`, `settings` or `rootDir` is refused (409) while the destination has a `planned` or `running` job or any verified item; a rename is always allowed.
+
+**Scope.** A job covers the whole source, or only the inventory items in `inventoryItemIds` (the Start backup modal's Inventory tab sends one, to try a backup small). Carve-outs and exclusion rules still apply. The worker never reads the selection, only the frozen job items, so both kinds run the same way.
 
 **Planning** (`services/backup/planner.ts` is a pure function; `planning.ts` loads the inputs). For the source's inventory matching the selection (`inventoryItemIds`, `pathPrefix`, `kinds`; `skipAlreadyCovered` defaults to true), in path order:
 

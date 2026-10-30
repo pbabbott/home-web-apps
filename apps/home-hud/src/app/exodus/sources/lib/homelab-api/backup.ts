@@ -97,6 +97,11 @@ export interface BackupJobProgress {
   lastActivityAt: string | null;
 }
 
+/** What a job was asked to cover. `rootPath` is set when it covers exactly one item. */
+export type BackupJobScope =
+  | { type: 'source' }
+  | { type: 'inventory'; itemCount: number; rootPath: string | null };
+
 export interface BackupJob {
   id: string;
   sourceId: string;
@@ -110,6 +115,7 @@ export interface BackupJob {
   startedAt: string | null;
   finishedAt: string | null;
   progress: BackupJobProgress;
+  scope: BackupJobScope;
 }
 
 export interface BackupJobItem {

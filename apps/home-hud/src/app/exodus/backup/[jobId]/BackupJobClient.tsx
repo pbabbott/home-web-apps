@@ -27,6 +27,7 @@ import {
   backupCoverageUrl,
   backupJobUrl,
   backupOverviewUrl,
+  backupJobScopeLabel,
   backupProgress,
   canCancelBackupJob,
   canRerunBackupJob,
@@ -146,6 +147,8 @@ export function BackupJobClient({
         <Typography variant="body2" className="break-all text-neutral-400">
           {sourceName ?? 'Unknown source'} → {destinationName ?? 'destination'}{' '}
           / {job.sourceDirName}
+          {' · '}
+          {backupJobScopeLabel(job.scope)}
           {' · created '}
           <LocalDateTime iso={job.createdAt} />
           {job.startedAt && (

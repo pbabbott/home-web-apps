@@ -422,9 +422,11 @@ export async function updateBackupDestination(
 export async function planBackupJob(
   sourceId: string,
   destinationId: string,
+  inventoryItemIds?: string[],
 ): Promise<ActionResult<BackupPlan>> {
   return post<BackupPlan>(`/sources/${sourceId}/backup-jobs/plan`, {
     destinationId,
+    inventoryItemIds,
   });
 }
 
@@ -432,10 +434,50 @@ export async function planBackupJob(
 export async function createBackupJob(
   sourceId: string,
   destinationId: string,
+  inventoryItemIds?: string[],
 ): Promise<ActionResult<BackupJob>> {
   return post<BackupJob>(`/sources/${sourceId}/backup-jobs`, {
     destinationId,
+    inventoryItemIds,
   });
+}
+
+export interface BackupInventoryChoice {
+  id: string;
+  kind: InventoryItem['kind'];
+  rootPath: string;
+}
+
+const BACKUP_CHOICE_LIMIT = 50;
+
+/** Approved inventory items a backup job can be limited to, matching `q`. */
+export async function listApprovedInventoryForBackup(
+  sourceId: string,
+  q: string,
+): Promise<ActionResult<{ items: BackupInventoryChoice[]; total: number }>> {
+  const params = new URLSearchParams({
+    decision: 'approved',
+    limit: String(BACKUP_CHOICE_LIMIT),
+  });
+  if (q.trim()) params.set('q', q.trim());
+
+  const result = await send<{ items: InventoryItem[]; total: number }>(
+    'GET',
+    `/sources/${sourceId}/inventory-items?${params}`,
+  );
+  if (!result.ok) return result;
+
+  return {
+    ok: true,
+    data: {
+      total: result.data.total,
+      items: result.data.items.map(({ id, kind, rootPath }) => ({
+        id,
+        kind,
+        rootPath,
+      })),
+    },
+  };
 }
 
 export async function cancelBackupJob(

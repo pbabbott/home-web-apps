@@ -3,6 +3,7 @@ import {
   getBackupEntryCounts,
   getBackupJob,
   getBackupJobItem,
+  getBackupJobScopeRootPaths,
   getBackupJobSummaries,
   listBackupEntries,
   listBackupJobItems,
@@ -26,8 +27,16 @@ import type {
 } from '../../schemas/backup/jobs';
 import { createJob } from './planning';
 
+/** What a job was asked to cover, read from its frozen selection. */
+export type BackupJobScope =
+  | { type: 'source' }
+  | { type: 'inventory'; itemCount: number; rootPath: string | null };
+
 /** A job with its derived progress: counts come from the items and entries, never stored. */
-export type BackupJobView = BackupJob & { progress: BackupJobSummary };
+export type BackupJobView = BackupJob & {
+  progress: BackupJobSummary;
+  scope: BackupJobScope;
+};
 
 /** An item without its claim token: nobody but the worker that holds the lease needs it. */
 export type BackupJobItemView = Omit<BackupJobItem, 'claimToken'>;
@@ -40,15 +49,28 @@ const toItemView = (item: BackupJobItem): BackupJobItemView => {
 };
 
 const withProgress = async (jobs: BackupJob[]): Promise<BackupJobView[]> => {
-  const summaries = await getBackupJobSummaries(
-    db,
-    jobs.map((j) => j.id),
-  );
+  const ids = jobs.map((j) => j.id);
+  const [summaries, rootPaths] = await Promise.all([
+    getBackupJobSummaries(db, ids),
+    getBackupJobScopeRootPaths(db, ids),
+  ]);
 
-  return jobs.map((job) => ({
-    ...job,
-    progress: summaries.get(job.id) as BackupJobSummary,
-  }));
+  return jobs.map((job) => {
+    const itemCount = job.selection.inventoryItemIds?.length ?? 0;
+
+    return {
+      ...job,
+      progress: summaries.get(job.id) as BackupJobSummary,
+      scope:
+        itemCount === 0
+          ? { type: 'source' }
+          : {
+              type: 'inventory',
+              itemCount,
+              rootPath: rootPaths.get(job.id) ?? null,
+            },
+    };
+  });
 };
 
 const requireJob = async (id: string): Promise<BackupJob> => {

@@ -7,6 +7,7 @@ import type {
   BackupJobItem,
   BackupJobItemStatus,
   BackupJobProgress,
+  BackupJobScope,
   BackupJobStatus,
   BackupPlanWarning,
   BackupStalledReason,
@@ -42,6 +43,14 @@ export const BACKUP_ENTRY_STATUS_COLOR: Record<BackupEntryStatus, BadgeColor> =
   };
 
 const ACTIVE_JOB_STATUSES: BackupJobStatus[] = ['planned', 'running'];
+
+/** "Whole source", the item's path, or a count when a job covers several items. */
+export const backupJobScopeLabel = (scope: BackupJobScope): string => {
+  if (scope.type === 'source') return 'Whole source';
+  if (scope.rootPath) return scope.rootPath;
+
+  return `${scope.itemCount} items`;
+};
 
 export const isActiveBackupJob = (job: { status: BackupJobStatus }): boolean =>
   ACTIVE_JOB_STATUSES.includes(job.status);

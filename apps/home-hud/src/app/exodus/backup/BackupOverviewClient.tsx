@@ -20,6 +20,7 @@ import {
 import {
   BACKUP_JOB_STATUS_COLOR,
   backupCoverageUrl,
+  backupJobScopeLabel,
   backupJobUrl,
   backupOverviewUrl,
   backupProgress,
@@ -246,6 +247,7 @@ export function BackupOverviewClient({
                   <TableHead>
                     <TableRow>
                       <Th>Job</Th>
+                      <Th>Scope</Th>
                       <Th>Status</Th>
                       <Th>Progress</Th>
                       <Th>Created</Th>
@@ -265,6 +267,29 @@ export function BackupOverviewClient({
                             >
                               {job.id.slice(0, 8)}
                             </Link>
+                          </Td>
+                          <Td>
+                            <div className="flex flex-col gap-1">
+                              <Badge
+                                color={
+                                  job.scope.type === 'source'
+                                    ? 'dark'
+                                    : 'accent-falcon'
+                                }
+                              >
+                                {job.scope.type === 'source'
+                                  ? 'Source'
+                                  : 'Inventory'}
+                              </Badge>
+                              {job.scope.type === 'inventory' && (
+                                <Typography
+                                  variant="caption"
+                                  className="break-all text-neutral-400"
+                                >
+                                  {backupJobScopeLabel(job.scope)}
+                                </Typography>
+                              )}
+                            </div>
                           </Td>
                           <Td>
                             <div className="flex flex-col gap-1">

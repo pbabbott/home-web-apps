@@ -59,6 +59,24 @@ describe('planBackup', () => {
     ]);
   });
 
+  it('plans only the chosen item, keeping carve-outs for what is rejected inside it', () => {
+    const dir = item('C:\\a');
+    const other = item('C:\\b');
+    const rejected = item('C:\\a\\junk', { decision: 'rejected' });
+
+    const result = plan([dir, other, rejected], {
+      selection: { inventoryItemIds: [dir.id] },
+    });
+
+    expect(result.items.map((i) => [i.rootPath, i.status])).toEqual([
+      ['C:\\a', 'queued'],
+    ]);
+    expect(result.items[0].carveOuts).toEqual([
+      { path: 'C:\\a\\junk', reason: 'rejected_item', refId: rejected.id },
+    ]);
+    expect(result.notEligible).toEqual([]);
+  });
+
   it('marks an approved item under an exclude_subtree rule excluded', () => {
     const result = plan([item('C:\\a\\b')], { rules: [rule('C:\\a')] });
 
