@@ -25,7 +25,7 @@ import {
 const apiDestinationIds: string[] = [];
 
 afterEach(async () => {
-  await cleanupBackupFixtures();
+  // API-made destinations go before the fixtures delete the hosts they link to.
   await db.$client.query(
     'delete from audit_events where destination_id = any($1)',
     [apiDestinationIds],
@@ -33,6 +33,7 @@ afterEach(async () => {
   await db.$client.query('delete from backup_destinations where id = any($1)', [
     apiDestinationIds,
   ]);
+  await cleanupBackupFixtures();
   apiDestinationIds.length = 0;
 });
 

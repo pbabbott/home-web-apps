@@ -9,6 +9,7 @@ CREATE TYPE "public"."backup_job_status" AS ENUM('planned', 'running', 'complete
 CREATE TABLE "backup_destinations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
+	"host_id" uuid NOT NULL,
 	"connection_type" "backup_destination_type" NOT NULL,
 	"settings" jsonb NOT NULL,
 	"root_dir" text,
@@ -18,9 +19,12 @@ CREATE TABLE "backup_destinations" (
 	"last_validation" jsonb,
 	"validation_requested_at" timestamp with time zone,
 	"worker_seen_at" timestamp with time zone,
+	"claimed_by" text,
+	"claimed_until" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "backup_destinations_name_unique" UNIQUE("name"),
+	CONSTRAINT "backup_destinations_claim_check" CHECK (("backup_destinations"."claimed_by" is null) = ("backup_destinations"."claimed_until" is null)),
 	CONSTRAINT "backup_destinations_root_dir_check" CHECK ("backup_destinations"."root_dir" is null or ("backup_destinations"."root_dir" !~ '^[/\\]' and "backup_destinations"."root_dir" !~ '(^|[/\\])\.\.([/\\]|$)'))
 );
 --> statement-breakpoint
@@ -106,6 +110,7 @@ CREATE TABLE "backup_jobs" (
 ALTER TABLE "audit_events" ADD COLUMN "destination_id" uuid;--> statement-breakpoint
 ALTER TABLE "audit_events" ADD COLUMN "backup_job_id" uuid;--> statement-breakpoint
 ALTER TABLE "audit_events" ADD COLUMN "backup_job_item_id" uuid;--> statement-breakpoint
+ALTER TABLE "backup_destinations" ADD CONSTRAINT "backup_destinations_host_id_hosts_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."hosts"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "backup_entries" ADD CONSTRAINT "backup_entries_job_item_id_backup_job_items_id_fk" FOREIGN KEY ("job_item_id") REFERENCES "public"."backup_job_items"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "backup_job_items" ADD CONSTRAINT "backup_job_items_job_id_backup_jobs_id_fk" FOREIGN KEY ("job_id") REFERENCES "public"."backup_jobs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "backup_job_items" ADD CONSTRAINT "backup_job_items_inventory_item_id_inventory_items_id_fk" FOREIGN KEY ("inventory_item_id") REFERENCES "public"."inventory_items"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint

@@ -128,6 +128,49 @@ Copies approved inventory items from a source to an NFS destination. This API pl
 | `GET /backup-jobs/:id/items`, `GET /backup-job-items/:id`, `GET /backup-job-items/:id/entries` | Item results (keyset paged) and per-file entries with the captured source metadata. `claimToken` is never returned.                      |
 | `GET /sources/:id/backup-coverage?destinationId=&bucket=&format=json`                          | Per-item coverage buckets and `allAccounted`, with `scope`, `limits` and display-only discovery review. `format=json` downloads it.      |
 
+## Refreshing the local database
+
+Use this to get the local dev Postgres back to a prod-like state: after rewriting or squashing migrations, after a bad local experiment, or just to pick up fresh prod data. Nothing here touches prod. The data flows one way, remote → local, and the scripts refuse to run unless `POSTGRES_HOST` is `localhost`, `127.0.0.1` or `::1`.
+
+**One command** (from `apps/homelab-api`):
+
+```sh
+pnpm local:reset-from-remote   # REMOTE_HOMELAB_API_URL overrides the prod default
+```
+
+It runs these steps in order; run them by hand to stop partway or debug one:
+
+| #   | Command                              | What it does                                                                                                                                                                                                 |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `pnpm local:smb-connections:save`    | Writes local SMB credentials (`source_connections`) to the gitignored `.local-connections.json`. Prod credentials are never exposed by the API, so this is the only copy.                                    |
+| 2   | `pnpm dev:deps:down`                 | Destroys the Postgres container **and its volume** (`down -v`). All local data is gone.                                                                                                                      |
+| 3   | `pnpm dev:deps`                      | Starts an empty Postgres on `:5433` and waits until it is healthy.                                                                                                                                           |
+| 4   | `pnpm local:pull-remote`             | Applies every migration to the empty database (`runMigrationsWithLock`), then copies hosts and the Exodus discovery data from prod. See [Seeding](#seeding-hosts-and-exodus-data-from-a-remote-environment). |
+| 5   | `pnpm local:smb-connections:restore` | Re-inserts the saved credentials, matched by source name.                                                                                                                                                    |
+
+Step 4 doubles as a migration test: a migration set that cannot build the schema from scratch, or that cannot take prod's rows, fails here.
+
+**When you changed migration files**, order matters:
+
+1. Run `pnpm local:smb-connections:save` **before** editing migrations (it migrates the database first, and an edited set no longer matches what the database has applied).
+2. Edit or regenerate the migrations (`pnpm --filter @abbottland/homelab-db build` after any `src/schema` change; `db:generate` writes the SQL).
+3. Run `pnpm dev:deps:down && pnpm dev:deps && pnpm local:pull-remote && pnpm local:smb-connections:restore` (the one command without its `save` step, which already ran).
+
+**Checks afterwards**
+
+- `pnpm --filter @abbottland/homelab-db db:generate` reports "No schema changes".
+- Migration count: `docker exec homelab-api-postgres psql -U homelab_api -d homelab_api -c 'select count(*) from drizzle.__drizzle_migrations'` should equal the number of entries in `packages/homelab-db/drizzle/migrations/meta/_journal.json`.
+- `pnpm test:int` passes. It uses this same database, so run it after the refresh, not before.
+
+**What a refresh does not bring back**
+
+- Anything that exists only locally: backup destinations and jobs (prod has none until the feature ships), hand-made sources, local audit events.
+- Rows are upserts, so re-running `local:pull-remote` without the wipe refreshes prod data but never deletes local-only rows.
+- The integration tests leave no rows behind when they pass; after a failed run, leftover `backup-host-*` hosts or destinations can break later runs. A refresh clears them.
+
+> [!NOTE]
+> If `@abbottland/homelab-db` changed since its last build, rebuild it first (`pnpm --filter @abbottland/homelab-db build`). The scripts run against its compiled `dist`.
+
 ## Seeding hosts and exodus data from a remote environment
 
 A local database reset (`pnpm dev:deps:down`) wipes hand-registered hosts. Rather than re-entering IPs/instances by hand, `pnpm run local:pull-remote` pulls the full host list from a remote `homelab-api` (e.g. production) and upserts it into the **local** database — matching existing rows by `ipAddress` (not `id`, which is a per-environment UUID).
@@ -138,7 +181,7 @@ Production `homelab-api` has its own route on the cluster's gateway: `https://ho
 pnpm run local:pull-remote   # REMOTE_HOMELAB_API_URL overrides the prod default
 ```
 
-To bring a local environment to prod parity from scratch, `pnpm run local:reset-from-remote` wipes the local Postgres volume, restarts it, and runs `local:pull-remote`, which applies migrations before seeding. Local SMB credentials (`source_connections`) survive the wipe: `local:smb-connections:save` writes them to the gitignored `.local-connections.json` first and `local:smb-connections:restore` re-inserts them afterwards, matched by source name. Prod credentials are never copied.
+To wipe and rebuild the whole local database, see [Refreshing the local database](#refreshing-the-local-database).
 
 > [!WARNING]
 > These scripts only go one way: **remote → local**. The remote is read over its HTTP API (GET only) and is never a write target. They overwrite the database in `POSTGRES_HOST`, so they refuse to run (`RemoteDatabaseTargetError`) unless it is `localhost`, `127.0.0.1` or `::1`.

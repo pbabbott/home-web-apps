@@ -1,5 +1,5 @@
 {
-  "id": "4f6c1efd-62a3-4a90-bacc-fd50c6527d7e",
+  "id": "f6a4e291-719a-4152-83ee-4dae93556f9b",
   "prevId": "6f8ef488-8816-4149-81f4-c6cbc6d50e84",
   "version": "7",
   "dialect": "postgresql",
@@ -1430,6 +1430,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "host_id": {
+          "name": "host_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "connection_type": {
           "name": "connection_type",
           "type": "backup_destination_type",
@@ -1488,6 +1494,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "claimed_by": {
+          "name": "claimed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "claimed_until": {
+          "name": "claimed_until",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1504,7 +1522,17 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "backup_destinations_host_id_hosts_id_fk": {
+          "name": "backup_destinations_host_id_hosts_id_fk",
+          "tableFrom": "backup_destinations",
+          "tableTo": "hosts",
+          "columnsFrom": ["host_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "backup_destinations_name_unique": {
@@ -1515,6 +1543,10 @@
       },
       "policies": {},
       "checkConstraints": {
+        "backup_destinations_claim_check": {
+          "name": "backup_destinations_claim_check",
+          "value": "(\"backup_destinations\".\"claimed_by\" is null) = (\"backup_destinations\".\"claimed_until\" is null)"
+        },
         "backup_destinations_root_dir_check": {
           "name": "backup_destinations_root_dir_check",
           "value": "\"backup_destinations\".\"root_dir\" is null or (\"backup_destinations\".\"root_dir\" !~ '^[/\\\\]' and \"backup_destinations\".\"root_dir\" !~ '(^|[/\\\\])\\.\\.([/\\\\]|$)')"

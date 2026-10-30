@@ -10,7 +10,7 @@ Copying approved inventory to an NFS destination. The design is in [backup-desig
 
 Four tables, drawn in [`packages/homelab-db/ERD.md`](../../packages/homelab-db/ERD.md):
 
-- `backup_destinations`: an NFS export (a required link to a `hosts` row, whose address is the NFS server, the expected `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake, and `claimed_by` / `claimed_until`, the lease of the worker serving it (migration `0017`). Migration `0018` added `host_id` (RESTRICT) and replaced `settings.server` with the host; it deleted the destinations and jobs that existed then.
+- `backup_destinations`: an NFS export (a required link to a `hosts` row, whose address is the NFS server, the expected `exportPath`, optional relative `root_dir`), with `enabled`, a `health` the worker writes, `validation_requested_at` / `worker_seen_at` for the API-to-worker handshake, and `claimed_by` / `claimed_until`, the lease of the worker serving it (`ON DELETE RESTRICT` on `host_id`).
 - `backup_jobs`: one attempt to copy a frozen selection from a source to a destination. At most one `planned` or `running` job per (source, destination). `stalled_reason` pauses claims while the job stays `running`.
 - `backup_job_items`: the snapshot of one inventory item, the leased unit of work and its result. 3 attempts for a file, 5 for a directory.
 - `backup_entries`: one row per file or directory under a job item: the manifest, the resume state and the store for source metadata (times, attributes, streams, `Zone.Identifier`).

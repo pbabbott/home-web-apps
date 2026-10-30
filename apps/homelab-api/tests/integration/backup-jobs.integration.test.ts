@@ -24,6 +24,7 @@ import {
   itemRow,
   makeDestination,
   makeInventoryItem,
+  makeHost,
   makeJob,
   makeSource,
   planned,
@@ -478,10 +479,11 @@ describe('CHECK constraints', () => {
 
   it('keeps root_dir relative with no parent segment', async () => {
     const name = (n: string) => `backup-check-${n}-${Math.random()}`;
+    const hostId = await makeHost();
     const insert = (rootDir: string) =>
       sqlState(
-        "insert into backup_destinations (name, connection_type, settings, root_dir) values ($1, 'nfs', '{}', $2) returning id",
-        [name('r'), rootDir],
+        "insert into backup_destinations (name, connection_type, settings, root_dir, host_id) values ($1, 'nfs', '{}', $2, $3) returning id",
+        [name('r'), rootDir, hostId],
       );
 
     expect(await insert('/absolute')).toBe('23514');
