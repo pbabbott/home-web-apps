@@ -147,6 +147,9 @@ const finish = async (ctx: CopyContext): Promise<void> => {
 
   if (counts.failed === 0) {
     await completeBackupItem(db, item.id, { claimToken: claimTokenOf(ctx) });
+    console.log(
+      `✅ verified ${item.rootPath}: ${counts.verified} ${counts.verified === 1 ? 'entry' : 'entries'} at ${ctx.dest.baseRoot}/${ctx.job.sourceDirName}/${item.destRelPath}`,
+    );
 
     return;
   }
@@ -170,6 +173,9 @@ const finish = async (ctx: CopyContext): Promise<void> => {
     error,
     kind,
   });
+  console.error(
+    `❌ ${kind === 'permanent' ? 'blocked' : 'failed (will retry if attempts remain)'} ${item.rootPath}: ${error}`,
+  );
 };
 
 /**

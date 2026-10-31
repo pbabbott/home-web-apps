@@ -40,6 +40,15 @@ jest.mock('../../src/config', () => ({
 
 const mocked = homelabDb as unknown as Record<string, jest.Mock>;
 
+const destinationFields = {
+  id: 'dest-1',
+  name: 'Dump',
+  host: { id: 'host-1', name: 'nas', ipAddress: '10.0.0.1' },
+  connectionType: 'nfs',
+  settings: { exportPath: '/export' },
+  rootDir: null,
+};
+
 describe('poll loop', () => {
   let validateSpy: jest.SpyInstance;
 
@@ -56,7 +65,7 @@ describe('poll loop', () => {
         rootEntries: [],
       });
     mocked.getBackupDestination.mockResolvedValue({
-      id: 'dest-1',
+      ...destinationFields,
       validationRequestedAt: null,
     });
     config.backupDestinationId = 'dest-1';
@@ -84,7 +93,7 @@ describe('poll loop', () => {
 
   describe('an unhealthy destination', () => {
     const unhealthy = {
-      id: 'dest-1',
+      ...destinationFields,
       validationRequestedAt: null,
       health: 'unhealthy',
     };
@@ -232,11 +241,25 @@ describe('poll loop', () => {
     expect(validateSpy).toHaveBeenCalledTimes(1);
 
     mocked.getBackupDestination.mockResolvedValue({
-      id: 'dest-1',
+      ...destinationFields,
       validationRequestedAt: new Date(),
     });
     await tick(1000);
     expect(validateSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('logs where files are written and which export it expects when validated', async () => {
+    mocked.getBackupDestination.mockResolvedValue({
+      ...destinationFields,
+      rootDir: 'exodus',
+      validationRequestedAt: null,
+    });
+    startPollLoop();
+    await tick(0);
+
+    expect(console.log).toHaveBeenCalledWith(
+      '✅ destination validated: writing to /backup/exodus (expects export 10.0.0.1:/export, mount check none)',
+    );
   });
 
   it('claims once per poll when there is nothing to copy', async () => {
@@ -258,6 +281,10 @@ describe('poll loop', () => {
       retryAt: null,
       drainedJobIds: ['job-1', 'job-2'],
     });
+    mocked.completeBackupJobIfDone.mockImplementation(async (_db, id) => ({
+      job: { id, status: 'completed' },
+      finished: true,
+    }));
     startPollLoop();
     await tick(0);
 

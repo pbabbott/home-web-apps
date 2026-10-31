@@ -111,7 +111,15 @@ export const claimAndCopyNext = async (
 
   if (!('job' in claim)) {
     for (const jobId of claim.drainedJobIds) {
-      await completeBackupJobIfDone(db, jobId, systemActor());
+      const { job, finished } = await completeBackupJobIfDone(
+        db,
+        jobId,
+        systemActor(),
+      );
+
+      if (finished) {
+        console.log(`🏁 job ${job.id.slice(0, 8)} ${job.status}`);
+      }
     }
 
     return { kind: 'idle', reason: claim.reason, retryAt: claim.retryAt };
@@ -119,6 +127,9 @@ export const claimAndCopyNext = async (
 
   const { item, job } = claim;
   const claimToken = item.claimToken as string;
+  console.log(
+    `📦 copying ${item.kind} ${item.rootPath} (job ${job.id.slice(0, 8)}, attempt ${item.attemptCount} of ${item.maxAttempts})`,
+  );
   const heartbeat = startHeartbeat(
     db,
     { id: item.id, claimToken },

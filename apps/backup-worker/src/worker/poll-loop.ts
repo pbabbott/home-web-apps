@@ -1,3 +1,4 @@
+import path from 'path';
 import {
   getBackupDestination,
   recordBackupDestinationValidation,
@@ -5,6 +6,7 @@ import {
 import { db } from '../db';
 import { claimAndCopyNext } from '../copy/run';
 import { config, type MountCheck } from '../config';
+import { describeDestinationRecord } from '../destination/describe';
 import { DESTINATION_KEY } from '../copy/pause-tracker';
 import { resumeDestinationJobs, stallDestinationJobs } from '../copy/pauses';
 import {
@@ -153,6 +155,13 @@ export const pollOnce = async (): Promise<void> => {
       // An unhealthy destination is checked again by itself, with a backoff.
       (destination.health === 'unhealthy' && runtimePauses.due(DESTINATION_KEY))
     ) {
+      console.log(
+        `🗄️  backup destination record (database, not environment) for ${destination.name}`,
+      );
+      describeDestinationRecord(destination).forEach((line) =>
+        console.log(`  ${line}`),
+      );
+
       const validation = await validateDestination(
         {
           destination,
@@ -173,9 +182,17 @@ export const pollOnce = async (): Promise<void> => {
       if (validation.ok) await resumeDestinationJobs();
       else await stallDestinationJobs(runtimePauses);
 
+      // Where files really go: the worker's mount (not the export recorded
+      // on the destination, which is only the identity it is checked against).
+      const writeRoot = path.join(
+        config.backupDestinationPath,
+        destination.rootDir ?? '',
+      );
+      const expected = `${destination.host.ipAddress}:${destination.settings.exportPath}`;
+
       console.log(
         validation.ok
-          ? '✅ destination validated'
+          ? `✅ destination validated: writing to ${writeRoot} (expects export ${expected}, mount check ${config.backupDestinationMountCheck})`
           : `⚠️  destination validation failed: ${validation.checks
               ?.filter((c) => !c.ok)
               .map((c) => `${c.name}: ${c.message}`)
