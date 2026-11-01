@@ -279,9 +279,11 @@ export function BackupOverviewClient({
                               >
                                 {job.scope.type === 'source'
                                   ? 'Source'
-                                  : 'Inventory'}
+                                  : job.scope.type === 'rerun'
+                                    ? 'Rerun'
+                                    : 'Inventory'}
                               </Badge>
-                              {job.scope.type === 'inventory' && (
+                              {job.scope.type !== 'source' && (
                                 <Typography
                                   variant="caption"
                                   className="break-all text-neutral-400"

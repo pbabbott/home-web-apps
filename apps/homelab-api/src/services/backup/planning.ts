@@ -3,12 +3,15 @@ import {
   createBackupJob,
   getBackupCoverage,
   getBackupSourceDirNames,
+  getBackupJob,
   getPriorVerifiedDestRelPaths,
   getSourceById,
   listBackupJobs,
   listDiscoveryJobs,
   listInventoryForBackupPlanning,
   listExclusionRules,
+  listUnresolvedInventoryItemIds,
+  ACTIVE_BACKUP_JOB_STATUSES,
   type Actor,
   type BackupJob,
   type BackupJobSelection,
@@ -51,6 +54,7 @@ export type BackupPlan = {
 
 const toSelection = (body: PlanBackupJobBody): BackupJobSelection => ({
   inventoryItemIds: body.inventoryItemIds,
+  fromJobId: body.fromJobId,
   pathPrefix: body.pathPrefix,
   kinds: body.kinds,
   skipAlreadyCovered: body.skipAlreadyCovered,
@@ -97,6 +101,16 @@ export async function planJob(
     destination.id,
   );
   const selection = toSelection(body);
+  const planned = body.fromJobId
+    ? {
+        ...selection,
+        inventoryItemIds: await unresolvedItemsOf(
+          body.fromJobId,
+          sourceId,
+          destination.id,
+        ),
+      }
+    : selection;
 
   const [inventory, rules, coverage, priorDestRelPaths, discoveryJobs] =
     await Promise.all([
@@ -114,7 +128,7 @@ export async function planJob(
   );
 
   const { items, notEligible } = planBackup({
-    selection,
+    selection: planned,
     inventory,
     rules,
     coveredIds,
@@ -196,6 +210,41 @@ export async function createJob(
     },
     actor,
   );
+}
+
+/**
+ * The inventory items of the failed and blocked items of a finished job of
+ * this source and destination. The plan and the job keep only the job id.
+ */
+async function unresolvedItemsOf(
+  fromJobId: string,
+  sourceId: string,
+  destinationId: string,
+): Promise<string[]> {
+  const from = await getBackupJob(db, fromJobId);
+  if (!from) throw new BackupError('not_found', 'backup job not found');
+  if (from.sourceId !== sourceId || from.destinationId !== destinationId) {
+    throw new BackupError(
+      'conflict',
+      'the job to rerun belongs to another source or destination',
+    );
+  }
+  if (ACTIVE_BACKUP_JOB_STATUSES.includes(from.status)) {
+    throw new BackupError(
+      'conflict',
+      `job is ${from.status}; retry its items instead of rerunning it`,
+    );
+  }
+
+  const ids = await listUnresolvedInventoryItemIds(db, fromJobId);
+  if (ids.length === 0) {
+    throw new BackupError(
+      'conflict',
+      'the job has no failed or blocked items to rerun',
+    );
+  }
+
+  return ids;
 }
 
 /**

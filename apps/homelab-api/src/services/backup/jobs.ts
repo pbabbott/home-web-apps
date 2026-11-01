@@ -12,7 +12,6 @@ import {
   retryBackupJobItem,
   retryFailedBackupJobItems,
   transitionBackupJob,
-  ACTIVE_BACKUP_JOB_STATUSES,
   type Actor,
   type BackupEntry,
   type BackupItemEntryCounts,
@@ -31,6 +30,7 @@ import { createJob } from './planning';
 /** What a job was asked to cover, read from its frozen selection. */
 export type BackupJobScope =
   | { type: 'source' }
+  | { type: 'rerun'; fromJobId: string }
   | { type: 'inventory'; itemCount: number; rootPath: string | null };
 
 /** A job with its derived progress: counts come from the items and entries, never stored. */
@@ -49,6 +49,17 @@ const toItemView = (item: BackupJobItem): BackupJobItemView => {
   return view as BackupJobItemView;
 };
 
+const scopeOf = (job: BackupJob, rootPath: string | null): BackupJobScope => {
+  const { fromJobId, inventoryItemIds } = job.selection;
+
+  if (fromJobId) return { type: 'rerun', fromJobId };
+  if (inventoryItemIds?.length) {
+    return { type: 'inventory', itemCount: inventoryItemIds.length, rootPath };
+  }
+
+  return { type: 'source' };
+};
+
 const withProgress = async (jobs: BackupJob[]): Promise<BackupJobView[]> => {
   const ids = jobs.map((j) => j.id);
   const [summaries, rootPaths] = await Promise.all([
@@ -57,19 +68,10 @@ const withProgress = async (jobs: BackupJob[]): Promise<BackupJobView[]> => {
   ]);
 
   return jobs.map((job) => {
-    const itemCount = job.selection.inventoryItemIds?.length ?? 0;
-
     return {
       ...job,
       progress: summaries.get(job.id) ?? emptyBackupJobSummary(),
-      scope:
-        itemCount === 0
-          ? { type: 'source' }
-          : {
-              type: 'inventory',
-              itemCount,
-              rootPath: rootPaths.get(job.id) ?? null,
-            },
+      scope: scopeOf(job, rootPaths.get(job.id) ?? null),
     };
   });
 };
@@ -128,55 +130,23 @@ export async function retryFailedItems(
   return { retried: items.length, items: items.map(toItemView) };
 }
 
-const RERUN_PAGE = 500;
-
 /**
  * A new job for the failed and blocked items of a finished job. It goes
  * through the normal planning, so anything that was verified in the meantime
- * is skipped and the current inventory decisions apply.
+ * is skipped and the current inventory decisions apply. The job keeps a
+ * reference to the one it reruns, not the list of items.
  */
 export async function rerunUnresolved(
   id: string,
   actor: Actor,
 ): Promise<BackupJob> {
   const job = await requireJob(id);
-  if (ACTIVE_BACKUP_JOB_STATUSES.includes(job.status)) {
-    throw new BackupError(
-      'conflict',
-      `job is ${job.status}; retry its items instead of rerunning it`,
-    );
-  }
-
-  const inventoryItemIds: string[] = [];
-  for (const status of ['failed', 'blocked'] as const) {
-    let after: string | undefined;
-    for (;;) {
-      const page = await listBackupJobItems(db, {
-        jobId: id,
-        status,
-        after,
-        limit: RERUN_PAGE,
-      });
-      for (const item of page) {
-        if (item.inventoryItemId) inventoryItemIds.push(item.inventoryItemId);
-      }
-      if (page.length < RERUN_PAGE) break;
-      after = page[page.length - 1].normalizedRootPath;
-    }
-  }
-
-  if (inventoryItemIds.length === 0) {
-    throw new BackupError(
-      'conflict',
-      'the job has no failed or blocked items to rerun',
-    );
-  }
 
   return createJob(
     job.sourceId,
     {
       destinationId: job.destinationId,
-      inventoryItemIds,
+      fromJobId: id,
       skipAlreadyCovered: true,
     },
     actor,

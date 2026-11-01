@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { Database } from '../../client';
 import { isUniqueViolation } from '../../pg-errors';
 import {
@@ -573,6 +573,30 @@ export const listActiveBackupJobs = async (
       ),
     )
     .orderBy(asc(backupJobs.createdAt), asc(backupJobs.id));
+
+/**
+ * The inventory items behind the `failed` and `blocked` items of a job: what
+ * a rerun of the job covers. Resolved here so a job never has to carry the
+ * list in its selection.
+ */
+export const listUnresolvedInventoryItemIds = async (
+  db: Database | Tx,
+  jobId: string,
+): Promise<string[]> => {
+  const t = backupJobItems;
+  const rows = await db
+    .selectDistinct({ id: t.inventoryItemId })
+    .from(t)
+    .where(
+      and(
+        eq(t.jobId, jobId),
+        inArray(t.status, ['failed', 'blocked']),
+        isNotNull(t.inventoryItemId),
+      ),
+    );
+
+  return rows.flatMap((r) => (r.id ? [r.id] : []));
+};
 
 /**
  * The root path of the one inventory item each single-item job was made for,

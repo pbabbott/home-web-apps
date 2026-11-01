@@ -661,11 +661,22 @@ describe('jobs', () => {
     const finished = await api().get(`/backup-jobs/${first.id}`).expect(200);
     expect(finished.body.status).toBe('completed_with_issues');
 
+    await api()
+      .post(`/sources/${sourceId}/backup-jobs/plan`)
+      .send({
+        destinationId: destination.id,
+        fromJobId: '00000000-0000-4000-8000-000000000000',
+      })
+      .expect(404);
+
     const rerun = await api()
       .post(`/backup-jobs/${first.id}/rerun-unresolved`)
       .expect(201);
     expect(rerun.body.status).toBe('planned');
-    expect(rerun.body.selection.inventoryItemIds).toHaveLength(1);
+    expect(rerun.body.selection).toMatchObject({ fromJobId: first.id });
+    expect(rerun.body.selection.inventoryItemIds).toBeUndefined();
+    const listed = await api().get(`/backup-jobs/${rerun.body.id}`).expect(200);
+    expect(listed.body.scope).toEqual({ type: 'rerun', fromJobId: first.id });
 
     const items = await api()
       .get(`/backup-jobs/${rerun.body.id}/items`)

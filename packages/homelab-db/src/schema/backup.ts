@@ -106,6 +106,8 @@ export type BackupCarveOut = {
 /** The request as made when the job was created. */
 export type BackupJobSelection = {
   inventoryItemIds?: string[];
+  /** The failed and blocked items of this finished job, resolved when planned. */
+  fromJobId?: string;
   pathPrefix?: string;
   kinds?: ('file' | 'directory')[];
   skipAlreadyCovered?: boolean;

@@ -64,6 +64,13 @@ const scopeSchema = z
   .discriminatedUnion('type', [
     z.object({ type: z.literal('source') }),
     z.object({
+      type: z.literal('rerun'),
+      fromJobId: z.uuid().meta({
+        description:
+          'The finished job whose failed and blocked items this one retries.',
+      }),
+    }),
+    z.object({
       type: z.literal('inventory'),
       itemCount: z.number().int(),
       rootPath: z.string().nullable().meta({
@@ -73,7 +80,7 @@ const scopeSchema = z
   ])
   .meta({
     description:
-      'What the job was asked to cover: the whole source, or chosen inventory items.',
+      'What the job was asked to cover: the whole source, chosen inventory items, or the unresolved items of an earlier job.',
   });
 
 export const backupJobResponseSchema = backupJobSelectSchema.extend({
@@ -131,6 +138,7 @@ export const backupPlanSchema = z.object({
   }),
   selection: z.object({
     inventoryItemIds: z.array(z.uuid()).optional(),
+    fromJobId: z.uuid().optional(),
     pathPrefix: z.string().optional(),
     kinds: z.array(z.enum(['file', 'directory'])).optional(),
     skipAlreadyCovered: z.boolean().optional(),

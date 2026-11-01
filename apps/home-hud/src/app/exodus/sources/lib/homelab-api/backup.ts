@@ -101,6 +101,7 @@ export interface BackupJobProgress {
 /** What a job was asked to cover. `rootPath` is set when it covers exactly one item. */
 export type BackupJobScope =
   | { type: 'source' }
+  | { type: 'rerun'; fromJobId: string }
   | { type: 'inventory'; itemCount: number; rootPath: string | null };
 
 export interface BackupJob {

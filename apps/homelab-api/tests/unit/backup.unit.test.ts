@@ -198,6 +198,10 @@ describe('backup routes', () => {
       ['a non-uuid item id', { destinationId: DEST, inventoryItemIds: ['x'] }],
       ['a relative path prefix', { destinationId: DEST, pathPrefix: 'a\\b' }],
       ['an unknown kind', { destinationId: DEST, kinds: ['symlink'] }],
+      [
+        'a rerun combined with item ids',
+        { destinationId: DEST, fromJobId: ID, inventoryItemIds: [ID] },
+      ],
     ])('rejects %s', async (_label, body) => {
       await supertest(createServer())
         .post(`/sources/${ID}/backup-jobs/plan`)

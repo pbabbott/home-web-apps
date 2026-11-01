@@ -44,9 +44,12 @@ export const BACKUP_ENTRY_STATUS_COLOR: Record<BackupEntryStatus, BadgeColor> =
 
 const ACTIVE_JOB_STATUSES: BackupJobStatus[] = ['planned', 'running'];
 
-/** "Whole source", the item's path, or a count when a job covers several items. */
+/** "Whole source", the job it reruns, the item's path, or a count when a job covers several items. */
 export const backupJobScopeLabel = (scope: BackupJobScope): string => {
   if (scope.type === 'source') return 'Whole source';
+  if (scope.type === 'rerun') {
+    return `Failed and blocked items of ${scope.fromJobId.slice(0, 8)}`;
+  }
   if (scope.rootPath) return scope.rootPath;
 
   return `${scope.itemCount} items`;
