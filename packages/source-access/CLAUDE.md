@@ -7,4 +7,5 @@ Guidance for `packages/source-access`. Index only — see [Documentation Convent
 - `FakeDriver` (`src/testing/fake-driver.ts`) is the contract `backup-worker` and `homelab-api` tests rely on. Change it together with the real driver, and keep its behaviours (reading moves the access time, faults, call log) in step with the README.
 - Parsers are tested on captured `smbclient` output; add a captured sample to the unit tests when fixing a parsing bug.
 - This package holds SMB code only. Schema, migrations and queries stay in `packages/homelab-db`.
+- Consumers type-check this package from `src/` but run it from `dist/` (`main`, also in Jest): run `pnpm build` after changes or they run stale code.
 - Run `pnpm test:unit`.

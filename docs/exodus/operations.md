@@ -58,7 +58,7 @@ The manifests live in `pbabbott/home-kubernetes` (Flux, namespace `home-hud`). W
 
 Not measured yet: throughput over the dedicated cable, the real total size of the approved set, and memory on a real NFS mount.
 
-After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` loads it from `dist/` at runtime (including in Jest), so a stale build shows up as confusing "undefined" errors.
+After changing `packages/homelab-db` or `packages/source-access`, run `pnpm build` there: `homelab-api` and `backup-worker` type-check them from `src/` (`types`) but load them from `dist/` at runtime (`main`, including in Jest), so a stale build shows up as confusing "undefined" errors.
 
 ## Next steps
 

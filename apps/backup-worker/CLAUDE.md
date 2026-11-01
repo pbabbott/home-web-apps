@@ -8,3 +8,4 @@ Guidance for `apps/backup-worker`. Index only — see [Documentation Conventions
 - Crash-safety is tested by injecting a `FaultHook` at named points (`ctx.fault('entry:after-link', …)`) through `tests/integration/helpers/copy-harness.ts`. Add a fault point and a test when adding a step that writes to the destination or database.
 - Run `pnpm test:unit` and `pnpm test:int` (the integration tests need Postgres from `pnpm dev:deps`; see [Running and testing](../../docs/exodus/operations.md#running-and-testing)).
 - Operating the worker (pauses, stalled mount, deployment requirements): [`docs/exodus/operations.md`](../../docs/exodus/operations.md). Setup and configuration: [`README.md`](./README.md).
+- `@abbottland/homelab-db` and `@abbottland/source-access` are type-checked from their `src/` (`types`) but run from `dist/` (`main`, also in Jest). After changing either, run `pnpm build` in that package or tests and the worker run stale code.
