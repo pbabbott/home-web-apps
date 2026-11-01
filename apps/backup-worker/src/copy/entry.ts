@@ -26,6 +26,8 @@ import {
 const ZONE_IDENTIFIER = 'Zone.Identifier';
 const ZONE_IDENTIFIER_MAX_BYTES = 4096;
 /** Writing the same instant: whole seconds, which is what the source reports. */
+/** How often a link that loses a race is looked at again before giving up. */
+const LINK_RACE_TRIES = 3;
 const sameSecond = (a: Date, b: Date) =>
   Math.floor(a.getTime() / 1000) === Math.floor(b.getTime() / 1000);
 
@@ -199,7 +201,9 @@ const copyFile = async (
     };
 
     // A placed link that loses a race (EEXIST) is looked at again.
-    for (let tries = 0; tries < 3; tries++) {
+    let settled = false;
+
+    for (let tries = 0; tries < LINK_RACE_TRIES; tries++) {
       assertLive(ctx);
       const existing = await dest.lstat(abs);
 
@@ -267,7 +271,16 @@ const copyFile = async (
           };
         }
       }
+      settled = true;
       break;
+    }
+
+    // Keep-both is for different content, not for a race that never ended.
+    if (!settled) {
+      throw new EntryFailure(
+        'dest_conflict',
+        `${candidateRel} kept changing while it was being placed`,
+      );
     }
 
     if (index === 1) {

@@ -637,6 +637,29 @@ describe('copy engine', () => {
       }
     });
 
+    it('fails the entry, without a keep-both copy, when the link keeps losing its race', async () => {
+      const file = 'C:\\data\\a.txt';
+      const world = await makeWorld([{ rootPath: file }]);
+
+      await runUntilIdle(world.job.id, {
+        driver: new FakeDriver().addFile(file, 'x'),
+        fsDeps: {
+          fs: {
+            ...fs.promises,
+            link: async () => {
+              throw Object.assign(new Error('EEXIST'), { code: 'EEXIST' });
+            },
+          } as never,
+          run: <T>(_operation: string, fn: () => Promise<T>) => fn(),
+        },
+      });
+
+      expect((await entriesOf(world.items[file].id))[0]).toMatchObject({
+        status: 'failed',
+        issueKind: 'dest_conflict',
+      });
+    });
+
     it('fails an entry whose name is too long for the destination', async () => {
       const file = `C:\\data\\${'n'.repeat(300)}.txt`;
       const world = await makeWorld([{ rootPath: file }]);
