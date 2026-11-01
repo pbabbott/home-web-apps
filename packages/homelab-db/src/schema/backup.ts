@@ -78,6 +78,7 @@ export const backupEntryIssueKindEnum = pgEnum('backup_entry_issue_kind', [
   'dest_conflict',
   'reparse_point_not_followed',
   'kept_both',
+  'source_changed',
 ]);
 
 /** The expected identity of an NFS mount; where it is mounted is the worker's environment. */

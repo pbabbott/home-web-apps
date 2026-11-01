@@ -31,6 +31,35 @@ const LINK_RACE_TRIES = 3;
 const sameSecond = (a: Date, b: Date) =>
   Math.floor(a.getTime() / 1000) === Math.floor(b.getTime() / 1000);
 
+/**
+ * What changed about a file between the attempt that first described it and
+ * this one (a retry after an interruption can be hours later), or null. The
+ * copy is of the file as it is now; the entry keeps the earlier times, so the
+ * difference stays on record.
+ */
+const changeSincePreviousRead = (
+  entry: BackupEntry,
+  info: FileInfo,
+): string | null => {
+  const changes: string[] = [];
+
+  if (
+    entry.srcModifiedAt &&
+    !sameSecond(entry.srcModifiedAt, info.modifiedAt)
+  ) {
+    changes.push(
+      `modified ${entry.srcModifiedAt.toISOString()} -> ${info.modifiedAt.toISOString()}`,
+    );
+  }
+  if (entry.sizeBytes != null && entry.sizeBytes !== info.size) {
+    changes.push(`size ${entry.sizeBytes} -> ${info.size}`);
+  }
+
+  return changes.length > 0
+    ? `the source changed since it was first read (${changes.join(', ')})`
+    : null;
+};
+
 const mapSourceError = (err: ConnectionError): EntryFailure | Error => {
   switch (err.code) {
     case 'not_found':
@@ -153,8 +182,11 @@ const copyFile = async (
   const { dest, job, item } = ctx;
   const rel = entryDestRel(item.destRelPath, entry.relPath);
   const sourcePath = entrySourcePath(item.rootPath, entry.relPath);
-  const modifiedAt = entry.srcModifiedAt ?? info.modifiedAt;
+  // The bytes copied and the time applied both come from this attempt's view
+  // of the file; `entry.src_*` keeps what the first attempt saw.
+  const modifiedAt = info.modifiedAt;
   const size = info.size;
+  const changed = changeSincePreviousRead(entry, info);
   const absOf = (r: string) => destAbs(dest.baseRoot, job.sourceDirName, r);
 
   await dest.ensureDir(path.dirname(absOf(rel)));
@@ -196,9 +228,15 @@ const copyFile = async (
   for (let index = 0; index < 2; index++) {
     const candidateRel = index === 0 ? rel : keepBothRel(rel, job.id);
     const abs = absOf(candidateRel);
-    const result: Pick<BackupEntryResult, 'issueKind'> = {
+    const result: Pick<BackupEntryResult, 'issueKind' | 'message'> = {
       issueKind: index === 1 ? 'kept_both' : null,
     };
+
+    // Keep-both is the more consequential of the two notes.
+    if (changed) {
+      result.issueKind ??= 'source_changed';
+      result.message = changed;
+    }
 
     // A placed link that loses a race (EEXIST) is looked at again.
     let settled = false;

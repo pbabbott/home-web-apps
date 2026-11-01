@@ -40,7 +40,8 @@ export type BackupEntryIssueKind =
   | 'write_failed'
   | 'dest_conflict'
   | 'reparse_point_not_followed'
-  | 'kept_both';
+  | 'kept_both'
+  | 'source_changed';
 
 export type BackupCoverageBucket =
   | 'covered'

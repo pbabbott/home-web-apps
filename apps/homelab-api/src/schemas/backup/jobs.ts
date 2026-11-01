@@ -84,6 +84,7 @@ export const backupEntryListQuerySchema = z.object({
       'dest_conflict',
       'reparse_point_not_followed',
       'kept_both',
+      'source_changed',
     ])
     .optional(),
   after: z.coerce.number().int().min(0).optional().meta({

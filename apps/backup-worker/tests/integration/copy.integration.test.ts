@@ -307,6 +307,47 @@ describe('copy engine', () => {
       });
     });
 
+    it('copies the file as it is now and notes that it changed since the interrupted attempt', async () => {
+      const world = await makeWorld([{ rootPath: file }]);
+      const later = new Date('2024-06-01T00:00:00Z');
+      const newer = Buffer.concat([content, Buffer.from('appended')]);
+
+      await expect(
+        runUntilIdle(world.job.id, {
+          driver: driver(),
+          fault: (point) => {
+            if (point === 'entry:after-metadata') {
+              throw new FaultInjectedError(point);
+            }
+          },
+        }),
+      ).rejects.toBeInstanceOf(FaultInjectedError);
+
+      await expireLeases(world.job.id);
+      await runUntilIdle(world.job.id, {
+        driver: new FakeDriver().addFile(file, newer, { modifiedAt: later }),
+        skipBackoff: true,
+      });
+
+      expect(
+        sha256(
+          fs.readFileSync(
+            destPath(world.sourceDirName, 'C', 'data', 'photo.jpg'),
+          ),
+        ),
+      ).toBe(sha256(newer));
+      expect(mtimeOf(world.sourceDirName, 'C', 'data', 'photo.jpg')).toBe(
+        seconds(later),
+      );
+      expect((await entriesOf(world.items[file].id))[0]).toMatchObject({
+        status: 'verified',
+        issueKind: 'source_changed',
+        srcModifiedAt: MODIFIED,
+        sizeBytes: newer.length,
+        message: expect.stringContaining('changed since it was first read'),
+      });
+    });
+
     it('blocks the item with dest_conflict when a directory is where the file must go', async () => {
       const world = await makeWorld([{ rootPath: file }]);
 
