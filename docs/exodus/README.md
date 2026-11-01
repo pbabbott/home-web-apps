@@ -26,7 +26,7 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 
 ## Where things live
 
-- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery/`, `src/queries/inventory-items.ts`, migrations `0003`–`0012`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
+- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery/`, `src/queries/discovery/`, `src/queries/inventory-items/`, migrations `0003`–`0012`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
 - **API** — `apps/homelab-api` (`controllers/discovery/` split by domain, `services/discovery/`, `schemas/discovery/`, `routes/`, `openapi/`, `lib/windows-path.ts`, `mcp.ts`). Interactive docs at `/docs`. The README has the agent workflow and the rules in short form.
 - **UI** — `apps/home-hud/src/app/exodus/`, under the Exodus menu in the nav.
 

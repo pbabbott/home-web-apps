@@ -60,7 +60,7 @@ pnpm test:int   # needs `pnpm dev:deps`; runs against the real local Postgres
 
 Exodus is the one-time migration of files from Windows machines to the NAS (full write-up, including design decisions and what is not built yet: [`docs/exodus.md`](../../docs/exodus/README.md)). An agent explores each machine directory by directory, possibly across many cron runs that start with no memory of the last, so the queue in Postgres is the only state: whatever is not written there is lost.
 
-Tables (`packages/homelab-db/src/schema/discovery.ts`; design in [`docs/exodus/inventory.md`](../../docs/exodus/inventory.md)):
+Tables (`packages/homelab-db/src/schema/discovery/`; design in [`docs/exodus/inventory.md`](../../docs/exodus/inventory.md)):
 
 - `sources` — a machine being inventoried (`name`, `sourceType`, and an optional `hostId` → `hosts.id`, so join to `hosts` for the machine's name/IP). A host with a source can't be deleted (`DELETE /hosts/:id` returns 409).
 - `discovery_jobs` — one run over a source, rooted at `rootPath`. Status: `pending` → `running` → `completed` | `failed` | `cancelled`. A source can have only one `pending`/`running` job at a time.

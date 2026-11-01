@@ -46,7 +46,7 @@ pnpm test:unit
 pnpm test:int   # needs pnpm dev:deps
 ```
 
-The copy tests (`tests/integration/copy.integration.test.ts`) use the `FakeDriver` from `@abbottland/source-access`, a temporary directory as the destination and the real local Postgres, which they clean up. They include a run that kills the worker at every fault point of a directory copy (the `fault` hook of `claimAndCopyNext`) and compares the rerun with an uninterrupted copy. The resilience tests (`tests/integration/resilience.integration.test.ts`) cover the failure modes: a source that stops sending, an unreachable source, a destination call that never returns, NFS errnos, `SIGTERM` mid-copy, a cancelled job, human retry and rerun, lease expiry and `BACKUP_PARALLELISM` above 1. One file: `pnpm exec jest --config jest.config.ts --selectProjects integration --runInBand --runTestsByPath tests/integration/copy.integration.test.ts`.
+The copy tests (`tests/integration/copy-*.integration.test.ts`) use the `FakeDriver` from `@abbottland/source-access`, a temporary directory as the destination and the real local Postgres, which they clean up. They include a run that kills the worker at every fault point of a directory copy (the `fault` hook of `claimAndCopyNext`) and compares the rerun with an uninterrupted copy. The resilience tests (`tests/integration/resilience-*.integration.test.ts`) cover the failure modes: a source that stops sending, an unreachable source, a destination call that never returns, NFS errnos, `SIGTERM` mid-copy, a cancelled job, human retry and rerun, lease expiry and `BACKUP_PARALLELISM` above 1. One file: `pnpm exec jest --config jest.config.ts --selectProjects integration --runInBand --runTestsByPath tests/integration/copy.integration.test.ts`.
 
 ## Docker image
 
