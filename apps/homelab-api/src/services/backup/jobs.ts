@@ -1,5 +1,6 @@
 import {
   BackupError,
+  emptyBackupJobSummary,
   getBackupEntryCounts,
   getBackupJob,
   getBackupJobItem,
@@ -60,7 +61,7 @@ const withProgress = async (jobs: BackupJob[]): Promise<BackupJobView[]> => {
 
     return {
       ...job,
-      progress: summaries.get(job.id) as BackupJobSummary,
+      progress: summaries.get(job.id) ?? emptyBackupJobSummary(),
       scope:
         itemCount === 0
           ? { type: 'source' }

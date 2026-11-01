@@ -265,6 +265,17 @@ export const getBackupItemCounts = async (
   return counts;
 };
 
+/** The summary of a job that has no items yet. */
+export const emptyBackupJobSummary = (): BackupJobSummary => ({
+  itemCounts: emptyItemCounts(),
+  entryCounts: { pending: 0, verified: 0, failed: 0, not_followed: 0 },
+  verifiedBytes: 0,
+  estimatedBytes: 0,
+  unestimatedItems: 0,
+  staleClaims: 0,
+  lastActivityAt: null,
+});
+
 /**
  * Derived counts for several jobs in three queries, so lists of jobs need no
  * per-job round trip. Every requested id gets an entry. Counts are never
@@ -275,17 +286,7 @@ export const getBackupJobSummaries = async (
   jobIds: string[],
 ): Promise<Map<string, BackupJobSummary>> => {
   const result = new Map<string, BackupJobSummary>();
-  for (const id of jobIds) {
-    result.set(id, {
-      itemCounts: emptyItemCounts(),
-      entryCounts: { pending: 0, verified: 0, failed: 0, not_followed: 0 },
-      verifiedBytes: 0,
-      estimatedBytes: 0,
-      unestimatedItems: 0,
-      staleClaims: 0,
-      lastActivityAt: null,
-    });
-  }
+  for (const id of jobIds) result.set(id, emptyBackupJobSummary());
   if (jobIds.length === 0) return result;
 
   const i = backupJobItems;
