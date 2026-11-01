@@ -371,3 +371,23 @@ export const destPath = (...parts: string[]) =>
 export const newId = () => randomUUID();
 
 export type { FakeDriver };
+
+export const MODIFIED = new Date('2018-03-04T05:06:07Z');
+export const seconds = (date: Date) => Math.floor(date.getTime() / 1000);
+export const mtimeOf = (...parts: string[]) =>
+  seconds(fs.statSync(destPath(...parts)).mtime);
+
+/** Registers the destination row and the per-test cleanup for a copy suite. */
+export const useCopyWorld = (): void => {
+  beforeAll(createDestinationRow);
+
+  afterAll(async () => {
+    await cleanupWorld();
+    await deleteDestinationRow();
+  });
+
+  afterEach(async () => {
+    await cleanupWorld();
+    resetDestination();
+  });
+};

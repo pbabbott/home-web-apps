@@ -1,9 +1,13 @@
 import {
+  claimNextBackupItem,
+  completeBackupItem,
+  completeBackupJobIfDone,
   createBackupDestination,
   createBackupJob,
   createHost,
   createSource,
   inventoryItems,
+  markBackupEnumerationComplete,
   type BackupDestination,
   type BackupJob,
   type BackupJobItem,
@@ -13,6 +17,7 @@ import {
   type PlannedBackupItem,
 } from '@abbottland/homelab-db';
 import { db } from '../../../src/db';
+import { getRequest } from '../../jest.integration.setup';
 
 export const HUMAN = { type: 'human' as const, id: 'brandon' };
 export const WORKER = { type: 'system' as const, id: 'worker-a' };
@@ -205,4 +210,70 @@ export const sqlState = async (
   }
 
   return undefined;
+};
+
+// Runs against the real local dev Postgres. Fixtures clean up sources and
+// destinations; destinations made through the API are tracked here.
+export const apiDestinationIds: string[] = [];
+
+/** Registers the cleanup for destinations made through the API plus the fixtures. */
+export const useBackupApiCleanup = (): void => {
+  afterEach(async () => {
+    // API-made destinations go before the fixtures delete the hosts they link to.
+    await db.$client.query(
+      'delete from audit_events where destination_id = any($1)',
+      [apiDestinationIds],
+    );
+    await db.$client.query(
+      'delete from backup_destinations where id = any($1)',
+      [apiDestinationIds],
+    );
+    await cleanupBackupFixtures();
+    apiDestinationIds.length = 0;
+  });
+};
+
+export const api = () => getRequest();
+
+export type PlanBody = { destinationId: string } & Record<string, unknown>;
+
+export const plan = (sourceId: string, body: PlanBody) =>
+  api().post(`/sources/${sourceId}/backup-jobs/plan`).send(body);
+
+export const create = (sourceId: string, body: PlanBody) =>
+  api().post(`/sources/${sourceId}/backup-jobs`).send(body);
+
+export const jobCount = async (sourceId: string): Promise<number> =>
+  (
+    await db.$client.query(
+      'select count(*)::int as n from backup_jobs where source_id = $1',
+      [sourceId],
+    )
+  ).rows[0].n;
+
+export const claimOne = async (destinationId: string) => {
+  const result = await claimNextBackupItem(db, {
+    destinationId,
+    workerId: WORKER.id,
+    leaseSeconds: 300,
+  });
+  if (!('job' in result)) throw new Error(`nothing to claim: ${result.reason}`);
+
+  return { item: result.item, claimToken: result.item.claimToken as string };
+};
+
+/** Claims every queued item and verifies it, then runs the completion check. */
+export const verifyAll = async (destinationId: string, jobId: string) => {
+  for (;;) {
+    const result = await claimNextBackupItem(db, {
+      destinationId,
+      workerId: WORKER.id,
+      leaseSeconds: 300,
+    });
+    if (!('job' in result)) break;
+    const claimToken = result.item.claimToken as string;
+    await markBackupEnumerationComplete(db, result.item.id, { claimToken });
+    await completeBackupItem(db, result.item.id, { claimToken });
+  }
+  await completeBackupJobIfDone(db, jobId, WORKER);
 };
