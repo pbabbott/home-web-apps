@@ -7,7 +7,7 @@ export default defineConfig({
   dialect: 'postgresql',
   schema: [
     './src/schema/hosts.ts',
-    './src/schema/discovery.ts',
+    './src/schema/discovery/index.ts',
     './src/schema/backup.ts',
   ],
   out: './drizzle/migrations',

@@ -5,7 +5,10 @@ export {
   BACKUP_DIRECTORY_MAX_ATTEMPTS,
 } from './shared';
 export * from './destinations';
+export * from './destination-claims';
 export * from './jobs';
+export * from './job-summaries';
+export * from './job-lifecycle';
 export * from './items';
 export { expireBackupLeases } from './leases';
 export * from './claims';

@@ -8,11 +8,12 @@ import {
   type BackupJobStalledReason,
 } from '../../schema/backup';
 import { insertAuditEvent } from '../audit';
-import { retryDelaySeconds } from '../discovery/queue-items';
+import { retryDelaySeconds } from '../discovery/queue-settle';
 import type { Tx } from '../shared';
 import { getBackupDestination } from './destinations';
-import { getBackupItemCounts, listActiveBackupJobs } from './jobs';
-import type { BackupItemCounts } from './jobs';
+import { listActiveBackupJobs } from './jobs';
+import { getBackupItemCounts } from './job-summaries';
+import type { BackupItemCounts } from './job-summaries';
 import { expireBackupLeases } from './leases';
 import { countUnresolvedBackupEntries } from './items';
 import {

@@ -1,4 +1,4 @@
-import { chooseBackupDestination } from './destinations';
+import { chooseBackupDestination } from './destination-claims';
 import type { BackupDestinationWithHost } from './destinations';
 
 const NOW = new Date('2026-10-29T12:00:00Z');

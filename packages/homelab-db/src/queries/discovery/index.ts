@@ -3,6 +3,10 @@ export * from './sources';
 export * from './source-connections';
 export * from './jobs';
 export * from './queue-items';
+export { enqueueQueueItems } from './queue-enqueue';
+export type { EnqueueQueueItemsInput } from './queue-enqueue';
+export * from './queue-claims';
+export * from './queue-settle';
 export * from './import';
 export { getQueueCounts, getQueueSummaries, jobPhase } from './queue-helpers';
 export type {
