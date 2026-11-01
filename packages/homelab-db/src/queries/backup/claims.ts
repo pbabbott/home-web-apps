@@ -86,6 +86,10 @@ export const claimNextBackupItem = async (
   if (!destination) {
     throw new BackupError('not_found', 'backup destination not found');
   }
+  // These two checks are advisory: they run outside the claim transaction, so
+  // a destination disabled or marked unhealthy a moment later can still hand
+  // out one item. Nothing depends on it being exact: the worker checks its own
+  // mount before each item, and a lease it stops renewing simply expires.
   if (!destination.enabled) {
     return idle('destination_disabled', null, []);
   }
@@ -102,6 +106,9 @@ export const claimNextBackupItem = async (
   };
   const drainedJobIds: string[] = [];
 
+  // One short transaction per active job, oldest first, stopping at the first
+  // job with work. A destination has a handful of active jobs at most, so the
+  // idle ones cost a few round trips per poll; not worth caching their state.
   for (const { id } of jobs) {
     let result: ClaimBackupItemResult | (IdleOutcome & { item: null });
     try {
