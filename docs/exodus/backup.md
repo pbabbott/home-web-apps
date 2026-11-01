@@ -2,9 +2,11 @@
 
 [← Project Exodus](./README.md)
 
-Copying approved inventory to an NFS destination. The design is in [backup-design](./backup-design/README.md); this page describes only what exists.
+Copying approved inventory to an NFS destination. This page describes what exists and the decisions behind it.
 
-**Built so far:** the data model and the queries in `packages/homelab-db` (milestone M1, migration `0016_backup`), the shared SMB package `packages/source-access` (M0, extended in M4 with tree listing, batched `allinfo`, streaming reads and a fake driver), the REST API in `apps/homelab-api` (M2), the worker scaffold with destination validation (M3), the copy engine (M4) and its resilience (M5: pauses, shutdown, a stalled mount, parallelism) in `apps/backup-worker`. A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart. The home-hud pages (M6) show destination health, plan and create a job, follow it, and report coverage; see [UI](./ui.md#backup).
+**Scope.** A one-time migration and archival of a machine being retired: not continuous sync, scheduled backups, incremental copy, retention or deletion propagation. All approved inventory (files and directories) is copied; `rejected` is final and counts as accounted for, `pending` blocks the "all accounted" claim. Existing exclusion rules and inventory decisions are reused, and junk inside an approved directory (`desktop.ini`, `Thumbs.db`) is copied: discovery and inventory decide what is good. Restore tooling, ownership and ACL preservation, and notifications are out of scope. Jobs are human-only (no MCP tools), and a discovery job and a backup job may run at once (the plan warns).
+
+**Parts.** The tables and queries in `packages/homelab-db` (migration `0016_backup`), the SMB code shared with discovery in `packages/source-access`, the REST API in `apps/homelab-api`, the worker in `apps/backup-worker` (destination validation, copy engine, pauses, shutdown, parallelism) and the home-hud pages that show destination health, plan and create a job, follow it, and report coverage; see [UI](./ui.md#backup). A created job is claimed and copied, and survives an unreachable source, a broken destination and a restart.
 
 ## Data model
 
@@ -139,7 +141,7 @@ A destination whose `health` is `unhealthy` is **validated again by itself** onc
 
 A junction or link (`allinfo` reparse bit) is recorded `not_followed` and left alone; it does not stop an item from being verified.
 
-**Settling an item** (`copy/finish.ts`, plan §4.2 step 6): no failed entry means `completeBackupItem`. Otherwise `failBackupItem` with a summary of the failures: one non-transient issue (`source_missing`, `name_too_long`, `unsupported_path`, `dest_conflict`, `unlistable`) blocks the item at once; only `read_failed`, `write_failed` and `verify_mismatch` requeue it behind the backoff until its attempts are used up, then it is `failed`. An unreadable root (the file or directory is gone) is a failed `source_missing` or `unlistable` root entry and a blocked item. A retry re-lists and copies only what is missing.
+**Settling an item** (`copy/finish.ts`): no failed entry means `completeBackupItem`. Otherwise `failBackupItem` with a summary of the failures: one non-transient issue (`source_missing`, `name_too_long`, `unsupported_path`, `dest_conflict`, `unlistable`) blocks the item at once; only `read_failed`, `write_failed` and `verify_mismatch` requeue it behind the backoff until its attempts are used up, then it is `failed`. An unreadable root (the file or directory is gone) is a failed `source_missing` or `unlistable` root entry and a blocked item. A retry re-lists and copies only what is missing.
 
 **An item that does not settle** (`copy/run.ts`, `abandon()`):
 
@@ -161,13 +163,40 @@ A source read that stalls (no bytes for `BACKUP_STALL_TIMEOUT_SECONDS`, the `smb
 
 Before each item the worker also checks that the mount point still is the destination's NFS export (`/proc/mounts`, skipped with the mount check `none`), so a lost mount cannot make it write into the container's own filesystem.
 
-**Source access** (`packages/source-access`, [README](../../packages/source-access/README.md)). Findings of the M4 spike that shape the code (numbers in the [plan](./backup-design/plan.md#10-spike-results)):
+**Source access** (`packages/source-access`, [README](../../packages/source-access/README.md)). Findings from probing the real source (read-only, 2026-10-28, from the dev container over the office network rather than the dedicated cable) that shape the code:
 
 - Large file: 2.0 to 2.2 MB/s from the dev container (547 MB in about 4.5 minutes), network-bound.
 - Per-file `get` is about 100 ms: no batched `get` or tar. `allinfo` is batched, 100 paths and at most 64 KB of commands per `smbclient` session.
 - `ls` shows no junctions at all and cannot flag reparse points; the reparse bit (`0x400`) is in the hex attributes of `allinfo`.
 - `get ... -` prints its errors on **stdout**, in the data stream, and exits 1. The driver turns a non-zero exit into a `ConnectionError` on the stream; a consumer must not trust bytes read before that.
 - The account needs a share for a path: `C$` is denied for `alpha-centauri`, and the source only maps `C:\Users`. **`C:\backup-test\...` needs a mapping such as `C:\` to `C` before the first real run.**
+
+## Destination layout and safety
+
+```
+<BACKUP_DESTINATION_PATH>/[<root_dir>/]
+  <source_dir_name>/             e.g. alpha-centauri/
+    C/Users/Me/Pictures/...      drive letter as a folder, no colon
+    UNC/<server>/<share>/...     for UNC inventory paths
+  .exodus-staging/               only while a copy is in flight
+```
+
+- Nothing else is ever written: **no markers, manifests or reports** (all bookkeeping is in the database). Validation uses a transient `.exodus-probe-<random>/` folder, removed afterwards.
+- The export holds unrelated files. Exodus only creates and writes inside `<source_dir_name>/` and never touches anything else. Never overwrite or delete destination data, and never propagate source deletions.
+- `source_dir_name` is a slug of the source name, chosen for a source's first job and reused afterwards; planning refuses a name another source already uses there.
+- The path mapping is a pure function (`\` to `/`, `C:` to `C`; descendants use the spelling the listing returns), so retries land on the same paths.
+- Root boundary: paths are resolved with `path.posix`, `..`, absolute segments and NUL are rejected, and every existing component under the root is `lstat`ed so a symlink is refused (`apps/backup-worker/src/lib/safe-path.ts`).
+- Names over 255 bytes (a keep-both suffix included) are `name_too_long`. Paths `smbclient` cannot address (`;`, `"`, line breaks) are `unsupported_path`. Junctions and devices are not followed (`not_followed`); empty directories are created and recorded.
+
+## What a verified copy does not guarantee
+
+A file is verified when the SHA-256 of the destination, re-read after `fsync`, equals that of the source stream and the streamed size equals the size `allinfo` reported. Only the modified time is applied to the NAS file (creation time cannot be set over NFS; it lives in the database). Ownership and permissions are not preserved. The coverage response states these limits with every report (`COVERAGE_LIMITS`):
+
+1. Files hidden from the SMB account are invisible; enumeration cannot prove they do not exist.
+2. Coverage is of the inventory, not the whole disk; whether the inventory is complete is the discovery workflow's job.
+3. A file modified during the copy (a consistent but different version) is not detected.
+4. ACLs and alternate-stream contents other than `Zone.Identifier` are not preserved.
+5. The copy changes the source's last-access times (the originals are recorded in the database before reading).
 
 ## Pauses and shutdown
 
@@ -179,7 +208,7 @@ A **pause** is `backup_jobs.stalled_reason` (the job stays `running`). Claims of
 
 **`SIGTERM`** (`worker/shutdown.ts`): the poll loop stops, the shutdown signal aborts the transfer in flight (it is part of the item's abort signal, together with the heartbeat's and the watchdog's), the staging folder is deleted and the item is released with the attempt refunded. The process exits after at most 30 s even if a destination call is stuck (the pod's grace period is 60 s); the lease then expires and spends one attempt. A hard kill spends one attempt, and the next attempt resumes from `backup_entries`.
 
-**Human actions** (API, M2) end to end: _retry_ grants a `failed` or `blocked` item exactly one more attempt and only while the job is active; _retry-failed_ does that for every such item; _cancel_ and _fail_ release the leases, so a late heartbeat, complete, fail or release of the worker is rejected with a conflict and the worker deletes the item's staging folder when its next heartbeat notices; _rerun-unresolved_ plans a new job from the failed and blocked items of a finished job (anything verified since is skipped, and files already on the destination are adopted, not rewritten). One batched `backup_job_items.lease_expired` event per expiry check carries the job, source and destination ids, the number of items, how many of them failed, and some item ids.
+**Human actions** (API) end to end: _retry_ grants a `failed` or `blocked` item exactly one more attempt and only while the job is active; _retry-failed_ does that for every such item; _cancel_ and _fail_ release the leases, so a late heartbeat, complete, fail or release of the worker is rejected with a conflict and the worker deletes the item's staging folder when its next heartbeat notices; _rerun-unresolved_ plans a new job from the failed and blocked items of a finished job (anything verified since is skipped, and files already on the destination are adopted, not rewritten). One batched `backup_job_items.lease_expired` event per expiry check carries the job, source and destination ids, the number of items, how many of them failed, and some item ids.
 
 ## Parallelism and memory
 
@@ -189,7 +218,7 @@ A **pause** is `backup_jobs.stalled_reason` (the job stays `running`). Claims of
 
 | Run                                                     | Node RSS (idle → peak) | `smbclient` children       |
 | ------------------------------------------------------- | ---------------------- | -------------------------- |
-| M4: one 547 MB zip from the real source, N=1            | 80 → 117 MiB           | 33 MiB (1 child)           |
+| One 547 MB zip from the real source, N=1                | 80 → 117 MiB           | 33 MiB (1 child)           |
 | 6 × 48 MiB files from `FakeDriver`, N=1 / 2 / 4         | 85 → 105 / 105 / 108   | none                       |
 | Real source, `ZeldaClone` (354 files, 5 MiB, 19 s), N=4 | 87 → 131 MiB           | 4 at once, 71 MiB combined |
 

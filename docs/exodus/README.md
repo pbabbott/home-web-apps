@@ -39,6 +39,5 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [Exclusion Rules and Audit](./exclusion-review-audit.md) - rules, enforcement, and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
-- [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it (M1), the API: destinations, planning, jobs, coverage (M2), the worker scaffold with destination validation (M3), the copy engine (M4), and its resilience: pauses, shutdown, a stalled mount, parallelism (M5), and the home-hud pages (M6).
-- [Backup Design (proposal)](./backup-design/README.md) - facts and an implementation plan for copying inventory to an NFS destination. All milestones (M0 to M6) are built; the first real run is not done; kept apart from the documented system on purpose.
+- [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it, the API (destinations, planning, jobs, coverage), the worker and destination validation, the copy engine, its resilience (pauses, shutdown, a stalled mount, parallelism), the destination layout, and what a verified copy does not guarantee.
 - [Running, Testing and Next Steps](./operations.md) - how to run and test, and what is left.

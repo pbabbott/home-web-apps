@@ -170,7 +170,7 @@ const makeDirectory = async (
 };
 
 /**
- * §4.3 steps 2 to 7 for one file: stream the source into the staging folder
+ * One file: stream the source into the staging folder
  * (hashing as it goes), place it without clobbering, set the modified time,
  * and read it back. Existing destination files are never touched: identical
  * content is adopted, different content makes the copy go to a suffixed name.

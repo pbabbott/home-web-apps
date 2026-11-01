@@ -16,7 +16,7 @@ import {
 export const COVERAGE_SCOPE =
   'Inventory items, with per-file verification for directory items, subject to the stated limits.';
 
-/** What coverage cannot promise (plan §4.5). Shown with every report. */
+/** What coverage cannot promise (docs/exodus/backup.md, "What a verified copy does not guarantee"). Shown with every report. */
 export const COVERAGE_LIMITS = [
   'Files hidden from the SMB account are invisible: enumeration cannot prove they do not exist.',
   'Coverage is of the inventory, not the whole disk. Whether the inventory is complete is the discovery workflow’s job.',

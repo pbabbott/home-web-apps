@@ -36,6 +36,28 @@ What the worker does when something goes wrong, and what to do about it (details
 
 Stopping the pod (`SIGTERM`) is safe at any time: the transfer is aborted, the item is handed back and verified files are kept. Cancel a job through the API rather than by deleting the pod. Raising `BACKUP_PARALLELISM` above 1 needs a bigger memory limit (see [Parallelism and memory](./backup.md#parallelism-and-memory)).
 
+### First real run of the backup
+
+1. Mount the export (`192.168.4.124:/volume1/Dump`) into the worker and set `BACKUP_DESTINATION_PATH`; the worker claims the destination that is that export. Create the destination in the API and validate until `ok`; read the probe findings (uid, `utimes`, case sensitivity).
+2. Create a job selecting one small file and one small directory. Start it.
+3. Check the NAS tree under `<source_dir_name>/C/…`, the entries and metadata in the database, and the coverage report (those two `covered`, the rest `never_attempted`). Kill the worker mid-copy once and confirm it resumes cleanly.
+4. Run the full approved set. Review `completed_with_issues` items, fix the causes, then `rerun-unresolved`. Download the JSON coverage report.
+
+Before the first run, the account needs a share that covers the source path (see [Backup: Source access](./backup.md#copy-engine)).
+
+### Deploying the backup worker
+
+The manifests live in `pbabbott/home-kubernetes` (Flux, namespace `home-hud`). What the worker needs:
+
+- Its own PV/PVC for the destination export (`Retain`, `ReadWriteMany`, NFS v4.2 with the `hard` option; the worker copes with a stalled mount). Not `media-pvc`, and not mounted into any other pod.
+- `replicas: 1` with `strategy: Recreate`: exactly one worker per destination, never two overlapping in a rollout. `runAsUser`/`runAsGroup` 1000, `terminationGracePeriodSeconds` of 60 or more (on `SIGTERM` it aborts the transfer and releases its item).
+- Port 4004; readiness `GET /readyz`, liveness `GET /healthz`. A hung NAS call fails `/readyz` after the stall timeout and `/healthz` after a further stall timeout, so the pod restarts about four minutes into a hung mount.
+- Small resources: requests 50m CPU and 128Mi, limit 256Mi memory. Raise the memory limit together with `BACKUP_PARALLELISM` (see [Parallelism and memory](./backup.md#parallelism-and-memory)).
+- The `homelab_api` Postgres variables as `homelab-api` gets them, `BACKUP_DESTINATION_PATH=/backup`, `BACKUP_DESTINATION_MOUNT_CHECK=nfs`, and `EXODUS_CREDENTIAL_KEY` with the same value `homelab-api` uses. `BACKUP_DESTINATION_ID` only pins a destination.
+- Network: TCP 445 to the Windows machine and NFS to the NAS.
+
+Not measured yet: throughput over the dedicated cable, the real total size of the approved set, and memory on a real NFS mount.
+
 After changing `packages/homelab-db`, run `pnpm build` there: `homelab-api` loads it from `dist/` at runtime (including in Jest), so a stale build shows up as confusing "undefined" errors.
 
 ## Next steps
@@ -44,7 +66,6 @@ Not started, and not decided:
 
 - The OpenClaw agent: how it authenticates to the API and MCP endpoint, the read-only filesystem access it uses to inspect a machine (the API grants none), and the cron cadence.
 - Review UI extras: bulk approve/reject (most urgent: a Downloads folder yields many file items), search by path, and a link from an inventory item to its audit history.
-- The backup feature's UI (M6); see [Backup](./backup.md).
 - Nested-inventory item inheritance and overrides.
 - Stale inventory items (source file since deleted or moved): detect from `lastSeenAt` or have the copy workflow report them.
 - Pattern-based exclusion (globs such as `node_modules`); rules are exact paths today.

@@ -16,7 +16,7 @@ export type FailedEntrySummary = {
 };
 
 /**
- * How an item with failed entries ends (§4.2 step 6). Only transient
+ * How an item with failed entries ends (see docs/exodus/backup.md, "Settling an item"). Only transient
  * failures (`read_failed`, `write_failed`, `verify_mismatch`) are retried; one
  * permanent failure blocks the item, because retrying cannot change it.
  * `total` is the number of failed entries; `sample` holds some of them.

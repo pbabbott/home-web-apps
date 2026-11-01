@@ -89,7 +89,7 @@ const sha256 = (data: Buffer): string =>
 
 /**
  * Checks that the worker's destination is the right one and is usable
- * (plan.md §6). Pure with respect to its inputs: every effect goes through
+ * (docs/exodus/backup.md, "Worker"). Pure with respect to its inputs: every effect goes through
  * `deps`. Writes only inside a transient `.exodus-probe-<random>/` folder
  * (removed afterwards) and, when missing, creates `rootDir`.
  */

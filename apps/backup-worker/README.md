@@ -4,7 +4,7 @@ The purpose of this document is to explain what `backup-worker` is and how the a
 
 ## Overview
 
-`backup-worker` copies approved Exodus inventory from a Windows source (SMB) to an NFS export. **One worker serves one destination**, which it claims by itself: the one that is the export mounted at `BACKUP_DESTINATION_PATH`, or, locally, the only free one (`BACKUP_DESTINATION_ID` pins it explicitly). The design is in [`docs/exodus/backup-design`](../../docs/exodus/backup-design/README.md), what is built in [`docs/exodus/backup.md`](../../docs/exodus/backup.md#worker).
+`backup-worker` copies approved Exodus inventory from a Windows source (SMB) to an NFS export. **One worker serves one destination**, which it claims by itself: the one that is the export mounted at `BACKUP_DESTINATION_PATH`, or, locally, the only free one (`BACKUP_DESTINATION_ID` pins it explicitly). What it does and why is in [`docs/exodus/backup.md`](../../docs/exodus/backup.md#worker).
 
 It validates its destination, claims backup job items and copies them (hashed, staged, resumable; see [Copy engine](../../docs/exodus/backup.md#copy-engine)). It pauses a job whose source is unreachable and the jobs of a destination that is unhealthy (no attempts are spent), releases the item in flight on `SIGTERM`, stops extending the lease when a destination call stalls, and copies `BACKUP_PARALLELISM` files of an item at once (see [Pauses and shutdown](../../docs/exodus/backup.md#pauses-and-shutdown)). It calls `@abbottland/homelab-db` directly and has no HTTP routes besides `GET /healthz` and `GET /readyz`; the SMB access is `@abbottland/source-access`.
 

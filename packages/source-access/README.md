@@ -32,7 +32,7 @@ Paths are Windows paths as stored in inventory (`C:\Users\you\a.jpg`). `resolveS
 
 `FileInfo` carries the four times (absolute instants), attribute letters and bits, alternate streams and `isReparsePoint` (bit `0x400`).
 
-Things learned against a real source (details in the [backup plan, section 10](../../docs/exodus/backup-design/plan.md#10-spike-results)):
+Things learned against a real source (see [Backup: Source access](../../docs/exodus/backup.md#copy-engine)):
 
 - Every child runs with `TZ=UTC`, so `allinfo` times are absolute. A different zone in the output is refused instead of silently shifted.
 - `get ... -` prints its errors on **stdout**, in the middle of the data, and exits 1. `openStream` therefore decides by the exit code; bytes read before a failure are not the file. A stream can also end early with exit 0, so compare the byte count with the size.

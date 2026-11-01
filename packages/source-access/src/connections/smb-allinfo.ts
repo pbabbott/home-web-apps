@@ -67,7 +67,7 @@ export const parseSmbListing = (output: string): DirEntry[] => {
   return entries;
 };
 
-/** How many paths one `allinfo` session takes; ~26 ms each in the M4 spike. */
+/** How many paths one `allinfo` session takes; ~26 ms each when measured. */
 export const ALLINFO_BATCH_SIZE = 100;
 /** Command text per session, well under the 128 KB argument limit. */
 const ALLINFO_BATCH_BYTES = 64 * 1024;

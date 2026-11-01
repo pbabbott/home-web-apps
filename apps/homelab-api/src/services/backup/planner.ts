@@ -8,7 +8,7 @@ import { isWithinPath, normalizeWindowsPath } from '@abbottland/source-access';
 import { ancestorsOf } from '../discovery/paths';
 import { toDestRelPath } from './dest-paths';
 
-// The planning rules of docs/exodus/backup-design/plan.md §4.1 as a pure
+// The planning rules of docs/exodus/backup.md ("Planning") as a pure
 // function: no database, no clock, so every case is a unit test.
 
 export type PlanRule = {

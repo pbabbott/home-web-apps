@@ -140,7 +140,7 @@ const applyDirectoryTimes = async (ctx: CopyContext): Promise<void> => {
   }
 };
 
-/** §4.2 step 6: verified, or requeued, blocked or failed by what went wrong. */
+/** Settles the item: verified, or requeued, blocked or failed by what went wrong. */
 const finish = async (ctx: CopyContext): Promise<void> => {
   const { db, item } = ctx;
   const counts = await getBackupEntryCounts(db, item.id);
@@ -179,7 +179,7 @@ const finish = async (ctx: CopyContext): Promise<void> => {
 };
 
 /**
- * Copies one claimed item (§4.3). Safe to repeat and to interrupt anywhere:
+ * Copies one claimed item. Safe to repeat and to interrupt anywhere:
  * progress lives in `backup_entries`, the destination is only ever added to,
  * and leftovers of a killed attempt (the item's staging folder) are removed
  * first. Resolves once the item is settled (verified, requeued, blocked or
