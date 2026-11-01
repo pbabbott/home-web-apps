@@ -306,6 +306,7 @@ export {
   releaseBackupItem,
   upsertBackupEntries,
   captureBackupEntryMetadata,
+  recordBackupEntryStaged,
   recordBackupEntryResult,
   listBackupEntries,
   getBackupEntryCounts,

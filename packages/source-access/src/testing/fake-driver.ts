@@ -60,6 +60,8 @@ export class FakeDriver implements ConnectionDriver {
   unreachable = false;
   /** Reads in flight now, and the most there have been at once. */
   activeReads = 0;
+  /** How many reads have started; a test asserts a retry did not read a file again. */
+  readsStarted = 0;
   maxConcurrentReads = 0;
   private readonly nodes = new Map<string, Node>();
   private readonly faults = new Map<string, FakeFault[]>();
@@ -288,6 +290,7 @@ export class FakeDriver implements ConnectionDriver {
     options: OpenStreamOptions,
   ): AsyncGenerator<Buffer> {
     this.assertReachable();
+    this.readsStarted += 1;
     this.activeReads += 1;
     this.maxConcurrentReads = Math.max(
       this.maxConcurrentReads,

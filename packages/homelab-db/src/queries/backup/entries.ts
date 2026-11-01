@@ -195,6 +195,34 @@ export const captureBackupEntryMetadata = async (
   return row;
 };
 
+/**
+ * Records the SHA-256 of the bytes just staged for a pending entry, before
+ * they are placed. If the worker dies after placing the file but before the
+ * result is recorded, the retry can compare the destination file with this
+ * hash instead of streaming the whole source again. Guarded by the item's
+ * live claim; a verified entry is left alone.
+ */
+export const recordBackupEntryStaged = async (
+  db: Database,
+  entryId: number,
+  input: { claimToken: string; sha256: string },
+): Promise<void> => {
+  const t = backupEntries;
+
+  const [row] = await db
+    .update(t)
+    .set({ sha256: input.sha256, updatedAt: sql`now()` })
+    .where(
+      and(
+        entryClaimGuard(entryId, input.claimToken),
+        sql`${t.status} <> 'verified'`,
+      ),
+    )
+    .returning({ id: t.id });
+
+  if (!row) throw await entryMissError(db, entryId);
+};
+
 export type BackupEntryResult = {
   status: BackupEntryStatus;
   issueKind?: BackupEntryIssueKind | null;

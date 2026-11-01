@@ -2,6 +2,7 @@ import path from 'path';
 import {
   captureBackupEntryMetadata,
   recordBackupEntryResult,
+  recordBackupEntryStaged,
   type BackupEntry,
   type BackupEntryResult,
 } from '@abbottland/homelab-db';
@@ -216,6 +217,10 @@ const copyFile = async (
         );
       }
       staged = { file, sha256: result.sha256 };
+      await recordBackupEntryStaged(ctx.db, entry.id, {
+        claimToken: claimTokenOf(ctx),
+        sha256: result.sha256,
+      });
     } finally {
       source.destroy();
     }
@@ -290,11 +295,17 @@ const copyFile = async (
       }
 
       if (existing.size === size) {
-        const { file, sha256 } = await stage();
+        // A file an earlier attempt placed before it died is recognised by
+        // the hash recorded when it was staged, so a half-finished item does
+        // not read that file from the source again. That only holds while the
+        // source still looks as it did then.
+        const recorded = changed ? null : entry.sha256;
+        const stagedNow = recorded ? null : await stage();
+        const expected = recorded ?? stagedNow?.sha256;
         const present = await dest.hashFile(abs, ctx.signal);
 
-        if (present.sha256 === sha256 && present.bytes === size) {
-          await dest.unlink(file);
+        if (present.sha256 === expected && present.bytes === size) {
+          if (stagedNow) await dest.unlink(stagedNow.file);
           // An earlier attempt may have been killed before it set the time.
           if (!sameSecond(existing.mtime, modifiedAt)) {
             await dest.utimes(abs, modifiedAt);
@@ -303,7 +314,7 @@ const copyFile = async (
           return {
             status: 'verified',
             sizeBytes: size,
-            sha256,
+            sha256: present.sha256,
             destRelPath: candidateRel,
             ...result,
           };

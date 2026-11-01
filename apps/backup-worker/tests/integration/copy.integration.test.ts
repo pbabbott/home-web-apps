@@ -307,6 +307,36 @@ describe('copy engine', () => {
       });
     });
 
+    it('adopts the file an interrupted attempt placed without reading the source again', async () => {
+      const world = await makeWorld([{ rootPath: file }]);
+
+      await expect(
+        runUntilIdle(world.job.id, {
+          driver: driver(),
+          fault: (point) => {
+            if (point === 'entry:before-record') {
+              throw new FaultInjectedError(point);
+            }
+          },
+        }),
+      ).rejects.toBeInstanceOf(FaultInjectedError);
+
+      const resumed = driver();
+
+      await expireLeases(world.job.id);
+      await runUntilIdle(world.job.id, { driver: resumed, skipBackoff: true });
+
+      expect(resumed.readsStarted).toBe(0);
+      expect(
+        fs.readdirSync(destPath(world.sourceDirName, 'C', 'data')),
+      ).toEqual(['photo.jpg']);
+      expect((await entriesOf(world.items[file].id))[0]).toMatchObject({
+        status: 'verified',
+        issueKind: null,
+        sha256: sha256(content),
+      });
+    });
+
     it('copies the file as it is now and notes that it changed since the interrupted attempt', async () => {
       const world = await makeWorld([{ rootPath: file }]);
       const later = new Date('2024-06-01T00:00:00Z');
