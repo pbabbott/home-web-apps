@@ -26,9 +26,9 @@ import {
 /** `Zone.Identifier` is a few dozen bytes; the database keeps 4 KiB of it. */
 const ZONE_IDENTIFIER = 'Zone.Identifier';
 const ZONE_IDENTIFIER_MAX_BYTES = 4096;
-/** Writing the same instant: whole seconds, which is what the source reports. */
 /** How often a link that loses a race is looked at again before giving up. */
 const LINK_RACE_TRIES = 3;
+/** Whether two instants fall in the same whole second, the precision the source reports. */
 const sameSecond = (a: Date, b: Date) =>
   Math.floor(a.getTime() / 1000) === Math.floor(b.getTime() / 1000);
 

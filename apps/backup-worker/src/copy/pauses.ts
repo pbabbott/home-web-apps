@@ -13,11 +13,9 @@ import {
 } from '@abbottland/source-access';
 import { config } from '../config';
 import { db } from '../db';
-import { workerId } from '../worker-id';
+import { systemActor, workerId } from '../worker-id';
 import { DESTINATION_KEY, sourceKey, type PauseTracker } from './pause-tracker';
 import { loadSourceTarget } from './source';
-
-const systemActor = () => ({ type: 'system' as const, id: workerId });
 
 /** A job that finished while we were looking at it needs no pause. */
 const ignoreFinished = (err: unknown): void => {

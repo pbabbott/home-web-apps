@@ -15,9 +15,16 @@ import { classifyFailures } from './finish';
 import { runPool } from './pool';
 import { destAbs, entryDestRel, entrySourcePath, stagingDir } from './layout';
 
-/** Entries read, described and copied per round; also the `allinfo` batch size. */
+/**
+ * Entries read, described and copied per round: one `allinfo` batch (the
+ * driver's own limit is 100 paths per session), and the most entries held in
+ * memory at once.
+ */
 const PAGE = 100;
+/** Failed entries read to build the item's error text; the rest are only counted. */
 const SAMPLE_FAILED = 200;
+/** Verified entries read per query when collecting directory times. */
+const DIRECTORY_PAGE = 1000;
 
 /** A file item has exactly one entry, with an empty relative path. */
 const prepareFile = async (ctx: CopyContext): Promise<void> => {
@@ -113,7 +120,7 @@ const applyDirectoryTimes = async (ctx: CopyContext): Promise<void> => {
       jobItemId: ctx.item.id,
       status: 'verified',
       after,
-      limit: 1000,
+      limit: DIRECTORY_PAGE,
     });
 
     if (page.length === 0) break;

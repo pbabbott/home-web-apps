@@ -1,4 +1,3 @@
-import { promises as fsPromises } from 'fs';
 import {
   claimBackupDestination,
   releaseBackupDestinationClaim,
@@ -9,7 +8,7 @@ import {
 import { db } from '../db';
 import { config } from '../config';
 import { workerId } from '../worker-id';
-import { mountedExport, parseProcMounts } from './mounts';
+import { mountedExport, readProcMounts } from './mounts';
 
 /** How long a claim lasts without being renewed; every poll renews it. */
 export const DESTINATION_CLAIM_SECONDS = 60;
@@ -38,10 +37,7 @@ export const claimDestination = async (): Promise<
 > => {
   const mount =
     config.backupDestinationMountCheck === 'nfs'
-      ? mountedExport(
-          parseProcMounts(await fsPromises.readFile('/proc/mounts', 'utf8')),
-          config.backupDestinationPath,
-        )
+      ? mountedExport(await readProcMounts(), config.backupDestinationPath)
       : null;
 
   const result = await claimBackupDestination(db, {

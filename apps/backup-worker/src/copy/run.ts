@@ -45,6 +45,7 @@ import { startHeartbeat } from './heartbeat';
 import { processItem } from './item';
 import { loadSourceTarget } from './source';
 import { shutdownSignal } from '../worker/shutdown';
+import { systemActor } from '../worker-id';
 
 /** What tests replace; production uses the defaults. */
 export type RunOptions = {
@@ -79,8 +80,6 @@ export type RunResult =
         | 'shutdown'
         | 'error';
     };
-
-const systemActor = () => ({ type: 'system' as const, id: workerId });
 
 const describe = (err: unknown): string =>
   err instanceof Error ? `${err.name}: ${err.message}` : String(err);
@@ -126,7 +125,7 @@ export const claimAndCopyNext = async (
   }
 
   const { item, job } = claim;
-  const claimToken = item.claimToken as string;
+  const { claimToken } = item;
   console.log(
     `📦 copying ${item.kind} ${item.rootPath} (job ${job.id.slice(0, 8)}, attempt ${item.attemptCount} of ${item.maxAttempts})`,
   );

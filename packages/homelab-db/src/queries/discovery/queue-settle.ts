@@ -6,7 +6,7 @@ import {
   type DiscoveryQueueItem,
   type QueueItemResult,
 } from '../../schema/discovery';
-import { DiscoveryError } from '../shared';
+import { DiscoveryError, retryDelaySeconds } from '../shared';
 import { refreshAfterSkips } from './queue-enqueue';
 import {
   ACTIVE_JOB_STATUSES,
@@ -136,16 +136,6 @@ export type FailQueueItemInput = {
   error: string;
   retryable: boolean;
 };
-
-const RETRY_BASE_SECONDS = 30;
-const RETRY_MAX_SECONDS = 3600;
-
-/** Exponential backoff after the nth attempt: 30s, 60s, 120s, … capped at 1h. */
-export const retryDelaySeconds = (attemptCount: number): number =>
-  Math.min(
-    RETRY_BASE_SECONDS * 2 ** Math.max(attemptCount - 1, 0),
-    RETRY_MAX_SECONDS,
-  );
 
 /**
  * Records a failure. A retryable item with attempts left returns to `queued`

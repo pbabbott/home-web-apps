@@ -13,7 +13,7 @@ import {
 import {
   checkNfsMount,
   expectedExport,
-  parseProcMounts,
+  readProcMounts,
   type MountEntry,
 } from './mounts';
 
@@ -59,8 +59,7 @@ export const defaultValidationDeps = (
   run: ValidationDeps['run'] = (_operation, fn) => fn(),
 ): ValidationDeps => ({
   fs: fsPromises,
-  readMounts: async () =>
-    parseProcMounts(await fsPromises.readFile('/proc/mounts', 'utf8')),
+  readMounts: readProcMounts,
   now: () => new Date(),
   randomId: () => randomBytes(6).toString('hex'),
   run,

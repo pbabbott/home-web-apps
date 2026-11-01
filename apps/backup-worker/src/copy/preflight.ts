@@ -1,14 +1,10 @@
-import fsPromises from 'fs/promises';
 import {
   checkNfsMount,
-  parseProcMounts,
+  readProcMounts,
   type ExpectedExport,
   type MountEntry,
 } from '../destination/mounts';
 import { DestinationUnhealthyError } from './errors';
-
-export const readProcMounts = async (): Promise<MountEntry[]> =>
-  parseProcMounts(await fsPromises.readFile('/proc/mounts', 'utf8'));
 
 /**
  * Run before each item: the mount point must still be the NFS export the

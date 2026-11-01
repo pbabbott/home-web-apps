@@ -1,6 +1,6 @@
 import type {
   BackupJob,
-  BackupJobItem,
+  ClaimedBackupJobItem,
   Database,
 } from '@abbottland/homelab-db';
 import type {
@@ -10,12 +10,31 @@ import type {
 import type { DestFs } from './dest-fs';
 import { ClaimLostError } from './errors';
 
+/** Every point the copy reports to a `FaultHook`, in the order they happen. */
+export type FaultPoint =
+  | 'item:start'
+  | 'item:after-enumeration-batch'
+  | 'item:after-enumeration-complete'
+  | 'item:after-allinfo'
+  | 'item:after-directory-time'
+  | 'item:before-finish'
+  | 'stage:chunk'
+  | 'entry:start'
+  | 'entry:after-metadata'
+  | 'entry:after-stage'
+  | 'entry:after-link'
+  | 'entry:after-unlink'
+  | 'entry:after-utimes'
+  | 'entry:after-verify'
+  | 'entry:before-record'
+  | 'entry:after-record';
+
 /**
  * Called at named points between steps. Production passes nothing; tests
  * throw from it to simulate the worker being killed at exactly that point.
  */
 export type FaultHook = (
-  point: string,
+  point: FaultPoint,
   detail?: string,
 ) => void | Promise<void>;
 
@@ -24,7 +43,7 @@ export type CopyContext = {
   db: Database;
   job: BackupJob;
   /** The claimed item (its `claimToken` is the proof of the lease). */
-  item: BackupJobItem;
+  item: ClaimedBackupJobItem;
   driver: ConnectionDriver;
   target: ConnectionTarget;
   dest: DestFs;
@@ -39,8 +58,7 @@ export type CopyContext = {
   preflight: () => Promise<void>;
 };
 
-export const claimTokenOf = (ctx: CopyContext): string =>
-  ctx.item.claimToken as string;
+export const claimTokenOf = (ctx: CopyContext): string => ctx.item.claimToken;
 
 /** Throws once the lease is lost, so no step starts on a dead claim. */
 export const assertLive = (ctx: CopyContext): void => {

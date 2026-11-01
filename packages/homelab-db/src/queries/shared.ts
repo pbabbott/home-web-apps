@@ -30,3 +30,16 @@ export const coversSql = (rootPath: SQL | unknown, path: SQL | unknown): SQL =>
 
 /** Most queue item ids an audit event lists; the rest are only counted. */
 export const MAX_AUDITED_ITEM_IDS = 100;
+
+const RETRY_BASE_SECONDS = 30;
+const RETRY_MAX_SECONDS = 3600;
+
+/**
+ * Exponential backoff after the nth attempt: 30s, 60s, 120s, … capped at 1h.
+ * Shared by the discovery queue and the backup queue.
+ */
+export const retryDelaySeconds = (attemptCount: number): number =>
+  Math.min(
+    RETRY_BASE_SECONDS * 2 ** Math.max(attemptCount - 1, 0),
+    RETRY_MAX_SECONDS,
+  );

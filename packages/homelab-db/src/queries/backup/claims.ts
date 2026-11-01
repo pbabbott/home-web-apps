@@ -8,8 +8,7 @@ import {
   type BackupJobStalledReason,
 } from '../../schema/backup';
 import { insertAuditEvent } from '../audit';
-import { retryDelaySeconds } from '../discovery/queue-settle';
-import type { Tx } from '../shared';
+import { retryDelaySeconds, type Tx } from '../shared';
 import { getBackupDestination } from './destinations';
 import { listActiveBackupJobs } from './jobs';
 import { getBackupItemCounts } from './job-summaries';
@@ -42,8 +41,11 @@ export type BackupClaimIdleReason =
   | 'in_progress'
   | BackupJobStalledReason;
 
+/** An item handed out by a claim: it carries the token that proves the lease. */
+export type ClaimedBackupJobItem = BackupJobItem & { claimToken: string };
+
 export type ClaimBackupItemResult =
-  | { item: BackupJobItem; job: BackupJob }
+  | { item: ClaimedBackupJobItem; job: BackupJob }
   | {
       item: null;
       reason: BackupClaimIdleReason;
@@ -148,7 +150,8 @@ const claimInJob = async (
   jobId: string,
   input: ClaimBackupItemInput,
 ): Promise<
-  { item: BackupJobItem; job: BackupJob } | (IdleOutcome & { item: null })
+  | { item: ClaimedBackupJobItem; job: BackupJob }
+  | (IdleOutcome & { item: null })
 > =>
   db.transaction(async (tx) => {
     const [job] = await tx
@@ -233,7 +236,9 @@ const claimInJob = async (
       });
     }
 
-    return { item, job: claimedJob };
+    // The update above sets the token, and a database check requires one on
+    // every in-progress item.
+    return { item: item as ClaimedBackupJobItem, job: claimedJob };
   });
 
 const describeIdleJob = async (tx: Tx, jobId: string): Promise<IdleOutcome> => {

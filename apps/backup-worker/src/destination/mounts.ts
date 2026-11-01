@@ -1,3 +1,4 @@
+import { promises as fsPromises } from 'fs';
 import {
   destinationServerNames,
   type BackupDestinationWithHost,
@@ -15,6 +16,9 @@ const unescapeMountField = (field: string): string =>
   field.replace(/\\([0-7]{3})/g, (_, octal: string) =>
     String.fromCharCode(parseInt(octal, 8)),
   );
+
+export const readProcMounts = async (): Promise<MountEntry[]> =>
+  parseProcMounts(await fsPromises.readFile('/proc/mounts', 'utf8'));
 
 export const parseProcMounts = (content: string): MountEntry[] =>
   content
