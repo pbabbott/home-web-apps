@@ -1,4 +1,5 @@
 import path from 'path';
+import { CopyError } from './copy-error';
 
 /**
  * Resolves `requestedPath` relative to `root` and confirms the result stays
@@ -22,7 +23,7 @@ export const resolveWithinRoot = (
   return resolvedTarget;
 };
 
-export class UnsafePathError extends Error {
+export class UnsafePathError extends CopyError {
   constructor(message: string) {
     super(message);
     this.name = 'UnsafePathError';

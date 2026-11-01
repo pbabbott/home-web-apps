@@ -2,12 +2,12 @@ import { createHash } from 'crypto';
 import fsPromises from 'fs/promises';
 import type { Stats } from 'fs';
 import path from 'path';
+import { CopyError } from '../lib/copy-error';
 import { assertNoSymlinks, UnsafePathError } from '../lib/safe-path';
 import {
   DestConflictError,
   DestinationUnhealthyError,
   DestWriteError,
-  EntryFailure,
 } from './errors';
 import { STAGING_DIR } from './layout';
 
@@ -112,15 +112,7 @@ export class DestFs {
     try {
       return await this.deps.run(operation, fn);
     } catch (err) {
-      if (
-        err instanceof DestWriteError ||
-        err instanceof DestinationUnhealthyError ||
-        err instanceof EntryFailure ||
-        err instanceof DestConflictError ||
-        err instanceof UnsafePathError
-      ) {
-        throw err;
-      }
+      if (err instanceof CopyError) throw err;
       throw this.failure(operation, abs, err);
     }
   }

@@ -7,6 +7,7 @@ import {
   DestinationUnhealthyError,
   DestWriteError,
 } from '../../src/copy/errors';
+import { CopyError } from '../../src/lib/copy-error';
 import { UnsafePathError } from '../../src/lib/safe-path';
 
 async function* chunks(...parts: string[]) {
@@ -293,6 +294,21 @@ describe('DestFs', () => {
       await expect(
         failingWith('EACCES').unlink(path.join(base, 'src', 'a', 'b.txt')),
       ).rejects.toBeInstanceOf(DestWriteError);
+    });
+
+    it('lets an error of the copy through as it is, whatever its class', async () => {
+      class SomeNewCopyError extends CopyError {}
+      const thrown = new SomeNewCopyError('from a callback');
+      const throwing = new DestFs(mount, base, {
+        fs,
+        run: async () => {
+          throw thrown;
+        },
+      });
+
+      await expect(throwing.unlink(path.join(base, 'a.txt'))).rejects.toBe(
+        thrown,
+      );
     });
 
     it('keeps an ordinary error a failure of that file', async () => {
