@@ -4,15 +4,19 @@ The code that talks to a Project Exodus **source** (a Windows machine), shared b
 
 ## What is in it
 
-| Module                     | Purpose                                                                                                                                |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `connections/types.ts`     | `ConnectionDriver`, `ConnectionTarget`, `ConnectionError` and the result types (`DirEntry`, `TreeEntry`, `FileInfo`).                  |
-| `connections/smb.ts`       | The `smbclient` driver: share resolution (`resolveShare`), the child-process plumbing and the driver itself.                           |
-| `connections/smb-parse.ts` | Pure parsers for `smbclient` output (`SmbTreeParser` for `recurse ON; ls`, `parseAllinfoOutput`), so they are tested without a source. |
-| `connection-target.ts`     | `buildConnectionTarget(connection, host)`: the row and its host to a target, with the password decrypted.                              |
-| `secret-box.ts`            | AES-256-GCM encryption of stored passwords with `EXODUS_CREDENTIAL_KEY`.                                                               |
-| `windows-path.ts`          | Canonical Windows paths (`normalizeWindowsPath`, `isWithinPath`, ...).                                                                 |
-| `testing/fake-driver.ts`   | `FakeDriver`: an in-memory source for tests.                                                                                           |
+| Module                       | Purpose                                                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `connections/types.ts`       | `ConnectionDriver`, `ConnectionTarget`, `ConnectionError` and the result types (`DirEntry`, `TreeEntry`, `FileInfo`).                  |
+| `connections/smb.ts`         | The `smbclient` driver (`smbDriver`); re-exports the public names of the `smb-*` files below so imports keep one entry point.          |
+| `connections/smb-share.ts`   | Share resolution (`resolveShare`), `shareFor` and the unsafe-path check.                                                               |
+| `connections/smb-process.ts` | The child-process plumbing: `smbclientInvocation`, spawn/run helpers, `describeSmbError`.                                              |
+| `connections/smb-allinfo.ts` | Batched `allinfo` (`ALLINFO_BATCH_SIZE`), `reportsExistingDirectory` and the `ls` listing parser (`parseSmbListing`).                  |
+| `connections/smb-stream.ts`  | `streamGet`: one streaming `get ... -` with stall detection.                                                                           |
+| `connections/smb-parse.ts`   | Pure parsers for `smbclient` output (`SmbTreeParser` for `recurse ON; ls`, `parseAllinfoOutput`), so they are tested without a source. |
+| `connection-target.ts`       | `buildConnectionTarget(connection, host)`: the row and its host to a target, with the password decrypted.                              |
+| `secret-box.ts`              | AES-256-GCM encryption of stored passwords with `EXODUS_CREDENTIAL_KEY`.                                                               |
+| `windows-path.ts`            | Canonical Windows paths (`normalizeWindowsPath`, `isWithinPath`, ...).                                                                 |
+| `testing/fake-driver.ts`     | `FakeDriver`: an in-memory source for tests.                                                                                           |
 
 ## The driver
 
