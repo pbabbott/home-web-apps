@@ -29,6 +29,10 @@ process.env.POSTGRES_DATABASE ||= 'homelab_api';
 process.env.POSTGRES_USER ||= 'homelab_api';
 process.env.POSTGRES_PASSWORD ||= 'Password123';
 
+// The self-hosted CI runners are several times slower than a workstation.
+// Jest ignores testTimeout inside `projects`, so it is set here.
+jest.setTimeout(30_000);
+
 let app;
 
 beforeAll(async () => {
