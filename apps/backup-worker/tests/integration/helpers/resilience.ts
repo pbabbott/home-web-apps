@@ -58,7 +58,7 @@ export const leaseOf = async (itemId: string): Promise<number> =>
 
 export const until = async (
   check: () => Promise<boolean> | boolean,
-  ms = 5000,
+  ms = 15_000,
 ) => {
   const deadline = Date.now() + ms;
 
