@@ -68,60 +68,69 @@ describe('resilience', () => {
         },
       });
 
-      await until(() => currentRuntime().watchdog.state().stalled);
-      await probes()
-        .get('/readyz')
-        .expect(503)
-        .expect((res) => {
-          expect(res.body.message).toContain('destination call stalled');
+      try {
+        await until(() => currentRuntime().watchdog.state().stalled);
+        await probes()
+          .get('/readyz')
+          .expect(503)
+          .expect((res) => {
+            expect(res.body.message).toContain('destination call stalled');
+          });
+
+        await until(async () => (await destinationHealth()) === 'unhealthy');
+        await until(
+          async () =>
+            (await jobRow(world.job.id)).stalledReason ===
+            'destination_unhealthy',
+        );
+
+        // No heartbeat any more: the lease no longer moves.
+        await sleep(100);
+        const lease = await leaseOf(itemId);
+
+        await sleep(250);
+        expect(await leaseOf(itemId)).toBe(lease);
+
+        expect(
+          (
+            await query<{ n: number }>(
+              "select count(*)::int as n from audit_events where event_type = 'backup_destination.unhealthy' and destination_id = $1",
+              [DESTINATION_ID],
+            )
+          )[0].n,
+        ).toBe(1);
+        expect(await eventCount('backup_job.stalled', world.job.id)).toBe(1);
+
+        // The call returns (the pod would have been restarted by now): the item
+        // is handed back untouched and the probes recover.
+        release();
+        expect(await running).toEqual({
+          kind: 'backoff',
+          reason: 'destination_unhealthy',
         });
+        expect(await itemRow(itemId)).toMatchObject({
+          status: 'queued',
+          attemptCount: 0,
+        });
+        await probes().get('/readyz').expect(200);
 
-      await until(async () => (await destinationHealth()) === 'unhealthy');
-      await until(
-        async () =>
-          (await jobRow(world.job.id)).stalledReason ===
-          'destination_unhealthy',
-      );
-
-      // No heartbeat any more: the lease no longer moves.
-      await sleep(100);
-      const lease = await leaseOf(itemId);
-
-      await sleep(250);
-      expect(await leaseOf(itemId)).toBe(lease);
-
-      expect(
-        (
-          await query<{ n: number }>(
-            "select count(*)::int as n from audit_events where event_type = 'backup_destination.unhealthy' and destination_id = $1",
-            [DESTINATION_ID],
-          )
-        )[0].n,
-      ).toBe(1);
-      expect(await eventCount('backup_job.stalled', world.job.id)).toBe(1);
-
-      // The call returns (the pod would have been restarted by now): the item
-      // is handed back untouched and the probes recover.
-      release();
-      expect(await running).toEqual({
-        kind: 'backoff',
-        reason: 'destination_unhealthy',
-      });
-      expect(await itemRow(itemId)).toMatchObject({
-        status: 'queued',
-        attemptCount: 0,
-      });
-      await probes().get('/readyz').expect(200);
-
-      // A passing validation lets the job run again.
-      await validationPasses();
-      await resumeDestinationJobs(DESTINATION_ID);
-      expect(await jobRow(world.job.id)).toMatchObject({ stalledReason: null });
-      await runUntilIdle(world.job.id, { driver });
-      expect(await itemRow(itemId)).toMatchObject({
-        status: 'verified',
-        attemptCount: 1,
-      });
+        // A passing validation lets the job run again.
+        await validationPasses();
+        await resumeDestinationJobs(DESTINATION_ID);
+        expect(await jobRow(world.job.id)).toMatchObject({
+          stalledReason: null,
+        });
+        await runUntilIdle(world.job.id, { driver });
+        expect(await itemRow(itemId)).toMatchObject({
+          status: 'verified',
+          attemptCount: 1,
+        });
+      } finally {
+        // A failed assertion must not leave the call hung: its heartbeat timer
+        // would keep Jest from ever exiting.
+        release();
+        await running.catch(() => undefined);
+      }
     });
 
     const failing = (code: string, onOperation: 'open' | 'link' = 'open') => ({
