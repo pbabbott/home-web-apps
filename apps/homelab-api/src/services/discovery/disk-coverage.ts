@@ -3,9 +3,8 @@ import type {
   InventoryCoverage,
   QueueItemResult,
 } from '@abbottland/homelab-db';
-import type { DirEntry } from '../../lib/connections';
+import { normalizeWindowsPath, type DirEntry } from '@abbottland/source-access';
 import { matchesNamePattern } from '../../lib/name-pattern';
-import { normalizeWindowsPath } from '../../lib/windows-path';
 import type { SkipReview } from './skip-review';
 
 /** How something on disk is accounted for, so a reviewer can find what is not. */

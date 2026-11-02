@@ -19,6 +19,7 @@
 | `GET /sources/:id/queue-items`                               | Queue items; filter with `?status=` and `?jobId=`                                                                                                                                                  |
 | `POST /queue-items/:id/inventory-items`                      | Agent proposes inventory items (≤10) for the claimed directory; upsert, never touches decisions                                                                                                    |
 | `GET /sources/:id/inventory-items`                           | Inventory items as `{ items, total }`; filter `jobId`, `recommendation`, `decision`, `kind`, `pathPrefix`, exact `path`, search `q` (path, name, summary); page with `after` or `offset` + `limit` |
+| `GET /sources/:id/path-coverage`                             | Human, read-only: does `path` (any depth) roll up to an inventory item? `status`, `decidingItem`, `exact`, `coveredBy`, `covers`, `exclusion`, nearest `skip`, `visitedDirectory`                  |
 | `GET /inventory-items/:id`                                   | One inventory item, plus `exclusion`                                                                                                                                                               |
 | `PATCH /inventory-items/:id/decision`                        | Human only: `approved` / `rejected` / `pending` with optional `note`                                                                                                                               |
 | `POST /queue-items/:id/inventory-directory`                  | Human only: approve a queue item's whole directory as one inventory item (the agent's proposal, or a new one); skips the job's queued items inside it                                              |
@@ -32,6 +33,10 @@
 | `POST /discovery-jobs/:id/queue-items`                       | Enqueue paths (must be inside the job root)                                                                                                                                                        |
 | `POST /discovery-jobs/:id/queue-items/claim`                 | Claim the next directory, or learn why there is none (`{ item: null, reason, retryAt }`)                                                                                                           |
 | `POST /queue-items/:id/{heartbeat,complete,fail,skip,retry}` | Work on a claimed item; `retry` is the human one                                                                                                                                                   |
+
+### Backup (REST only, human only)
+
+The routes for copying approved inventory to an NFS destination are listed in [backup.md](./backup.md#api) and in the [homelab-api README](../../apps/homelab-api/README.md#exodus-backup). None is an MCP tool.
 
 The OpenAPI spec is also served as JSON at `GET /openapi.json`. Operations carry `x-mcp-tool` (the MCP tool name, when one exists) and `x-home-hud` (the home-hud page that calls the route, when one does; set via `hud` on the controller `Operation`); `/exodus/architecture` uses it to show which routes the agent can also reach.
 

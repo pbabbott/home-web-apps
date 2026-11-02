@@ -149,6 +149,7 @@ export function SourceConnectionFields({
             {form.shareMappings.map((mapping, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Input
+                  className="min-w-0 flex-1"
                   aria-label="Path prefix"
                   placeholder="C:\Users"
                   value={mapping.pathPrefix}
@@ -158,6 +159,7 @@ export function SourceConnectionFields({
                 />
                 <Typography variant="body2">→</Typography>
                 <Input
+                  className="min-w-0 flex-1"
                   aria-label="Share name"
                   placeholder="Users"
                   value={mapping.share}

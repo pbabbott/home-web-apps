@@ -1,0 +1,31 @@
+{
+  "name": "@abbottland/source-access",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "dev": "tsc -w -p tsconfig.build.json",
+    "lint": "tsc --noEmit && eslint \"src/**/*.ts*\" --max-warnings 0",
+    "test:unit": "jest --config jest.config.ts --selectProjects unit"
+  },
+  "dependencies": {
+    "@abbottland/homelab-db": "workspace:*"
+  },
+  "devDependencies": {
+    "@abbottland/eslint-config": "workspace:*",
+    "@abbottland/jest-presets": "workspace:*",
+    "@abbottland/typescript-config": "workspace:*",
+    "@types/jest": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "jest": "catalog:",
+    "ts-node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

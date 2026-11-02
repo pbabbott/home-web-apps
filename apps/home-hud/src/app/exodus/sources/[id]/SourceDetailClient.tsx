@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { OutlinedButton, Typography } from '@abbottland/fui-components';
 import type { Host } from '../../../infra/hosts/lib/homelab-api';
 import { inventoryItemsUrl } from '../../lib/inventory-display';
@@ -17,10 +17,9 @@ import { FailedItemsPanel } from './FailedItemsPanel';
 import { JobHistoryPanel } from './JobHistoryPanel';
 import { AddSourceModal } from '../AddSourceModal';
 import { StartJobModal } from './StartJobModal';
+import { useAutoRefresh } from '../../lib/useAutoRefresh';
 
 /** While a job is active the page re-fetches this often, so progress shows without a manual reload. */
-const ACTIVE_REFRESH_MS = 5000;
-
 interface SourceDetailClientProps {
   source: Source;
   host: Host | null;
@@ -47,12 +46,7 @@ export function SourceDetailClient({
   const [startModalOpen, setStartModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (!hasActiveJob) return;
-
-    const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [hasActiveJob, router]);
+  useAutoRefresh(hasActiveJob);
 
   const refresh = () => router.refresh();
 

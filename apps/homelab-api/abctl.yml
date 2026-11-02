@@ -7,3 +7,9 @@ secrets:
   generateEnv: true
   envFile: .env
   envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: exodus-credential-key
+        secretKey: EXODUS_CREDENTIAL_KEY
+        envVarName: EXODUS_CREDENTIAL_KEY

@@ -182,6 +182,14 @@ export type InventoryItemListQuery = z.infer<
   typeof inventoryItemListQuerySchema
 >;
 
+export const pathCoverageQuerySchema = z.object({
+  path: windowsPathSchema.meta({
+    description:
+      'The path to check, at any depth. It need not exist in the inventory or have been visited.',
+  }),
+});
+export type PathCoverageQuery = z.infer<typeof pathCoverageQuerySchema>;
+
 export const decideInventoryItemBodySchema = z.object({
   decision: z.enum(['pending', 'approved', 'rejected']),
   note: z.string().trim().min(1).max(1000).nullable().optional().meta({

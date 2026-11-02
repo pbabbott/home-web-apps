@@ -94,11 +94,23 @@ export function parseQueueStatus(
   return QUEUE_STATUSES.find((status) => status === value);
 }
 
-/** `/exodus/jobs/<id>`, optionally filtered to one queue item status. */
-export function jobDetailUrl(jobId: string, status?: QueueItemStatus): string {
-  return status
-    ? `/exodus/jobs/${jobId}?status=${status}`
-    : `/exodus/jobs/${jobId}`;
+/** A `?review=` value: only `todo` (directories with something still to review) is recognised. */
+export function parseReviewFilter(value: string | undefined): boolean {
+  return value === 'todo';
+}
+
+/** `/exodus/jobs/<id>`, optionally filtered to one queue item status and/or to directories still to review. */
+export function jobDetailUrl(
+  jobId: string,
+  status?: QueueItemStatus,
+  reviewTodo = false,
+): string {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (reviewTodo) params.set('review', 'todo');
+  const query = params.toString();
+
+  return query ? `/exodus/jobs/${jobId}?${query}` : `/exodus/jobs/${jobId}`;
 }
 
 /** `/exodus/jobs/<id>/directories/<itemId>`: one directory of a job. */

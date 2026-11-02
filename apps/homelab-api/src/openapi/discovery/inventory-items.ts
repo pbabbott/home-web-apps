@@ -12,6 +12,7 @@ import {
   getInventoryItemOperation,
   inventoryDirectoryOperation,
   listInventoryItemsOperation,
+  pathCoverageOperation,
   promoteInventoryItemOperation,
   proposeInventoryItemsOperation,
 } from '../../controllers/discovery/inventory-items';
@@ -24,6 +25,7 @@ import {
   queueItemIdParamsSchema,
   inventoryItemIdParamsSchema,
   inventoryItemListQuerySchema,
+  pathCoverageQuerySchema,
   sourceIdParamsSchema,
 } from '../../schemas/discovery';
 
@@ -82,7 +84,70 @@ const inventoryItemWithExclusionSchema = inventoryItemSchema.extend({
   exclusion: exclusionResolutionSchema,
 });
 
+const pathCoverageSchema = z.object({
+  path: z.string(),
+  normalizedPath: z.string(),
+  status: z.enum(['covered', 'carved_out', 'rejected', 'pending', 'uncovered']),
+  decidingItem: nestedInventoryItemSchema.nullable().meta({
+    description:
+      'The item that decided the status; the nearest item when pending.',
+  }),
+  exact: nestedInventoryItemSchema.nullable().meta({
+    description: 'The inventory item at exactly this path.',
+  }),
+  coveredBy: z.array(nestedInventoryItemSchema).meta({
+    description:
+      'Inventory items whose root is a proper ancestor, farthest first.',
+  }),
+  covers: z.array(nestedInventoryItemSchema).meta({
+    description: 'Inventory items beneath the path, at most 50.',
+  }),
+  exclusion: exclusionResolutionSchema,
+  skip: z
+    .object({
+      path: z.string(),
+      reason: z.string(),
+      skippedAt: z.iso.datetime(),
+      jobId: z.uuid(),
+      pattern: z.string().optional(),
+      count: z.number().int().optional(),
+    })
+    .nullable()
+    .meta({ description: 'The deepest agent skip at or above the path.' }),
+  visitedDirectory: z
+    .object({
+      id: z.uuid(),
+      jobId: z.uuid(),
+      path: z.string(),
+      status: z.string(),
+    })
+    .nullable()
+    .meta({
+      description:
+        'The deepest queue item (any job) at or above the path; a path can be promoted from it.',
+    }),
+});
+
 export const inventoryItemsPaths = {
+  '/sources/{id}/path-coverage': {
+    get: {
+      summary: pathCoverageOperation.summary,
+      'x-home-hud': pathCoverageOperation.hud,
+      description: pathCoverageOperation.description,
+      requestParams: {
+        path: sourceIdParamsSchema,
+        query: pathCoverageQuerySchema,
+      },
+      responses: {
+        '200': {
+          description: 'How the inventory covers the path',
+          content: { 'application/json': { schema: pathCoverageSchema } },
+        },
+        '400': validationErrorResponse,
+        '404': discoveryNotFoundResponse('source'),
+      },
+    },
+  },
   '/queue-items/{id}/inventory-items': {
     post: {
       summary: proposeInventoryItemsOperation.summary,

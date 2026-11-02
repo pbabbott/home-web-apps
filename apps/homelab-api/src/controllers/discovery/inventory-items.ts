@@ -10,6 +10,7 @@ import type {
   QueueItemIdParams,
   InventoryItemIdParams,
   InventoryItemListQuery,
+  PathCoverageQuery,
   SourceIdParams,
 } from '../../schemas/discovery';
 import { MAX_INVENTORY_ITEMS_PER_REQUEST } from '../../schemas/discovery';
@@ -71,6 +72,24 @@ export const listSourceInventoryItems = handle(
     res
       .status(200)
       .json(await discoveryService.listSourceInventoryItems(id, filters));
+  },
+);
+
+// Does: say whether a path rolls up to an inventory item of the source.
+// Who: human (home-hud inventory page). No MCP tool.
+export const pathCoverageOperation = {
+  summary: 'Check whether a path is covered by the inventory',
+  description:
+    'Read-only. Walks the path and its ancestors against the source’s inventory items. `status` is `covered` when the nearest decided item at or above the path is approved, `carved_out` when it is rejected inside a farther approved item, `rejected` when it is rejected and nothing above approves, `pending` when items exist but none is decided, `uncovered` when there are none. Also reports `exact`, `coveredBy` and `covers` items, the exclusion rule state, the deepest known agent skip at or above the path, and the deepest queue item (any job) at or above it, which a human can promote the path from. The path need not exist.',
+  hud: '/exodus/inventory',
+} satisfies Operation;
+
+export const checkPathCoverage = handle(
+  'GET /sources/:id/path-coverage',
+  async (req, res) => {
+    const { id } = req.params as SourceIdParams;
+    const { path } = req.query as unknown as PathCoverageQuery;
+    res.status(200).json(await discoveryService.checkPathCoverage(id, path));
   },
 );
 

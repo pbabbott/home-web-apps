@@ -38,3 +38,12 @@ export const parseActor: RequestHandler = (req, res, next) => {
 };
 
 export const actorOf = (res: Response): Actor => res.locals.actor as Actor;
+
+/** Backup routes are human-only (no MCP tools): other actor types get 403. */
+export const requireHumanActor: RequestHandler = (_req, res, next) => {
+  if ((res.locals.actor as Actor | undefined)?.type !== 'human') {
+    res.status(403).json({ message: 'backup actions are human-only' });
+    return;
+  }
+  next();
+};

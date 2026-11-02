@@ -18,6 +18,9 @@ export type AuditEventInput = {
   queueItemId?: string | null;
   exclusionRuleId?: string | null;
   inventoryItemId?: string | null;
+  destinationId?: string | null;
+  backupJobId?: string | null;
+  backupJobItemId?: string | null;
   details?: Record<string, unknown> | null;
 };
 
@@ -41,6 +44,9 @@ export const insertAuditEvent = async (
       queueItemId: event.queueItemId ?? null,
       exclusionRuleId: event.exclusionRuleId ?? null,
       inventoryItemId: event.inventoryItemId ?? null,
+      destinationId: event.destinationId ?? null,
+      backupJobId: event.backupJobId ?? null,
+      backupJobItemId: event.backupJobItemId ?? null,
       details: event.details ?? null,
     })
     .returning();
@@ -53,6 +59,9 @@ export type ListAuditEventsOptions = {
   jobId?: string;
   exclusionRuleId?: string;
   inventoryItemId?: string;
+  destinationId?: string;
+  backupJobId?: string;
+  backupJobItemId?: string;
   eventType?: AuditEventType;
   since?: Date;
   until?: Date;
@@ -78,6 +87,13 @@ export const listAuditEvents = async (
       : undefined,
     options.inventoryItemId
       ? eq(t.inventoryItemId, options.inventoryItemId)
+      : undefined,
+    options.destinationId
+      ? eq(t.destinationId, options.destinationId)
+      : undefined,
+    options.backupJobId ? eq(t.backupJobId, options.backupJobId) : undefined,
+    options.backupJobItemId
+      ? eq(t.backupJobItemId, options.backupJobItemId)
       : undefined,
     options.eventType ? eq(t.eventType, options.eventType) : undefined,
     options.since ? gte(t.createdAt, options.since) : undefined,

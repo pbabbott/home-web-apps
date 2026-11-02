@@ -1,5 +1,5 @@
 import { previewTypeOf } from '../../src/lib/preview-types';
-import { decodeText } from '../../src/services/discovery/source-connections';
+import { decodeText } from '../../src/services/discovery/source-preview';
 
 describe('previewTypeOf', () => {
   it.each([

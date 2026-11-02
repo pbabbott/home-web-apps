@@ -8,7 +8,7 @@ import {
   type OnDiskReview,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
-import { normalizeWindowsPath } from '../../lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 
 /** A human says they reviewed what is on disk in the queue item's directory. Idempotent. */
 export const reviewOnDisk = (

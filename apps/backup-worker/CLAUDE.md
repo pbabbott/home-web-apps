@@ -1,0 +1,12 @@
+# CLAUDE.md
+
+Guidance for `apps/backup-worker`. Index only — see [Documentation Conventions](../../docs/dev-guide-documentation-conventions.md).
+
+- What the worker does, the copy algorithm, the error-to-outcome table and the destination layout live in [`docs/exodus/backup.md`](../../docs/exodus/backup.md) (start at [Worker](../../docs/exodus/backup.md#worker) and [Copy engine](../../docs/exodus/backup.md#copy-engine)). Update that page in the same change as any behaviour change.
+- Invariants any change must keep: every write to a job item or entry carries the `claimToken` (proof of the lease); the destination is only ever added to (never overwrite or delete outside `.exodus-staging`); every step is safe to interrupt and repeat.
+- New copy errors extend `CopyError` (`src/lib/copy-error.ts`, declared in `src/copy/errors.ts`) and must get a row in `classifyAbandon()` (`src/copy/abandon-policy.ts`, tested as a table in `tests/unit/abandon-policy.unit.test.ts`) or recorded on the entry (`toEntryFailure` in `src/copy/entry.ts`); document the new row in the "item that does not settle" table.
+- No module-level mutable state: `index.ts` creates the `WorkerRuntime` (`watchdog`, `pauses`, in `src/destination/runtime.ts`) and passes it down; the claimed destination id lives in `PollLoop` and reaches the copy as `CopyScope.destinationId`; `config` is never written. Tests build their own (`makeTestRuntime` in `tests/integration/helpers/copy-harness.ts`).
+- Crash-safety is tested by injecting a `FaultHook` at named points (`ctx.fault('entry:after-link', …)`) through `tests/integration/helpers/copy-harness.ts`. Add a fault point and a test when adding a step that writes to the destination or database.
+- Run `pnpm test:unit` and `pnpm test:int` (the integration tests need Postgres from `pnpm dev:deps`; see [Running and testing](../../docs/exodus/operations.md#running-and-testing)).
+- Operating the worker (pauses, stalled mount, deployment requirements): [`docs/exodus/operations.md`](../../docs/exodus/operations.md). Setup and configuration: [`README.md`](./README.md).
+- `@abbottland/homelab-db` and `@abbottland/source-access` are type-checked from their `src/` (`types`) but run from `dist/` (`main`, also in Jest). After changing either, run `pnpm build` in that package or tests and the worker run stale code.

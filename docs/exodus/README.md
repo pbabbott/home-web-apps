@@ -10,20 +10,23 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 
 ## Status
 
-| Built                                                        | Not built                 |
-| ------------------------------------------------------------ | ------------------------- |
-| Sources, discovery jobs, directory queue (database + API)    | The OpenClaw agent itself |
-| Lease-based claiming, retries, resumability                  | Filesystem scanning       |
-| Windows path normalization                                   | File copying to the NAS   |
-| Inventory items, human decisions, exclusion rules, audit log |                           |
-| home-hud pages: sources, jobs, inventory item review         | Bulk review actions       |
-| MCP tools for the agent's work loop (`POST /mcp`)            |                           |
-| Per-source file access (SMB) and file preview                |                           |
-| Unit and integration tests                                   |                           |
+| Built                                                           | Not built                 |
+| --------------------------------------------------------------- | ------------------------- |
+| Sources, discovery jobs, directory queue (database + API)       | The OpenClaw agent itself |
+| Lease-based claiming, retries, resumability                     | Filesystem scanning       |
+| Windows path normalization                                      |                           |
+| Inventory items, human decisions, exclusion rules, audit log    |                           |
+| home-hud pages: sources, jobs, inventory item review            | Bulk review actions       |
+| MCP tools for the agent's work loop (`POST /mcp`)               |                           |
+| Per-source file access (SMB) and file preview                   |                           |
+| Backup copy engine: SMB to NFS, hashed, resumable (worker)      |                           |
+| Backup resilience: pauses, shutdown, stalled mount, parallelism |                           |
+| home-hud backup pages: overview, job, coverage                  |                           |
+| Unit and integration tests                                      |                           |
 
 ## Where things live
 
-- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery.ts`, `src/queries/discovery/`, `src/queries/inventory-items.ts`, migrations `0003`–`0012`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
+- **Schema, migrations, queries** — `packages/homelab-db` (`src/schema/discovery/`, `src/queries/discovery/`, `src/queries/inventory-items/`, migrations `0003`–`0012`, and an [entity-relationship diagram](../../packages/homelab-db/ERD.md)). The same package and the same `homelab_api` database as `hosts`.
 - **API** — `apps/homelab-api` (`controllers/discovery/` split by domain, `services/discovery/`, `schemas/discovery/`, `routes/`, `openapi/`, `lib/windows-path.ts`, `mcp.ts`). Interactive docs at `/docs`. The README has the agent workflow and the rules in short form.
 - **UI** — `apps/home-hud/src/app/exodus/`, under the Exodus menu in the nav.
 
@@ -36,4 +39,5 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [Exclusion Rules and Audit](./exclusion-review-audit.md) - rules, enforcement, and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
+- [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it, the API (destinations, planning, jobs, coverage), the worker and destination validation, the copy engine, its resilience (pauses, shutdown, a stalled mount, parallelism), the destination layout, and what a verified copy does not guarantee.
 - [Running, Testing and Next Steps](./operations.md) - how to run and test, and what is left.

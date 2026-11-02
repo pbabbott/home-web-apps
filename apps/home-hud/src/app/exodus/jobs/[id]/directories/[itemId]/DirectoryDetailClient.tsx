@@ -2,49 +2,36 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Badge,
   OutlinedButton,
   Panel,
-  ScrollableTable,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-  Td,
-  Th,
   Tooltip,
   Typography,
 } from '@abbottland/fui-components';
 import {
   QUEUE_STATUS_COLOR,
   QUEUE_STATUS_DESCRIPTION,
-  comparePaths,
   isStaleClaim,
   jobDetailUrl,
-  relativeToDirectory,
 } from '../../../../lib/job-display';
 import { QueueItemMessage } from '../../../../lib/JobSummary';
 import {
-  AcknowledgeControl,
   CopyButton,
   Detail,
   ReviewedMark,
 } from '../../../../lib/DirectoryReview';
-import {
-  DECISION_COLOR,
-  DECISION_LABELS,
-  RECOMMENDATION_COLOR,
-  RECOMMENDATION_LABELS,
-  inventoryItemUrl,
-} from '../../../../lib/inventory-display';
+import { inventoryItemUrl } from '../../../../lib/inventory-display';
 import { LocalDateTime } from '../../../../lib/LocalDateTime';
 import { PatternMatchesModal } from '../../../../lib/PatternMatchesModal';
-import { PreviewButton } from '../../../../lib/PreviewButton';
 import { PromoteSkippedModal } from '../../../../lib/PromoteSkippedModal';
 import { InventoryDirectoryModal } from './InventoryDirectoryModal';
+import { InventoryItemsSection } from './InventoryItemsSection';
 import { OnDiskSection } from './OnDiskSection';
+import { SkippedGroupsSection } from './SkippedGroupsSection';
+import { SkippedPathsSection } from './SkippedPathsSection';
+import { UnreadableSection } from './UnreadableSection';
 import {
   acknowledgeSkip,
   retryQueueItem,
@@ -55,36 +42,9 @@ import {
   type InventoryItem,
   type QueueItemDetail,
 } from '../../../../sources/lib/homelab-api';
+import { useAutoRefresh } from '../../../../lib/useAutoRefresh';
 
 /** While the directory may still change under the agent's hands the page re-fetches this often. */
-const ACTIVE_REFRESH_MS = 5000;
-
-function Section({
-  title,
-  empty,
-  children,
-}: {
-  title: ReactNode;
-  /** Shown instead of `children` when set. */
-  empty?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-2">
-      <Typography variant="h5" component="h2">
-        {title}
-      </Typography>
-      {empty ? (
-        <Typography variant="body2" className="text-neutral-400">
-          {empty}
-        </Typography>
-      ) : (
-        children
-      )}
-    </section>
-  );
-}
-
 interface DirectoryDetailClientProps {
   item: QueueItemDetail;
   /** Null if the sources could not be loaded. */
@@ -127,12 +87,7 @@ export function DirectoryDetailClient({
   // Only a directory still being worked on changes by itself.
   const settling = item.status === 'queued' || item.status === 'in_progress';
 
-  useEffect(() => {
-    if (!active || !settling) return;
-
-    const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, settling, router]);
+  useAutoRefresh(active && settling);
 
   // Set after mount: lease expiry compared against the server's clock at render
   // time would not match what the browser computes during hydration.
@@ -173,18 +128,6 @@ export function DirectoryDetailClient({
     setNotice('Requeued; the directory gets one more attempt.');
     router.refresh();
   }
-
-  const skippedPaths = result?.skipped ?? [];
-  const skippedGroups = result?.skippedGroups ?? [];
-  const reviewedPaths = skipReview.paths.filter(
-    (p) => p.acknowledged || p.inventoried,
-  ).length;
-  const reviewedGroups = skipReview.patterns.filter(
-    (p) => p.acknowledged,
-  ).length;
-  const sortedInventory = [...(inventoryItems ?? [])].sort((a, b) =>
-    comparePaths(a.rootPath, b.rootPath),
-  );
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">
@@ -321,151 +264,23 @@ export function DirectoryDetailClient({
         </Detail>
       </Panel>
 
-      <Section
-        title={
-          <>
-            Skipped by pattern · {reviewedGroups} / {skippedGroups.length}{' '}
-            reviewed
-          </>
+      <SkippedGroupsSection
+        item={item}
+        pending={pending !== null}
+        onSetReviewed={(path, pattern, reviewed) =>
+          void setReviewed(path, pattern, reviewed)
         }
-        empty={
-          !result
-            ? 'Not explored yet.'
-            : skippedGroups.length === 0
-              ? 'None.'
-              : undefined
-        }
-      >
-        <ScrollableTable className="mb-0">
-          <Table size="small" color="secondary">
-            <TableHead>
-              <TableRow>
-                <Th color="secondary">Review</Th>
-                <Th color="secondary">Pattern</Th>
-                <Th color="secondary">Count</Th>
-                <Th color="secondary">Reason</Th>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {skippedGroups.map((group, i) => (
-                <TableRow key={group.pattern}>
-                  <Td color="secondary">
-                    <AcknowledgeControl
-                      acknowledged={
-                        skipReview.patterns[i]?.acknowledged ?? false
-                      }
-                      disabled={pending !== null}
-                      onAcknowledge={() =>
-                        void setReviewed(item.path, group.pattern, true)
-                      }
-                      onUndo={() =>
-                        void setReviewed(item.path, group.pattern, false)
-                      }
-                    />
-                  </Td>
-                  <Td color="secondary" className="break-all">
-                    <button
-                      type="button"
-                      title="Show the files this pattern matched"
-                      onClick={() => setViewingPattern(group)}
-                      className="text-left underline decoration-dotted hover:text-primary-400"
-                    >
-                      {group.pattern}
-                    </button>
-                  </Td>
-                  <Td color="secondary" className="text-neutral-400">
-                    {group.count ?? '—'}
-                  </Td>
-                  <Td color="secondary" className="text-neutral-400">
-                    {group.reason}
-                  </Td>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollableTable>
-      </Section>
+        onViewPattern={setViewingPattern}
+      />
 
-      <Section
-        title={
-          <>
-            Skipped paths · {reviewedPaths} / {skippedPaths.length} reviewed
-          </>
+      <SkippedPathsSection
+        item={item}
+        pending={pending !== null}
+        onSetReviewed={(path, pattern, reviewed) =>
+          void setReviewed(path, pattern, reviewed)
         }
-        empty={
-          !result
-            ? 'Not explored yet.'
-            : skippedPaths.length === 0
-              ? 'None.'
-              : undefined
-        }
-      >
-        <ScrollableTable className="mb-0">
-          <Table size="small" color="secondary">
-            <TableHead>
-              <TableRow>
-                <Th color="secondary">Review</Th>
-                <Th color="secondary">Path</Th>
-                <Th color="secondary">Reason</Th>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {skippedPaths.map((skip, i) => (
-                <TableRow key={skip.path}>
-                  <Td color="secondary">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {skipReview.paths[i]?.inventoried ? (
-                        <Link
-                          href={inventoryItemUrl(sourceId, skip.path)}
-                          className="text-neutral-400 underline"
-                        >
-                          In inventory
-                        </Link>
-                      ) : (
-                        <>
-                          <AcknowledgeControl
-                            acknowledged={
-                              skipReview.paths[i]?.acknowledged ?? false
-                            }
-                            disabled={pending !== null}
-                            onAcknowledge={() =>
-                              void setReviewed(skip.path, '', true)
-                            }
-                            onUndo={() =>
-                              void setReviewed(skip.path, '', false)
-                            }
-                          />
-                          <OutlinedButton
-                            size="small"
-                            color="secondary"
-                            onClick={() =>
-                              setPromoting({
-                                path: skip.path,
-                                reason: skip.reason,
-                              })
-                            }
-                          >
-                            Promote
-                          </OutlinedButton>
-                        </>
-                      )}
-                    </div>
-                  </Td>
-                  <Td color="secondary" className="break-all">
-                    <div className="flex items-center gap-2">
-                      <PreviewButton sourceId={sourceId} path={skip.path} />
-                      <span>{relativeToDirectory(item.path, skip.path)}</span>
-                    </div>
-                  </Td>
-                  <Td color="secondary" className="text-neutral-400">
-                    {skip.reason}
-                  </Td>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollableTable>
-      </Section>
+        onPromote={(skip) => setPromoting(skip)}
+      />
 
       <OnDiskSection
         sourceId={sourceId}
@@ -480,93 +295,9 @@ export function DirectoryDetailClient({
         onPromote={(path) => setPromoting({ path })}
       />
 
-      <Section
-        title={<>Inventory items · {sortedInventory.length}</>}
-        empty={
-          inventoryItems === null
-            ? 'Failed to load inventory items from homelab-api.'
-            : sortedInventory.length === 0
-              ? 'None.'
-              : undefined
-        }
-      >
-        <ScrollableTable className="mb-0">
-          <Table size="small" color="secondary">
-            <TableHead>
-              <TableRow>
-                <Th color="secondary">Decision</Th>
-                <Th color="secondary">Path</Th>
-                <Th color="secondary">Kind</Th>
-                <Th color="secondary">Recommendation</Th>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedInventory.map((inventoryItem) => (
-                <TableRow key={inventoryItem.id}>
-                  <Td color="secondary">
-                    <Badge color={DECISION_COLOR[inventoryItem.decision]}>
-                      {DECISION_LABELS[inventoryItem.decision]}
-                    </Badge>
-                  </Td>
-                  <Td color="secondary" className="break-all">
-                    <Link
-                      href={inventoryItemUrl(sourceId, inventoryItem.rootPath)}
-                      className="underline"
-                    >
-                      {relativeToDirectory(item.path, inventoryItem.rootPath)}
-                    </Link>
-                  </Td>
-                  <Td color="secondary">{inventoryItem.kind}</Td>
-                  <Td color="secondary">
-                    <Badge
-                      color={RECOMMENDATION_COLOR[inventoryItem.recommendation]}
-                    >
-                      {RECOMMENDATION_LABELS[inventoryItem.recommendation]}
-                    </Badge>
-                  </Td>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollableTable>
-      </Section>
+      <InventoryItemsSection item={item} inventoryItems={inventoryItems} />
 
-      <Section
-        title={<>Unreadable directories · {result?.unreadable?.length ?? 0}</>}
-        empty={
-          !result
-            ? 'Not explored yet.'
-            : !result.unreadable?.length
-              ? 'None.'
-              : undefined
-        }
-      >
-        <Typography variant="body2" className="text-neutral-400">
-          Failed; retry once access is granted.
-        </Typography>
-        <ScrollableTable className="mb-0">
-          <Table size="small" color="secondary">
-            <TableHead>
-              <TableRow>
-                <Th color="secondary">Path</Th>
-                <Th color="secondary">Error</Th>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(result?.unreadable ?? []).map((entry) => (
-                <TableRow key={entry.path}>
-                  <Td color="secondary" className="break-all">
-                    {relativeToDirectory(item.path, entry.path)}
-                  </Td>
-                  <Td color="secondary" className="text-neutral-400">
-                    {entry.error}
-                  </Td>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollableTable>
-      </Section>
+      <UnreadableSection item={item} />
 
       {inventoryingDirectory && (
         <InventoryDirectoryModal

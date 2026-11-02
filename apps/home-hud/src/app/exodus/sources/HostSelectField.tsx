@@ -13,6 +13,8 @@ import type { Host } from '../../infra/hosts/lib/homelab-api';
 interface HostSelectFieldProps {
   hosts: Host[];
   value: string;
+  /** Hides the "No host" choice. */
+  required?: boolean;
   onChange: (hostId: string) => void;
 }
 
@@ -20,6 +22,7 @@ interface HostSelectFieldProps {
 export function HostSelectField({
   hosts,
   value,
+  required = false,
   onChange,
 }: HostSelectFieldProps) {
   const [open, setOpen] = useState(false);
@@ -29,13 +32,19 @@ export function HostSelectField({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <OutlinedButton type="button" size="small">
-          {selected ? `${selected.name} (${selected.ipAddress})` : 'No host'}
+          {selected
+            ? `${selected.name} (${selected.ipAddress})`
+            : required
+              ? 'Select a host'
+              : 'No host'}
         </OutlinedButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent label="Host">
-        <DropdownMenuItem onSelect={() => onChange('')}>
-          No host
-        </DropdownMenuItem>
+        {!required && (
+          <DropdownMenuItem onSelect={() => onChange('')}>
+            No host
+          </DropdownMenuItem>
+        )}
         {hosts.map((host) => (
           <DropdownMenuItem key={host.id} onSelect={() => onChange(host.id)}>
             {host.name} ({host.ipAddress})

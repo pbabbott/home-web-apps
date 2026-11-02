@@ -25,33 +25,19 @@ import { db } from '../../db';
 import {
   normalizeWindowsPath,
   windowsPathName,
-  windowsPathParent,
-} from '../../lib/windows-path';
+} from '@abbottland/source-access';
 import type {
   InventoryItemInput,
   InventoryDirectoryBody,
   PromoteInventoryItemBody,
 } from '../../schemas/discovery';
-import { assertWithinClaimedDirectory } from './paths';
+import { ancestorsOf, assertWithinClaimedDirectory } from './paths';
 
 export type ProposedInventoryItem = UpsertedInventoryItem & {
   /** Existing inventory items whose root is an ancestor of this one. */
   coveredBy: NestedInventoryItem[];
   /** Existing inventory items beneath this one (capped). */
   covers: NestedInventoryItem[];
-};
-
-const ancestorsOf = (normalizedPath: string): string[] => {
-  const ancestors: string[] = [];
-  for (
-    let parent = windowsPathParent(normalizedPath);
-    parent !== null;
-    parent = windowsPathParent(parent)
-  ) {
-    ancestors.push(parent);
-  }
-
-  return ancestors;
 };
 
 /**

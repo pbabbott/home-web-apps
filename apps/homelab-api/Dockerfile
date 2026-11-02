@@ -3,7 +3,7 @@ FROM ${BASE_IMAGE} AS builder
 
 FROM node:22-alpine AS runner
 
-# Reads files from Windows sources for exodus file preview (src/lib/connections/smb.ts).
+# Reads files from Windows sources for exodus file preview (packages/source-access, SMB driver).
 RUN apk add --no-cache samba-client
 
 RUN addgroup --system --gid 1001 nodejs \

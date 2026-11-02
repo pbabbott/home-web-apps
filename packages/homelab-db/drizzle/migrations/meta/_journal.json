@@ -113,6 +113,20 @@
       "when": 1793049479970,
       "tag": "0015_on_disk_reviews",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793317918138,
+      "tag": "0016_backup",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793545904639,
+      "tag": "0017_backup_source_changed",
+      "breakpoints": true
     }
   ]
 }

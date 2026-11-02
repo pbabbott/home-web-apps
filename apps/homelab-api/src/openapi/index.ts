@@ -1,8 +1,13 @@
 import { createDocument, type ZodOpenApiPathsObject } from 'zod-openapi';
 import { auditEventsPaths } from './discovery/audit-events';
+import { backupDestinationsPaths } from './backup/destinations';
+import { backupCoveragePaths } from './backup/coverage';
+import { backupItemsPaths } from './backup/items';
+import { backupJobsPaths } from './backup/jobs';
 import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
+import { queueItemLifecyclePaths } from './discovery/queue-item-lifecycle';
 import { inventoryItemsPaths } from './discovery/inventory-items';
 import { onDiskReviewsPaths } from './discovery/on-disk-reviews';
 import { skipAcknowledgementsPaths } from './discovery/skip-acknowledgements';
@@ -54,6 +59,9 @@ export const openApiSpec = createDocument({
     'Queue Items',
     'Inventory Items',
     'Exclusion Rules',
+    'Backup Destinations',
+    'Backup Jobs',
+    'Backup Coverage',
     'Audit Events',
     'Hosts',
     'Maps',
@@ -68,10 +76,15 @@ export const openApiSpec = createDocument({
     ...tagged('Sources', sourceConnectionsPaths),
     ...tagged('Discovery Jobs', discoveryJobsPaths),
     ...tagged('Queue Items', queueItemsPaths),
+    ...tagged('Queue Items', queueItemLifecyclePaths),
     ...tagged('Exclusion Rules', exclusionRulesPaths),
     ...tagged('Inventory Items', inventoryItemsPaths),
     ...tagged('Queue Items', skipAcknowledgementsPaths),
     ...tagged('Queue Items', onDiskReviewsPaths),
+    ...tagged('Backup Destinations', backupDestinationsPaths),
+    ...tagged('Backup Jobs', backupJobsPaths),
+    ...tagged('Backup Jobs', backupItemsPaths),
+    ...tagged('Backup Coverage', backupCoveragePaths),
     ...tagged('Audit Events', auditEventsPaths),
     ...tagged('Hosts', hostsPaths),
   },

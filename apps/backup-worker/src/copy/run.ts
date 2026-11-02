@@ -1,0 +1,327 @@
+import {
+  claimNextBackupItem,
+  completeBackupJobIfDone,
+  failBackupItem,
+  getBackupDestination,
+  releaseBackupItem,
+  type BackupClaimIdleReason,
+  type BackupJob,
+  type BackupJobItem,
+  type ClaimedBackupJobItem,
+} from '@abbottland/homelab-db';
+import {
+  getConnectionDriver,
+  type ConnectionDriver,
+} from '@abbottland/source-access';
+import { config } from '../config';
+import { db } from '../db';
+import { makeDestFs, type WorkerRuntime } from '../destination/runtime';
+import type { CopyContext, FaultHook } from './context';
+import type { DestFsDeps } from './dest-fs';
+import { classifyAbandon, isSourceOutage } from './abandon-policy';
+import { DestinationUnhealthyError } from './errors';
+import { stagingDir } from './layout';
+import { DESTINATION_KEY, sourceKey } from './pause-tracker';
+import {
+  pauseDestination,
+  pauseSource,
+  resumeReachableSources,
+} from './pauses';
+import { expectedExport } from '../destination/mounts';
+import { assertMounted } from './preflight';
+import { startHeartbeat } from './heartbeat';
+import { processItem } from './item';
+import { loadSourceTarget } from './source';
+import { shutdownSignal } from '../worker/shutdown';
+import { systemActor, workerId } from '../worker-id';
+
+/** What tests replace; production uses the defaults. */
+export type RunOptions = {
+  driver?: ConnectionDriver;
+  fault?: FaultHook;
+  fsDeps?: DestFsDeps;
+  /** Replaces the worker-wide shutdown signal. */
+  shutdownSignal?: AbortSignal;
+  /** No-progress timeout for source reads in ms; defaults to `BACKUP_STALL_TIMEOUT_SECONDS`. */
+  stallTimeoutMs?: number;
+  /** Files of one item copied at once; defaults to `BACKUP_PARALLELISM`. */
+  parallelism?: number;
+  /** Heartbeat interval in ms; defaults to `BACKUP_HEARTBEAT_SECONDS`. */
+  heartbeatMs?: number;
+  /** Replaces the mount check that runs before each item. */
+  preflight?: () => Promise<void>;
+};
+
+/** The runtime and the destination being served; `destinationId` is the poll loop's claim, never read from the config. */
+export type CopyScope = WorkerRuntime & { destinationId: string };
+
+export type RunResult =
+  | { kind: 'idle'; reason: BackupClaimIdleReason; retryAt: Date | null }
+  /** The item was worked on and settled (verified, requeued, blocked or failed). */
+  | { kind: 'settled'; itemId: string }
+  /** The item was handed back or abandoned; the caller should wait before claiming again. */
+  | {
+      kind: 'backoff';
+      reason:
+        | 'claim_lost'
+        | 'source_unreachable'
+        | 'destination_unhealthy'
+        | 'shutdown'
+        | 'error';
+    };
+
+const describe = (err: unknown): string =>
+  err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+
+/** A job whose last queued item was just claimed or settled may be finished. */
+const completeDrainedJobs = async (jobIds: string[]): Promise<void> => {
+  for (const jobId of jobIds) {
+    const { job, finished } = await completeBackupJobIfDone(
+      db,
+      jobId,
+      systemActor(),
+    );
+
+    if (finished) {
+      console.log(`🏁 job ${job.id.slice(0, 8)} ${job.status}`);
+    }
+  }
+};
+
+/**
+ * Everything the copy of a claimed item needs. `signal` ends when the lease
+ * is lost, the destination stalls or the worker is asked to stop; `options`
+ * replaces the defaults in tests.
+ */
+const buildCopyContext = async (
+  { destinationId, watchdog }: CopyScope,
+  { item, job }: { item: ClaimedBackupJobItem; job: BackupJob },
+  signal: AbortSignal,
+  options: RunOptions,
+): Promise<CopyContext> => {
+  const destination = await getBackupDestination(db, destinationId);
+  const { connectionType, target } = await loadSourceTarget(db, job);
+
+  return {
+    db,
+    job,
+    item,
+    driver: options.driver ?? getConnectionDriver(connectionType),
+    target,
+    dest: makeDestFs(watchdog, destination?.rootDir, options.fsDeps),
+    stallTimeoutMs:
+      options.stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
+    signal,
+    fault: options.fault ?? (() => undefined),
+    parallelism: options.parallelism ?? config.backupParallelism,
+    preflight:
+      options.preflight ??
+      (() =>
+        assertMounted({
+          mountCheck: config.backupDestinationMountCheck,
+          mountPath: config.backupDestinationPath,
+          // Nothing matches an empty export, so a vanished destination fails the mount check.
+          expected: destination
+            ? expectedExport(destination)
+            : { serverNames: [], exportPath: '' },
+          run: (operation, fn) => watchdog.run(operation, fn),
+        })),
+  };
+};
+
+/**
+ * Claims the next item of this worker's destination and copies it. One call
+ * is one item. The lease is kept alive by a timer while it runs, and
+ * `worker_seen_at` is the caller's job (it must keep ticking while this runs).
+ *
+ * What happens to an item that does not settle: a lost lease is left alone (the
+ * job owns it again); a source that stopped answering or a broken destination
+ * releases the item with the attempt refunded and pauses the job (no attempts
+ * are spent while paused); any other error fails the attempt as transient, so
+ * it is retried behind a backoff and eventually fails visibly.
+ */
+export const claimAndCopyNext = async (
+  scope: CopyScope,
+  options: RunOptions = {},
+): Promise<RunResult> => {
+  const { destinationId, watchdog, pauses } = scope;
+
+  await resumeReachableSources(pauses, destinationId, options.driver);
+
+  const claim = await claimNextBackupItem(db, {
+    destinationId,
+    workerId,
+    leaseSeconds: config.backupLeaseSeconds,
+  });
+
+  if (!('job' in claim)) {
+    await completeDrainedJobs(claim.drainedJobIds);
+
+    return { kind: 'idle', reason: claim.reason, retryAt: claim.retryAt };
+  }
+
+  const { item, job } = claim;
+  const { claimToken } = item;
+  console.log(
+    `📦 copying ${item.kind} ${item.rootPath} (job ${job.id.slice(0, 8)}, attempt ${item.attemptCount} of ${item.maxAttempts})`,
+  );
+  const heartbeat = startHeartbeat(
+    db,
+    { id: item.id, claimToken },
+    {
+      leaseSeconds: config.backupLeaseSeconds,
+      intervalMs: options.heartbeatMs ?? config.backupHeartbeatSeconds * 1000,
+      shouldBeat: () => !watchdog.state().stalled,
+    },
+  );
+  // A stalled destination call cannot be cancelled, but the rest of the item
+  // (the source transfer, the next steps) stops as soon as it returns.
+  const stalled = new AbortController();
+  const stopListening = watchdog.onStall((operation) =>
+    stalled.abort(
+      new DestinationUnhealthyError(
+        operation,
+        'STALLED',
+        `${operation} made no progress for ${Math.round(config.backupStallTimeoutSeconds)}s`,
+      ),
+    ),
+  );
+
+  let ctx: CopyContext | undefined;
+
+  try {
+    ctx = await buildCopyContext(
+      scope,
+      claim,
+      AbortSignal.any([
+        heartbeat.signal,
+        stalled.signal,
+        options.shutdownSignal ?? shutdownSignal(),
+      ]),
+      options,
+    );
+
+    await processItem(ctx);
+    pauses.reset(DESTINATION_KEY);
+    pauses.reset(sourceKey(job.id));
+
+    return { kind: 'settled', itemId: item.id };
+  } catch (err) {
+    return await abandon({ ctx, item, job, claimToken, err, scope });
+  } finally {
+    heartbeat.stop();
+    stopListening();
+  }
+};
+
+type Abandoned = {
+  ctx?: CopyContext;
+  item: BackupJobItem;
+  job: BackupJob;
+  claimToken: string;
+  err: unknown;
+  scope: CopyScope;
+};
+
+const release = (itemId: string, claimToken: string) =>
+  releaseBackupItem(db, itemId, { claimToken }).catch(() => undefined);
+
+const failTransient = (itemId: string, claimToken: string, error: string) =>
+  failBackupItem(db, itemId, {
+    claimToken,
+    error,
+    kind: 'transient',
+  }).catch((failure) =>
+    console.error(
+      `❌ could not record the failure of item ${itemId}:`,
+      failure,
+    ),
+  );
+
+/** Deletes the item's staging folder; the destination may be hung, so a failure is only logged. */
+const removeStaging = async (
+  ctx: CopyContext | undefined,
+  itemId: string,
+): Promise<void> => {
+  if (!ctx) return;
+
+  try {
+    await ctx.dest.removeItemStaging(stagingDir(ctx.dest.baseRoot, itemId));
+    await ctx.dest.removeStagingRootIfEmpty();
+  } catch (err) {
+    console.error(`⚠️  could not remove the staging of item ${itemId}:`, err);
+  }
+};
+
+/** Carries out `classifyAbandon`'s decision; the policy itself is in `abandon-policy.ts`. */
+const abandon = async ({
+  ctx,
+  item,
+  job,
+  claimToken,
+  err,
+  scope,
+}: Abandoned): Promise<RunResult> => {
+  const sourceAnswers =
+    isSourceOutage(err) && ctx
+      ? await ctx.driver.test(ctx.target).then(
+          (probe) => probe.ok,
+          () => false,
+        )
+      : false;
+  const policy = classifyAbandon(err, { sourceAnswers });
+
+  // A test crash must look like a dead process: nothing is cleaned up.
+  if (policy.action === 'rethrow') throw err;
+
+  if (policy.reason === 'shutdown') {
+    console.log(`🛑 shutting down, releasing item ${item.id}`);
+  } else if (policy.reason === 'claim_lost') {
+    console.error(`⚠️  lost the claim on item ${item.id}: ${describe(err)}`);
+  } else if (policy.reason === 'destination_unhealthy') {
+    console.error(
+      `⚠️  destination unhealthy, releasing item ${item.id}: ${describe(err)}`,
+    );
+  } else if (policy.reason === 'source_unreachable') {
+    console.error(
+      `⚠️  source unreachable, pausing job ${job.id} and releasing item ${item.id}: ${describe(err)}`,
+    );
+  } else if (policy.note) {
+    console.error(
+      `❌ item ${item.id} failed (the source reported an outage but answers a connection test): ${describe(err)}`,
+    );
+  } else {
+    console.error(`❌ item ${item.id} failed:`, err);
+  }
+
+  if (policy.removeStaging) await removeStaging(ctx, item.id);
+
+  if (policy.action === 'release') await release(item.id, claimToken);
+
+  if (policy.action === 'fail') {
+    await failTransient(
+      item.id,
+      claimToken,
+      policy.note ? `${describe(err)} (${policy.note})` : describe(err),
+    );
+  }
+
+  if (
+    policy.pause === 'destination' &&
+    err instanceof DestinationUnhealthyError
+  ) {
+    await pauseDestination(
+      scope.pauses,
+      scope.destinationId,
+      `${err.operation} failed with ${err.code}: ${err.message}`,
+    ).catch((failure) =>
+      console.error('❌ could not pause the destination:', failure),
+    );
+  } else if (policy.pause === 'source') {
+    await pauseSource(scope.pauses, job).catch((failure) =>
+      console.error('❌ could not pause the job:', failure),
+    );
+  }
+
+  return { kind: 'backoff', reason: policy.reason };
+};

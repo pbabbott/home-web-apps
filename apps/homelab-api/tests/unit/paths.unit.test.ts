@@ -1,6 +1,6 @@
 import { DiscoveryError } from '@abbottland/homelab-db';
 import { assertWithinClaimedDirectory } from '../../src/services/discovery/paths';
-import { normalizeWindowsPath } from '../../src/lib/windows-path';
+import { normalizeWindowsPath } from '@abbottland/source-access';
 
 const claimed = normalizeWindowsPath('C:\\Users\\You');
 const at = (p: string) => normalizeWindowsPath(p);

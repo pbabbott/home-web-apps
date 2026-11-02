@@ -16,6 +16,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
+- `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [`apps/backup-worker/CLAUDE.md`](./apps/backup-worker/CLAUDE.md).
 
 **Packages** (`/packages`):
 
@@ -26,6 +27,12 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `eslint-config` — Shared ESLint presets (`server`, `library`, `react-internal`)
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
+- `source-access` — SMB driver (preview, tree listing, batched `allinfo`, streaming reads), Windows path helpers, credential secret box, connection-target builder and a fake driver for tests, shared by `homelab-api` and `backup-worker`. Schema stays in `homelab-db`. See [`packages/source-access/CLAUDE.md`](./packages/source-access/CLAUDE.md).
+- `homelab-db` — Drizzle ORM schema, migrations, and query helpers for `homelab-api` (Postgres, Exodus). See [`packages/homelab-db/CLAUDE.md`](./packages/homelab-db/CLAUDE.md).
+- `fui-icons` — Icon components (simple-icons backed, lazy loading, plus hand-crafted custom SVGs). See [`packages/fui-icons/CLAUDE.md`](./packages/fui-icons/CLAUDE.md).
+- `next-middleware` — Shared Next.js route handlers (`healthz`, `metrics`) for the frontend apps
+- `logger` — Minimal shared logging helper
+- `node-22-alpine`, `node-22-dev` — Base Docker images (Alpine runtime; full Debian dev image) built with `abctl`
 - `video-db` — Drizzle ORM schema, migrations, and query helpers for `video-api` (Postgres). See [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
 
 ## Architecture
