@@ -143,7 +143,7 @@ A junction or link (`allinfo` reparse bit) is recorded `not_followed` and left a
 
 **Settling an item** (`copy/finish.ts`): no failed entry means `completeBackupItem`. Otherwise `failBackupItem` with a summary of the failures: one non-transient issue (`source_missing`, `name_too_long`, `unsupported_path`, `dest_conflict`, `unlistable`) blocks the item at once; only `read_failed`, `write_failed` and `verify_mismatch` requeue it behind the backoff until its attempts are used up, then it is `failed`. An unreadable root (the file or directory is gone) is a failed `source_missing` or `unlistable` root entry and a blocked item. A retry re-lists and copies only what is missing.
 
-**An item that does not settle** (`copy/run.ts`, `abandon()`):
+**An item that does not settle** (`classifyAbandon()` in `copy/abandon-policy.ts`, run by `abandon()` in `copy/run.ts`):
 
 | What happened                                                                                                         | What the worker does                                                                                                                          |
 | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

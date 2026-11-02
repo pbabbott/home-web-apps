@@ -391,6 +391,9 @@ export const completeBackupItem = async (
     return row;
   });
 
+/** The longest error text kept on an item and its audit event; `failBackupItem` truncates to it. */
+export const MAX_ITEM_ERROR_LENGTH = 1000;
+
 export type FailBackupItemInput = {
   claimToken: string;
   error: string;
@@ -431,6 +434,7 @@ export const failBackupItem = async (
       return replay;
     }
 
+    const error = input.error.slice(0, MAX_ITEM_ERROR_LENGTH);
     const attemptsLeft = current.attemptCount < current.maxAttempts;
     const status =
       input.kind === 'permanent'
@@ -444,7 +448,7 @@ export const failBackupItem = async (
       .update(backupJobItems)
       .set({
         status,
-        lastError: input.error,
+        lastError: error,
         availableAt:
           status === 'queued'
             ? sql`now() + make_interval(secs => ${delay})`
@@ -468,7 +472,7 @@ export const failBackupItem = async (
       actor: { type: 'system', id: current.claimedBy },
       ...(await itemAuditContext(tx, row)),
       details: {
-        error: input.error,
+        error,
         kind: input.kind,
         attemptCount: row.attemptCount,
         maxAttempts: row.maxAttempts,

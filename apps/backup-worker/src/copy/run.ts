@@ -1,5 +1,4 @@
 import {
-  BackupError,
   claimNextBackupItem,
   completeBackupJobIfDone,
   failBackupItem,
@@ -10,7 +9,6 @@ import {
   type BackupJobItem,
 } from '@abbottland/homelab-db';
 import {
-  ConnectionError,
   getConnectionDriver,
   type ConnectionDriver,
 } from '@abbottland/source-access';
@@ -25,13 +23,8 @@ import {
 } from '../destination/runtime';
 import type { CopyContext, FaultHook } from './context';
 import type { DestFsDeps } from './dest-fs';
-import {
-  ClaimLostError,
-  DestinationUnhealthyError,
-  FaultInjectedError,
-  ShutdownError,
-  SourceUnreachableError,
-} from './errors';
+import { classifyAbandon, isSourceOutage } from './abandon-policy';
+import { DestinationUnhealthyError } from './errors';
 import { stagingDir } from './layout';
 import { DESTINATION_KEY, sourceKey, type PauseTracker } from './pause-tracker';
 import {
@@ -217,7 +210,7 @@ const release = (itemId: string, claimToken: string) =>
 const failTransient = (itemId: string, claimToken: string, error: string) =>
   failBackupItem(db, itemId, {
     claimToken,
-    error: error.slice(0, 1000),
+    error,
     kind: 'transient',
   }).catch((failure) =>
     console.error(
@@ -241,6 +234,7 @@ const removeStaging = async (
   }
 };
 
+/** Carries out `classifyAbandon`'s decision; the policy itself is in `abandon-policy.ts`. */
 const abandon = async ({
   ctx,
   item,
@@ -249,84 +243,65 @@ const abandon = async ({
   err,
   pauses,
 }: Abandoned): Promise<RunResult> => {
+  const sourceAnswers =
+    isSourceOutage(err) && ctx
+      ? await ctx.driver.test(ctx.target).then(
+          (probe) => probe.ok,
+          () => false,
+        )
+      : false;
+  const policy = classifyAbandon(err, { sourceAnswers });
+
   // A test crash must look like a dead process: nothing is cleaned up.
-  if (err instanceof FaultInjectedError) throw err;
+  if (policy.action === 'rethrow') throw err;
 
-  if (err instanceof ShutdownError) {
+  if (policy.reason === 'shutdown') {
     console.log(`🛑 shutting down, releasing item ${item.id}`);
-    await removeStaging(ctx, item.id);
-    await release(item.id, claimToken);
-
-    return { kind: 'backoff', reason: 'shutdown' };
-  }
-
-  if (
-    err instanceof ClaimLostError ||
-    (err instanceof BackupError && err.code === 'conflict')
-  ) {
+  } else if (policy.reason === 'claim_lost') {
     console.error(`⚠️  lost the claim on item ${item.id}: ${describe(err)}`);
-    // The item is not ours any more (a cancelled job's items are never
-    // claimed again), so nothing would clean up after it.
-    await removeStaging(ctx, item.id);
-
-    return { kind: 'backoff', reason: 'claim_lost' };
-  }
-
-  if (err instanceof DestinationUnhealthyError) {
+  } else if (policy.reason === 'destination_unhealthy') {
     console.error(
       `⚠️  destination unhealthy, releasing item ${item.id}: ${describe(err)}`,
     );
-    await release(item.id, claimToken);
+  } else if (policy.reason === 'source_unreachable') {
+    console.error(
+      `⚠️  source unreachable, pausing job ${job.id} and releasing item ${item.id}: ${describe(err)}`,
+    );
+  } else if (policy.note) {
+    console.error(
+      `❌ item ${item.id} failed (the source reported an outage but answers a connection test): ${describe(err)}`,
+    );
+  } else {
+    console.error(`❌ item ${item.id} failed:`, err);
+  }
+
+  if (policy.removeStaging) await removeStaging(ctx, item.id);
+
+  if (policy.action === 'release') await release(item.id, claimToken);
+
+  if (policy.action === 'fail') {
+    await failTransient(
+      item.id,
+      claimToken,
+      policy.note ? `${describe(err)} (${policy.note})` : describe(err),
+    );
+  }
+
+  if (
+    policy.pause === 'destination' &&
+    err instanceof DestinationUnhealthyError
+  ) {
     await pauseDestination(
       pauses,
       `${err.operation} failed with ${err.code}: ${err.message}`,
     ).catch((failure) =>
       console.error('❌ could not pause the destination:', failure),
     );
-
-    return { kind: 'backoff', reason: 'destination_unhealthy' };
+  } else if (policy.pause === 'source') {
+    await pauseSource(pauses, job).catch((failure) =>
+      console.error('❌ could not pause the job:', failure),
+    );
   }
 
-  if (
-    err instanceof SourceUnreachableError ||
-    (err instanceof ConnectionError && err.code === 'unreachable')
-  ) {
-    // The source is only called unreachable if it also fails a plain
-    // connection test; otherwise the failure counts as an attempt, so a
-    // misleading error cannot keep an item cycling for free.
-    const answers = ctx
-      ? await ctx.driver.test(ctx.target).then(
-          (probe) => probe.ok,
-          () => false,
-        )
-      : false;
-
-    if (!answers) {
-      console.error(
-        `⚠️  source unreachable, pausing job ${job.id} and releasing item ${item.id}: ${describe(err)}`,
-      );
-      await release(item.id, claimToken);
-      await pauseSource(pauses, job).catch((failure) =>
-        console.error('❌ could not pause the job:', failure),
-      );
-
-      return { kind: 'backoff', reason: 'source_unreachable' };
-    }
-
-    console.error(
-      `❌ item ${item.id} failed (the source reported an outage but answers a connection test): ${describe(err)}`,
-    );
-    await failTransient(
-      item.id,
-      claimToken,
-      `${describe(err)} (the source answers a connection test, so this attempt counts)`,
-    );
-
-    return { kind: 'backoff', reason: 'error' };
-  }
-
-  console.error(`❌ item ${item.id} failed:`, err);
-  await failTransient(item.id, claimToken, describe(err));
-
-  return { kind: 'backoff', reason: 'error' };
+  return { kind: 'backoff', reason: policy.reason };
 };
