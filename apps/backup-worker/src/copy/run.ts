@@ -7,6 +7,7 @@ import {
   type BackupClaimIdleReason,
   type BackupJob,
   type BackupJobItem,
+  type ClaimedBackupJobItem,
 } from '@abbottland/homelab-db';
 import {
   getConnectionDriver,
@@ -72,6 +73,62 @@ export type RunResult =
 const describe = (err: unknown): string =>
   err instanceof Error ? `${err.name}: ${err.message}` : String(err);
 
+/** A job whose last queued item was just claimed or settled may be finished. */
+const completeDrainedJobs = async (jobIds: string[]): Promise<void> => {
+  for (const jobId of jobIds) {
+    const { job, finished } = await completeBackupJobIfDone(
+      db,
+      jobId,
+      systemActor(),
+    );
+
+    if (finished) {
+      console.log(`🏁 job ${job.id.slice(0, 8)} ${job.status}`);
+    }
+  }
+};
+
+/**
+ * Everything the copy of a claimed item needs. `signal` ends when the lease
+ * is lost, the destination stalls or the worker is asked to stop; `options`
+ * replaces the defaults in tests.
+ */
+const buildCopyContext = async (
+  { destinationId, watchdog }: CopyScope,
+  { item, job }: { item: ClaimedBackupJobItem; job: BackupJob },
+  signal: AbortSignal,
+  options: RunOptions,
+): Promise<CopyContext> => {
+  const destination = await getBackupDestination(db, destinationId);
+  const { connectionType, target } = await loadSourceTarget(db, job);
+
+  return {
+    db,
+    job,
+    item,
+    driver: options.driver ?? getConnectionDriver(connectionType),
+    target,
+    dest: makeDestFs(watchdog, destination?.rootDir, options.fsDeps),
+    stallTimeoutMs:
+      options.stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
+    signal,
+    fault: options.fault ?? (() => undefined),
+    parallelism: options.parallelism ?? config.backupParallelism,
+    preflight:
+      options.preflight ??
+      (() =>
+        assertMounted({
+          mountCheck: config.backupDestinationMountCheck,
+          mountPath: config.backupDestinationPath,
+          // Nothing matches an empty export, so a vanished destination fails the mount check.
+          expected: destination
+            ? expectedExport(destination)
+            : { serverNames: [], exportPath: '' },
+          run: (operation, fn) => watchdog.run(operation, fn),
+        })),
+  };
+};
+
 /**
  * Claims the next item of this worker's destination and copies it. One call
  * is one item. The lease is kept alive by a timer while it runs, and
@@ -98,17 +155,7 @@ export const claimAndCopyNext = async (
   });
 
   if (!('job' in claim)) {
-    for (const jobId of claim.drainedJobIds) {
-      const { job, finished } = await completeBackupJobIfDone(
-        db,
-        jobId,
-        systemActor(),
-      );
-
-      if (finished) {
-        console.log(`🏁 job ${job.id.slice(0, 8)} ${job.status}`);
-      }
-    }
+    await completeDrainedJobs(claim.drainedJobIds);
 
     return { kind: 'idle', reason: claim.reason, retryAt: claim.retryAt };
   }
@@ -143,37 +190,16 @@ export const claimAndCopyNext = async (
   let ctx: CopyContext | undefined;
 
   try {
-    const destination = await getBackupDestination(db, destinationId);
-    const { connectionType, target } = await loadSourceTarget(db, job);
-    ctx = {
-      db,
-      job,
-      item,
-      driver: options.driver ?? getConnectionDriver(connectionType),
-      target,
-      dest: makeDestFs(watchdog, destination?.rootDir, options.fsDeps),
-      stallTimeoutMs:
-        options.stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
-      signal: AbortSignal.any([
+    ctx = await buildCopyContext(
+      scope,
+      claim,
+      AbortSignal.any([
         heartbeat.signal,
         stalled.signal,
         options.shutdownSignal ?? shutdownSignal(),
       ]),
-      fault: options.fault ?? (() => undefined),
-      parallelism: options.parallelism ?? config.backupParallelism,
-      preflight:
-        options.preflight ??
-        (() =>
-          assertMounted({
-            mountCheck: config.backupDestinationMountCheck,
-            mountPath: config.backupDestinationPath,
-            // Nothing matches an empty export, so a vanished destination fails the mount check.
-            expected: destination
-              ? expectedExport(destination)
-              : { serverNames: [], exportPath: '' },
-            run: (operation, fn) => watchdog.run(operation, fn),
-          })),
-    };
+      options,
+    );
 
     await processItem(ctx);
     pauses.reset(DESTINATION_KEY);
