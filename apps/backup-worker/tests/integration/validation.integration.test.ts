@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { requestBackupDestinationValidation } from '@abbottland/homelab-db';
 import { db } from '../../src/db';
-import { startPollLoop, stopPollLoop } from '../../src/worker/poll-loop';
+import { createWorkerRuntime } from '../../src/destination/runtime';
+import { PollLoop } from '../../src/worker/poll-loop';
 import { DESTINATION_ID, DESTINATION_PATH } from '../jest.integration.setup';
 
 type Row = {
@@ -52,7 +53,11 @@ const auditCount = async (): Promise<number> => {
 };
 
 describe('destination validation round trip', () => {
+  let loop: PollLoop;
+
   beforeAll(async () => {
+    // After the setup file has loaded the config.
+    loop = new PollLoop(createWorkerRuntime());
     const { rows } = await db.$client.query(
       `insert into hosts (name, ip_address) values ($1, '192.0.2.10') returning id`,
       [`worker-test-host-${DESTINATION_ID}`],
@@ -72,7 +77,7 @@ describe('destination validation round trip', () => {
   });
 
   afterAll(async () => {
-    await stopPollLoop();
+    await loop.stop();
     await db.$client.query(
       'delete from audit_events where destination_id = $1',
       [DESTINATION_ID],
@@ -86,7 +91,7 @@ describe('destination validation round trip', () => {
   });
 
   it('validates at startup and reports the worker as seen', async () => {
-    startPollLoop();
+    loop.start();
 
     const row = await waitFor((r) => r.last_validation !== null);
 
@@ -132,7 +137,7 @@ describe('destination validation round trip', () => {
   });
 
   it('leaves nothing but the unrelated entries and its own folders under the root', async () => {
-    await stopPollLoop();
+    await loop.stop();
 
     expect(fs.readdirSync(DESTINATION_PATH).sort()).toEqual([
       'alpha-centauri',

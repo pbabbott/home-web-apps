@@ -43,7 +43,7 @@ export class ApplicationConfig {
   /**
    * Optional pin: serve exactly this destination (`backup_destinations.id`).
    * Left empty, the worker claims the destination that is the export mounted
-   * at `BACKUP_DESTINATION_PATH`; the claimed id is stored here at runtime.
+   * at `BACKUP_DESTINATION_PATH`. The claimed id is held by the poll loop.
    */
   @EnvironmentVariable()
   backupDestinationId: string = '';

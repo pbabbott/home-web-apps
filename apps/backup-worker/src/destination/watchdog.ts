@@ -23,7 +23,7 @@ const realDeps: WatchdogDeps = {
  * The NAS mount is `hard`: an outage blocks file calls instead of failing
  * them. Destination operations run under `run`; one that has not returned
  * after `stallTimeoutMs` makes the worker `stalled` (reported by /readyz and,
- * after a longer grace, /healthz) and calls `onStall` once per stall. The
+ * after a longer grace) and tells its `onStall` listeners once per stall. The
  * state clears when the call returns. A call that never returns cannot be
  * cancelled, which is why the pod is restarted rather than recovered.
  */
@@ -32,13 +32,22 @@ export class DestinationWatchdog {
     number,
     { operation: string; startedAt: number; stalled: boolean }
   >();
+  private readonly listeners = new Set<(operation: string) => void>();
   private nextId = 0;
 
   constructor(
     private readonly stallTimeoutMs: number,
-    private readonly onStall: (operation: string) => void,
     private readonly deps: WatchdogDeps = realDeps,
   ) {}
+
+  /** Calls `listener` when a call stalls. The function this returns removes it. */
+  onStall(listener: (operation: string) => void): () => void {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
 
   async run<T>(operation: string, fn: () => Promise<T>): Promise<T> {
     const id = this.nextId++;
@@ -51,10 +60,12 @@ export class DestinationWatchdog {
 
     const timer = this.deps.setTimeout(() => {
       entry.stalled = true;
-      try {
-        this.onStall(operation);
-      } catch (err) {
-        console.error('❌ destination stall handler failed:', err);
+      for (const listener of this.listeners) {
+        try {
+          listener(operation);
+        } catch (err) {
+          console.error('❌ destination stall handler failed:', err);
+        }
       }
     }, this.stallTimeoutMs);
 

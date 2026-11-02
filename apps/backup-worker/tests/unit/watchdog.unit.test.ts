@@ -4,14 +4,17 @@ describe('DestinationWatchdog', () => {
   beforeEach(() => jest.useFakeTimers({ now: 0 }));
   afterEach(() => jest.useRealTimers());
 
-  const make = (onStall = jest.fn()) => ({
-    onStall,
-    watchdog: new DestinationWatchdog(1000, onStall, {
+  const make = (onStall = jest.fn()) => {
+    const watchdog = new DestinationWatchdog(1000, {
       now: () => Date.now(),
       setTimeout: (fn, ms) => setTimeout(fn, ms),
       clearTimeout: (h) => clearTimeout(h as NodeJS.Timeout),
-    }),
-  });
+    });
+
+    watchdog.onStall(onStall);
+
+    return { onStall, watchdog };
+  };
 
   it('passes results and errors through', async () => {
     const { watchdog } = make();
@@ -63,6 +66,20 @@ describe('DestinationWatchdog', () => {
     release();
     await p;
     expect(watchdog.state()).toEqual({ stalled: false });
+  });
+
+  it('tells every listener, until it is removed', async () => {
+    const { watchdog, onStall } = make();
+    const second = jest.fn();
+    const removeSecond = watchdog.onStall(second);
+
+    removeSecond();
+    const p = watchdog.run('x', () => new Promise((r) => setTimeout(r, 2000)));
+
+    await jest.advanceTimersByTimeAsync(2000);
+    await p;
+    expect(onStall).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
   });
 
   it('survives a throwing stall handler', async () => {

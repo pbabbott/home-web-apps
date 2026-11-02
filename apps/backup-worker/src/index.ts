@@ -3,9 +3,12 @@ import fs from 'fs';
 import { runMigrationsWithLock } from '@abbottland/homelab-db';
 import { config, initConfig, validateConfig } from './config';
 import { initDb } from './db';
+import { createWorkerRuntime } from './destination/runtime';
 import { startServer } from './server';
-import { startPollLoop, stopPollLoop } from './worker/poll-loop';
+import { PollLoop } from './worker/poll-loop';
 import { errorExit } from './process';
+
+let pollLoop: PollLoop | undefined;
 
 const start = async () => {
   await initConfig();
@@ -25,8 +28,11 @@ const start = async () => {
   }
 
   initDb();
-  startServer();
-  startPollLoop();
+  const runtime = createWorkerRuntime();
+
+  startServer(runtime.watchdog);
+  pollLoop = new PollLoop(runtime);
+  pollLoop.start();
 };
 
 /** Under the pod's termination grace period (60 s): a hung mount must not hold the exit. */
@@ -40,7 +46,7 @@ const shutdown = async (signal: string) => {
     console.error('❌ shutdown took too long, exiting');
     process.exit(1);
   }, SHUTDOWN_DEADLINE_MS).unref();
-  await stopPollLoop();
+  await pollLoop?.stop();
   process.exit(0);
 };
 

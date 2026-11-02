@@ -7,6 +7,7 @@ import {
   destPath,
   entryMap,
   itemRow,
+  makeTestRuntime,
   makeWorld,
   runOnce,
   runUntilIdle,
@@ -70,7 +71,7 @@ describe('resilience', () => {
       const pauses = new PauseTracker(() => clock.now);
       const driver = sourceFile();
       const world = await makeWorld([{ rootPath: file }]);
-      const options = { driver, pauses };
+      const options = { driver, runtime: makeTestRuntime({ pauses }) };
 
       driver.unreachable = true;
       expect(await runOnce(options)).toEqual({

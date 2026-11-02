@@ -14,19 +14,13 @@ import {
 } from '@abbottland/source-access';
 import { config } from '../config';
 import { db } from '../db';
-import {
-  getWatchdog,
-  makeDestFs,
-  onDestinationStall,
-  runtimePauses,
-  workerId,
-} from '../destination/runtime';
+import { makeDestFs, type WorkerRuntime } from '../destination/runtime';
 import type { CopyContext, FaultHook } from './context';
 import type { DestFsDeps } from './dest-fs';
 import { classifyAbandon, isSourceOutage } from './abandon-policy';
 import { DestinationUnhealthyError } from './errors';
 import { stagingDir } from './layout';
-import { DESTINATION_KEY, sourceKey, type PauseTracker } from './pause-tracker';
+import { DESTINATION_KEY, sourceKey } from './pause-tracker';
 import {
   pauseDestination,
   pauseSource,
@@ -38,15 +32,13 @@ import { startHeartbeat } from './heartbeat';
 import { processItem } from './item';
 import { loadSourceTarget } from './source';
 import { shutdownSignal } from '../worker/shutdown';
-import { systemActor } from '../worker-id';
+import { systemActor, workerId } from '../worker-id';
 
 /** What tests replace; production uses the defaults. */
 export type RunOptions = {
   driver?: ConnectionDriver;
   fault?: FaultHook;
   fsDeps?: DestFsDeps;
-  /** Backoff state for paused jobs; tests pass one with a fake clock. */
-  pauses?: PauseTracker;
   /** Replaces the worker-wide shutdown signal. */
   shutdownSignal?: AbortSignal;
   /** No-progress timeout for source reads in ms; defaults to `BACKUP_STALL_TIMEOUT_SECONDS`. */
@@ -58,6 +50,9 @@ export type RunOptions = {
   /** Replaces the mount check that runs before each item. */
   preflight?: () => Promise<void>;
 };
+
+/** The runtime and the destination being served; `destinationId` is the poll loop's claim, never read from the config. */
+export type CopyScope = WorkerRuntime & { destinationId: string };
 
 export type RunResult =
   | { kind: 'idle'; reason: BackupClaimIdleReason; retryAt: Date | null }
@@ -89,14 +84,15 @@ const describe = (err: unknown): string =>
  * it is retried behind a backoff and eventually fails visibly.
  */
 export const claimAndCopyNext = async (
+  scope: CopyScope,
   options: RunOptions = {},
 ): Promise<RunResult> => {
-  const pauses = options.pauses ?? runtimePauses;
+  const { destinationId, watchdog, pauses } = scope;
 
-  await resumeReachableSources(pauses, options.driver);
+  await resumeReachableSources(pauses, destinationId, options.driver);
 
   const claim = await claimNextBackupItem(db, {
-    destinationId: config.backupDestinationId,
+    destinationId,
     workerId,
     leaseSeconds: config.backupLeaseSeconds,
   });
@@ -128,13 +124,13 @@ export const claimAndCopyNext = async (
     {
       leaseSeconds: config.backupLeaseSeconds,
       intervalMs: options.heartbeatMs ?? config.backupHeartbeatSeconds * 1000,
-      shouldBeat: () => !getWatchdog().state().stalled,
+      shouldBeat: () => !watchdog.state().stalled,
     },
   );
   // A stalled destination call cannot be cancelled, but the rest of the item
   // (the source transfer, the next steps) stops as soon as it returns.
   const stalled = new AbortController();
-  const stopListening = onDestinationStall((operation) =>
+  const stopListening = watchdog.onStall((operation) =>
     stalled.abort(
       new DestinationUnhealthyError(
         operation,
@@ -147,10 +143,7 @@ export const claimAndCopyNext = async (
   let ctx: CopyContext | undefined;
 
   try {
-    const destination = await getBackupDestination(
-      db,
-      config.backupDestinationId,
-    );
+    const destination = await getBackupDestination(db, destinationId);
     const { connectionType, target } = await loadSourceTarget(db, job);
     ctx = {
       db,
@@ -158,7 +151,7 @@ export const claimAndCopyNext = async (
       item,
       driver: options.driver ?? getConnectionDriver(connectionType),
       target,
-      dest: makeDestFs(destination?.rootDir, options.fsDeps),
+      dest: makeDestFs(watchdog, destination?.rootDir, options.fsDeps),
       stallTimeoutMs:
         options.stallTimeoutMs ?? config.backupStallTimeoutSeconds * 1000,
       signal: AbortSignal.any([
@@ -178,7 +171,7 @@ export const claimAndCopyNext = async (
             expected: destination
               ? expectedExport(destination)
               : { serverNames: [], exportPath: '' },
-            run: (operation, fn) => getWatchdog().run(operation, fn),
+            run: (operation, fn) => watchdog.run(operation, fn),
           })),
     };
 
@@ -188,7 +181,7 @@ export const claimAndCopyNext = async (
 
     return { kind: 'settled', itemId: item.id };
   } catch (err) {
-    return await abandon({ ctx, item, job, claimToken, err, pauses });
+    return await abandon({ ctx, item, job, claimToken, err, scope });
   } finally {
     heartbeat.stop();
     stopListening();
@@ -201,7 +194,7 @@ type Abandoned = {
   job: BackupJob;
   claimToken: string;
   err: unknown;
-  pauses: PauseTracker;
+  scope: CopyScope;
 };
 
 const release = (itemId: string, claimToken: string) =>
@@ -241,7 +234,7 @@ const abandon = async ({
   job,
   claimToken,
   err,
-  pauses,
+  scope,
 }: Abandoned): Promise<RunResult> => {
   const sourceAnswers =
     isSourceOutage(err) && ctx
@@ -292,13 +285,14 @@ const abandon = async ({
     err instanceof DestinationUnhealthyError
   ) {
     await pauseDestination(
-      pauses,
+      scope.pauses,
+      scope.destinationId,
       `${err.operation} failed with ${err.code}: ${err.message}`,
     ).catch((failure) =>
       console.error('❌ could not pause the destination:', failure),
     );
   } else if (policy.pause === 'source') {
-    await pauseSource(pauses, job).catch((failure) =>
+    await pauseSource(scope.pauses, job).catch((failure) =>
       console.error('❌ could not pause the job:', failure),
     );
   }

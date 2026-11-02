@@ -2,17 +2,17 @@ import fsPromises from 'fs/promises';
 import { FakeDriver } from '@abbottland/source-access';
 import { resumeDestinationJobs } from '../../src/copy/pauses';
 import { DestinationUnhealthyError } from '../../src/copy/errors';
-import {
-  getWatchdog,
-  resetWatchdogForTests,
-} from '../../src/destination/runtime';
-import { DESTINATION_ID, getRequest } from '../jest.integration.setup';
+import supertest from 'supertest';
+import { createServer } from '../../src/server';
+import { DESTINATION_ID } from '../jest.integration.setup';
 import {
   bytes,
+  currentRuntime,
   entryMap,
   itemRow,
   makeWorld,
   runOnce,
+  resetRuntime,
   runUntilIdle,
 } from './helpers/copy-harness';
 import {
@@ -28,6 +28,9 @@ import {
   validationPasses,
 } from './helpers/resilience';
 
+/** The probes of a server watching the current test's watchdog. */
+const probes = () => supertest(createServer(currentRuntime().watchdog));
+
 describe('resilience', () => {
   useResilienceWorld();
 
@@ -35,7 +38,7 @@ describe('resilience', () => {
     const file = 'C:\\data\\photo.jpg';
 
     it('stops the heartbeats, marks the destination unhealthy, fails /readyz, and recovers once the call returns', async () => {
-      resetWatchdogForTests(200);
+      resetRuntime(200);
       const driver = new FakeDriver().addFile(file, bytes(80_000), {
         modifiedAt: MODIFIED,
       });
@@ -61,12 +64,12 @@ describe('resilience', () => {
         heartbeatMs: 40,
         fsDeps: {
           fs: hanging as never,
-          run: (operation, fn) => getWatchdog().run(operation, fn),
+          run: (operation, fn) => currentRuntime().watchdog.run(operation, fn),
         },
       });
 
-      await until(() => getWatchdog().state().stalled);
-      await getRequest()
+      await until(() => currentRuntime().watchdog.state().stalled);
+      await probes()
         .get('/readyz')
         .expect(503)
         .expect((res) => {
@@ -108,11 +111,11 @@ describe('resilience', () => {
         status: 'queued',
         attemptCount: 0,
       });
-      await getRequest().get('/readyz').expect(200);
+      await probes().get('/readyz').expect(200);
 
       // A passing validation lets the job run again.
       await validationPasses();
-      await resumeDestinationJobs();
+      await resumeDestinationJobs(DESTINATION_ID);
       expect(await jobRow(world.job.id)).toMatchObject({ stalledReason: null });
       await runUntilIdle(world.job.id, { driver });
       expect(await itemRow(itemId)).toMatchObject({
@@ -171,7 +174,7 @@ describe('resilience', () => {
         });
 
         await validationPasses();
-        await resumeDestinationJobs();
+        await resumeDestinationJobs(DESTINATION_ID);
         await runUntilIdle(world.job.id, { driver });
 
         expect(await itemRow(world.items[file].id)).toMatchObject({

@@ -16,8 +16,13 @@ import {
   type InventoryItemKind,
 } from '@abbottland/homelab-db';
 import { encryptSecret, type FakeDriver } from '@abbottland/source-access';
+import { PauseTracker } from '../../../src/copy/pause-tracker';
+import { pauseDestination } from '../../../src/copy/pauses';
 import { claimAndCopyNext, type RunOptions } from '../../../src/copy/run';
+import { config } from '../../../src/config';
 import { db } from '../../../src/db';
+import type { WorkerRuntime } from '../../../src/destination/runtime';
+import { DestinationWatchdog } from '../../../src/destination/watchdog';
 import { DESTINATION_ID, DESTINATION_PATH } from '../../jest.integration.setup';
 
 export const HUMAN = { type: 'human' as const, id: 'brandon' };
@@ -42,6 +47,47 @@ export const bytes = (length: number, seed = 1): Buffer => {
 
   return out;
 };
+
+/**
+ * A runtime for a test. A stalled destination call pauses the destination, as
+ * the poll loop's listener does in production.
+ */
+export const makeTestRuntime = ({
+  stallTimeoutMs = config.backupStallTimeoutSeconds * 1000,
+  pauses = new PauseTracker(),
+}: { stallTimeoutMs?: number; pauses?: PauseTracker } = {}): WorkerRuntime => {
+  const watchdog = new DestinationWatchdog(stallTimeoutMs);
+
+  watchdog.onStall((operation) => {
+    void pauseDestination(
+      pauses,
+      DESTINATION_ID,
+      `watchdog: ${operation} made no progress`,
+    ).catch((err) => console.error('could not pause the destination:', err));
+  });
+
+  return { watchdog, pauses };
+};
+
+let runtime: WorkerRuntime | undefined;
+
+/** The runtime the helpers below use unless a test passes its own. */
+export const currentRuntime = (): WorkerRuntime =>
+  (runtime ??= makeTestRuntime());
+
+/** A fresh runtime, so one test's stall or backoff never leaks into the next. */
+export const resetRuntime = (stallTimeoutMs?: number): WorkerRuntime => {
+  runtime = makeTestRuntime({ stallTimeoutMs });
+
+  return runtime;
+};
+
+type HarnessOptions = RunOptions & { runtime?: WorkerRuntime };
+
+const scopeOf = (options: HarnessOptions) => ({
+  destinationId: DESTINATION_ID,
+  ...(options.runtime ?? currentRuntime()),
+});
 
 /** Registers the destination row the setup file's id refers to. */
 export const createDestinationRow = async (): Promise<void> => {
@@ -304,12 +350,12 @@ export const makeAvailable = async (jobId: string): Promise<void> => {
  */
 export const runUntilIdle = async (
   jobId: string,
-  options: RunOptions & { skipBackoff?: boolean } = {},
+  options: HarnessOptions & { skipBackoff?: boolean } = {},
 ): Promise<string[]> => {
   const results: string[] = [];
 
   for (let i = 0; i < 30; i++) {
-    const result = await claimAndCopyNext(options);
+    const result = await claimAndCopyNext(scopeOf(options), options);
 
     results.push(
       result.kind === 'idle' ? `idle:${result.reason}` : result.kind,
@@ -328,7 +374,8 @@ export const runUntilIdle = async (
 };
 
 /** Runs one claim-and-copy per call; for steps a test wants to look at in between. */
-export const runOnce = (options: RunOptions = {}) => claimAndCopyNext(options);
+export const runOnce = (options: HarnessOptions = {}) =>
+  claimAndCopyNext(scopeOf(options), options);
 
 export type TreeNode =
   | { type: 'dir'; mtime: number }

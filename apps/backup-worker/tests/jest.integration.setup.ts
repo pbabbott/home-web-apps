@@ -5,8 +5,9 @@ import path from 'path';
 import { closeDb, runMigrations } from '@abbottland/homelab-db';
 import request from 'supertest';
 import { createServer } from '../src/server';
-import { initConfig, validateConfig } from '../src/config';
+import { config, initConfig, validateConfig } from '../src/config';
 import { db, initDb } from '../src/db';
+import { DestinationWatchdog } from '../src/destination/watchdog';
 
 // A scratch directory stands in for the NFS mount, so the mount check is off.
 export const DESTINATION_PATH = fs.mkdtempSync(
@@ -37,7 +38,9 @@ beforeAll(async () => {
   initDb();
   await runMigrations(db);
 
-  app = createServer();
+  app = createServer(
+    new DestinationWatchdog(config.backupStallTimeoutSeconds * 1000),
+  );
 });
 
 afterAll(async () => {

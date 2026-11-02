@@ -11,7 +11,6 @@ import {
   getConnectionDriver,
   type ConnectionDriver,
 } from '@abbottland/source-access';
-import { config } from '../config';
 import { db } from '../db';
 import { systemActor, workerId } from '../worker-id';
 import { DESTINATION_KEY, sourceKey, type PauseTracker } from './pause-tracker';
@@ -33,8 +32,9 @@ const stall = (job: BackupJob, reason: BackupJobStalledReason) =>
 /** Pauses the claims of every active job of this destination (no attempts are spent while paused). */
 export const stallDestinationJobs = async (
   pauses: PauseTracker,
+  destinationId: string,
 ): Promise<void> => {
-  const jobs = await listActiveBackupJobs(db, config.backupDestinationId);
+  const jobs = await listActiveBackupJobs(db, destinationId);
 
   for (const job of jobs) await stall(job, 'destination_unhealthy');
   pauses.fail(DESTINATION_KEY);
@@ -43,18 +43,21 @@ export const stallDestinationJobs = async (
 /** The destination is broken: mark it unhealthy and pause its jobs. */
 export const pauseDestination = async (
   pauses: PauseTracker,
+  destinationId: string,
   reason: string,
 ): Promise<void> => {
-  await markBackupDestinationUnhealthy(db, config.backupDestinationId, {
+  await markBackupDestinationUnhealthy(db, destinationId, {
     workerId,
     reason,
   });
-  await stallDestinationJobs(pauses);
+  await stallDestinationJobs(pauses, destinationId);
 };
 
 /** The destination validated again: let its paused jobs run. */
-export const resumeDestinationJobs = async (): Promise<void> => {
-  const jobs = await listActiveBackupJobs(db, config.backupDestinationId);
+export const resumeDestinationJobs = async (
+  destinationId: string,
+): Promise<void> => {
+  const jobs = await listActiveBackupJobs(db, destinationId);
 
   for (const job of jobs) {
     if (job.stalledReason === 'destination_unhealthy') {
@@ -78,9 +81,10 @@ export const pauseSource = async (
  */
 export const resumeReachableSources = async (
   pauses: PauseTracker,
+  destinationId: string,
   driver?: ConnectionDriver,
 ): Promise<void> => {
-  const jobs = await listActiveBackupJobs(db, config.backupDestinationId);
+  const jobs = await listActiveBackupJobs(db, destinationId);
 
   for (const job of jobs) {
     const key = sourceKey(job.id);

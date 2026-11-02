@@ -28,10 +28,13 @@ export const CLAIM_FAILURE_TEXT: Record<BackupDestinationClaimFailure, string> =
  * Takes the destination this worker serves. A pinned `BACKUP_DESTINATION_ID`
  * wins; otherwise the export mounted at `BACKUP_DESTINATION_PATH` decides, and
  * with the mount check off (local development) any free destination can be
- * served. The claimed id becomes `config.backupDestinationId`, which the copy
- * engine reads.
+ * served. The caller keeps the claimed id; the config is never written.
+ *
+ * @param pinnedId `BACKUP_DESTINATION_ID`, or '' when none is pinned
  */
-export const claimDestination = async (): Promise<
+export const claimDestination = async (
+  pinnedId: string,
+): Promise<
   | { destination: BackupDestinationWithHost }
   | { reason: BackupDestinationClaimFailure }
 > => {
@@ -43,13 +46,9 @@ export const claimDestination = async (): Promise<
   const result = await claimBackupDestination(db, {
     workerId,
     leaseSeconds: DESTINATION_CLAIM_SECONDS,
-    destinationId: config.backupDestinationId || undefined,
+    destinationId: pinnedId || undefined,
     mount,
   });
-
-  if ('destination' in result) {
-    config.backupDestinationId = result.destination.id;
-  }
 
   return result;
 };

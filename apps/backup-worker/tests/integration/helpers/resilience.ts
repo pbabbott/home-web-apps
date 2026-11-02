@@ -1,17 +1,13 @@
 import { recordBackupDestinationValidation } from '@abbottland/homelab-db';
-import { DESTINATION_KEY } from '../../../src/copy/pause-tracker';
 import { db } from '../../../src/db';
-import {
-  resetWatchdogForTests,
-  runtimePauses,
-  workerId,
-} from '../../../src/destination/runtime';
+import { workerId } from '../../../src/worker-id';
 import { DESTINATION_ID } from '../../jest.integration.setup';
 import {
   cleanupWorld,
   createDestinationRow,
   deleteDestinationRow,
   resetDestination,
+  resetRuntime,
 } from './copy-harness';
 
 export const MODIFIED = new Date('2018-03-04T05:06:07Z');
@@ -91,8 +87,7 @@ export const useResilienceWorld = (): void => {
   afterEach(async () => {
     await cleanupWorld();
     resetDestination();
-    resetWatchdogForTests();
-    runtimePauses.reset(DESTINATION_KEY);
+    resetRuntime();
     await query("update backup_destinations set health = 'unknown'");
   });
 };
