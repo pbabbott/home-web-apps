@@ -42,10 +42,9 @@ import {
   type InventoryItem,
   type QueueItemDetail,
 } from '../../../../sources/lib/homelab-api';
+import { useAutoRefresh } from '../../../../lib/useAutoRefresh';
 
 /** While the directory may still change under the agent's hands the page re-fetches this often. */
-const ACTIVE_REFRESH_MS = 5000;
-
 interface DirectoryDetailClientProps {
   item: QueueItemDetail;
   /** Null if the sources could not be loaded. */
@@ -88,12 +87,7 @@ export function DirectoryDetailClient({
   // Only a directory still being worked on changes by itself.
   const settling = item.status === 'queued' || item.status === 'in_progress';
 
-  useEffect(() => {
-    if (!active || !settling) return;
-
-    const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, settling, router]);
+  useAutoRefresh(active && settling);
 
   // Set after mount: lease expiry compared against the server's clock at render
   // time would not match what the browser computes during hydration.

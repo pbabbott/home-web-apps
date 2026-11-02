@@ -53,10 +53,9 @@ import {
   type JobQueueItem,
   type QueueItemStatus,
 } from '../../sources/lib/homelab-api';
+import { useAutoRefresh } from '../../lib/useAutoRefresh';
 
 /** While the job is active the page re-fetches this often, so the agent's progress shows without a reload. */
-const ACTIVE_REFRESH_MS = 5000;
-
 const STATUS_FILTERS: { status: QueueItemStatus; label: string }[] = [
   { status: 'queued', label: 'Queued' },
   { status: 'in_progress', label: 'In progress' },
@@ -169,12 +168,7 @@ export function JobDetailClient({
     router.refresh();
   }
 
-  useEffect(() => {
-    if (!active) return;
-
-    const timer = setInterval(() => router.refresh(), ACTIVE_REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, router]);
+  useAutoRefresh(active);
 
   return (
     <main className="flex flex-col gap-6 bg-neutral-800 p-8">

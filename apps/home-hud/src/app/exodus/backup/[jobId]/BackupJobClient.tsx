@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -51,8 +51,7 @@ import type {
 } from '../../sources/lib/homelab-api';
 import { CountTile } from '../../sources/[id]/CountTile';
 import { BackupEntriesModal } from '../BackupEntriesModal';
-
-const REFRESH_MS = 5000;
+import { useAutoRefresh } from '../../lib/useAutoRefresh';
 
 const COUNT_TILES: { status: BackupJobItemStatus; label: string }[] = [
   { status: 'queued', label: 'Queued' },
@@ -97,12 +96,7 @@ export function BackupJobClient({
   const active = isActiveBackupJob(job);
   const progress = backupProgress(job.progress);
 
-  useEffect(() => {
-    if (!active) return;
-
-    const timer = setInterval(() => router.refresh(), REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [active, router]);
+  useAutoRefresh(active);
 
   async function run<T>(
     action: () => Promise<{ ok: true; data: T } | { ok: false; error: string }>,

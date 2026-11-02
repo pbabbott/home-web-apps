@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -38,8 +38,7 @@ import type { BackupDestination, BackupJob } from '../sources/lib/homelab-api';
 import { AddDestinationModal } from './AddDestinationModal';
 import { BackupPicker } from './BackupPicker';
 import { StartBackupModal } from './StartBackupModal';
-
-const REFRESH_MS = 5000;
+import { useAutoRefresh } from '../lib/useAutoRefresh';
 
 interface Props {
   sources: { id: string; name: string }[];
@@ -71,12 +70,7 @@ export function BackupOverviewClient({
   const hasActiveJob = jobs?.some(isActiveBackupJob) ?? false;
   const refreshing = hasActiveJob || (status?.validationPending ?? false);
 
-  useEffect(() => {
-    if (!refreshing) return;
-
-    const timer = setInterval(() => router.refresh(), REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [refreshing, router]);
+  useAutoRefresh(refreshing);
 
   async function run(action: () => Promise<{ ok: boolean; error?: string }>) {
     setBusy(true);
