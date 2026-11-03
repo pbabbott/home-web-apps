@@ -30,7 +30,7 @@ The self-hosted runners are flaky. **Default first move: re-run, don't edit.**
 
 1. Get the failure: `gh run view <run-id> --log-failed` (find run id from the check `link`, or `gh run list --branch <branch> --limit 10`).
 2. Classify:
-   - **Infra/flaky** — runner lost connection, timeout, cancelled, image pull/registry/network error, 1Password/Harbor/kube hiccup, docker-in-docker startup failure, test that passes locally and has nothing to do with the diff. -> `gh run rerun <run-id> --failed`.
+   - **Infra/flaky** — runner lost connection, timeout, cancelled, image pull/registry/network error, 1Password/Harbor/kube hiccup, docker-in-docker startup failure, test that passes locally and has nothing to do with the diff. -> `gh run rerun <run-id> --failed`. If the failure is a 20-minute step timeout, first run the `ci-run-log` skill for that run so the timed-out attempt is recorded before the re-run replaces it.
    - **Small real failure** — lint error, formatting, type error, snapshot/unit test broken by this PR's change, missing import. -> fix it (step 4).
    - **Big or unclear** — needs a feature, redesign, schema/migration change, or you don't understand it. -> stop and report to the user. Don't invent big changes.
 3. Same job fails on re-run with the same error -> it's real, not flaky. Reclassify as small-real or big.
@@ -61,6 +61,8 @@ gh pr merge <n> --merge
 Don't pass `--delete-branch` unless the user asked. After merging, confirm `gh pr view <n> --json state,mergedAt` shows `MERGED`. The `pr-teardown` and `docker-publish` workflows trigger from the merge/close; optionally note them but don't wait on them.
 
 ## 6. Report
+
+Before summarising, run the `ci-run-log` skill for the final `ci.yml` run (the one that went green, or the last one if you stopped early) so its timings are in the CI run log.
 
 Short summary: PR link, what failed, what was re-run vs fixed (with commit SHAs), final state. If stopped early, say exactly which check, why, and what the user needs to decide.
 
