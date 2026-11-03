@@ -1,4 +1,8 @@
-import { ApplicationConfig, findConfigProblems } from '../../src/config';
+import {
+  ApplicationConfig,
+  findConfigProblems,
+  formatConfigStatus,
+} from '../../src/config';
 
 const good = (): ApplicationConfig => {
   const cfg = new ApplicationConfig();
@@ -36,5 +40,29 @@ describe('findConfigProblems', () => {
     (cfg as unknown as Record<string, unknown>)[field] = value;
 
     expect(findConfigProblems(cfg)).toEqual([expect.stringMatching(message)]);
+  });
+});
+
+describe('formatConfigStatus', () => {
+  const status = (envVarName: string, isMissing: boolean) => ({
+    path: envVarName,
+    envVarName,
+    isSet: false,
+    isMissing,
+    isSensitive: false,
+    value: '',
+  });
+
+  it('reports the optional destination pin as optional, not required', () => {
+    const lines = formatConfigStatus([
+      status('BACKUP_DESTINATION_ID', true),
+      status('BACKUP_DESTINATION_PATH', true),
+    ]);
+
+    expect(lines[0]).toMatch(/BACKUP_DESTINATION_ID\s+not set \(optional\)/);
+    expect(lines[0]).not.toMatch(/required/);
+    expect(lines[1]).toMatch(
+      /❌ BACKUP_DESTINATION_PATH\s+not set \(required\)/,
+    );
   });
 });

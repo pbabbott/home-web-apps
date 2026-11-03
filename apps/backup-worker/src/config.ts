@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import {
   ConfigSection,
   EnvironmentVariable,
+  EnvironmentVariableStatus,
   EnvironmentVariableType,
   formatEnvConfigStatus,
   getEnvConfigStatus,
@@ -128,17 +129,35 @@ export const findConfigProblems = (cfg: ApplicationConfig): string[] => {
   return problems;
 };
 
+/** Variables with an empty default that the worker can run without. */
+const OPTIONAL_VARIABLES = ['BACKUP_DESTINATION_ID'];
+
+const isRequiredAndMissing = (status: EnvironmentVariableStatus) =>
+  status.isMissing && !OPTIONAL_VARIABLES.includes(status.envVarName);
+
+/** The startup lines; an unset optional variable is not reported as required. */
+export const formatConfigStatus = (
+  statuses: EnvironmentVariableStatus[],
+): string[] =>
+  formatEnvConfigStatus(statuses).map((line, index) => {
+    const status = statuses[index];
+    if (!status.isMissing || isRequiredAndMissing(status)) {
+      return line;
+    }
+    const name = status.envVarName.padEnd(
+      Math.max(...statuses.map((s) => s.envVarName.length)),
+    );
+    return `⚠️  ${name} not set (optional)`;
+  });
+
 export const validateConfig = () => {
   const statuses = getEnvConfigStatus(defaultConfig);
 
   console.log('⚙️  backup-worker environment variables');
-  formatEnvConfigStatus(statuses).forEach((line) => console.log(`  ${line}`));
+  formatConfigStatus(statuses).forEach((line) => console.log(`  ${line}`));
 
   // BACKUP_DESTINATION_ID is an optional pin: the worker claims its destination by itself.
-  const missing = statuses.filter(
-    (status) =>
-      status.isMissing && status.envVarName !== 'BACKUP_DESTINATION_ID',
-  );
+  const missing = statuses.filter(isRequiredAndMissing);
 
   if (missing.length) {
     missing.forEach((status) => {
