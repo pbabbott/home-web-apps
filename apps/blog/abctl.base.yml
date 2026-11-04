@@ -2,5 +2,6 @@ registryWithNamespace: harbor.local.abbottland.io/library
 buildPreset: pnpm-turbo-docker-build
 build:
   repository: blog-base
-  target: builder
+  target: next-builder
   push: 'true'
+  buildCache: harbor.local.abbottland.io/build-cache

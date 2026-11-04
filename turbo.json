@@ -5,6 +5,7 @@
     "PATH",
     "HOME",
     "ABCTL_IMAGE_TAG",
+    "BUILDX_BUILDER",
     "IMAGE_TAG",
     "PORT",
     "NODE_ENV",
@@ -102,7 +103,8 @@
     },
     "docker:build:base": {
       "cache": false,
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "env": ["TURBO_API", "TURBO_TEAM", "TURBO_TOKEN"]
     },
     "docker:build": {
       "cache": false,
@@ -111,7 +113,8 @@
     },
     "docker:publish:base": {
       "cache": false,
-      "dependsOn": []
+      "dependsOn": [],
+      "env": ["TURBO_API", "TURBO_TEAM", "TURBO_TOKEN"]
     },
     "docker:publish": {
       "cache": false,
