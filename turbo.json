@@ -5,6 +5,7 @@
     "PATH",
     "HOME",
     "ABCTL_IMAGE_TAG",
+    "BUILDX_BUILDER",
     "IMAGE_TAG",
     "PORT",
     "NODE_ENV",
