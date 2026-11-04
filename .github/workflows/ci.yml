@@ -299,28 +299,6 @@ jobs:
           path: packages/fui-components/playwright-report/
           if-no-files-found: warn
 
-      - name: Publish Playwright report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        if: always()
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: packages/fui-components/playwright-report
-          destination_dir: reports/fui-components/${{ github.run_id }}
-          keep_files: true
-
-      - name: Print Playwright report URL
-        if: always()
-        run: |
-          REPO="${{ github.repository }}"
-          ORG="${REPO%%/*}"
-          REPO_NAME="${REPO##*/}"
-          URL="https://${ORG}.github.io/${REPO_NAME}/reports/fui-components/${{ github.run_id }}/index.html"
-          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
-          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
-          echo ""
-          echo "Playwright report: ${URL}"
-        shell: bash
-
   blog-ui-tests:
     needs: [build]
     runs-on: [prod-gen2-dind-runner]
@@ -369,26 +347,56 @@ jobs:
           path: apps/blog/playwright-report/
           if-no-files-found: warn
 
-      - name: Publish Playwright report to GitHub Pages
+  # ── Publish Playwright reports ───────────────────────────────────────────────
+  # The UI-test jobs run in parallel, and each used to push to gh-pages itself;
+  # whichever pushed second was rejected as non-fast-forward. Publishing from one
+  # job, one step after the other, removes that race. The group serialises
+  # publishes from different runs too.
+  publish-playwright-reports:
+    needs: [fui-components-ui-tests, blog-ui-tests]
+    if: always() && (needs.fui-components-ui-tests.result != 'skipped' || needs.blog-ui-tests.result != 'skipped')
+    runs-on: [prod-gen2-amd64-runner]
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages-publish
+      cancel-in-progress: false
+    steps:
+      - name: Download Playwright reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*playwright-report-${{ github.run_id }}'
+          path: reports
+
+      - name: Publish fui-components report to GitHub Pages
+        if: hashFiles('reports/playwright-report-*/**') != ''
         uses: peaceiris/actions-gh-pages@v4
-        if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: apps/blog/playwright-report
+          publish_dir: reports/playwright-report-${{ github.run_id }}
+          destination_dir: reports/fui-components/${{ github.run_id }}
+          keep_files: true
+
+      - name: Publish blog report to GitHub Pages
+        if: hashFiles('reports/blog-playwright-report-*/**') != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: reports/blog-playwright-report-${{ github.run_id }}
           destination_dir: reports/blog/${{ github.run_id }}
           keep_files: true
 
-      - name: Print Playwright report URL
-        if: always()
+      - name: Print Playwright report URLs
         run: |
           REPO="${{ github.repository }}"
           ORG="${REPO%%/*}"
           REPO_NAME="${REPO##*/}"
-          URL="https://${ORG}.github.io/${REPO_NAME}/reports/blog/${{ github.run_id }}/index.html"
-          echo "### Blog Playwright Report" >> $GITHUB_STEP_SUMMARY
-          echo "[View report](${URL})" >> $GITHUB_STEP_SUMMARY
-          echo ""
-          echo "Blog Playwright report: ${URL}"
+          BASE="https://${ORG}.github.io/${REPO_NAME}/reports"
+          {
+            echo "### Playwright Reports"
+            echo "- [fui-components](${BASE}/fui-components/${{ github.run_id }}/index.html)"
+            echo "- [blog](${BASE}/blog/${{ github.run_id }}/index.html)"
+          } >> $GITHUB_STEP_SUMMARY
         shell: bash
 
   security-scan:
