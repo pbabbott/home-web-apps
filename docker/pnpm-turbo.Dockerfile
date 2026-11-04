@@ -87,6 +87,16 @@ FROM development AS artifacts
 RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/src packages/*/src
 
 ###############################################################
+# Build outputs without production dependencies
+# For the Next apps: their runner images copy only .next/standalone (which
+# bundles what it needs), .next/static and public, so the --prod install
+# in `builder` would be an unused layer to build, push and cache.
+###############################################################
+FROM base AS next-builder
+WORKDIR /app
+COPY --from=artifacts /app .
+
+###############################################################
 # Production dependencies plus build outputs
 ###############################################################
 FROM prod-deps AS builder
