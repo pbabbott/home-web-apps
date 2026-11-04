@@ -56,6 +56,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - [Cluster Access](./docs/dev-guide-cluster-access.md) - How to pull a kubeconfig from the cluster controllers and store it in 1Password.
 - [GH Actions - Secret Management](./docs/gh-action-secret-management.md) - How secrets are managed across GitHub Actions.
 - [Image Tag Footer Tracing](./docs/image-tag-footer-tracing.md) - How `IMAGE_TAG` flows from source to the live footer value.
+- [CI Performance](./docs/ci-performance.md) - Pointer to the CI investigation, status and run log in Drive (`My Homelab / CI Optimization`), plus the rules for running a CI experiment.
 - [Blog Identity](./docs/blog-identity.md) - Analysis of published/draft posts in `apps/blog`.
 - [Exodus](./docs/exodus/README.md) - Windows-to-NAS file migration: discovery queue design, API, UI, and decisions so far.
 - Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
