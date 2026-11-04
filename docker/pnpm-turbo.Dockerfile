@@ -34,10 +34,35 @@ COPY --from=pruner /app/out/json/ .
 RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm install --frozen-lockfile
 
 ###############################################################
+# Production dependencies only
+# Keyed on the pruned lockfile/package.json files alone, so it stays
+# cached across commits that don't touch dependencies.
+###############################################################
+FROM base AS prod-deps
+WORKDIR /app
+
+COPY --from=pruner /app/out/json/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=pruner /app/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=pruner /app/out/json/ .
+
+# `pnpm prune --prod` leaves node_modules in a state where some direct
+# deps (e.g. gluetun-sync's reflect-metadata) resolve in the pnpm store but
+# aren't symlinked into the consuming package's node_modules -- a runtime
+# MODULE_NOT_FOUND that only shows up when the container actually starts.
+# A fresh --prod install always re-links from scratch, so install into a
+# clean tree instead of pruning in place. --ignore-scripts skips husky's
+# `prepare` hook, which fails because husky itself is a devDependency no
+# longer present.
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm install --prod --frozen-lockfile --ignore-scripts
+
+###############################################################
 # Build the project (suitable for development)
 ###############################################################
 FROM npm AS development
 
+# IMAGE_TAG must be set before `turbo build`: the Next apps inline it into
+# the bundle at build time (next.config.mjs) and turbo hashes it. Do not move
+# it below the build.
 ARG IMAGE_TAG=""
 ENV IMAGE_TAG=${IMAGE_TAG}
 
@@ -56,21 +81,16 @@ RUN --mount=type=secret,id=turbo_token \
 CMD turbo dev --filter=@abbottland/${PROJECT} --log-prefix=none
 
 ###############################################################
-# Prune npm packages and remove source code
+# Build outputs only: drop dev node_modules and source code
 ###############################################################
-FROM development AS builder
+FROM development AS artifacts
+RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/src packages/*/src
 
-# `pnpm prune --prod` leaves node_modules in a state where some direct
-# deps (e.g. gluetun-sync's reflect-metadata) resolve in the pnpm store but
-# aren't symlinked into the consuming package's node_modules -- a runtime
-# MODULE_NOT_FOUND that only shows up when the container actually starts.
-# A fresh --prod install always re-links from scratch, so wipe node_modules
-# and reinstall instead of pruning in place. --ignore-scripts skips husky's
-# `prepare` hook, which fails because husky itself is a devDependency no
-# longer present.
-RUN rm -rf node_modules apps/*/node_modules packages/*/node_modules
-RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm install --prod --frozen-lockfile --ignore-scripts
-RUN rm -rf apps/*/src packages/*/src
+###############################################################
+# Production dependencies plus build outputs
+###############################################################
+FROM prod-deps AS builder
+COPY --from=artifacts /app .
 
 ###############################################################
 # Final Image
