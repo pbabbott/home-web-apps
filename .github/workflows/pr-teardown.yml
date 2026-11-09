@@ -20,7 +20,7 @@ env:
 jobs:
   teardown-preview:
     name: Teardown Preview
-    runs-on: [prod-gen2-amd64-runner]
+    runs-on: [prod-gen3-amd64-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
