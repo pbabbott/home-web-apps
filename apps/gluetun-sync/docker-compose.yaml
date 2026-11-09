@@ -10,6 +10,12 @@ services:
         BASE_IMAGE: harbor.local.abbottland.io/library/node-22-alpine:1.0.0
         PROJECT_DIR: apps/
         PROJECT: gluetun-sync
+        # Lets `turbo build` inside the image hit Turbo's remote cache (same
+        # wiring as abctl's docker:build). Empty values just disable it.
+        TURBO_API: ${TURBO_API:-}
+        TURBO_TEAM: ${TURBO_TEAM:-}
+      secrets:
+        - turbo_token
     ports:
       - '4000:4000'
     environment:
@@ -81,3 +87,8 @@ services:
       timeout: 2s
       retries: 5
       start_period: 5s
+
+# Build-time secret only (never baked into an image layer); unset locally is fine.
+secrets:
+  turbo_token:
+    environment: TURBO_TOKEN
