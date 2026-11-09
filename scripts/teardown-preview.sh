@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 # ── Resolve inputs ────────────────────────────────────────────────────────────
 KUBECONFIG_ITEM="${KUBECONFIG_ITEM:-op://Homelab/Kubeconfig Admin/kubeconfig}"
-KUBE_CONTEXT="${KUBE_CONTEXT:-prod-gen2}"
+KUBE_CONTEXT="${KUBE_CONTEXT:-prod-gen3}"
 
 # ── Validate + print config ───────────────────────────────────────────────────
 MISSING=0
