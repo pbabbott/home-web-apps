@@ -58,7 +58,7 @@ if [ -z "${KUBECONFIG:-}" ] || [ ! -f "${KUBECONFIG}" ]; then
     export KUBECONFIG="$KUBECONFIG_TMP"
 fi
 
-kubectl config use-context prod-gen2
+kubectl config use-context prod-gen3
 
 # ── Harbor credentials ────────────────────────────────────────────────────────
 echo "Fetching Harbor credentials from 1Password..."
