@@ -35,7 +35,7 @@ pnpm test:unit -- --testPathPattern="path/to/test"
 
 Job: `unit-tests` in `.github/workflows/tests.yml`
 
-Runner: `prod-gen2-dind-runner`
+Runner: `prod-gen3-dind-runner`
 
 Steps:
 

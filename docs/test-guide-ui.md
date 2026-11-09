@@ -89,7 +89,7 @@ This runs `pnpm test:playwright && pnpm test:dom` sequentially.
 
 Job: `ui-tests` in `.github/workflows/tests.yml`
 
-Runner: `prod-gen2-amd64-runner` (not Docker-in-Docker; Playwright needs a real display environment)
+Runner: `prod-gen3-amd64-runner` (not Docker-in-Docker; Playwright needs a real display environment)
 
 Steps:
 

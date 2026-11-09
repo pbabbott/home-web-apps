@@ -10,7 +10,7 @@ on:
 
 jobs:
   publish:
-    runs-on: [prod-gen2-dind-runner]
+    runs-on: [prod-gen3-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v5

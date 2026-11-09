@@ -54,7 +54,7 @@ pnpm dev:deps:down
 
 Job: `integration-tests` in `.github/workflows/tests.yml`
 
-Runner: `prod-gen2-dind-runner` (Docker-in-Docker capable)
+Runner: `prod-gen3-dind-runner` (Docker-in-Docker capable)
 
 Steps:
 
