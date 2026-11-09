@@ -17,6 +17,11 @@ permissions:
 env:
   IMAGE_REPO: harbor.local.abbottland.io/library/blog
   PR_NUMBER: ${{ github.event.number }}
+  # TURBO_API/TURBO_TOKEN are injected into the runner pods; turbo only enables
+  # remote caching when TURBO_TEAM is also set. Jobs that skip the
+  # "Setup Turbo auth" step (unit/integration/smoke/UI tests) otherwise log
+  # "Remote caching disabled" and rebuild every dependency from scratch.
+  TURBO_TEAM: abbottland
 
 jobs:
   lint:
