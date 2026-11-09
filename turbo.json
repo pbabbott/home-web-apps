@@ -154,7 +154,8 @@
       "cache": false
     },
     "smoke:deps:build": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["TURBO_API", "TURBO_TEAM", "TURBO_TOKEN"]
     },
     "@abbottland/blog#smoke:deps:build": {
       "cache": false,
