@@ -307,9 +307,29 @@ jobs:
           path: packages/fui-components/playwright-report/
           if-no-files-found: warn
 
+      # The fui-components and blog UI jobs both push to gh-pages, so the push
+      # can be rejected (non-fast-forward) when they finish together. The action
+      # clones gh-pages fresh each time, so a second attempt picks up the other
+      # job's commit.
       - name: Publish Playwright report to GitHub Pages
+        id: pages_publish
         uses: peaceiris/actions-gh-pages@v4
         if: always()
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: packages/fui-components/playwright-report
+          destination_dir: reports/fui-components/${{ github.run_id }}
+          keep_files: true
+
+      - name: Wait before retrying Pages publish
+        if: always() && steps.pages_publish.outcome == 'failure'
+        run: sleep $((RANDOM % 10 + 5))
+        shell: bash
+
+      - name: Publish Playwright report to GitHub Pages (retry)
+        uses: peaceiris/actions-gh-pages@v4
+        if: always() && steps.pages_publish.outcome == 'failure'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: packages/fui-components/playwright-report
@@ -377,9 +397,29 @@ jobs:
           path: apps/blog/playwright-report/
           if-no-files-found: warn
 
+      # The fui-components and blog UI jobs both push to gh-pages, so the push
+      # can be rejected (non-fast-forward) when they finish together. The action
+      # clones gh-pages fresh each time, so a second attempt picks up the other
+      # job's commit.
       - name: Publish Playwright report to GitHub Pages
+        id: pages_publish
         uses: peaceiris/actions-gh-pages@v4
         if: always()
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/blog/playwright-report
+          destination_dir: reports/blog/${{ github.run_id }}
+          keep_files: true
+
+      - name: Wait before retrying Pages publish
+        if: always() && steps.pages_publish.outcome == 'failure'
+        run: sleep $((RANDOM % 10 + 5))
+        shell: bash
+
+      - name: Publish Playwright report to GitHub Pages (retry)
+        uses: peaceiris/actions-gh-pages@v4
+        if: always() && steps.pages_publish.outcome == 'failure'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: apps/blog/playwright-report
