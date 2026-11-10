@@ -6,7 +6,7 @@ Usage: python3 -I collect.py [RUN_ID] [--attempt N] [--branch BRANCH] [--no-prom
 With no RUN_ID it uses the newest ci.yml run on the current (or given) branch.
 Prints one JSON object: "row" is the 16 values for the Runs tab, in column order;
 "details" holds per-job data for the notes. Prometheus is best effort: if it is
-unreachable the disk columns stay empty.
+unreachable the node-metric columns stay empty.
 """
 import argparse
 import json
@@ -19,13 +19,13 @@ import urllib.request
 from datetime import datetime
 
 PROM = "https://prometheus.local.abbottland.io/api/v1/"
-HOST = "192.168.4.192:9100"
-DISK = f"instance='{HOST}',device='nvme0n1'"
-DISK_BUSY = f"100*rate(node_disk_io_time_seconds_total{{{DISK}}}[2m])"
-DISK_WLAT = (
-    f"rate(node_disk_write_time_seconds_total{{{DISK}}}[2m])"
-    f"/rate(node_disk_writes_completed_total{{{DISK}}}[2m])*1000"
-)
+# Gen3 CI runner pods are pinned to k3s workers 1 and 2 (192.168.6.42/.43). The
+# gen3 Prometheus scrapes their node-exporters; it does not scrape the Proxmox
+# host (hogwarts) underneath them.
+WORKERS = "instance=~'192.168.6.4[23]:9100'"
+LOAD1 = f"node_load1{{{WORKERS}}}"
+MEM_AVAIL_GIB = f"node_memory_MemAvailable_bytes{{{WORKERS}}}/1024/1024/1024"
+MEM_PSI = f"rate(node_pressure_memory_waiting_seconds_total{{{WORKERS}}}[2m])*100"
 FIRST_STAGE = ("lint", "format", "docker-build-plan", "unit-test-plan", "integration-test-plan")
 TIMEOUT_STEP_S = 1195  # docker-build publish step has timeout-minutes: 20
 
@@ -53,7 +53,7 @@ def secs(a, b):
     return round((b - a).total_seconds()) if a and b else None
 
 
-def prom_mean(query, start, end):
+def prom_stat(query, start, end, fn=statistics.mean):
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -65,7 +65,7 @@ def prom_mean(query, start, end):
     except Exception:
         return None
     vals = [float(v[1]) for s in res for v in s["values"] if v[1] not in ("NaN", "+Inf")]
-    return round(statistics.mean(vals), 1) if vals else None
+    return round(fn(vals), 1) if vals else None
 
 
 def peak_concurrency(jobs):
@@ -134,13 +134,12 @@ def main():
         d = per_job[j["name"]]
         return f"timeout at {d}" if j["name"] in " ".join(timeouts) else (d if d is not None else "")
 
-    runners = [j.get("runner_name") or "" for j in jobs]
-    elderwand = sum("ELDERWAND" in r.upper() for r in runners)
-
-    busy = wlat = None
+    load = mem_min = psi = None
     if not a.no_prom:
         s, e = int(ts(run["run_started_at"]).timestamp()), int(ts(end).timestamp())
-        busy, wlat = prom_mean(DISK_BUSY, s, e), prom_mean(DISK_WLAT, s, e)
+        load = prom_stat(LOAD1, s, e)
+        mem_min = prom_stat(MEM_AVAIL_GIB, s, e, min)
+        psi = prom_stat(MEM_PSI, s, e)
 
     outcome = run["conclusion"] or run["status"]
     if failed:
@@ -159,8 +158,8 @@ def main():
         first_stage,
         build("blog"),
         build("home-hud"),
-        busy if busy is not None else "",
-        wlat if wlat is not None else "",
+        load if load is not None else "",
+        mem_min if mem_min is not None else "",
         peak_concurrency(active),
         outcome,
         "",  # verdict / notes: filled in by the skill
@@ -175,7 +174,7 @@ def main():
             "jobs_seconds": per_job,
             "failed_jobs": failed,
             "timeouts": timeouts,
-            "jobs_on_elderwand": elderwand,
+            "workers_mean_memory_psi_waiting_pct": psi,
             "jobs_total": len(jobs),
             "jobs_carried_over_from_earlier_attempts": carried_over,
         },

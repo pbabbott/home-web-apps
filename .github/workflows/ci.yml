@@ -381,6 +381,8 @@ jobs:
           path: reports
 
       - name: Publish fui-components report to GitHub Pages
+        # A Pages hiccup must not fail the PR; the report is a convenience.
+        continue-on-error: true
         if: hashFiles('reports/playwright-report-*/**') != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -390,6 +392,8 @@ jobs:
           keep_files: true
 
       - name: Publish blog report to GitHub Pages
+        # A Pages hiccup must not fail the PR; the report is a convenience.
+        continue-on-error: true
         if: hashFiles('reports/blog-playwright-report-*/**') != ''
         uses: peaceiris/actions-gh-pages@v4
         with:
