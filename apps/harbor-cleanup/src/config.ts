@@ -41,6 +41,13 @@ export class ApplicationConfig {
   cleanupRepositories: string =
     'blog,diagram-maker,fui-components,gluetun-sync,harbor-cleanup';
 
+  /** When true, log what would be deleted but delete nothing (cron and POST /cleanup). */
+  @EnvironmentVariable({
+    variableName: 'CLEANUP_DRY_RUN',
+    variableType: EnvironmentVariableType.BOOLEAN,
+  })
+  dryRun: boolean = false;
+
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   prodKeepCount: number = 5;
 
