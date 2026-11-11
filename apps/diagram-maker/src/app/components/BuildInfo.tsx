@@ -1,0 +1,42 @@
+'use client';
+
+import { useEffect, useState, type ComponentProps } from 'react';
+import { Typography } from '@abbottland/fui-components';
+import { resolveUrl } from '@/lib/url';
+
+/**
+ * Shows what is running: the pod's IMAGE_TAG, read at runtime from
+ * GET /api/version (never baked into the bundle at build time). Renders `dev`
+ * until the request completes, or if it fails or the tag is unset, so the
+ * server-rendered HTML is identical for every build.
+ */
+export function BuildInfo({
+  variant = 'caption',
+  className,
+}: {
+  variant?: ComponentProps<typeof Typography>['variant'];
+  className?: string;
+}) {
+  const [label, setLabel] = useState('dev');
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(resolveUrl('/api/version'), { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((info) => {
+        if (!cancelled && typeof info?.label === 'string') setLabel(info.label);
+      })
+      .catch(() => {
+        // Keep showing `dev`: the version is informational only.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <Typography variant={variant} className={className}>
+      {label}
+    </Typography>
+  );
+}

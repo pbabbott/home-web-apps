@@ -60,11 +60,9 @@ RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store,sharing=locked pnpm inst
 ###############################################################
 FROM npm AS development
 
-# IMAGE_TAG must be set before `turbo build`: the Next apps inline it into
-# the bundle at build time (next.config.mjs) and turbo hashes it. Do not move
-# it below the build.
-ARG IMAGE_TAG=""
-ENV IMAGE_TAG=${IMAGE_TAG}
+# IMAGE_TAG is intentionally NOT a build arg: the running image tag is read from
+# the pod's env at runtime (GET /api/version), so the build output is identical
+# for every commit and Turbo's cache hits across builds.
 
 # Turbo remote cache auth. TURBO_TOKEN is mounted as a build secret (never
 # baked into a layer); API/TEAM aren't sensitive so they travel as build args.

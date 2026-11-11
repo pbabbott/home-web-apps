@@ -7,6 +7,7 @@
     "ABCTL_IMAGE_TAG",
     "BUILDX_BUILDER",
     "IMAGE_TAG",
+    "PR_NUMBER",
     "PORT",
     "NODE_ENV",
     "ENABLE_ANALYTICS",
@@ -59,7 +60,6 @@
     },
     "@abbottland/blog#build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "env": ["IMAGE_TAG"],
       "outputs": [".next/**"],
       "dependsOn": [
         "@abbottland/fui-components#build:npm",
@@ -69,7 +69,6 @@
     },
     "@abbottland/diagram-maker#build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "env": ["IMAGE_TAG"],
       "outputs": [".next/**"],
       "dependsOn": [
         "@abbottland/fui-components#build:npm",
@@ -79,7 +78,6 @@
     },
     "@abbottland/home-hud#build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "env": ["IMAGE_TAG"],
       "outputs": [".next/**"],
       "dependsOn": [
         "@abbottland/fui-components#build:npm",

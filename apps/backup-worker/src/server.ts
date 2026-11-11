@@ -3,6 +3,7 @@ import {
   configureBaseServerMiddleware,
   configureErrorHandler,
   configureMetricsRoute,
+  configureVersionRoute,
 } from '@abbottland/express';
 import { config } from './config';
 import { getHealth } from './controllers/health';
@@ -14,6 +15,7 @@ export const createServer = (watchdog: DestinationWatchdog): Express => {
 
   configureBaseServerMiddleware(app);
   configureMetricsRoute(app);
+  configureVersionRoute(app);
 
   app.get('/healthz', getHealth(watchdog));
   app.get('/readyz', getReady(watchdog));

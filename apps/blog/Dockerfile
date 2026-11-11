@@ -21,7 +21,6 @@ ARG PORT=3000
 ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
-ENV IMAGE_TAG=dev
 EXPOSE ${PORT}
 
 CMD ["node", "apps/blog/server.js"]

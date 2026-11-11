@@ -98,13 +98,6 @@ jobs:
           echo "TURBO_TEAM=$TURBO_TEAM" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set image tag
-        run: bash ./scripts/set-image-tag.sh
-        shell: bash
-        env:
-          COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          RUN_NUMBER: ${{ github.run_number }}
-
       # --concurrency=2: this job isn't matrixed per-package like docker-build,
       # so a lockfile change that busts turbo's cache for every package at
       # once (e.g. a catalog-wide dependency bump) tries to build all ~9
@@ -265,7 +258,6 @@ jobs:
           # fails on the default `docker` driver if the build lands there.
           BUILDX_BUILDER: ${{ steps.buildx.outputs.name }}
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          RUN_NUMBER: ${{ github.run_number }}
           PACKAGE: ${{ matrix.package }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 

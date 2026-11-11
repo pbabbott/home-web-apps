@@ -20,7 +20,6 @@ export const makeBuildSettings = (
     // The trailing slash is needed here because of the dockerfile.
     buildArgs.PROJECT_DIR = `${projectMetadata.parentDirName}/`
     buildArgs.PROJECT = projectMetadata.projectName
-    buildArgs.IMAGE_TAG = process.env.IMAGE_TAG ?? image.split(':').pop() ?? ''
 
     // Lets `turbo build` inside the container hit Turbo's remote cache
     // instead of recompiling every package from scratch. TURBO_API/TEAM
