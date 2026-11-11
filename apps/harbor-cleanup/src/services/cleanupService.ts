@@ -15,6 +15,8 @@ export interface RepositoryCleanupResult {
 }
 
 export interface CleanupResult {
+  /** True when CLEANUP_DRY_RUN is set: `deleted` lists tags that WOULD be deleted. */
+  dryRun: boolean;
   repositories: RepositoryCleanupResult[];
   totalDeleted: number;
   totalErrors: number;
@@ -47,7 +49,7 @@ async function cleanupRepository(
   const catalog = catalogTags(artifacts);
   log(
     repo,
-    `Tags: ${catalog.sha.length} sha, ${catalog.pr.length} pr, ${catalog.prod.length} prod, ${catalog.legacy.length} legacy`,
+    `Tags: ${catalog.sha.length} sha, ${catalog.pr.length} pr, ${catalog.prMoving.length} pr-moving, ${catalog.prod.length} prod, ${catalog.floating.length} floating, ${catalog.legacy.length} legacy`,
   );
 
   // ── Collect safe sha7 values that must never be deleted ───────────────────
@@ -70,6 +72,11 @@ async function cleanupRepository(
   };
 
   const deleteTag = async (tag: string, digest: string) => {
+    if (config.dryRun) {
+      log(repo, `  DRY RUN, would delete: ${tag}`);
+      result.deleted.push(tag);
+      return;
+    }
     try {
       await harbor.deleteTag('library', repo, digest, tag);
       log(repo, `  DELETED: ${tag}`);
@@ -122,6 +129,25 @@ async function cleanupRepository(
         }
       }
     }
+  }
+
+  // ── 2b. Moving PR tags (pr-<N>): keep while the PR is open ───────────────
+  log(repo, `Processing ${catalog.prMoving.length} moving pr tag(s)...`);
+  for (const t of catalog.prMoving) {
+    const pr = await github.getPullRequest(t.prNumber);
+    if (!pr || pr.state === 'closed') {
+      log(repo, `  PR #${t.prNumber} is closed, deleting moving tag: ${t.tag}`);
+      if (safeToDelete(t.tag)) await deleteTag(t.tag, t.digest);
+    } else {
+      log(repo, `  KEEP (open PR #${t.prNumber}): ${t.tag}`);
+      result.kept.push(t.tag);
+    }
+  }
+
+  // ── 2c. Floating tags (latest) are never deleted ─────────────────────────
+  for (const t of catalog.floating) {
+    log(repo, `  KEEP (floating tag): ${t.tag}`);
+    result.kept.push(t.tag);
   }
 
   // ── 3. SHA tags ───────────────────────────────────────────────────────────
@@ -188,7 +214,10 @@ export async function runCleanup(): Promise<CleanupResult> {
   );
   const k8s = new KubernetesClient();
 
+  // Throws if the cluster can't be read: with no deployed-tag list we must not
+  // delete anything, so the whole run fails instead of silently unprotecting.
   const deployedTags = await k8s.getDeployedImageTags(config.harbor.host);
+  if (config.dryRun) console.log('[cleanup] DRY RUN: no tags will be deleted');
 
   const repos = config.cleanupRepositories
     .split(',')
@@ -227,5 +256,11 @@ export async function runCleanup(): Promise<CleanupResult> {
   console.log(
     `[cleanup] Done. Deleted ${totalDeleted} tag(s), ${totalErrors} error(s) in ${durationMs}ms`,
   );
-  return { repositories: results, totalDeleted, totalErrors, durationMs };
+  return {
+    dryRun: config.dryRun,
+    repositories: results,
+    totalDeleted,
+    totalErrors,
+    durationMs,
+  };
 }
