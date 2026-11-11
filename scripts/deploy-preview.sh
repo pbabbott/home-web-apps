@@ -26,6 +26,10 @@ if [ -z "${IMAGE:-}" ]; then
     IMAGE_SOURCE="derived"
 fi
 
+# The tag the pod reports at GET /api/version (the footer shows "preview PR #n"
+# for a sha-<sha7> tag). Derived from the image so the two can never disagree.
+IMAGE_TAG="${IMAGE##*:}"
+
 # ── Validate + print config ───────────────────────────────────────────────────
 MISSING=0
 
@@ -38,6 +42,7 @@ fi
 
 echo "  OK       HEAD_SHA    = ${HEAD_SHA}  (${HEAD_SHA_SOURCE})"
 echo "  OK       IMAGE       = ${IMAGE}  (${IMAGE_SOURCE})"
+echo "  OK       IMAGE_TAG   = ${IMAGE_TAG}"
 echo "  OK       IMAGE_REPO  = ${IMAGE_REPO}"
 
 if [ "${MISSING}" -ne 0 ]; then

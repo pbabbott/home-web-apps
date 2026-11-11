@@ -6,9 +6,6 @@ import createMDX from '@next/mdx';
 const nextConfig = {
   output: 'standalone',
   assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
-  env: {
-    IMAGE_TAG: process.env.IMAGE_TAG ?? 'dev',
-  },
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   // Optionally, add any other Next.js config below

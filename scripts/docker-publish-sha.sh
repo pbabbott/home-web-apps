@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Local usage:
-#   COMMIT_SHA=abc1234def5678 RUN_NUMBER=42 bash ./scripts/docker-publish-sha.sh
-#   COMMIT_SHA=abc1234def5678 RUN_NUMBER=42 BASE_REF=main bash ./scripts/docker-publish-sha.sh
-#   COMMIT_SHA=abc1234def5678 RUN_NUMBER=42 PACKAGE=blog bash ./scripts/docker-publish-sha.sh
+#   COMMIT_SHA=abc1234def5678 bash ./scripts/docker-publish-sha.sh
+#   COMMIT_SHA=abc1234def5678 BASE_REF=main bash ./scripts/docker-publish-sha.sh
+#   COMMIT_SHA=abc1234def5678 PACKAGE=blog bash ./scripts/docker-publish-sha.sh
 #
 # BASE_REF: branch name to compare against (e.g. "main"). Defaults to HEAD^1.
 # Only packages with changes (or apps that depend on changed packages) are published.
@@ -23,7 +23,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 COMMIT_SHA="${COMMIT_SHA:?COMMIT_SHA is required}"
-RUN_NUMBER="${RUN_NUMBER:?RUN_NUMBER is required}"
 BASE_REF="${BASE_REF:-}"
 PACKAGE="${PACKAGE:-}"
 PR_NUMBER="${PR_NUMBER:-}"
@@ -31,13 +30,10 @@ REGISTRY="${REGISTRY:-harbor.local.abbottland.io/library}"
 CONCURRENCY="${DOCKER_PUBLISH_CONCURRENCY:-3}"
 
 SHORT_SHA="${COMMIT_SHA::7}"
-PADDED_RUN=$(printf '%03d' "$RUN_NUMBER")
-DATE=$(date +%Y%m%d)
 
 export ABCTL_IMAGE_TAG="sha-${SHORT_SHA}"
-export IMAGE_TAG="${DATE}-${PADDED_RUN}-${SHORT_SHA}"
 
-echo "Publishing changed app images with Docker tag: ${ABCTL_IMAGE_TAG} (IMAGE_TAG: ${IMAGE_TAG})"
+echo "Publishing changed app images with Docker tag: ${ABCTL_IMAGE_TAG}"
 
 if [[ -n "$PACKAGE" ]]; then
   echo "Publishing package: ${PACKAGE}"

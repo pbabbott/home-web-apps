@@ -39,12 +39,11 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
     it('should set target', () => {
       expect(sut.target).toBe(dockerBuildConfig.target)
     })
-    it('should set build args with IMAGE_TAG from image ref when env var not set', () => {
+    it('should set build args without IMAGE_TAG (the tag is read at runtime, not baked)', () => {
       expect(sut.buildArgs).toEqual({
         BASE_IMAGE: dockerBuildConfig.baseImage,
         PROJECT_DIR: `${projectMetadata.parentDirName}/`,
         PROJECT: projectMetadata.projectName,
-        IMAGE_TAG: '20260101-001-abc1234',
         TURBO_API: '',
         TURBO_TEAM: '',
       })
@@ -58,18 +57,16 @@ describe('@abbottland/abctl/docker-build-settings-builder makeBuildSettings', ()
   })
 
   describe('with IMAGE_TAG env var set', () => {
-    const envTag = '20260601-042-dc38225'
-
     beforeEach(() => {
-      process.env.IMAGE_TAG = envTag
+      process.env.IMAGE_TAG = '20260601-00042-00100-dc38225'
     })
     afterEach(() => {
       delete process.env.IMAGE_TAG
     })
 
-    it('should prefer IMAGE_TAG env var over image ref tag', () => {
+    it('should not pass IMAGE_TAG as a build arg', () => {
       const sut = makeBuildSettings(image, dockerBuildConfig, projectMetadata)
-      expect(sut.buildArgs?.IMAGE_TAG).toBe(envTag)
+      expect(sut.buildArgs).not.toHaveProperty('IMAGE_TAG')
     })
   })
 

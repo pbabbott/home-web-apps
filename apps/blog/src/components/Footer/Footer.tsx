@@ -5,9 +5,9 @@ import {
   HorizontalRule,
 } from '@abbottland/fui-components';
 import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons';
+import { BuildInfo } from '../BuildInfo/BuildInfo';
 
 export default function Footer() {
-  const imageTag = process.env.IMAGE_TAG ?? 'dev';
   return (
     <footer className="bg-neutral-1000 w-full">
       <div className="max-w-screen-lg mx-auto px-6 py-12">
@@ -17,9 +17,7 @@ export default function Footer() {
             <Typography variant="h6" className="text-neutral-100">
               Brandon Abbott
             </Typography>
-            <Typography variant="body1" className="text-neutral-500">
-              {imageTag}
-            </Typography>
+            <BuildInfo variant="body1" className="text-neutral-500" />
           </div>
 
           {/* Blog CTA */}

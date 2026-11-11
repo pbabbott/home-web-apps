@@ -4,7 +4,6 @@ import {
   DiagramViewer,
   DiagramEditor,
   IconRendererProvider,
-  Typography,
 } from '@abbottland/fui-components';
 import { renderSimpleIcon } from '@abbottland/fui-icons';
 import {
@@ -13,6 +12,7 @@ import {
 } from './DiagramEditorContext';
 import { Sidebar } from './Sidebar/Sidebar';
 import { Header } from './Header';
+import { BuildInfo } from './BuildInfo';
 
 function DiagramEditorLayout() {
   const {
@@ -69,9 +69,7 @@ function DiagramEditorLayout() {
           )}
         </div>
         <div className="px-3 py-1 text-right bg-neutral-950">
-          <Typography variant="caption" className="text-neutral-600">
-            {process.env.IMAGE_TAG ?? 'dev'}
-          </Typography>
+          <BuildInfo className="text-neutral-600" />
         </div>
       </div>
     </div>
