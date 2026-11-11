@@ -1,4 +1,6 @@
 FROM nginx:alpine
+# Source repository, as an OCI label (also forces a rebuild of this image).
+LABEL org.opencontainers.image.source="https://github.com/pbabbott/home-web-apps"
 # COPY before the apk upgrade so this layer's cache key changes on every
 # build (storybook-static's content hash differs each time) — otherwise the
 # registry build cache serves a stale apk upgrade indefinitely, since
