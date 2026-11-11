@@ -14,6 +14,12 @@ permissions:
   checks: write
   pull-requests: write
 
+# One run per PR at a time: a newer push cancels the older run, so the moving
+# pr-<n> image tag can never end up on an older commit.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_REPO: harbor.local.abbottland.io/library/blog
   PR_NUMBER: ${{ github.event.number }}
@@ -261,6 +267,7 @@ jobs:
           COMMIT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
           PACKAGE: ${{ matrix.package }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
   fui-components-ui-tests:
     needs: [build]

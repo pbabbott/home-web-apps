@@ -1,18 +1,41 @@
+# DO NOT RENAME or recreate this workflow file: its run_number is the RUN field of
+# every production tag (YYYYMMDD-<RUN:5>-<PR:5>-<sha7>). A new workflow restarts the
+# counter at 1 and new tags would sort below existing ones, so Flux would stop updating.
 name: Docker Publish
 
 on:
   push:
     branches:
       - main
+  # Re-release an older build as a new release (rollback). Gets a newer run number,
+  # so Flux selects it. The source build's sha-<sha7> image must still exist.
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: 'PR head sha whose sha-<sha7> images to promote (7-40 hex chars)'
+        required: true
+      pr_number:
+        description: 'PR number to put in the tag (optional; 0 if empty)'
+        required: false
+      apps:
+        description: 'Space-separated apps to retag (optional; default all)'
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   docker-publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: [prod-gen3-dind-runner]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          # Pushes need the merge commit and its first parent; dispatch needs
+          # nothing beyond HEAD but a full history keeps date lookups simple.
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && 0 || 2 }}
 
       - name: Install jq
         uses: dcarbone/install-jq-action@v3.2.0
@@ -29,8 +52,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Inputs go through env: only (never interpolated into the script); the
+      # script validates them.
       - name: Retag as production images
         run: bash ./scripts/docker-retag-prod.sh
         env:
           COMMIT_SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
+          SOURCE_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.source_sha || '' }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || '' }}
+          APPS: ${{ github.event_name == 'workflow_dispatch' && inputs.apps || '' }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
