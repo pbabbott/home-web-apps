@@ -11,6 +11,9 @@
 # CI docker-build matrix, where docker-publish-plan.sh already picked the
 # changed set and each package publishes on its own runner pod. Omit to
 # publish every changed package in one run (local use).
+# PR_NUMBER: when set together with PACKAGE, the published sha-<sha7> app image is
+# also tagged pr-<PR_NUMBER> (a moving, human-friendly pointer to the PR's latest
+# build; previews and prod never use it). Not applied to *-base repos or node-22-*.
 # DOCKER_PUBLISH_CONCURRENCY: max packages built in parallel when PACKAGE is
 # unset (default 3). Each spawns its own `docker buildx build` + full
 # monorepo `pnpm install`, so an unbounded turbo run can starve the runner
@@ -23,6 +26,8 @@ COMMIT_SHA="${COMMIT_SHA:?COMMIT_SHA is required}"
 RUN_NUMBER="${RUN_NUMBER:?RUN_NUMBER is required}"
 BASE_REF="${BASE_REF:-}"
 PACKAGE="${PACKAGE:-}"
+PR_NUMBER="${PR_NUMBER:-}"
+REGISTRY="${REGISTRY:-harbor.local.abbottland.io/library}"
 CONCURRENCY="${DOCKER_PUBLISH_CONCURRENCY:-3}"
 
 SHORT_SHA="${COMMIT_SHA::7}"
@@ -37,6 +42,18 @@ echo "Publishing changed app images with Docker tag: ${ABCTL_IMAGE_TAG} (IMAGE_T
 if [[ -n "$PACKAGE" ]]; then
   echo "Publishing package: ${PACKAGE}"
   pnpm turbo run docker:publish --log-order=stream --filter="@abbottland/${PACKAGE}"
+
+  if [[ -n "$PR_NUMBER" && "$PR_NUMBER" =~ ^[0-9]+$ && ! "$PACKAGE" =~ ^node-22- ]]; then
+    IMAGE_REPO="${REGISTRY}/${PACKAGE}"
+    # abctl skips pushing a tag that already exists, so the moving pr-<n> tag is
+    # (re)pointed with a registry-side retag after the publish.
+    if docker buildx imagetools inspect "${IMAGE_REPO}:${ABCTL_IMAGE_TAG}" >/dev/null 2>&1; then
+      echo "Tagging ${IMAGE_REPO}:${ABCTL_IMAGE_TAG} as pr-${PR_NUMBER}"
+      docker buildx imagetools create --tag "${IMAGE_REPO}:pr-${PR_NUMBER}" "${IMAGE_REPO}:${ABCTL_IMAGE_TAG}"
+    else
+      echo "No ${IMAGE_REPO}:${ABCTL_IMAGE_TAG} image (package is not an app image); skipping pr-${PR_NUMBER} tag"
+    fi
+  fi
   exit 0
 fi
 

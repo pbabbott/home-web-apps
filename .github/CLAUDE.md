@@ -4,8 +4,8 @@
 
 `.github/workflows/`:
 
-- `ci.yml` — runs on PRs to `main`: lint, format, build, docker-build (publishes `sha-<sha7>` images), UI/unit/integration/smoke tests, `security-scan` (Trivy), then `deploy-blog-preview`
-- `docker-publish.yml` — runs on push to `main`: retags each app's `sha-<sha7>` image with a dated production tag (no rebuild)
+- `ci.yml` — runs on PRs to `main` (one run per PR; a newer push cancels the older): lint, format, build, docker-build (publishes `sha-<sha7>` and moving `pr-<n>` images), UI/unit/integration/smoke tests, `security-scan` (Trivy), then `deploy-blog-preview`
+- `docker-publish.yml` — runs on push to `main` (or manually to re-release an older build): retags each rebuilt app's `sha-<sha7>` image as `<YYYYMMDD>-<RUN:5>-<PR:5>-<sha7>` (no rebuild). Never rename it: its run number is part of the tag
 - `pr-teardown.yml` — runs on PR close: deletes the PR's preview namespace
 - `playwright-runner-publish.yml` — publishes the shared Playwright test-runner Docker image
 

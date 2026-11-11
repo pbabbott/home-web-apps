@@ -4,10 +4,13 @@ This project uses a **SHA-based, CI-driven** image publication strategy. There a
 
 ## Tag types
 
-| Tag            | Format                    | When created                     | Purpose                                  |
-| -------------- | ------------------------- | -------------------------------- | ---------------------------------------- |
-| SHA tag        | `sha-<sha7>`              | Every PR CI run                  | Canonical, immutable artifact identifier |
-| Production tag | `<YYYYMMDD>-<run>-<sha7>` | Main branch workflow after merge | Marks a commit as promoted to production |
+| Tag            | Format                             | When created                     | Purpose                                                                       |
+| -------------- | ---------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
+| SHA tag        | `sha-<sha7>`                       | Every PR CI run                  | Canonical, immutable artifact identifier                                      |
+| PR tag         | `pr-<n>`                           | Every PR CI run (moves)          | Human-friendly pointer to the PR's latest build; never deployed               |
+| Production tag | `<YYYYMMDD>-<RUN:5>-<PR:5>-<sha7>` | Main branch workflow after merge | Marks a commit as promoted to production, e.g. `20261110-00091-00248-e2ba7c3` |
+
+Production tag fields: `YYYYMMDD` is the **UTC commit date** of the merge (not the run date), so re-running a workflow reproduces the same tag. `RUN` is the `docker-publish.yml` run number, `PR` the merged PR number (`00000` for a direct push); both are zero-padded to 5 digits so Flux's alphabetical sort is correct. Only the date and run number matter for ordering. Never rename `docker-publish.yml`: that resets the run counter and new tags would sort below old ones.
 
 ## Lifecycle
 
@@ -30,26 +33,31 @@ See [`scripts/deploy-preview.sh`](../scripts/deploy-preview.sh) for the full dep
 
 The `docker-publish.yml` workflow triggers on merge. It does **not** rebuild the image. Instead, `scripts/docker-retag-prod.sh`:
 
-1. Inspects the merge commit's second parent (the PR branch head) to find the SHA of the already-built image.
+1. Inspects the merge commit's second parent (the PR branch head) to find the SHA of the already-built image, and the PR number from the merge subject (`Merge pull request #N`, a squash `(#N)` suffix, or the GitHub API).
 2. Runs `docker buildx imagetools create` to push a new production tag pointing to the same manifest digest.
+3. Fails if an app whose directory changed has no `sha-<sha7>` image (the PR was merged before its `docker-build` finished), instead of silently deploying nothing.
 
 ```
-sha-<sha7>  →  <YYYYMMDD>-<run_number>-<sha7>
+sha-<sha7>  →  <YYYYMMDD>-<RUN:5>-<PR:5>-<sha7>
 ```
 
-No new image layers are built or pushed.
+No new image layers are built or pushed. Only apps rebuilt in the PR get a new tag; unchanged apps keep theirs, so merging does not restart every workload.
+
+### Rolling back (re-release an older build)
+
+Run the `Docker Publish` workflow manually (`workflow_dispatch`) with `source_sha` (the old PR head sha), optionally `pr_number` and `apps`. It promotes that build's `sha-<sha7>` image as a new production tag with a newer run number, so Flux selects it. The old `sha-<sha7>` image must still exist in Harbor.
 
 ### 4 — Production deployment
 
-The production tag `<YYYYMMDD>-<run>-<sha7>` is what gets deployed by the GitOps repo (Flux). The date and run number provide human-readable ordering; the SHA ties the image back to the exact commit.
+The production tag `<YYYYMMDD>-<RUN:5>-<PR:5>-<sha7>` is what gets deployed by the GitOps repo (Flux image policy `^\d{8}-\d{5}-\d{5}-[a-f0-9]{7}$`, alphabetical). PR builds only have `sha-` and `pr-<n>` tags, so they can never match the policy. The SHA ties the image back to the exact commit.
 
 ## Scripts reference
 
-| Script                          | Purpose                                            |
-| ------------------------------- | -------------------------------------------------- |
-| `scripts/docker-publish-sha.sh` | Builds and pushes `sha-<sha7>` for all apps        |
-| `scripts/docker-retag-prod.sh`  | Retags an existing SHA image as the production tag |
-| `scripts/deploy-preview.sh`     | Deploys a PR preview environment to the cluster    |
+| Script                          | Purpose                                                |
+| ------------------------------- | ------------------------------------------------------ |
+| `scripts/docker-publish-sha.sh` | Builds and pushes `sha-<sha7>` (and `pr-<n>`) for apps |
+| `scripts/docker-retag-prod.sh`  | Retags an existing SHA image as the production tag     |
+| `scripts/deploy-preview.sh`     | Deploys a PR preview environment to the cluster        |
 
 ## Local publish
 
@@ -62,7 +70,7 @@ COMMIT_SHA=$(git rev-parse HEAD) bash ./scripts/docker-publish-sha.sh
 To manually retag as production (useful for testing the retag flow):
 
 ```sh
-COMMIT_SHA=<merge-sha> RUN_NUMBER=0 bash ./scripts/docker-retag-prod.sh
+COMMIT_SHA=<merge-sha> RUN_NUMBER=1 bash ./scripts/docker-retag-prod.sh
 ```
 
 > [!NOTE]

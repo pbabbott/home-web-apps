@@ -29,19 +29,28 @@ DOCKER_CONFIG_FILE="${DOCKER_CONFIG_FILE:-$HOME/.docker/config.json}"
 TARGETS=(blog diagram-maker fui-components)
 : >"$SCANNED_TARGETS_FILE"
 
-# Date-prefixed prod tags (YYYYMMDD-RRR-sha7, see set-image-tag.sh) sort
+# Date-prefixed prod tags (YYYYMMDD-RUN-PR-sha7, see docker-retag-prod.sh) sort
 # lexicographically in chronological order, so the last one is the latest
-# published build for that app.
+# published build for that app. The previous shape (YYYYMMDD-RUN-sha7) is only a
+# fallback for apps that have no new-shape tag yet: the two shapes don't sort
+# reliably against each other on the same day.
 latest_published_tag() {
   local target="$1"
   local auth
   auth=$(jq -r --arg host "$REGISTRY_HOST" '.auths[$host].auth // empty' "$DOCKER_CONFIG_FILE" 2>/dev/null || true)
 
-  curl -sS -H "Authorization: Basic ${auth}" \
-    "https://${REGISTRY_HOST}/v2/library/${target}/tags/list" |
-    jq -r '.tags[]? | select(test("^[0-9]{8}-[0-9]+-[0-9a-f]+$"))' |
-    sort |
-    tail -1
+  local tags latest
+  tags=$(curl -sS -H "Authorization: Basic ${auth}" \
+    "https://${REGISTRY_HOST}/v2/library/${target}/tags/list")
+  latest=$(echo "$tags" |
+    jq -r '.tags[]? | select(test("^[0-9]{8}-[0-9]{5}-[0-9]{5}-[0-9a-f]{7}$"))' |
+    sort | tail -1)
+  if [ -z "$latest" ]; then
+    latest=$(echo "$tags" |
+      jq -r '.tags[]? | select(test("^[0-9]{8}-[0-9]+-[0-9a-f]+$"))' |
+      sort | tail -1)
+  fi
+  echo "$latest"
 }
 
 for target in "${TARGETS[@]}"; do
