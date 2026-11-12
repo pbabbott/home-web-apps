@@ -50,7 +50,7 @@ storybook-static
 .docker
 
 test-results
-collected-*-results
+collected-*
 
 temp
 docker-volumes
