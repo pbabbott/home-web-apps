@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EnvironmentVariableType } from './decorators';
+import { parseBoolean } from './parse-boolean';
 import {
   appConfigKey,
   configSectionKey,
@@ -14,11 +15,13 @@ const getNextName = (configSectionPrefix: string, name: string) => {
 };
 
 const parseEnvironmentVariableValue = (
+  envName: string,
   envValue: string,
   envType: EnvironmentVariableType,
 ) => {
   if (envType === EnvironmentVariableType.NUMBER) return Number(envValue);
-  if (envType === EnvironmentVariableType.BOOLEAN) return Boolean(envValue);
+  if (envType === EnvironmentVariableType.BOOLEAN)
+    return parseBoolean(envName, envValue);
 
   return envValue;
 };
@@ -86,7 +89,7 @@ export const getEnvConfigStatus = (
       ) as EnvironmentVariableType;
 
       const value = isSet
-        ? parseEnvironmentVariableValue(envValue, envType)
+        ? parseEnvironmentVariableValue(envVarName, envValue, envType)
         : instance[key];
 
       results.push({
