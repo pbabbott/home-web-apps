@@ -12,7 +12,7 @@ runs:
   steps:
     - name: Collect test results
       run: |
-        tmp_dir="/tmp/${{ inputs.artifact-name }}"
+        tmp_dir="collected-${{ inputs.artifact-name }}"
         mkdir -p "$tmp_dir"
         while IFS= read -r f; do
           pkg=$(dirname "$f" | sed 's|^\./||;s|/test-results$||;s|/|-|g')
@@ -25,14 +25,15 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: /tmp/${{ inputs.artifact-name }}/
+        path: collected-${{ inputs.artifact-name }}/
         if-no-files-found: warn
 
     - name: Test Report
       uses: dorny/test-reporter@v2
       with:
         name: ${{ inputs.report-name }}
-        artifact: ${{ inputs.artifact-name }}
-        path: '*.xml'
+        # Read the files collected above straight from disk. The `artifact:` input re-downloads the artifact
+        # uploaded a moment ago and flaked with 404 (eventual consistency); the files are already on this runner.
+        path: collected-${{ inputs.artifact-name }}/*.xml
         reporter: jest-junit
         fail-on-empty: 'false'
