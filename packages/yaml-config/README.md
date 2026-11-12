@@ -78,6 +78,8 @@ class ApplicationConfig {
 }
 ```
 
+Boolean variables accept (case-insensitive) `true`, `1`, `yes`, `on` and `false`, `0`, `no`, `off`; an empty value is `false`. Any other value throws an error naming the variable, so a typo never silently picks a value.
+
 ### 2. Setup a YAML file
 
 Items in this file will take precedence over the default configuration
