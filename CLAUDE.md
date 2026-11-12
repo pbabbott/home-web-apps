@@ -16,6 +16,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
+- `harbor-cleanup` — Express service that deletes old Harbor image tags (cron + startup run; irreversible). Deployed by `home-kubernetes`; **read `home-kubernetes/docs/ai-reference/harbor-cleanup.md` before changing its tag rules or repo list**. Its `CLEANUP_DRY_RUN` is a strict boolean.
 - `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [`apps/backup-worker/CLAUDE.md`](./apps/backup-worker/CLAUDE.md).
 
 **Packages** (`/packages`):
@@ -23,7 +24,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `fui-components` — React component library (Storybook, Vite, Playwright/Vitest). See [`packages/fui-components/CLAUDE.md`](./packages/fui-components/CLAUDE.md).
 - `abctl` — oclif-based CLI for Docker builds, secrets generation, and repo tasks
 - `express` — Express.js wrapper with shared middleware setup
-- `yaml-config` — YAML/env config parser with TypeScript decorators
+- `yaml-config` — YAML/env config parser with TypeScript decorators. `BOOLEAN` env vars accept true/1/yes/on and false/0/no/off (case-insensitive, empty = false) and throw on anything else
 - `eslint-config` — Shared ESLint presets (`server`, `library`, `react-internal`)
 - `jest-presets` — Shared Jest configuration presets
 - `typescript-config` — Shared `tsconfig` presets
