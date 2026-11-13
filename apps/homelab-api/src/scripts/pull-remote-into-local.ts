@@ -37,6 +37,8 @@ interface RemoteHost {
   exporterType?: ExporterType;
   ipAddress: string;
   instance: string | null;
+  /** Absent when the remote predates the model3d column; null means no model. */
+  model3d?: string | null;
 }
 
 /**
@@ -305,6 +307,7 @@ async function run() {
         hostType: remoteHost.hostType,
         exporterType: remoteHost.exporterType,
         instance: remoteHost.instance,
+        model3d: remoteHost.model3d,
       });
       created += 1;
       console.log(`  + created ${remoteHost.name} (${remoteHost.ipAddress})`);
@@ -316,6 +319,7 @@ async function run() {
       hostType: remoteHost.hostType,
       exporterType: remoteHost.exporterType,
       instance: remoteHost.instance,
+      model3d: remoteHost.model3d,
     });
     updated += 1;
     console.log(`  ~ updated ${remoteHost.name} (${remoteHost.ipAddress})`);

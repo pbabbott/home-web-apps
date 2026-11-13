@@ -8,7 +8,7 @@ import { MOCK_NAS_BAYS } from '../viz/models/nas/mock-bays';
 const NasScene = dynamic(() => import('../viz/nas/NasScene'), {
   ssr: false,
   loading: () => (
-    <div className="h-[32rem] w-full bg-neutral-950" aria-hidden />
+    <div className="h-[32rem] w-full @5xl:h-full bg-neutral-950" aria-hidden />
   ),
 });
 
@@ -17,7 +17,10 @@ const Pironman4Scene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[32rem] w-full bg-neutral-950" aria-hidden />
+      <div
+        className="h-[32rem] w-full @5xl:h-full bg-neutral-950"
+        aria-hidden
+      />
     ),
   },
 );
@@ -27,7 +30,10 @@ const BeelinkSer5Scene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[32rem] w-full bg-neutral-950" aria-hidden />
+      <div
+        className="h-[32rem] w-full @5xl:h-full bg-neutral-950"
+        aria-hidden
+      />
     ),
   },
 );
@@ -55,7 +61,7 @@ export function Host3DModel({
 
   if (modelSlug === 'nas') {
     return (
-      <div className="h-[32rem] w-full border border-neutral-700">
+      <div className="h-[32rem] w-full @5xl:h-full border border-neutral-700">
         <NasScene
           deviceName={hostName}
           bays={MOCK_NAS_BAYS}
@@ -73,7 +79,7 @@ export function Host3DModel({
 
   if (modelSlug === 'pironman4') {
     return (
-      <div className="h-[32rem] w-full border border-neutral-700">
+      <div className="h-[32rem] w-full @5xl:h-full border border-neutral-700">
         <Pironman4Scene deviceName={hostName} status={status} />
       </div>
     );
@@ -81,7 +87,7 @@ export function Host3DModel({
 
   if (modelSlug === 'beelink-ser5') {
     return (
-      <div className="h-[32rem] w-full border border-neutral-700">
+      <div className="h-[32rem] w-full @5xl:h-full border border-neutral-700">
         <BeelinkSer5Scene deviceName={hostName} status={status} />
       </div>
     );
