@@ -122,7 +122,7 @@ function CpuMetricPanel({
   cpuMetrics: HostCpuMetrics | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+    <Panel color="default" className="flex flex-col gap-3 ">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           CPU
@@ -142,7 +142,7 @@ function MemoryMetricPanel({
   memoryMetrics: HostMemoryMetrics | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+    <Panel color="default" className="flex flex-col gap-3 ">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           Memory
@@ -162,7 +162,7 @@ function DiskIoMetricPanel({
   diskIoMetrics: HostDiskIoMetrics | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+    <Panel color="default" className="flex flex-col gap-3 ">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           Disk I/O
@@ -180,7 +180,7 @@ function DiskSpaceMetricPanel({
   diskSpace: HostDiskSpace | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+    <Panel color="default" className="flex flex-col gap-3 ">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           Disk Space
@@ -200,7 +200,7 @@ function TemperatureMetricPanel({
   temperatureMetrics: HostTemperatureMetrics | null;
 }) {
   return (
-    <Panel color="default" className="flex flex-col gap-3 sm:col-span-2">
+    <Panel color="default" className="flex flex-col gap-3 ">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="small" className="text-neutral-400">
           Temperature
@@ -262,7 +262,7 @@ function HostDetail({
   temperatureMetrics: HostTemperatureMetrics | null;
 }) {
   return (
-    <Panel color="default" className="flex h-full flex-col gap-6">
+    <div className="@container flex h-full flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <Typography variant="h5" component="h2" className="break-all">
           {host.name}
@@ -280,21 +280,25 @@ function HostDetail({
         {host.instance ? ` · ${host.instance}` : ''}
       </Typography>
 
-      {isKnownModelSlug(host.model3d) ? (
-        <Host3DModel
-          modelSlug={host.model3d as string}
-          hostName={host.name}
-          status={host.status}
-        />
-      ) : (
-        <div className="flex h-[32rem] w-full items-center justify-center border border-neutral-700 bg-gradient-to-br from-neutral-900 to-neutral-700">
-          <Typography variant="body2" className="text-neutral-500">
-            No image yet
-          </Typography>
+      {/* Mosaic: on wide screens (by container width) the 3D model takes a 2x2 block
+          and the metric panels tile around it; narrower screens stack as before. */}
+      <div className="grid grid-flow-dense grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @[90rem]:grid-cols-4">
+        <div className="min-h-[32rem] @2xl:col-span-2 @5xl:row-span-2">
+          {isKnownModelSlug(host.model3d) ? (
+            <Host3DModel
+              modelSlug={host.model3d as string}
+              hostName={host.name}
+              status={host.status}
+            />
+          ) : (
+            <div className="flex h-[32rem] w-full @5xl:h-full items-center justify-center border border-neutral-700 bg-gradient-to-br from-neutral-900 to-neutral-700">
+              <Typography variant="body2" className="text-neutral-500">
+                No image yet
+              </Typography>
+            </div>
+          )}
         </div>
-      )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <CpuMetricPanel
           value={formatPercent(host.cpuUsageRatio)}
           cpuMetrics={cpuMetrics}
@@ -306,7 +310,7 @@ function HostDetail({
           <TemperatureMetricPanel temperatureMetrics={temperatureMetrics} />
         )}
       </div>
-    </Panel>
+    </div>
   );
 }
 
