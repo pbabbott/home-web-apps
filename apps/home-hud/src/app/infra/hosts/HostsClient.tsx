@@ -427,14 +427,14 @@ export function HostsClient({
               temperatureMetrics={temperatureMetrics}
             />
           ) : (
-            <Panel color="default" className="flex h-full flex-col gap-2">
+            <div className="flex h-full flex-col gap-2">
               <Typography variant="h5" component="h2">
                 Host Detail
               </Typography>
               <Typography variant="body2" className="text-neutral-400">
                 Select a host to see details.
               </Typography>
-            </Panel>
+            </div>
           )}
         </div>
       </div>
