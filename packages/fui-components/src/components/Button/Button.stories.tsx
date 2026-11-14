@@ -118,3 +118,12 @@ export const SizeSmall: Story = {
   },
   render: (args: ButtonProps) => <Button {...args} />,
 };
+
+export const Disabled: Story = {
+  args: {
+    color: 'primary',
+    disabled: true,
+    children: 'Button',
+  },
+  render: (args: ButtonProps) => <Button {...args} />,
+};
