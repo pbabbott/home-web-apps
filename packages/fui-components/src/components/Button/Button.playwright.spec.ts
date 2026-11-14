@@ -107,4 +107,12 @@ test.describe('Button Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('disabled', async ({ page }) => {
+    await gotoStory(page, 'components-button--disabled');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-button--disabled.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

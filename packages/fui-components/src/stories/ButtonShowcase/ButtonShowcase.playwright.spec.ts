@@ -20,6 +20,14 @@ test.describe('ButtonShowcase Visual Regression Tests', () => {
     );
   });
 
+  test('disabled-colors-and-variants', async ({ page }) => {
+    await gotoStory(page, 'showcase-button--disabled-colors-and-variants');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'showcase-button--disabled-colors-and-variants.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
   test('sizes-and-variants', async ({ page }) => {
     await gotoStory(page, 'showcase-button--sizes-and-variants');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
