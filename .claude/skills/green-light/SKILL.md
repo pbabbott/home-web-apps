@@ -39,7 +39,7 @@ The self-hosted runners are flaky. **Default first move: re-run, don't edit.**
 ## 4. Fixing small things
 
 - Reproduce narrowly and locally when cheap: `pnpm lint`, `pnpm format`, a single package's unit test. See `docs/dev-guide-commands.md`.
-- **Never run Playwright snapshot/screenshot UI tests locally** (CLAUDE.md restriction). For UI-test failures, read the CI logs/artifacts; re-run if flaky; otherwise report.
+- For UI-test failures, read the CI logs/artifacts first; re-run if flaky; otherwise report.
 - Keep the fix minimal and in scope of the PR. No refactors, no new features, no dependency bumps, no workflow edits to dodge a failing check, no skipping/deleting tests, no `--no-verify`.
 - Commit with a conventional message (`fix:`/`style:`/`test:`/`chore:` plus scope) and the standard Co-Authored-By trailer, then `git push`. Never force-push.
 - After push, return to step 2 with the new SHA.
