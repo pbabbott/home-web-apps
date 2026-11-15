@@ -206,6 +206,13 @@ export {
   type TiledHexagonTile,
 } from './components/TiledHexagons/TiledHexagons';
 
+// Comparator
+export {
+  Comparator,
+  type ComparatorProps,
+  type ComparatorColor,
+} from './components/Comparator/Comparator';
+
 // SegmentedProgressBar
 export {
   SegmentedProgressBar,

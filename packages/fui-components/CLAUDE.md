@@ -51,6 +51,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 **Data display**
 
 - **Table** – Table/TableHead/TableBody/TableRow/Th/Td with color and size, plus `ScrollableTable`; tabular data.
+- **Comparator** – two value pills joined by a connector that breaks when they differ (color, `inSync`, label, captions); sync/status checks.
 - **SegmentedProgressBar** – step progress bar with shimmering current segment; multi-step flows.
 
 **Diagram** (React Flow based; used by diagram-maker)

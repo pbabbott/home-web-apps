@@ -67,8 +67,8 @@ const CORE_OPACITIES = makeRamp(NUM_CHUNKS, 0.04, 1.0);
 const GLOW_WIDTHS = makeRamp(NUM_CHUNKS, 3, 4); // outer halo px: tail=3, head=4
 const CORE_WIDTHS = makeRamp(NUM_CHUNKS, 1, 1.75); // bright core px: tail=1, head=1.75
 
-const CHUNK_DELAY_STEP =
-  (TRAIL_FRACTION / NUM_CHUNKS + CHUNK_SPACING) * SPARK_DURATION;
+const chunkDelayStep = (duration: number) =>
+  (TRAIL_FRACTION / NUM_CHUNKS + CHUNK_SPACING) * duration;
 
 export interface EdgeSparkEffectProps {
   edgePath: string;
@@ -84,6 +84,8 @@ export interface EdgeSparkEffectProps {
    * engines shows up as the dot visibly detaching from the trail. One-shot
    * mode instead drives both from a single requestAnimationFrame clock. */
   oneShot?: boolean;
+  /** Seconds for one pass along the path. Defaults to 1.3. */
+  duration?: number;
 }
 
 export function EdgeSparkEffect({
@@ -91,7 +93,9 @@ export function EdgeSparkEffect({
   id,
   color = 'primary',
   oneShot = false,
+  duration = SPARK_DURATION,
 }: EdgeSparkEffectProps) {
+  const CHUNK_DELAY_STEP = chunkDelayStep(duration);
   const measureRef = useRef<SVGPathElement>(null);
   const headCircleRef = useRef<SVGCircleElement>(null);
   const glowRefs = useRef<(SVGPathElement | null)[]>([]);
@@ -114,7 +118,7 @@ export function EdgeSparkEffect({
     const len = pathEl.getTotalLength();
     if (len <= 0) return;
 
-    const totalMs = SPARK_DURATION * 1000;
+    const totalMs = duration * 1000;
     // Same tail-to-head stagger as before, expressed as a start delay per
     // chunk: head-side (high i) chunks start first, dim tail (low i) chunks
     // start last and grow the trail in behind the head.
@@ -153,13 +157,13 @@ export function EdgeSparkEffect({
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [oneShot, edgePath]);
+  }, [oneShot, edgePath, duration]);
 
   const chunkPx = (pathLen * TRAIL_FRACTION) / NUM_CHUNKS;
   const gapPx = pathLen - chunkPx;
   const animName = `spark-trail-${id}`;
   const glowId = `spark-head-glow-${id}`;
-  const headBegin = `${-((TRAIL_FRACTION + (NUM_CHUNKS - 1) * CHUNK_SPACING) * SPARK_DURATION).toFixed(3)}s`;
+  const headBegin = `${-((TRAIL_FRACTION + (NUM_CHUNKS - 1) * CHUNK_SPACING) * duration).toFixed(3)}s`;
 
   return (
     <>
@@ -190,7 +194,7 @@ export function EdgeSparkEffect({
         // mounts. One-shot chunks are driven imperatively by the rAF loop
         // above instead (no CSS animation at all).
         const delay = `${-(i * CHUNK_DELAY_STEP).toFixed(4)}s`;
-        const anim = `${animName} ${SPARK_DURATION}s linear ${delay} infinite`;
+        const anim = `${animName} ${duration}s linear ${delay} infinite`;
         return (
           <g key={i}>
             <path
@@ -240,7 +244,7 @@ export function EdgeSparkEffect({
       >
         {!oneShot && (
           <animateMotion
-            dur={`${SPARK_DURATION}s`}
+            dur={`${duration}s`}
             repeatCount="indefinite"
             begin={headBegin}
           >
