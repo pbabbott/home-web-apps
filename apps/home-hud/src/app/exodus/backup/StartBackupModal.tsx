@@ -65,6 +65,13 @@ function PlanSummary({ plan }: { plan: BackupPlan }) {
           <Typography variant="body2">{value}</Typography>
         </div>
       ))}
+      {plan.summary.toCopy === 0 && (
+        <Typography variant="body2" className="text-warning-400">
+          Nothing to copy: every selected item is already on the destination,
+          excluded, or inside another approved folder, so a job cannot be
+          created.
+        </Typography>
+      )}
       {plan.warnings.map((warning) => (
         <Typography
           key={warning.code}

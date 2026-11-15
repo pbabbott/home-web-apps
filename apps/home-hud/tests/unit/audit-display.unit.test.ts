@@ -1,4 +1,6 @@
 import {
+  AUDIT_EVENT_LABELS,
+  auditEventLabel,
   auditUrl,
   describeAuditEvent,
   parseAuditEventType,
@@ -150,5 +152,50 @@ describe('auditUrl', () => {
     expect(params.get('source')).toBe('s1');
     expect(params.get('type')).toBe('queue_items.excluded');
     expect(params.get('before')).toBe('e9');
+  });
+});
+
+describe('backup events', () => {
+  it('describes a created job by item counts', () => {
+    expect(
+      describeAuditEvent(
+        event('backup_job.created', {
+          items: { queued: 2, skipped: 1 },
+          sourceDirName: 'elder-wand',
+        }),
+      ),
+    ).toBe('2 queued, 1 skipped: elder-wand');
+  });
+
+  it('describes a verified item and a failed attempt', () => {
+    expect(
+      describeAuditEvent(
+        event('backup_job_item.verified', { attemptCount: 1 }),
+      ),
+    ).toBe('attempt 1');
+    expect(
+      describeAuditEvent(
+        event('backup_job_item.failed', {
+          attemptCount: 3,
+          maxAttempts: 3,
+          error: 'boom',
+        }),
+      ),
+    ).toBe('attempt 3 of 3: boom');
+  });
+
+  it('never returns undefined, even without details', () => {
+    for (const type of Object.keys(AUDIT_EVENT_LABELS)) {
+      const text = describeAuditEvent(
+        event(type as AuditEvent['eventType'], null),
+      );
+      expect(typeof text).toBe('string');
+    }
+  });
+
+  it('labels an unknown event type as itself', () => {
+    expect(auditEventLabel('future.event' as AuditEvent['eventType'])).toBe(
+      'future.event',
+    );
   });
 });

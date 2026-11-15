@@ -21,6 +21,7 @@ import {
 } from '@abbottland/fui-components';
 import {
   AUDIT_EVENT_LABELS,
+  auditEventLabel,
   auditUrl,
   describeAuditEvent,
   parseAuditEventType,
@@ -160,7 +161,7 @@ export function AuditClient({
                     <Td>
                       <LocalDateTime iso={event.createdAt} seconds />
                     </Td>
-                    <Td>{AUDIT_EVENT_LABELS[event.eventType]}</Td>
+                    <Td>{auditEventLabel(event.eventType)}</Td>
                     <Td className="break-all">{describeAuditEvent(event)}</Td>
                     <Td>
                       {event.sourceId

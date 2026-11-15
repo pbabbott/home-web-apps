@@ -139,3 +139,12 @@ export const HoveredWithIcon: Story = {
     </OutlinedButton>
   ),
 };
+
+export const Disabled: Story = {
+  args: {
+    color: 'primary',
+    disabled: true,
+    children: 'Button',
+  },
+  render: (args: OutlinedButtonProps) => <OutlinedButton {...args} />,
+};

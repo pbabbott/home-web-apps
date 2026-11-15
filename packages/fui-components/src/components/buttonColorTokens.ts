@@ -26,79 +26,83 @@ interface ButtonColorTokens {
 
 export const buttonColorTokens: Record<ButtonColor, ButtonColorTokens> = {
   primary: {
-    contained: 'bg-primary-700 hover:bg-primary-800 group-hover:bg-primary-800',
+    contained:
+      'bg-primary-700 not-disabled:hover:bg-primary-800 not-disabled:group-hover:bg-primary-800',
     outlinedIdle: 'border-primary-500 text-primary-500',
     textIdle: 'text-primary-500',
     filled: 'bg-primary-500 text-black',
     filledOnHover:
-      'hover:bg-primary-500 hover:text-black group-hover:bg-primary-500 group-hover:text-black',
+      'not-disabled:hover:bg-primary-500 not-disabled:hover:text-black not-disabled:group-hover:bg-primary-500 not-disabled:group-hover:text-black',
   },
   secondary: {
     contained:
-      'bg-secondary-600 hover:bg-secondary-700 group-hover:bg-secondary-700',
+      'bg-secondary-600 not-disabled:hover:bg-secondary-700 not-disabled:group-hover:bg-secondary-700',
     outlinedIdle: 'border-secondary-500 text-secondary-500',
     textIdle: 'text-secondary-500',
     filled: 'bg-secondary-500 text-neutral-50',
     filledOnHover:
-      'hover:bg-secondary-500 hover:text-neutral-50 group-hover:bg-secondary-500 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-secondary-500 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-secondary-500 not-disabled:group-hover:text-neutral-50',
   },
   success: {
-    contained: 'bg-success-500 hover:bg-success-700 group-hover:bg-success-700',
+    contained:
+      'bg-success-500 not-disabled:hover:bg-success-700 not-disabled:group-hover:bg-success-700',
     outlinedIdle: 'border-success-400 text-success-400',
     textIdle: 'text-success-400',
     filled: 'bg-success-400 text-neutral-50',
     filledOnHover:
-      'hover:bg-success-400 hover:text-neutral-50 group-hover:bg-success-400 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-success-400 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-success-400 not-disabled:group-hover:text-neutral-50',
   },
   error: {
-    contained: 'bg-error-600 hover:bg-error-700 group-hover:bg-error-700',
+    contained:
+      'bg-error-600 not-disabled:hover:bg-error-700 not-disabled:group-hover:bg-error-700',
     outlinedIdle: 'border-error-400 text-error-400',
     textIdle: 'text-error-400',
     filled: 'bg-error-400 text-neutral-50',
     filledOnHover:
-      'hover:bg-error-400 hover:text-neutral-50 group-hover:bg-error-400 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-error-400 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-error-400 not-disabled:group-hover:text-neutral-50',
   },
   warning: {
-    contained: 'bg-warning-500 hover:bg-warning-600 group-hover:bg-warning-600',
+    contained:
+      'bg-warning-500 not-disabled:hover:bg-warning-600 not-disabled:group-hover:bg-warning-600',
     outlinedIdle: 'border-warning-400 text-warning-400',
     textIdle: 'text-warning-400',
     filled: 'bg-warning-400 text-neutral-50',
     filledOnHover:
-      'hover:bg-warning-400 hover:text-neutral-50 group-hover:bg-warning-400 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-warning-400 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-warning-400 not-disabled:group-hover:text-neutral-50',
   },
   'accent-purple': {
     contained:
-      'bg-accent-purple-500 hover:bg-accent-purple-600 group-hover:bg-accent-purple-600',
+      'bg-accent-purple-500 not-disabled:hover:bg-accent-purple-600 not-disabled:group-hover:bg-accent-purple-600',
     outlinedIdle: 'border-accent-purple-300 text-accent-purple-300',
     textIdle: 'text-accent-purple-300',
     filled: 'bg-accent-purple-300 text-neutral-50',
     filledOnHover:
-      'hover:bg-accent-purple-300 hover:text-neutral-50 group-hover:bg-accent-purple-300 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-accent-purple-300 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-accent-purple-300 not-disabled:group-hover:text-neutral-50',
   },
   'accent-falcon': {
     contained:
-      'bg-accent-falcon-600 hover:bg-accent-falcon-700 group-hover:bg-accent-falcon-700',
+      'bg-accent-falcon-600 not-disabled:hover:bg-accent-falcon-700 not-disabled:group-hover:bg-accent-falcon-700',
     outlinedIdle: 'border-accent-falcon-400 text-accent-falcon-400',
     textIdle: 'text-accent-falcon-400',
     filled: 'bg-accent-falcon-400 text-neutral-50',
     filledOnHover:
-      'hover:bg-accent-falcon-400 hover:text-neutral-50 group-hover:bg-accent-falcon-400 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-accent-falcon-400 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-accent-falcon-400 not-disabled:group-hover:text-neutral-50',
   },
   neutral: {
     contained:
-      'bg-neutral-900 hover:bg-neutral-700 group-hover:bg-neutral-700 border border-neutral-800',
+      'bg-neutral-900 not-disabled:hover:bg-neutral-700 not-disabled:group-hover:bg-neutral-700 border border-neutral-800',
     outlinedIdle: 'border-neutral-700 text-neutral-400',
     textIdle: 'text-neutral-400',
     filled: 'bg-neutral-700 text-neutral-50',
     filledOnHover:
-      'hover:bg-neutral-700 hover:text-neutral-50 group-hover:bg-neutral-700 group-hover:text-neutral-50',
+      'not-disabled:hover:bg-neutral-700 not-disabled:hover:text-neutral-50 not-disabled:group-hover:bg-neutral-700 not-disabled:group-hover:text-neutral-50',
   },
 };
 
 export type ButtonSize = 'default' | 'small';
 
 export const buttonBaseClasses =
-  'transition-colors font-monobit uppercase tracking-[.1em] cursor-pointer no-underline';
+  'transition-colors font-monobit uppercase tracking-[.1em] cursor-pointer no-underline disabled:cursor-not-allowed disabled:opacity-40';
 
 export const buttonSizeClasses: Record<ButtonSize, string> = {
   default: 'px-4 py-2 text-button',

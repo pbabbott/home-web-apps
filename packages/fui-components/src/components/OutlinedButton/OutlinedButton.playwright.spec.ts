@@ -107,4 +107,12 @@ test.describe('OutlinedButton Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('disabled', async ({ page }) => {
+    await gotoStory(page, 'components-outlinedbutton--disabled');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'components-outlinedbutton--disabled.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

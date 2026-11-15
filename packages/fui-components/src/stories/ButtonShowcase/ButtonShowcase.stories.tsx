@@ -30,6 +30,42 @@ const ButtonVariants = ({ color }: { color: ButtonColor }) => (
   </div>
 );
 
+const DisabledVariants = ({ color }: { color: ButtonColor }) => (
+  <div className="grid grid-cols-4 gap-4">
+    <div className="flex justify-center">
+      <Button color={color} disabled>
+        {color}
+      </Button>
+    </div>
+    <div className="flex justify-center">
+      <OutlinedButton color={color} disabled>
+        {color} Outlined
+      </OutlinedButton>
+    </div>
+    <div className="flex justify-center">
+      <OutlinedButton color={color} selected disabled>
+        {color} Selected
+      </OutlinedButton>
+    </div>
+    <div className="flex justify-center">
+      <Button color={color} variant="text" disabled>
+        {color} Text
+      </Button>
+    </div>
+  </div>
+);
+
+const ALL_COLORS: ButtonColor[] = [
+  'primary',
+  'secondary',
+  'success',
+  'error',
+  'warning',
+  'accent-purple',
+  'accent-falcon',
+  'neutral',
+];
+
 export const ColorsAndVariants: Story = {
   render: () => (
     <div className="grid gap-4 grid-auto-rows max-w-4xl">
@@ -41,6 +77,16 @@ export const ColorsAndVariants: Story = {
       <ButtonVariants color="accent-purple" />
       <ButtonVariants color="accent-falcon" />
       <ButtonVariants color="neutral" />
+    </div>
+  ),
+};
+
+export const DisabledColorsAndVariants: Story = {
+  render: () => (
+    <div className="grid gap-4 grid-auto-rows max-w-5xl">
+      {ALL_COLORS.map((color) => (
+        <DisabledVariants key={color} color={color} />
+      ))}
     </div>
   ),
 };
