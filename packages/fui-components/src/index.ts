@@ -101,6 +101,24 @@ export {
   type CardSize,
 } from './components/Card/Card';
 
+// DataList
+export {
+  DataList,
+  DataListRoot,
+  DataListItem,
+  DataListLabel,
+  DataListValue,
+  type DataListRootProps,
+  type DataListItemProps,
+  type DataListLabelProps,
+  type DataListValueProps,
+  type DataListColor,
+  type DataListSize,
+  type DataListOrientation,
+  type DataListAlign,
+  type DataListValueColor,
+} from './components/DataList/DataList';
+
 // DotGridBackground
 export {
   DotGridBackground,

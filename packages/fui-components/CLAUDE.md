@@ -51,6 +51,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 **Data display**
 
 - **Table** – Table/TableHead/TableBody/TableRow/Th/Td with color and size, plus `ScrollableTable`; tabular data.
+- **DataList** – Radix-Themes-style key/value readout (`DataList.Root/Item/Label/Value`; orientation, size, color; dim labels, bright state-colored values); metadata and status panels.
 - **Comparator** – two value pills joined by a connector that breaks when they differ (color, `inSync`, label, captions); sync/status checks.
 - **SegmentedProgressBar** – step progress bar with shimmering current segment; multi-step flows.
 
@@ -77,7 +78,7 @@ Always use the `Typography` component for all rendered text — no raw `<p>`, `<
 
 ## Storybook Coverage
 
-When adding or changing a prop on a component, add (or update) a story that demonstrates that prop's states. A prop with no story is undocumented and untested — the story suite should visually cover every prop a component accepts.
+When adding or changing a prop on a component, add (or update) a story that demonstrates that prop's states. A prop with no story is undocumented and untested — the story suite should visually cover every prop a component accepts. Per-prop stories live in the component's own `ComponentName.stories.tsx`, one story per prop state; showcases (below) are not where props are covered.
 
 ## Storybook Story Rules
 
@@ -92,3 +93,6 @@ When adding or changing a prop on a component, add (or update) a story that demo
 - Advanced, composed scenarios showing how components work together
 - May combine multiple fui-components freely
 - Use `TransparentPanel`, `Typography`, and other components as needed for realistic context
+- Keep a showcase to a few stories (typically 1-3), each a grid of many variations laid out side by side (see `ButtonShowcase`: `ColorsAndVariants`, `DisabledColorsAndVariants`, `SizesAndVariants`). Do not add one story per variation; add another panel to an existing grid, or a new grid story only for a genuinely different axis.
+- Size the grid so every variation fits its cell: a clipped or overflowing cell in the baseline is a layout bug in the story, not an accepted baseline.
+- After adding or removing stories, run `pnpm test:playwright:generate`, then `playwright test <showcase dir> --update-snapshots` for that showcase only. The generator also rewrites unrelated `*.playwright.spec.ts` files; revert those, and delete the baselines of removed stories.
