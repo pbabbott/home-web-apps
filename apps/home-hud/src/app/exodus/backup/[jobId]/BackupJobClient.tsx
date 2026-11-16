@@ -6,6 +6,7 @@ import { backupJobUrl, isActiveBackupJob } from '../../lib/backup-display';
 import { useAutoRefresh } from '../../lib/useAutoRefresh';
 import {
   cancelBackupJob,
+  createBackupJob,
   rerunUnresolvedBackupJob,
   retryBackupJobItem,
   retryFailedBackupItems,
@@ -111,6 +112,16 @@ export function BackupJobClient({
         busy={busy}
         onShowFiles={setEntriesFor}
         onRetry={(item) => void run(() => retryBackupJobItem(item.id))}
+        onRerun={(item) =>
+          item.inventoryItemId &&
+          void run(
+            () =>
+              createBackupJob(job.sourceId, job.destinationId, [
+                item.inventoryItemId as string,
+              ]),
+            (created) => router.push(backupJobUrl(created.id)),
+          )
+        }
       />
 
       {entriesFor && (

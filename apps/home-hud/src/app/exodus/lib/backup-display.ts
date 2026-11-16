@@ -175,6 +175,19 @@ export const canRetryBackupItem = (
   isActiveBackupJob(job) &&
   (item.status === 'failed' || item.status === 'blocked');
 
+/**
+ * A finished job's unresolved item is rerun as a new job for just that
+ * inventory item. Needs the inventory link, which is cleared if the inventory
+ * item was deleted.
+ */
+export const canRerunBackupItem = (
+  job: Pick<BackupJob, 'status'>,
+  item: Pick<BackupJobItem, 'status' | 'inventoryItemId'>,
+): boolean =>
+  !isActiveBackupJob(job) &&
+  item.inventoryItemId !== null &&
+  (item.status === 'failed' || item.status === 'blocked');
+
 export const canRetryFailedBackupItems = (
   job: Pick<BackupJob, 'status' | 'progress'>,
 ): boolean => isActiveBackupJob(job) && unresolved(job) > 0;
