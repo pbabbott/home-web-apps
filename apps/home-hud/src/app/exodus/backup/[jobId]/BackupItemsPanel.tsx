@@ -15,6 +15,7 @@ import {
 import {
   BACKUP_ITEM_STATUS_COLOR,
   backupJobUrl,
+  canRerunBackupItem,
   canRetryBackupItem,
 } from '../../lib/backup-display';
 import type {
@@ -38,6 +39,7 @@ interface Props {
   busy: boolean;
   onShowFiles: (item: BackupJobItem) => void;
   onRetry: (item: BackupJobItem) => void;
+  onRerun: (item: BackupJobItem) => void;
 }
 
 export function BackupItemsPanel({
@@ -48,6 +50,7 @@ export function BackupItemsPanel({
   busy,
   onShowFiles,
   onRetry,
+  onRerun,
 }: Props) {
   return (
     <Panel color="default" className="flex flex-col gap-4">
@@ -138,6 +141,15 @@ export function BackupItemsPanel({
                           onClick={() => onRetry(item)}
                         >
                           Retry
+                        </OutlinedButton>
+                      )}
+                      {canRerunBackupItem(job, item) && (
+                        <OutlinedButton
+                          size="small"
+                          disabled={busy}
+                          onClick={() => onRerun(item)}
+                        >
+                          Rerun
                         </OutlinedButton>
                       )}
                     </div>

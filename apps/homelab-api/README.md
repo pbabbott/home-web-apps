@@ -164,7 +164,7 @@ Step 4 doubles as a migration test: a migration set that cannot build the schema
 
 **What a refresh does not bring back**
 
-- Anything that exists only locally: backup destinations and jobs (prod has none until the feature ships), hand-made sources, local audit events.
+- Anything that exists only locally: hand-made sources, backup destinations and jobs created only locally, local audit events.
 - Rows are upserts, so re-running `local:pull-remote` without the wipe refreshes prod data but never deletes local-only rows.
 - The integration tests leave no rows behind when they pass; after a failed run, leftover `backup-host-*` hosts or destinations can break later runs. A refresh clears them.
 
