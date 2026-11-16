@@ -13,3 +13,15 @@ secrets:
       - secretName: exodus-credential-key
         secretKey: EXODUS_CREDENTIAL_KEY
         envVarName: EXODUS_CREDENTIAL_KEY
+      - secretName: mcp-arr
+        secretKey: SONARR_API_KEY
+        envVarName: SONARR_API_KEY
+      - secretName: mcp-arr
+        secretKey: RADARR_API_KEY
+        envVarName: RADARR_API_KEY
+      - secretName: qbittorrent.local.abbottland.io
+        secretKey: username
+        envVarName: QBITTORRENT_USERNAME
+      - secretName: qbittorrent.local.abbottland.io
+        secretKey: password
+        envVarName: QBITTORRENT_PASSWORD

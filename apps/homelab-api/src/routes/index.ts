@@ -13,6 +13,7 @@ import { skipAcknowledgementsRouter } from './discovery/skip-acknowledgements';
 import { sourcesRouter } from './discovery/sources';
 import { hostsRouter } from './hosts';
 import { mapsRouter } from './maps';
+import { mediaRouter } from './media';
 import { mcpRouter } from './mcp';
 import { podsRouter } from './pods';
 
@@ -24,6 +25,7 @@ export const createRouter = (): Router => {
   router.use(
     mapsRouter,
     hostsRouter,
+    mediaRouter,
     podsRouter,
     sourcesRouter,
     discoveryJobsRouter,

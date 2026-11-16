@@ -32,12 +32,13 @@ describe('MCP endpoint (/mcp)', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
-  it('lists all four tools', async () => {
+  it('lists all tools', async () => {
     const { tools } = await client.listTools();
     const names = tools.map((tool) => tool.name).sort();
     expect(names).toEqual([
       'get_ports',
       'get_public_ip',
+      'get_services',
       'get_status',
       'sync_ports',
     ]);

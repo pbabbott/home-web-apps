@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
 import { getPortsOperation } from './controllers/get-ports';
 import { getPublicIpOperation } from './controllers/get-public-ip';
+import { getServicesOperation } from './controllers/get-services';
 import { getStatusOperation } from './controllers/get-status';
 import { doSyncOperation } from './controllers/sync-ports';
 import { SyncCaller } from './data';
@@ -17,6 +18,8 @@ const statusRecordSchema = z.object({
   lastAttempt: z.coerce.date().optional(),
   lastAttemptBy: syncCallerSchema.optional(),
   mostRecentAttemptSuccessful: z.boolean().optional(),
+  cronExpression: z.string().optional(),
+  cronDescription: z.string().optional(),
 });
 
 export const openApiSpec = createDocument({
@@ -90,15 +93,42 @@ export const openApiSpec = createDocument({
             description: 'Public IP lookup succeeded',
             content: {
               'application/json': {
-                schema: z.object({ result: z.object({ ip: z.string() }) }),
+                schema: z.object({
+                  result: z.object({
+                    ip: z.string(),
+                    region: z.string().nullable(),
+                    country: z.string().nullable(),
+                    city: z.string().nullable(),
+                  }),
+                }),
               },
             },
           },
           '503': {
-            description: 'Could not reach ipify',
+            description: 'Could not get the public IP from Gluetun or ipify',
             content: {
               'application/json': {
                 schema: z.object({ message: z.string() }),
+              },
+            },
+          },
+        },
+      },
+    },
+    '/status/services': {
+      get: {
+        summary: getServicesOperation.summary,
+        responses: {
+          '200': {
+            description: 'Whether each service answered with a 200',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  result: z.object({
+                    gluetun: z.boolean(),
+                    qbittorrent: z.boolean(),
+                  }),
+                }),
               },
             },
           },

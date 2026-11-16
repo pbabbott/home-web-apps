@@ -43,6 +43,7 @@ export function Nav() {
   const videoActive = pathname.startsWith('/video');
   const infraActive = pathname.startsWith('/infra');
   const exodusActive = pathname.startsWith('/exodus');
+  const mediaActive = pathname.startsWith('/media');
 
   return (
     <div className="bg-neutral-900 px-6 pt-4">
@@ -95,6 +96,9 @@ export function Nav() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        <NavItem as="a" href="/media" active={mediaActive}>
+          Media
+        </NavItem>
       </NavBar>
     </div>
   );

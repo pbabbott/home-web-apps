@@ -3,10 +3,12 @@ import { getForwardedPort } from './api/gluetun/gluetun';
 import { getApplicationPreferences, login } from './api/qbittorrent';
 import { getPortsOperation } from './controllers/get-ports';
 import { getPublicIpOperation } from './controllers/get-public-ip';
+import { getServicesOperation } from './controllers/get-services';
 import { getStatusOperation } from './controllers/get-status';
 import { doSyncOperation } from './controllers/sync-ports';
 import { getStatusRecord, SyncCaller } from './data';
 import { showPublicIp } from './services/publicIpService';
+import { checkServices } from './services/serviceStatusService';
 import { syncPorts } from './services/syncService';
 
 const textResult = (value: unknown, isError = false) => ({
@@ -88,6 +90,14 @@ export const createMcpServer = (): McpServer => {
         return textResult({ message: 'Could not get public IP' }, true);
       return textResult({ result: publicIP });
     },
+  );
+
+  server.registerTool(
+    'get_services',
+    {
+      description: toolDescription(getServicesOperation),
+    },
+    async () => textResult({ result: await checkServices() }),
   );
 
   return server;

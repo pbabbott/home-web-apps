@@ -15,13 +15,17 @@ import {
   Panel,
   Scrollbar,
   TiledHexagons,
-  type TiledHexagonTile,
   Typography,
 } from '@abbottland/fui-components';
 import { PanZoomCanvas } from './PanZoomCanvas';
 import { PodCpuChart } from './PodCpuChart';
 import { PodMemoryChart } from './PodMemoryChart';
 import { getPodCpuMetrics, getPodMemoryMetrics } from './lib/actions';
+import {
+  MAX_HORIZONTAL_GROUPED,
+  formatPercent,
+  itemToTile,
+} from './lib/pod-tiles';
 import type {
   GroupDimension,
   MapMetric,
@@ -52,45 +56,12 @@ const STATUS_BADGE_COLOR: Record<PodMapItem['status'], BadgeColor> = {
   unknown: 'dark',
 };
 
-const MAX_HORIZONTAL_GROUPED = 8;
-
 // Floor for the hex canvas's measured height — keeps it from collapsing to a
 // squished sliver on narrow/short mobile viewports.
 const MIN_HEX_PANEL_HEIGHT = 480;
 // main's own p-8 (2rem) bottom padding, left below the row so it doesn't
 // get clipped by the row's measured height.
 const MAIN_BOTTOM_PADDING = 32;
-
-function formatPercent(ratio: number | null): string {
-  return ratio === null ? 'n/a' : `${Math.round(ratio * 100)}%`;
-}
-
-const TILE_LABEL_MAX_LENGTH = 14;
-
-/** Keeps long k8s names (controller/operator pods especially) from overflowing the hex and overlapping neighbors — the full name is still shown in the detail panel. */
-function truncateTileLabel(label: string): string {
-  return label.length > TILE_LABEL_MAX_LENGTH
-    ? `${label.slice(0, TILE_LABEL_MAX_LENGTH - 1)}…`
-    : label;
-}
-
-/** The ratio that drives a tile's color for the currently selected metric — cpu, memory, or the worse of the two when "both" is selected. */
-function primaryRatio(item: PodMapItem, metric: MapMetric): number | null {
-  if (metric === 'cpu') return item.metrics.cpu.ratio;
-  if (metric === 'memory') return item.metrics.memory.ratio;
-  if (metric === 'restarts') return item.metrics.restarts.ratio;
-
-  const { cpu, memory } = item.metrics;
-  if (cpu.ratio === null) return memory.ratio;
-  if (memory.ratio === null) return cpu.ratio;
-  return Math.max(cpu.ratio, memory.ratio);
-}
-
-/** Restarts reads better as a raw count than as a percent-of-worst-pod. */
-function formatLowerLabel(item: PodMapItem, metric: MapMetric): string {
-  if (metric === 'restarts') return `${item.metrics.restarts.count}`;
-  return formatPercent(primaryRatio(item, metric));
-}
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -103,21 +74,6 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
       </Typography>
     </div>
   );
-}
-
-function itemToTile(
-  item: PodMapItem,
-  metric: MapMetric,
-  selectedId: string | null,
-  onSelect: (item: PodMapItem) => void,
-): TiledHexagonTile {
-  return {
-    label: truncateTileLabel(item.workload?.name ?? item.label),
-    lowerLabel: formatLowerLabel(item, metric),
-    status: item.status,
-    active: item.id === selectedId,
-    onClick: () => onSelect(item),
-  };
 }
 
 function DetailPanel({

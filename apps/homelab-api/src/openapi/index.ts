@@ -16,6 +16,7 @@ import { sourcesPaths } from './discovery/sources';
 import { healthPaths } from './health';
 import { hostsPaths } from './hosts';
 import { mapsPaths } from './maps';
+import { mediaPaths } from './media';
 import { podsPaths } from './pods';
 
 /**
@@ -65,12 +66,14 @@ export const openApiSpec = createDocument({
     'Audit Events',
     'Hosts',
     'Maps',
+    'Media',
     'Pods',
     'Health',
   ].map((name) => ({ name })),
   paths: {
     ...tagged('Health', healthPaths),
     ...tagged('Maps', mapsPaths),
+    ...tagged('Media', mediaPaths),
     ...tagged('Pods', podsPaths),
     ...tagged('Sources', sourcesPaths),
     ...tagged('Sources', sourceConnectionsPaths),

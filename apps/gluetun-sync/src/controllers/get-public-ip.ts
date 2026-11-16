@@ -5,7 +5,8 @@ import { showPublicIp } from '../services/publicIpService';
 // handler actually does. Shared by the OpenAPI spec (src/openapi.ts) and the
 // matching MCP tool (src/mcp.ts).
 export const getPublicIpOperation = {
-  summary: 'Get the current public IP, as reported by ipify',
+  summary:
+    'Get the current public IP and its region, country and city, as reported by Gluetun (ipify is the fallback for the IP)',
 };
 
 export const getPublicIp = async (req: Request, res: Response) => {

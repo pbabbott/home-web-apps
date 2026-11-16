@@ -2,12 +2,13 @@ import cron from 'node-cron';
 import cronstrue from 'cronstrue';
 import { syncPorts } from './services/syncService';
 import { config } from './config';
-import { logCronEnd, logCronStart, SyncCaller } from './data';
+import { logCronEnd, logCronSchedule, logCronStart, SyncCaller } from './data';
 
 export const startCron = () => {
   // read cron config
   const cronExpression = config.cronExpression;
   const friendlyExpression = cronstrue.toString(cronExpression);
+  logCronSchedule(cronExpression, friendlyExpression);
   console.log(
     `Cron is configured to run ${friendlyExpression} for TZ: ${config.TZ}`,
   );
