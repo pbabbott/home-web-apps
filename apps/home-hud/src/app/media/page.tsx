@@ -7,6 +7,7 @@ import {
   getStatus,
 } from './lib/gluetun-sync-api';
 import { getHomeIp } from './lib/home-ip';
+import { getMediaDiskSpace } from './lib/homelab-api';
 
 export const metadata = {
   title: 'Media | Home HUD',
@@ -21,12 +22,12 @@ function valueOrNull<T>(
   what: string,
 ): T | null {
   if (result.status === 'fulfilled') return result.value;
-  console.error(`Failed to load ${what} from gluetun-sync:`, result.reason);
+  console.error(`Failed to load ${what} from its source:`, result.reason);
   return null;
 }
 
 export default async function MediaPage() {
-  const [ports, status, publicIp, services, syncHealthy, homeIp] =
+  const [ports, status, publicIp, services, syncHealthy, homeIp, diskSpace] =
     await Promise.allSettled([
       getPorts(),
       getStatus(),
@@ -34,6 +35,7 @@ export default async function MediaPage() {
       getServices(),
       getHealth(),
       getHomeIp(),
+      getMediaDiskSpace(),
     ]);
 
   return (
@@ -44,6 +46,7 @@ export default async function MediaPage() {
       services={valueOrNull(services, 'service status')}
       syncHealthy={valueOrNull(syncHealthy, 'health') ?? false}
       homeIp={valueOrNull(homeIp, 'home ip')}
+      diskSpace={valueOrNull(diskSpace, 'disk space')}
     />
   );
 }

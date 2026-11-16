@@ -1,18 +1,16 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button, Comparator, Typography } from '@abbottland/fui-components';
+import { Typography } from '@abbottland/fui-components';
 import type {
   PortsResult,
   PublicIp,
   ServicesResult,
   SyncStatus,
 } from './lib/gluetun-sync-api';
-import { IpSettings } from './components/IpSettings';
-import { ServiceStatus } from './components/ServiceStatus';
-import { SyncSections } from './components/SyncSections';
-import { syncPorts, type SyncPortsResult } from './lib/actions';
+import type { MediaDiskSpace } from './lib/homelab-api';
+import { DiskSpace } from './components/DiskSpace';
+import { Placeholder } from './components/Placeholder';
+import { VpnPortSync } from './VpnPortSync';
 
 interface MediaClientProps {
   ports: PortsResult | null;
@@ -21,82 +19,35 @@ interface MediaClientProps {
   services: ServicesResult | null;
   syncHealthy: boolean;
   homeIp: string | null;
+  diskSpace: MediaDiskSpace | null;
 }
 
-function toPort(port: string | null | undefined): string | null {
-  return port && port !== '0' ? port : null;
-}
-
-export function MediaClient({
-  ports,
-  status,
-  publicIp,
-  services,
-  syncHealthy,
-  homeIp,
-}: MediaClientProps) {
-  // Port "0" means "no port" (gluetun has no forwarded port yet, qBittorrent is
-  // on a random port), so it must not count as a match.
-  const gluetun = toPort(ports?.gluetunPort);
-  const qbit = toPort(ports?.qbitTorrentPort);
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [syncResult, setSyncResult] = useState<SyncPortsResult | null>(null);
-
-  const handleSync = () => {
-    startTransition(async () => {
-      setSyncResult(await syncPorts());
-      router.refresh();
-    });
-  };
-
-  const inSync = gluetun !== null && qbit !== null && gluetun === qbit;
-
+export function MediaClient({ diskSpace, ...vpn }: MediaClientProps) {
   return (
     <main className="min-h-screen p-8">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
-        <Typography variant="h2" component="h2">
-          VPN Port Sync
-        </Typography>
-        <section className="flex flex-col gap-4">
-          <Typography variant="h3" component="h3">
-            Ports
-          </Typography>
-          {ports === null ? (
-            <Typography variant="body2" className="text-neutral-400">
-              Port status unavailable.
+      <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-10 p-6 lg:grid-cols-3">
+        <VpnPortSync {...vpn} />
+
+        <div className="flex flex-col gap-10">
+          <section className="flex flex-col gap-4">
+            <Typography variant="h2" component="h2">
+              Disk Space
             </Typography>
-          ) : (
-            <Comparator
-              valueA={gluetun ?? 'unknown'}
-              valueB={qbit ?? 'unknown'}
-              captionA="Gluetun"
-              captionB="qBittorrent"
-              label={inSync ? 'Synchronized' : 'Out of sync'}
-              inSync={inSync}
-              active
-              className="pt-8"
-            />
-          )}
-          <div className="flex items-center gap-4">
-            <Button size="small" onClick={handleSync} disabled={pending}>
-              {pending ? 'Syncing…' : 'Sync ports'}
-            </Button>
-            {syncResult && (
-              <Typography
-                variant="body2"
-                className={
-                  syncResult.success ? 'text-neutral-400' : 'text-error-400'
-                }
-              >
-                {syncResult.message}
-              </Typography>
-            )}
-          </div>
-        </section>
-        <IpSettings publicIp={publicIp} homeIp={homeIp} />
-        <ServiceStatus syncHealthy={syncHealthy} services={services} />
-        <SyncSections status={status} />
+            <DiskSpace diskSpace={diskSpace} />
+          </section>
+          <Placeholder title="Service Statuses" level="h2" />
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <Typography variant="h2" component="h2">
+            Downloads
+          </Typography>
+          <Placeholder title="Summary" />
+          <Placeholder title="qBittorrent Stats" />
+          <Placeholder title="Sonarr Stats" />
+          <Placeholder title="Radarr Stats" />
+          <Placeholder title="Plex Stats" />
+        </div>
       </div>
     </main>
   );

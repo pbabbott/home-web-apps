@@ -68,3 +68,24 @@ export async function getNodeDiskSpace(instance: string): Promise<{
 
   return { size, avail };
 }
+
+/**
+ * Size/available bytes (an instant snapshot) of a single mountpoint, picked
+ * by the host's `nickname` label rather than its scrape address — for
+ * fixed, well-known mounts such as the NAS media share. Both are `null`
+ * when Prometheus has no matching series.
+ */
+export async function getMountpointSpace(
+  nickname: string,
+  mountpoint: string,
+): Promise<{ size: number | null; avail: number | null }> {
+  const gauge = (metric: string) =>
+    `max(node_filesystem_${metric}_bytes{${NODE_EXPORTER_JOB_MATCH}, nickname="${nickname}", mountpoint="${mountpoint}"})`;
+
+  const [size, avail] = await Promise.all([
+    queryInstant(gauge('size')),
+    queryInstant(gauge('avail')),
+  ]);
+
+  return { size: size[0]?.value ?? null, avail: avail[0]?.value ?? null };
+}

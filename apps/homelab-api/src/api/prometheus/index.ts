@@ -8,6 +8,10 @@ export {
 export { getNodeUp, getNodeCpuUsage } from './node-fleet';
 export { getNodeCpuSeries } from './node-cpu';
 export { getNodeMemorySeries } from './node-memory';
-export { getNodeDiskIoSeries, getNodeDiskSpace } from './node-disk';
+export {
+  getNodeDiskIoSeries,
+  getNodeDiskSpace,
+  getMountpointSpace,
+} from './node-disk';
 export { getNodeTemperatureSeries } from './node-temperature';
 export { EXPORTERS, type ExporterQueries } from './exporters';
