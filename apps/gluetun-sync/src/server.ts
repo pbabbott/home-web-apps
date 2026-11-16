@@ -9,6 +9,7 @@ import {
 import { config } from './config';
 import { getPorts } from './controllers/get-ports';
 import { getPublicIp } from './controllers/get-public-ip';
+import { getServices } from './controllers/get-services';
 import { getStatus } from './controllers/get-status';
 import { doSync } from './controllers/sync-ports';
 import { createMcpServer } from './mcp';
@@ -62,7 +63,8 @@ export const createServer = (): Express => {
     .post('/sync', doSync)
     .get('/status', getStatus)
     .get('/status/public-ip', getPublicIp)
-    .get('/status/ports', getPorts);
+    .get('/status/ports', getPorts)
+    .get('/status/services', getServices);
 
   app
     .post(MCP_ROUTE, handleMcpRequest)

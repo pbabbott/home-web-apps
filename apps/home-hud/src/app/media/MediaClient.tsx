@@ -3,18 +3,38 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Comparator, Typography } from '@abbottland/fui-components';
-import type { PortsResult } from './lib/gluetun-sync-api';
+import type {
+  PortsResult,
+  PublicIp,
+  ServicesResult,
+  SyncStatus,
+} from './lib/gluetun-sync-api';
+import { IpSettings } from './components/IpSettings';
+import { ServiceStatus } from './components/ServiceStatus';
+import { SyncSections } from './components/SyncSections';
 import { syncPorts, type SyncPortsResult } from './lib/actions';
 
 interface MediaClientProps {
   ports: PortsResult | null;
+  status: SyncStatus | null;
+  publicIp: PublicIp | null;
+  services: ServicesResult | null;
+  syncHealthy: boolean;
+  homeIp: string | null;
 }
 
 function toPort(port: string | null | undefined): string | null {
   return port && port !== '0' ? port : null;
 }
 
-export function MediaClient({ ports }: MediaClientProps) {
+export function MediaClient({
+  ports,
+  status,
+  publicIp,
+  services,
+  syncHealthy,
+  homeIp,
+}: MediaClientProps) {
   // Port "0" means "no port" (gluetun has no forwarded port yet, qBittorrent is
   // on a random port), so it must not count as a match.
   const gluetun = toPort(ports?.gluetunPort);
@@ -74,6 +94,9 @@ export function MediaClient({ ports }: MediaClientProps) {
             )}
           </div>
         </section>
+        <IpSettings publicIp={publicIp} homeIp={homeIp} />
+        <ServiceStatus syncHealthy={syncHealthy} services={services} />
+        <SyncSections status={status} />
       </div>
     </main>
   );

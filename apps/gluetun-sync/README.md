@@ -21,7 +21,7 @@ The gluetun sync application is an Express.js API that is meant to connect two s
 
 ## MCP
 
-In addition to the REST routes above, `gluetun-sync` exposes the same four operations as MCP (Model Context Protocol) tools over Streamable HTTP at `POST /mcp`, so MCP-capable clients (Claude Desktop, other agents) can call them directly: `sync_ports`, `get_status`, `get_ports`, and `get_public_ip`. The endpoint is stateless — no session store, no sticky sessions required — which fits a horizontally-scaled deployment. `GET`/`DELETE` on `/mcp` are not supported and return `405`.
+In addition to the REST routes above, `gluetun-sync` exposes the same operations as MCP (Model Context Protocol) tools over Streamable HTTP at `POST /mcp`, so MCP-capable clients (Claude Desktop, other agents) can call them directly: `sync_ports`, `get_status`, `get_ports`, `get_public_ip`, and `get_services`. The endpoint is stateless — no session store, no sticky sessions required — which fits a horizontally-scaled deployment. `GET`/`DELETE` on `/mcp` are not supported and return `405`.
 
 ## Development Procedure
 

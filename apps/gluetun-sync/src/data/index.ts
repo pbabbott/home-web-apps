@@ -10,6 +10,8 @@ export type StatusRecord = {
   lastAttempt?: Date;
   lastAttemptBy?: SyncCaller;
   mostRecentAttemptSuccessful?: boolean;
+  cronExpression?: string;
+  cronDescription?: string;
 };
 
 export enum SyncCaller {
@@ -45,4 +47,12 @@ export const logCronStart = () => {
 
 export const logCronEnd = () => {
   myDb.lastCronEnd = new Date();
+};
+
+export const logCronSchedule = (
+  cronExpression: string,
+  cronDescription: string,
+) => {
+  myDb.cronExpression = cronExpression;
+  myDb.cronDescription = cronDescription;
 };
