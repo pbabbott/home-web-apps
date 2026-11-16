@@ -8,9 +8,17 @@ import type {
   SyncStatus,
 } from './lib/gluetun-sync-api';
 import type { PodMapItem } from '../infra/cluster-map/lib/homelab-api';
-import type { MediaDiskSpace } from './lib/homelab-api';
+import type {
+  ArrStats as ArrStatsData,
+  DownloadsSummary as DownloadsSummaryData,
+  MediaDiskSpace,
+  QbittorrentStats as QbittorrentStatsData,
+} from './lib/homelab-api';
+import { ArrStats } from './components/ArrStats';
 import { DiskSpace } from './components/DiskSpace';
+import { DownloadsSummary } from './components/DownloadsSummary';
 import { GluetunSyncLogs } from './components/GluetunSyncLogs';
+import { QbittorrentStats } from './components/QbittorrentStats';
 import { ServiceMap } from './components/ServiceMap';
 import { Placeholder } from './components/Placeholder';
 import { VpnPortSync } from './VpnPortSync';
@@ -25,12 +33,19 @@ interface MediaClientProps {
   diskSpace: MediaDiskSpace | null;
   serviceMapItems: PodMapItem[] | null;
   logLines: string[] | null;
+  downloads: {
+    summary: DownloadsSummaryData | null;
+    qbittorrent: QbittorrentStatsData | null;
+    sonarr: ArrStatsData | null;
+    radarr: ArrStatsData | null;
+  };
 }
 
 export function MediaClient({
   diskSpace,
   serviceMapItems,
   logLines,
+  downloads,
   ...vpn
 }: MediaClientProps) {
   return (
@@ -60,10 +75,10 @@ export function MediaClient({
           <Typography variant="h2" component="h2">
             Downloads
           </Typography>
-          <Placeholder title="Summary" />
-          <Placeholder title="qBittorrent Stats" />
-          <Placeholder title="Sonarr Stats" />
-          <Placeholder title="Radarr Stats" />
+          <DownloadsSummary summary={downloads.summary} />
+          <QbittorrentStats stats={downloads.qbittorrent} />
+          <ArrStats name="Sonarr" stats={downloads.sonarr} />
+          <ArrStats name="Radarr" stats={downloads.radarr} />
           <Placeholder title="Plex Stats" />
         </div>
       </div>

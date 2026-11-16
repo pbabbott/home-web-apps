@@ -12,6 +12,7 @@ Routes:
 - `GET /maps/:type` — cluster topology map (`nodes`/`pods`) for the `/infra/cluster-map` page.
 - `GET /media/disk-space` — usage of the NAS media share (`/share/Media` on `room_of_requirement`) from Prometheus, for the `/media` page.
 - `GET /media/gluetun-sync/logs` — recent log lines of the `gluetun-sync` container (media namespace) via the Kubernetes API; `?tail=` (default 200, max 1000). Needs `pods/log` RBAC.
+- `GET /media/qbittorrent`, `/media/sonarr`, `/media/radarr` — active downloads and speeds; queue size and the most recently imported episode/movie. `GET /media/downloads/summary` composes them with free disk space. Each answers 503 when its credentials aren't set and 502 when the service can't be reached (variables in `sample.env`).
 - `GET /hosts` — list hosts, optionally filtered by `?type=physical|virtual`. Each host is enriched with a live `status` (online/offline/unknown) and `cpuUsageRatio` from Prometheus.
 - `POST /hosts` — register a new host (`name`, `ipAddress` required; `hostType` defaults to `physical`; `instance` is the Prometheus scrape-target address, e.g. `192.168.6.24:9100`).
 - `GET /hosts/:id` — fetch a single host.

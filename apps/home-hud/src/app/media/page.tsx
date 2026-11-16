@@ -7,7 +7,14 @@ import {
   getStatus,
 } from './lib/gluetun-sync-api';
 import { getHomeIp } from './lib/home-ip';
-import { getGluetunSyncLogs, getMediaDiskSpace } from './lib/homelab-api';
+import {
+  getDownloadsSummary,
+  getGluetunSyncLogs,
+  getMediaDiskSpace,
+  getQbittorrentStats,
+  getRadarrStats,
+  getSonarrStats,
+} from './lib/homelab-api';
 import { getPodMap } from '../infra/cluster-map/lib/homelab-api';
 
 export const metadata = {
@@ -41,6 +48,10 @@ export default async function MediaPage() {
     diskSpace,
     podMap,
     logs,
+    downloadsSummary,
+    qbittorrent,
+    sonarr,
+    radarr,
   ] = await Promise.allSettled([
     getPorts(),
     getStatus(),
@@ -51,6 +62,10 @@ export default async function MediaPage() {
     getMediaDiskSpace(),
     getPodMap('both'),
     getGluetunSyncLogs(),
+    getDownloadsSummary(),
+    getQbittorrentStats(),
+    getSonarrStats(),
+    getRadarrStats(),
   ]);
 
   return (
@@ -68,6 +83,12 @@ export default async function MediaPage() {
         ) ?? null
       }
       logLines={valueOrNull(logs, 'gluetun-sync logs')}
+      downloads={{
+        summary: valueOrNull(downloadsSummary, 'the downloads summary'),
+        qbittorrent: valueOrNull(qbittorrent, 'qBittorrent stats'),
+        sonarr: valueOrNull(sonarr, 'Sonarr stats'),
+        radarr: valueOrNull(radarr, 'Radarr stats'),
+      }}
     />
   );
 }
