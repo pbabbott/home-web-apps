@@ -24,3 +24,20 @@ export async function getMediaDiskSpace(): Promise<MediaDiskSpace> {
 
   return (await res.json()) as MediaDiskSpace;
 }
+
+/** The last `tail` gluetun-sync log lines (oldest first), read through homelab-api's Kubernetes client. */
+export async function getGluetunSyncLogs(tail = 200): Promise<string[]> {
+  const res = await fetch(
+    `${HOMELAB_API_URL}/media/gluetun-sync/logs?tail=${tail}`,
+    { cache: 'no-store' },
+  );
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(
+      `homelab-api GET /media/gluetun-sync/logs returned ${res.status}: ${body}`,
+    );
+  }
+
+  return ((await res.json()) as { lines: string[] }).lines;
+}

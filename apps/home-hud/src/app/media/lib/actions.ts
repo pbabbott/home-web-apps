@@ -1,5 +1,7 @@
 'use server';
 
+import { getGluetunSyncLogs } from './homelab-api';
+
 const GLUETUN_SYNC_URL =
   process.env.GLUETUN_SYNC_URL ?? 'http://localhost:4000';
 
@@ -29,5 +31,15 @@ export async function syncPorts(): Promise<SyncPortsResult> {
   } catch (err) {
     console.error('Failed to call gluetun-sync POST /sync:', err);
     return { success: false, message: 'Could not reach gluetun-sync' };
+  }
+}
+
+/** Re-reads the gluetun-sync logs for the Refresh button; `null` when they can't be loaded. */
+export async function refreshGluetunSyncLogs(): Promise<string[] | null> {
+  try {
+    return await getGluetunSyncLogs();
+  } catch (err) {
+    console.error('Failed to load gluetun-sync logs from homelab-api:', err);
+    return null;
   }
 }

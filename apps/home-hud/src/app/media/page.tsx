@@ -7,7 +7,8 @@ import {
   getStatus,
 } from './lib/gluetun-sync-api';
 import { getHomeIp } from './lib/home-ip';
-import { getMediaDiskSpace } from './lib/homelab-api';
+import { getGluetunSyncLogs, getMediaDiskSpace } from './lib/homelab-api';
+import { getPodMap } from '../infra/cluster-map/lib/homelab-api';
 
 export const metadata = {
   title: 'Media | Home HUD',
@@ -22,21 +23,35 @@ function valueOrNull<T>(
   what: string,
 ): T | null {
   if (result.status === 'fulfilled') return result.value;
-  console.error(`Failed to load ${what} from its source:`, result.reason);
+  console.error(
+    `Failed to load ${what} from a backing service:`,
+    result.reason,
+  );
   return null;
 }
 
 export default async function MediaPage() {
-  const [ports, status, publicIp, services, syncHealthy, homeIp, diskSpace] =
-    await Promise.allSettled([
-      getPorts(),
-      getStatus(),
-      getPublicIp(),
-      getServices(),
-      getHealth(),
-      getHomeIp(),
-      getMediaDiskSpace(),
-    ]);
+  const [
+    ports,
+    status,
+    publicIp,
+    services,
+    syncHealthy,
+    homeIp,
+    diskSpace,
+    podMap,
+    logs,
+  ] = await Promise.allSettled([
+    getPorts(),
+    getStatus(),
+    getPublicIp(),
+    getServices(),
+    getHealth(),
+    getHomeIp(),
+    getMediaDiskSpace(),
+    getPodMap('both'),
+    getGluetunSyncLogs(),
+  ]);
 
   return (
     <MediaClient
@@ -47,6 +62,12 @@ export default async function MediaPage() {
       syncHealthy={valueOrNull(syncHealthy, 'health') ?? false}
       homeIp={valueOrNull(homeIp, 'home ip')}
       diskSpace={valueOrNull(diskSpace, 'disk space')}
+      serviceMapItems={
+        valueOrNull(podMap, 'the cluster map')?.items.filter(
+          (item) => item.namespace === 'media',
+        ) ?? null
+      }
+      logLines={valueOrNull(logs, 'gluetun-sync logs')}
     />
   );
 }

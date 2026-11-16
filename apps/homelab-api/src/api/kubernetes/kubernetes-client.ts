@@ -70,3 +70,45 @@ export async function listNodes(): Promise<V1Node[]> {
     return [];
   }
 }
+
+/**
+ * The last `tailLines` log lines of one container of the first pod matching
+ * `labelSelector` in `namespace`. `null` when there's no client or no
+ * matching pod; API errors (e.g. RBAC) throw so callers can tell "not found"
+ * from "couldn't read". Needs `pods/log` get on the ServiceAccount.
+ */
+export async function readPodLogByLabel(
+  namespace: string,
+  labelSelector: string,
+  container: string,
+  tailLines: number,
+): Promise<string[] | null> {
+  const client = getCoreApi();
+  if (!client) return null;
+
+  const pods = await client.listNamespacedPod(
+    namespace,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    labelSelector,
+  );
+  const pod = pods.body.items.find((p) => p.status?.phase === 'Running');
+  const name = pod?.metadata?.name;
+  if (!name) return null;
+
+  const log = await client.readNamespacedPodLog(
+    name,
+    namespace,
+    container,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    tailLines,
+  );
+  return log.body.split('\n').filter((line) => line.length > 0);
+}
