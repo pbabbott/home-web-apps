@@ -14,7 +14,8 @@
     "STORYBOOK",
     "VIDEO_API_URL",
     "HOMELAB_API_URL",
-    "HOMELAB_API_PUBLIC_URL"
+    "HOMELAB_API_PUBLIC_URL",
+    "GLUETUN_SYNC_URL"
   ],
   "tasks": {
     "build": {
