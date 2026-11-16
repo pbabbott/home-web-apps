@@ -1,10 +1,17 @@
 import 'reflect-metadata';
 import * as dotenv from 'dotenv';
+import { randomUUID } from 'node:crypto';
 import {
   closeDb,
   createHost,
   getHostByIpAddress,
   importAuditEvents,
+  importBackupDestinations,
+  importBackupEntries,
+  importBackupJobItems,
+  importBackupJobs,
+  linkBackupJobItemCoverage,
+  listInventoryKeysForImport,
   importDiscoveryJobs,
   importExclusionRules,
   importInventoryItems,
@@ -16,6 +23,10 @@ import {
   updateHost,
   type DiscoveryJob,
   type AuditEvent,
+  type BackupDestination,
+  type BackupEntry,
+  type BackupJob,
+  type BackupJobItem,
   type ExclusionRule,
   type ExporterType,
   type HostType,
@@ -81,6 +92,17 @@ const PAGE_SIZE = 500;
 // The remote's acknowledgement list is capped at 1000 and has no paging.
 const ACKNOWLEDGEMENT_LIMIT = 1000;
 
+/** Drops view-only fields the API adds on top of the table row. */
+function omit<T extends object, K extends keyof T>(
+  row: T,
+  keys: K[],
+): Omit<T, K> {
+  const copy = { ...row };
+  for (const key of keys) delete copy[key];
+
+  return copy;
+}
+
 /** JSON carries timestamps as strings; the DB layer wants Dates. */
 function reviveDates<T extends object>(row: T, fields: (keyof T)[]): T {
   const revived = { ...row };
@@ -97,7 +119,10 @@ function reviveDates<T extends object>(row: T, fields: (keyof T)[]): T {
 async function syncDiscovery(
   remoteUrl: string,
   remoteHosts: RemoteHost[],
-): Promise<void> {
+): Promise<{
+  localHostIdByRemoteId: Map<string, string>;
+  localSourceIdByRemoteId: Map<string, string>;
+}> {
   const localHostIdByRemoteId = new Map<string, string>();
   for (const remoteHost of remoteHosts) {
     const local = await getHostByIpAddress(db, remoteHost.ipAddress);
@@ -274,6 +299,185 @@ async function syncDiscovery(
     if (page.length < PAGE_SIZE) break;
   }
   console.log(`  ~ ${auditCount} audit event(s)`);
+
+  return { localHostIdByRemoteId, localSourceIdByRemoteId };
+}
+
+const BACKUP_ITEM_PAGE_SIZE = 500;
+const BACKUP_ENTRY_PAGE_SIZE = 1000;
+const BACKUP_JOB_LIMIT = 200;
+
+/**
+ * Backup destinations, jobs, job items and entries. Run after the discovery
+ * sync: jobs need the local sources, items need the local inventory.
+ * Destinations match by name, jobs/items keep the remote ids, entries match by
+ * (item, path). Worker leases are dropped: a local worker must not inherit
+ * prod's claims.
+ */
+async function syncBackup(
+  remoteUrl: string,
+  localHostIdByRemoteId: Map<string, string>,
+  localSourceIdByRemoteId: Map<string, string>,
+): Promise<void> {
+  const remoteDestinations = await fetchRemoteJson<
+    (BackupDestination & { host?: unknown; workerStale?: boolean })[]
+  >(`${remoteUrl}/backup-destinations`);
+  console.log(`Got ${remoteDestinations.length} backup destination(s).`);
+
+  const destinationRows = remoteDestinations.flatMap((remote) => {
+    const destination = omit(remote, ['id', 'host', 'workerStale']);
+    const hostId = localHostIdByRemoteId.get(destination.hostId);
+    if (!hostId) {
+      console.warn(
+        `  ! destination ${destination.name}: host not found locally, skipped`,
+      );
+
+      return [];
+    }
+
+    return [
+      reviveDates(
+        { ...destination, hostId, claimedBy: null, claimedUntil: null },
+        [
+          'lastValidatedAt',
+          'validationRequestedAt',
+          'workerSeenAt',
+          'createdAt',
+          'updatedAt',
+        ],
+      ),
+    ];
+  });
+  const localDestinations = await importBackupDestinations(db, destinationRows);
+  const localDestinationIdByName = new Map(
+    localDestinations.map((d) => [d.name, d.id]),
+  );
+  const localDestinationIdByRemoteId = new Map(
+    remoteDestinations.flatMap((d) => {
+      const localId = localDestinationIdByName.get(d.name);
+
+      return localId ? [[d.id, localId] as const] : [];
+    }),
+  );
+
+  // Jobs, newest first and capped by the API.
+  const remoteJobs = await fetchRemoteJson<
+    (BackupJob & { progress?: unknown; scope?: unknown })[]
+  >(`${remoteUrl}/backup-jobs?limit=${BACKUP_JOB_LIMIT}`);
+  if (remoteJobs.length >= BACKUP_JOB_LIMIT) {
+    console.warn(
+      `  ! backup jobs hit the ${BACKUP_JOB_LIMIT} cap; older jobs were not pulled`,
+    );
+  }
+
+  const jobs = remoteJobs.flatMap((remoteJob) => {
+    const job = omit(remoteJob, ['progress', 'scope']);
+    const sourceId = localSourceIdByRemoteId.get(job.sourceId);
+    const destinationId = localDestinationIdByRemoteId.get(job.destinationId);
+    if (!sourceId || !destinationId) return [];
+
+    return [
+      reviveDates({ ...job, sourceId, destinationId }, [
+        'stalledSince',
+        'createdAt',
+        'startedAt',
+        'finishedAt',
+        'updatedAt',
+      ]),
+    ];
+  });
+  await importBackupJobs(db, jobs);
+  console.log(`  ~ ${jobs.length} backup job(s)`);
+
+  for (const job of jobs) {
+    // Local inventory ids can differ from remote ones; remap by id, then path.
+    const inventory = (await listInventoryKeysForImport(db, job.sourceId)).map(
+      (i) => ({ id: i.id, path: i.normalizedRootPath }),
+    );
+    const inventoryIds = new Set(inventory.map((i) => i.id));
+    const inventoryIdByPath = new Map(inventory.map((i) => [i.path, i.id]));
+
+    const items: BackupJobItem[] = [];
+    let after: string | undefined;
+    for (;;) {
+      const query = new URLSearchParams({
+        limit: String(BACKUP_ITEM_PAGE_SIZE),
+      });
+      if (after) query.set('after', after);
+
+      const { items: page, next } = await fetchRemoteJson<{
+        items: Omit<BackupJobItem, 'claimToken'>[];
+        next: string | null;
+      }>(`${remoteUrl}/backup-jobs/${job.id}/items?${query}`);
+      for (const item of page) {
+        const inventoryItemId = item.inventoryItemId
+          ? inventoryIds.has(item.inventoryItemId)
+            ? item.inventoryItemId
+            : (inventoryIdByPath.get(item.normalizedRootPath) ?? null)
+          : null;
+        items.push(
+          reviveDates(
+            {
+              ...item,
+              inventoryItemId,
+              // The API never returns the token; in-progress rows must have one.
+              claimToken: item.status === 'in_progress' ? randomUUID() : null,
+            },
+            [
+              'availableAt',
+              'leaseExpiresAt',
+              'enumeratedAt',
+              'startedAt',
+              'completedAt',
+              'createdAt',
+              'updatedAt',
+            ],
+          ),
+        );
+      }
+      if (!next) break;
+      after = next;
+    }
+    await importBackupJobItems(db, items);
+    await linkBackupJobItemCoverage(db, items);
+
+    let entryCount = 0;
+    for (const item of items) {
+      let afterId: number | undefined;
+      for (;;) {
+        const query = new URLSearchParams({
+          limit: String(BACKUP_ENTRY_PAGE_SIZE),
+        });
+        if (afterId !== undefined) query.set('after', String(afterId));
+
+        const { entries, next } = await fetchRemoteJson<{
+          entries: BackupEntry[];
+          next: number | null;
+        }>(`${remoteUrl}/backup-job-items/${item.id}/entries?${query}`);
+        await importBackupEntries(
+          db,
+          entries.map((entry) =>
+            reviveDates(entry, [
+              'srcCreatedAt',
+              'srcModifiedAt',
+              'srcAccessedAt',
+              'srcChangedAt',
+              'verifiedAt',
+              'createdAt',
+              'updatedAt',
+            ]),
+          ),
+        );
+        entryCount += entries.length;
+        if (next === null) break;
+        afterId = next;
+      }
+    }
+
+    console.log(
+      `  ~ job ${job.id.slice(0, 8)} (${job.status}): ${items.length} item(s), ${entryCount} entr${entryCount === 1 ? 'y' : 'ies'}`,
+    );
+  }
 }
 
 async function run() {
@@ -328,8 +532,13 @@ async function run() {
   console.log(`Done. Created ${created}, updated ${updated}.`);
 
   console.log('Syncing exodus discovery data ...');
-  await syncDiscovery(remoteUrl, remoteHosts);
+  const { localHostIdByRemoteId, localSourceIdByRemoteId } =
+    await syncDiscovery(remoteUrl, remoteHosts);
   console.log('Discovery sync done.');
+
+  console.log('Syncing exodus backup data ...');
+  await syncBackup(remoteUrl, localHostIdByRemoteId, localSourceIdByRemoteId);
+  console.log('Backup sync done.');
 
   await closeDb(db);
 }

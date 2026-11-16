@@ -319,6 +319,12 @@ export {
   getBackupSourceDirNames,
   getPriorVerifiedDestRelPaths,
   listInventoryForBackupPlanning,
+  importBackupDestinations,
+  importBackupJobs,
+  importBackupJobItems,
+  linkBackupJobItemCoverage,
+  importBackupEntries,
+  listInventoryKeysForImport,
 } from './queries/backup';
 export type {
   CreateBackupDestinationInput,
