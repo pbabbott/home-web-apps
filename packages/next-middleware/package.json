@@ -16,7 +16,7 @@
     "test:unit": "jest --config jest.config.ts --selectProjects unit"
   },
   "peerDependencies": {
-    "next": "^16.0.1"
+    "next": "^16.4.6"
   },
   "devDependencies": {
     "@abbottland/eslint-config": "workspace:*",
