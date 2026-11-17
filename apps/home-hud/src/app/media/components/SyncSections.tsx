@@ -1,6 +1,6 @@
 import type { SyncStatus } from '../lib/gluetun-sync-api';
 import { formatRunTime } from '../lib/display';
-import { BAD_CLASS, OK_CLASS, Row, Section } from './Section';
+import { Row, Section } from './Section';
 import { TimeValue } from './TimeValue';
 
 interface SyncSectionsProps {
@@ -23,12 +23,12 @@ export function SyncSections({ status }: SyncSectionsProps) {
       <Section title="Most Recent Sync Attempt" available={available}>
         <Row
           label="Status"
-          className={
+          color={
             s.mostRecentAttemptSuccessful === undefined
               ? undefined
               : s.mostRecentAttemptSuccessful
-                ? OK_CLASS
-                : BAD_CLASS
+                ? 'success'
+                : 'error'
           }
         >
           {attemptLabel(s)}

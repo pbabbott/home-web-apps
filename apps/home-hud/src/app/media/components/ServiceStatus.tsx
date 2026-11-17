@@ -1,5 +1,5 @@
 import type { ServicesResult } from '../lib/gluetun-sync-api';
-import { BAD_CLASS, OK_CLASS, Row, Section } from './Section';
+import { Row, Section } from './Section';
 
 interface ServiceStatusProps {
   /** gluetun-sync's own `/healthz` answered 200. */
@@ -12,7 +12,7 @@ function StatusRow({ label, up }: { label: string; up: boolean | null }) {
   return (
     <Row
       label={label}
-      className={up === null ? undefined : up ? OK_CLASS : BAD_CLASS}
+      color={up === null ? undefined : up ? 'success' : 'error'}
     >
       {up === null ? '—' : up ? 'OK' : 'DOWN'}
     </Row>
