@@ -52,6 +52,8 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 
 - **Table** – Table/TableHead/TableBody/TableRow/Th/Td with color and size, plus `ScrollableTable`; tabular data.
 - **DataList** – Radix-Themes-style key/value readout (`DataList.Root/Item/Label/Value`; orientation, size, color; dim labels, bright state-colored values); metadata and status panels.
+- **ListItem** – static list row (`li`) with optional translucent `color` fill, start/end adornments and wrapping text; items in lists and detail rows.
+- **ListItemButton** – clickable/selectable list row (`button`) with translucent `color` fill, `selected` state and adornments; pick-lists such as search results.
 - **Comparator** – two value pills joined by a connector that breaks when they differ (color, `inSync`, label, captions); sync/status checks.
 - **SegmentedProgressBar** – step progress bar with shimmering current segment; multi-step flows.
 
