@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import {
   Button,
   Input,
@@ -58,18 +58,23 @@ export function EditHostModal({
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    setName(host.name);
-    setIpAddress(host.ipAddress);
-    setInstance(host.instance ?? '');
-    setHostType(host.hostType);
-    setExporterType(host.exporterType);
-    setModel3d(host.model3d ?? '');
-    setError(null);
-    setConfirmDeleteOpen(false);
-    setDeleteError(null);
-  }, [open, host]);
+  // Reset the form whenever the modal opens or a different host/record arrives
+  // (adjusting state during render, not in an effect).
+  const [synced, setSynced] = useState({ open, host });
+  if (synced.open !== open || synced.host !== host) {
+    setSynced({ open, host });
+    if (open) {
+      setName(host.name);
+      setIpAddress(host.ipAddress);
+      setInstance(host.instance ?? '');
+      setHostType(host.hostType);
+      setExporterType(host.exporterType);
+      setModel3d(host.model3d ?? '');
+      setError(null);
+      setConfirmDeleteOpen(false);
+      setDeleteError(null);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
