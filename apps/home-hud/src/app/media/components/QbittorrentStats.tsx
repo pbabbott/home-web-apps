@@ -1,4 +1,4 @@
-import { Typography } from '@abbottland/fui-components';
+import { DataList, Typography } from '@abbottland/fui-components';
 import type { QbittorrentStats as Stats } from '../lib/homelab-api';
 import { formatEta, formatSpeed } from '../lib/display';
 import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
@@ -40,11 +40,18 @@ export function QbittorrentStats({ stats }: QbittorrentStatsProps) {
                     style={{ width: `${percent}%` }}
                   />
                 </div>
-                <Typography variant="small" className="text-neutral-400">
-                  {percent}% of {formatBytes(torrent.sizeBytes)} ·{' '}
-                  {formatSpeed(torrent.downloadSpeed)} down · ETA{' '}
-                  {formatEta(torrent.etaSeconds)}
-                </Typography>
+                <DataList.Root
+                  color="primary"
+                  size="small"
+                  className="max-w-md"
+                >
+                  <Row label="Progress">{percent}%</Row>
+                  <Row label="Size">{formatBytes(torrent.sizeBytes)}</Row>
+                  <Row label="Download speed">
+                    {formatSpeed(torrent.downloadSpeed)}
+                  </Row>
+                  <Row label="ETA">{formatEta(torrent.etaSeconds)}</Row>
+                </DataList.Root>
               </div>
             );
           })}

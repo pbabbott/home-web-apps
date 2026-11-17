@@ -1,12 +1,13 @@
-import { Typography } from '@abbottland/fui-components';
+import { DataList, Typography } from '@abbottland/fui-components';
 import { formatBytes } from '../../infra/cluster-map/lib/format-bytes';
 import type { MediaDiskSpace } from '../lib/homelab-api';
+import { Row } from './Section';
 
 interface DiskSpaceProps {
   diskSpace: MediaDiskSpace | null;
 }
 
-/** The media share's usage as text (`/share/Media 5.1 TiB / 21.7 TiB (23%)`) over a plain bar. */
+/** The media share's usage as label/value rows over a plain bar. */
 export function DiskSpace({ diskSpace }: DiskSpaceProps) {
   if (diskSpace === null) {
     return (
@@ -20,10 +21,12 @@ export function DiskSpace({ diskSpace }: DiskSpaceProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Typography variant="body2">
-        {diskSpace.mountpoint} {formatBytes(diskSpace.usedBytes)} /{' '}
-        {formatBytes(diskSpace.totalBytes)} ({percent}%)
-      </Typography>
+      <DataList.Root color="primary" size="small" className="max-w-md">
+        <Row label="Mount">{diskSpace.mountpoint}</Row>
+        <Row label="Used">{formatBytes(diskSpace.usedBytes)}</Row>
+        <Row label="Total">{formatBytes(diskSpace.totalBytes)}</Row>
+        <Row label="Usage">{percent}%</Row>
+      </DataList.Root>
       <div
         role="progressbar"
         aria-label={`${diskSpace.mountpoint} used`}
