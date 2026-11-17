@@ -39,7 +39,7 @@ function DefaultStory() {
 }
 
 const meta: Meta = {
-  title: 'Diagrams/DiagramEditor',
+  title: 'Diagram/DiagramEditor',
   parameters: {
     layout: 'padded',
     backgrounds: { default: 'diagram' },

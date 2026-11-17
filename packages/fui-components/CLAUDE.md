@@ -78,6 +78,10 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 
 Always use the `Typography` component for all rendered text — no raw `<p>`, `<span>`, `<h*>`, or other HTML text elements. This applies to components and stories alike.
 
+## Storybook Titles
+
+Component stories are titled `<Section>/<Component>` where `<Section>` is the Component Catalog group the component sits in: `Layout & Surfaces`, `Text & Decoration`, `Buttons & Navigation`, `Forms & Overlays`, `Data Display`, `Diagram`. Showcases stay `Showcase/<Component>`. Folders under `src/components/` stay flat; only the title carries the section. The title determines story IDs (`data-display-table--default`) and so the screenshot/spec file names; a new section must also be added to `SECTION_SLUGS` in `scripts/generate-story-tests.ts`. When adding a component, put it in the catalog and give its story the matching section.
+
 ## Storybook Coverage
 
 When adding or changing a prop on a component, add (or update) a story that demonstrates that prop's states. A prop with no story is undocumented and untested — the story suite should visually cover every prop a component accepts. Per-prop stories live in the component's own `ComponentName.stories.tsx`, one story per prop state; showcases (below) are not where props are covered.

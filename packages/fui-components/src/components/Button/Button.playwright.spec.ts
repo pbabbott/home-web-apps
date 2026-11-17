@@ -13,105 +13,105 @@ test.describe('Button Visual Regression Tests', () => {
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-primary');
+    await gotoStory(page, 'buttons-navigation-button--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-primary.png',
+      'buttons-navigation-button--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-secondary', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-secondary');
+    await gotoStory(page, 'buttons-navigation-button--color-secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-secondary.png',
+      'buttons-navigation-button--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-success', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-success');
+    await gotoStory(page, 'buttons-navigation-button--color-success');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-success.png',
+      'buttons-navigation-button--color-success.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-error', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-error');
+    await gotoStory(page, 'buttons-navigation-button--color-error');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-error.png',
+      'buttons-navigation-button--color-error.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-warning', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-warning');
+    await gotoStory(page, 'buttons-navigation-button--color-warning');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-warning.png',
+      'buttons-navigation-button--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-purple', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-accent-purple');
+    await gotoStory(page, 'buttons-navigation-button--color-accent-purple');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-accent-purple.png',
+      'buttons-navigation-button--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-falcon', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-accent-falcon');
+    await gotoStory(page, 'buttons-navigation-button--color-accent-falcon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-accent-falcon.png',
+      'buttons-navigation-button--color-accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-neutral', async ({ page }) => {
-    await gotoStory(page, 'components-button--color-neutral');
+    await gotoStory(page, 'buttons-navigation-button--color-neutral');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--color-neutral.png',
+      'buttons-navigation-button--color-neutral.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('as-link', async ({ page }) => {
-    await gotoStory(page, 'components-button--as-link');
+    await gotoStory(page, 'buttons-navigation-button--as-link');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--as-link.png',
+      'buttons-navigation-button--as-link.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('variant-contained', async ({ page }) => {
-    await gotoStory(page, 'components-button--variant-contained');
+    await gotoStory(page, 'buttons-navigation-button--variant-contained');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--variant-contained.png',
+      'buttons-navigation-button--variant-contained.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('variant-text', async ({ page }) => {
-    await gotoStory(page, 'components-button--variant-text');
+    await gotoStory(page, 'buttons-navigation-button--variant-text');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--variant-text.png',
+      'buttons-navigation-button--variant-text.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('size-small', async ({ page }) => {
-    await gotoStory(page, 'components-button--size-small');
+    await gotoStory(page, 'buttons-navigation-button--size-small');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--size-small.png',
+      'buttons-navigation-button--size-small.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('disabled', async ({ page }) => {
-    await gotoStory(page, 'components-button--disabled');
+    await gotoStory(page, 'buttons-navigation-button--disabled');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-button--disabled.png',
+      'buttons-navigation-button--disabled.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -13,73 +13,73 @@ test.describe('TextNode Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--default');
+    await gotoStory(page, 'diagram-textnode--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--default.png',
+      'diagram-textnode--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--primary');
+    await gotoStory(page, 'diagram-textnode--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--primary.png',
+      'diagram-textnode--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--secondary');
+    await gotoStory(page, 'diagram-textnode--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--secondary.png',
+      'diagram-textnode--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('dark', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--dark');
+    await gotoStory(page, 'diagram-textnode--dark');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--dark.png',
+      'diagram-textnode--dark.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('white', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--white');
+    await gotoStory(page, 'diagram-textnode--white');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--white.png',
+      'diagram-textnode--white.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('selected', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--selected');
+    await gotoStory(page, 'diagram-textnode--selected');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--selected.png',
+      'diagram-textnode--selected.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('multiline', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--multiline');
+    await gotoStory(page, 'diagram-textnode--multiline');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--multiline.png',
+      'diagram-textnode--multiline.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('readonly', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--readonly');
+    await gotoStory(page, 'diagram-textnode--readonly');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--readonly.png',
+      'diagram-textnode--readonly.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-icon', async ({ page }) => {
-    await gotoStory(page, 'diagrams-textnode--with-icon');
+    await gotoStory(page, 'diagram-textnode--with-icon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-textnode--with-icon.png',
+      'diagram-textnode--with-icon.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DotGridBackground } from './DotGridBackground';
 
 const meta = {
-  title: 'Components/DotGridBackground',
+  title: 'Layout & Surfaces/DotGridBackground',
   component: DotGridBackground,
   args: {
     color: 'default',

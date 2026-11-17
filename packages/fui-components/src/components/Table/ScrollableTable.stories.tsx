@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ScrollableTable } from './Table';
 
 const meta = {
-  title: 'Components/ScrollableTable',
+  title: 'Data Display/ScrollableTable',
   component: ScrollableTable,
   parameters: {
     layout: 'padded',

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Table, TableHead, TableBody, TableRow, Th, Td } from './Table';
 
 const meta = {
-  title: 'Components/Table',
+  title: 'Data Display/Table',
   component: Table,
   parameters: {
     layout: 'padded',

@@ -13,41 +13,41 @@ test.describe('Table Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-table--default');
+    await gotoStory(page, 'data-display-table--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-table--default.png',
+      'data-display-table--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('small', async ({ page }) => {
-    await gotoStory(page, 'components-table--small');
+    await gotoStory(page, 'data-display-table--small');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-table--small.png',
+      'data-display-table--small.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('multi-column', async ({ page }) => {
-    await gotoStory(page, 'components-table--multi-column');
+    await gotoStory(page, 'data-display-table--multi-column');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-table--multi-column.png',
+      'data-display-table--multi-column.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('wide-table', async ({ page }) => {
-    await gotoStory(page, 'components-table--wide-table');
+    await gotoStory(page, 'data-display-table--wide-table');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-table--wide-table.png',
+      'data-display-table--wide-table.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'components-table--secondary');
+    await gotoStory(page, 'data-display-table--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-table--secondary.png',
+      'data-display-table--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HexagonalBackground } from './HexagonalBackground';
 
 const meta = {
-  title: 'Components/HexagonalBackground',
+  title: 'Layout & Surfaces/HexagonalBackground',
   component: HexagonalBackground,
   parameters: {
     layout: 'fullscreen',

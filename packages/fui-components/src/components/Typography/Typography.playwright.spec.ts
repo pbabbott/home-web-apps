@@ -13,97 +13,97 @@ test.describe('Typography Visual Regression Tests', () => {
   });
 
   test('body-2', async ({ page }) => {
-    await gotoStory(page, 'components-typography--body-2');
+    await gotoStory(page, 'text-decoration-typography--body-2');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--body-2.png',
+      'text-decoration-typography--body-2.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('body-1', async ({ page }) => {
-    await gotoStory(page, 'components-typography--body-1');
+    await gotoStory(page, 'text-decoration-typography--body-1');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--body-1.png',
+      'text-decoration-typography--body-1.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('caption', async ({ page }) => {
-    await gotoStory(page, 'components-typography--caption');
+    await gotoStory(page, 'text-decoration-typography--caption');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--caption.png',
+      'text-decoration-typography--caption.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('small', async ({ page }) => {
-    await gotoStory(page, 'components-typography--small');
+    await gotoStory(page, 'text-decoration-typography--small');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--small.png',
+      'text-decoration-typography--small.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('button', async ({ page }) => {
-    await gotoStory(page, 'components-typography--button');
+    await gotoStory(page, 'text-decoration-typography--button');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--button.png',
+      'text-decoration-typography--button.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-1', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-1');
+    await gotoStory(page, 'text-decoration-typography--h-1');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-1.png',
+      'text-decoration-typography--h-1.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-2', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-2');
+    await gotoStory(page, 'text-decoration-typography--h-2');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-2.png',
+      'text-decoration-typography--h-2.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-3', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-3');
+    await gotoStory(page, 'text-decoration-typography--h-3');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-3.png',
+      'text-decoration-typography--h-3.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-4', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-4');
+    await gotoStory(page, 'text-decoration-typography--h-4');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-4.png',
+      'text-decoration-typography--h-4.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-5', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-5');
+    await gotoStory(page, 'text-decoration-typography--h-5');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-5.png',
+      'text-decoration-typography--h-5.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('h-6', async ({ page }) => {
-    await gotoStory(page, 'components-typography--h-6');
+    await gotoStory(page, 'text-decoration-typography--h-6');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--h-6.png',
+      'text-decoration-typography--h-6.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('label', async ({ page }) => {
-    await gotoStory(page, 'components-typography--label');
+    await gotoStory(page, 'text-decoration-typography--label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-typography--label.png',
+      'text-decoration-typography--label.png',
       SCREENSHOT_OPTIONS,
     );
   });

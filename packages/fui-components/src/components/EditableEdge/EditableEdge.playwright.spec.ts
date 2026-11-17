@@ -13,89 +13,89 @@ test.describe('EditableEdge Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--default');
+    await gotoStory(page, 'diagram-editableedge--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--default.png',
+      'diagram-editableedge--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('new-edge', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--new-edge');
+    await gotoStory(page, 'diagram-editableedge--new-edge');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--new-edge.png',
+      'diagram-editableedge--new-edge.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('new-edge-primary-color', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--new-edge-primary-color');
+    await gotoStory(page, 'diagram-editableedge--new-edge-primary-color');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--new-edge-primary-color.png',
+      'diagram-editableedge--new-edge-primary-color.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('editing', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--editing');
+    await gotoStory(page, 'diagram-editableedge--editing');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--editing.png',
+      'diagram-editableedge--editing.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('default-color', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--default-color');
+    await gotoStory(page, 'diagram-editableedge--default-color');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--default-color.png',
+      'diagram-editableedge--default-color.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-label', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--with-label');
+    await gotoStory(page, 'diagram-editableedge--with-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--with-label.png',
+      'diagram-editableedge--with-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('long-label', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--long-label');
+    await gotoStory(page, 'diagram-editableedge--long-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--long-label.png',
+      'diagram-editableedge--long-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('multi-line-label', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--multi-line-label');
+    await gotoStory(page, 'diagram-editableedge--multi-line-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--multi-line-label.png',
+      'diagram-editableedge--multi-line-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary-color', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--primary-color');
+    await gotoStory(page, 'diagram-editableedge--primary-color');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--primary-color.png',
+      'diagram-editableedge--primary-color.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary-color', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--secondary-color');
+    await gotoStory(page, 'diagram-editableedge--secondary-color');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--secondary-color.png',
+      'diagram-editableedge--secondary-color.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('multiple-edges', async ({ page }) => {
-    await gotoStory(page, 'diagrams-editableedge--multiple-edges');
+    await gotoStory(page, 'diagram-editableedge--multiple-edges');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-editableedge--multiple-edges.png',
+      'diagram-editableedge--multiple-edges.png',
       SCREENSHOT_OPTIONS,
     );
   });

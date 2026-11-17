@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ListItem } from './ListItem';
 
 const meta = {
-  title: 'Components/ListItem',
+  title: 'Data Display/ListItem',
   component: ListItem,
   parameters: { layout: 'padded' },
   argTypes: {

@@ -13,65 +13,65 @@ test.describe('Badge Visual Regression Tests', () => {
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-primary');
+    await gotoStory(page, 'text-decoration-badge--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-primary.png',
+      'text-decoration-badge--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-secondary', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-secondary');
+    await gotoStory(page, 'text-decoration-badge--color-secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-secondary.png',
+      'text-decoration-badge--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-success', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-success');
+    await gotoStory(page, 'text-decoration-badge--color-success');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-success.png',
+      'text-decoration-badge--color-success.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-error', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-error');
+    await gotoStory(page, 'text-decoration-badge--color-error');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-error.png',
+      'text-decoration-badge--color-error.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-warning', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-warning');
+    await gotoStory(page, 'text-decoration-badge--color-warning');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-warning.png',
+      'text-decoration-badge--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-purple', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-accent-purple');
+    await gotoStory(page, 'text-decoration-badge--color-accent-purple');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-accent-purple.png',
+      'text-decoration-badge--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-falcon', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-accent-falcon');
+    await gotoStory(page, 'text-decoration-badge--color-accent-falcon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-accent-falcon.png',
+      'text-decoration-badge--color-accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-dark', async ({ page }) => {
-    await gotoStory(page, 'components-badge--color-dark');
+    await gotoStory(page, 'text-decoration-badge--color-dark');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-badge--color-dark.png',
+      'text-decoration-badge--color-dark.png',
       SCREENSHOT_OPTIONS,
     );
   });

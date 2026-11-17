@@ -26,7 +26,7 @@ function StoryContainer({ label, content }: StoryProps) {
 }
 
 const meta: Meta<typeof StoryContainer> = {
-  title: 'Diagrams/LabeledNode',
+  title: 'Diagram/LabeledNode',
   component: StoryContainer,
   parameters: {
     layout: 'padded',

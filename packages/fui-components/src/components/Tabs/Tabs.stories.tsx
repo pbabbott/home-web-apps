@@ -3,7 +3,7 @@ import { Typography } from '../Typography/Typography';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 
 const meta = {
-  title: 'Components/Tabs',
+  title: 'Forms & Overlays/Tabs',
   component: Tabs,
   parameters: {
     layout: 'centered',

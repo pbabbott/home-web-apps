@@ -13,25 +13,25 @@ test.describe('AIContent Visual Regression Tests', () => {
   });
 
   test('unhighlighted', async ({ page }) => {
-    await gotoStory(page, 'components-aicontent--unhighlighted');
+    await gotoStory(page, 'text-decoration-aicontent--unhighlighted');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-aicontent--unhighlighted.png',
+      'text-decoration-aicontent--unhighlighted.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('highlighted-animated', async ({ page }) => {
-    await gotoStory(page, 'components-aicontent--highlighted-animated');
+    await gotoStory(page, 'text-decoration-aicontent--highlighted-animated');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-aicontent--highlighted-animated.png',
+      'text-decoration-aicontent--highlighted-animated.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('highlighted-static', async ({ page }) => {
-    await gotoStory(page, 'components-aicontent--highlighted-static');
+    await gotoStory(page, 'text-decoration-aicontent--highlighted-static');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-aicontent--highlighted-static.png',
+      'text-decoration-aicontent--highlighted-static.png',
       SCREENSHOT_OPTIONS,
     );
   });

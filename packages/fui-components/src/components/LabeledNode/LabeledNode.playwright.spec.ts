@@ -13,17 +13,17 @@ test.describe('LabeledNode Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-labelednode--default');
+    await gotoStory(page, 'diagram-labelednode--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-labelednode--default.png',
+      'diagram-labelednode--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('editing', async ({ page }) => {
-    await gotoStory(page, 'diagrams-labelednode--editing');
+    await gotoStory(page, 'diagram-labelednode--editing');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-labelednode--editing.png',
+      'diagram-labelednode--editing.png',
       SCREENSHOT_OPTIONS,
     );
   });

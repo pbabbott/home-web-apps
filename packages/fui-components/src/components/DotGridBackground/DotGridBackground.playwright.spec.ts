@@ -13,33 +13,33 @@ test.describe('DotGridBackground Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-dotgridbackground--default');
+    await gotoStory(page, 'layout-surfaces-dotgridbackground--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dotgridbackground--default.png',
+      'layout-surfaces-dotgridbackground--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active', async ({ page }) => {
-    await gotoStory(page, 'components-dotgridbackground--active');
+    await gotoStory(page, 'layout-surfaces-dotgridbackground--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dotgridbackground--active.png',
+      'layout-surfaces-dotgridbackground--active.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-dotgridbackground--primary');
+    await gotoStory(page, 'layout-surfaces-dotgridbackground--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dotgridbackground--primary.png',
+      'layout-surfaces-dotgridbackground--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary-active', async ({ page }) => {
-    await gotoStory(page, 'components-dotgridbackground--primary-active');
+    await gotoStory(page, 'layout-surfaces-dotgridbackground--primary-active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dotgridbackground--primary-active.png',
+      'layout-surfaces-dotgridbackground--primary-active.png',
       SCREENSHOT_OPTIONS,
     );
   });

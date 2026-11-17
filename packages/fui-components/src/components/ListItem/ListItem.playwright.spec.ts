@@ -13,41 +13,41 @@ test.describe('ListItem Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-listitem--default');
+    await gotoStory(page, 'data-display-listitem--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-listitem--default.png',
+      'data-display-listitem--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('adornments', async ({ page }) => {
-    await gotoStory(page, 'components-listitem--adornments');
+    await gotoStory(page, 'data-display-listitem--adornments');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-listitem--adornments.png',
+      'data-display-listitem--adornments.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('long-text', async ({ page }) => {
-    await gotoStory(page, 'components-listitem--long-text');
+    await gotoStory(page, 'data-display-listitem--long-text');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-listitem--long-text.png',
+      'data-display-listitem--long-text.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('as-div', async ({ page }) => {
-    await gotoStory(page, 'components-listitem--as-div');
+    await gotoStory(page, 'data-display-listitem--as-div');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-listitem--as-div.png',
+      'data-display-listitem--as-div.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-listitem--color-primary');
+    await gotoStory(page, 'data-display-listitem--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-listitem--color-primary.png',
+      'data-display-listitem--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });

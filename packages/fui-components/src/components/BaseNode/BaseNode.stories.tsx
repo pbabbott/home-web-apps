@@ -94,7 +94,7 @@ function StoryContainer({
 }
 
 const meta: Meta<typeof StoryContainer> = {
-  title: 'Diagrams/BaseNode',
+  title: 'Diagram/BaseNode',
   component: StoryContainer,
   parameters: {
     layout: 'padded',

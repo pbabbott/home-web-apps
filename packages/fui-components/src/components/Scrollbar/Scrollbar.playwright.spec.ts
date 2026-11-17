@@ -13,57 +13,57 @@ test.describe('Scrollbar Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--default');
+    await gotoStory(page, 'layout-surfaces-scrollbar--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--default.png',
+      'layout-surfaces-scrollbar--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('near-bottom', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--near-bottom');
+    await gotoStory(page, 'layout-surfaces-scrollbar--near-bottom');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--near-bottom.png',
+      'layout-surfaces-scrollbar--near-bottom.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('large-thumb', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--large-thumb');
+    await gotoStory(page, 'layout-surfaces-scrollbar--large-thumb');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--large-thumb.png',
+      'layout-surfaces-scrollbar--large-thumb.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('small-thumb', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--small-thumb');
+    await gotoStory(page, 'layout-surfaces-scrollbar--small-thumb');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--small-thumb.png',
+      'layout-surfaces-scrollbar--small-thumb.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('no-dots', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--no-dots');
+    await gotoStory(page, 'layout-surfaces-scrollbar--no-dots');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--no-dots.png',
+      'layout-surfaces-scrollbar--no-dots.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('interactive', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--interactive');
+    await gotoStory(page, 'layout-surfaces-scrollbar--interactive');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--interactive.png',
+      'layout-surfaces-scrollbar--interactive.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-content', async ({ page }) => {
-    await gotoStory(page, 'components-scrollbar--with-content');
+    await gotoStory(page, 'layout-surfaces-scrollbar--with-content');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-scrollbar--with-content.png',
+      'layout-surfaces-scrollbar--with-content.png',
       SCREENSHOT_OPTIONS,
     );
   });

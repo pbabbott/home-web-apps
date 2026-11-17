@@ -118,7 +118,7 @@ function EditableStoryContainer({
 }
 
 const meta: Meta<typeof StoryContainer> = {
-  title: 'Diagrams/EditableEdge',
+  title: 'Diagram/EditableEdge',
   component: StoryContainer,
   parameters: {
     layout: 'padded',

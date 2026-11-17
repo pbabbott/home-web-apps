@@ -5,7 +5,7 @@ import { CubeIcon, OpenInNewWindowIcon } from '@radix-ui/react-icons';
 import { NavItem } from './NavItem';
 
 const meta = {
-  title: 'Components/NavItem',
+  title: 'Buttons & Navigation/NavItem',
   component: NavItem,
   parameters: {
     layout: 'centered',

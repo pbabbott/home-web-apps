@@ -13,33 +13,33 @@ test.describe('HorizontalRule Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-horizontalrule--default');
+    await gotoStory(page, 'layout-surfaces-horizontalrule--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-horizontalrule--default.png',
+      'layout-surfaces-horizontalrule--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-horizontalrule--primary');
+    await gotoStory(page, 'layout-surfaces-horizontalrule--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-horizontalrule--primary.png',
+      'layout-surfaces-horizontalrule--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'components-horizontalrule--secondary');
+    await gotoStory(page, 'layout-surfaces-horizontalrule--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-horizontalrule--secondary.png',
+      'layout-surfaces-horizontalrule--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('custom-spacing', async ({ page }) => {
-    await gotoStory(page, 'components-horizontalrule--custom-spacing');
+    await gotoStory(page, 'layout-surfaces-horizontalrule--custom-spacing');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-horizontalrule--custom-spacing.png',
+      'layout-surfaces-horizontalrule--custom-spacing.png',
       SCREENSHOT_OPTIONS,
     );
   });

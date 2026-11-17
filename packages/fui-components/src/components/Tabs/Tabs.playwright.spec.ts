@@ -13,17 +13,17 @@ test.describe('Tabs Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-tabs--default');
+    await gotoStory(page, 'forms-overlays-tabs--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tabs--default.png',
+      'forms-overlays-tabs--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-disabled-trigger', async ({ page }) => {
-    await gotoStory(page, 'components-tabs--with-disabled-trigger');
+    await gotoStory(page, 'forms-overlays-tabs--with-disabled-trigger');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tabs--with-disabled-trigger.png',
+      'forms-overlays-tabs--with-disabled-trigger.png',
       SCREENSHOT_OPTIONS,
     );
   });

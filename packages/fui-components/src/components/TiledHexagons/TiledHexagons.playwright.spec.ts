@@ -13,25 +13,28 @@ test.describe('TiledHexagons Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-tiledhexagons--default');
+    await gotoStory(page, 'buttons-navigation-tiledhexagons--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tiledhexagons--default.png',
+      'buttons-navigation-tiledhexagons--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('custom-grid', async ({ page }) => {
-    await gotoStory(page, 'components-tiledhexagons--custom-grid');
+    await gotoStory(page, 'buttons-navigation-tiledhexagons--custom-grid');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tiledhexagons--custom-grid.png',
+      'buttons-navigation-tiledhexagons--custom-grid.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('custom-gap-three-columns', async ({ page }) => {
-    await gotoStory(page, 'components-tiledhexagons--custom-gap-three-columns');
+    await gotoStory(
+      page,
+      'buttons-navigation-tiledhexagons--custom-gap-three-columns',
+    );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tiledhexagons--custom-gap-three-columns.png',
+      'buttons-navigation-tiledhexagons--custom-gap-three-columns.png',
       SCREENSHOT_OPTIONS,
     );
   });

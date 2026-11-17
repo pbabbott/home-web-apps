@@ -9,7 +9,7 @@ import { fn } from 'storybook/test';
 import { MixerVerticalIcon } from '@radix-ui/react-icons';
 
 const meta = {
-  title: 'Components/OutlinedButton',
+  title: 'Buttons & Navigation/OutlinedButton',
   component: OutlinedButton,
   parameters: {
     layout: 'centered',

@@ -5,7 +5,7 @@ import { NavBar } from './NavBar';
 import { NavItem } from '../NavItem/NavItem';
 
 const meta = {
-  title: 'Components/NavBar',
+  title: 'Buttons & Navigation/NavBar',
   component: NavBar,
   parameters: {
     layout: 'centered',

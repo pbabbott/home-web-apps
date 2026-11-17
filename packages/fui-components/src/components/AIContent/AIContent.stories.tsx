@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AIContent } from './AIContent';
 
 const meta = {
-  title: 'Components/AIContent',
+  title: 'Text & Decoration/AIContent',
   component: AIContent,
   parameters: {
     layout: 'centered',

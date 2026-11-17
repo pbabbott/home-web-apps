@@ -16,7 +16,7 @@ Playwright tests (`**/*.playwright.spec.ts`) spin up Storybook on `localhost:600
 Baselines live co-located with their components:
 
 ```
-src/components/Button/__screenshots__/components-button--color-primary.png
+src/components/Button/__screenshots__/buttons-navigation-button--color-primary.png
 ```
 
 A test fails if any pixel diff exceeds `maxDiffPixelRatio: 0.01` (1%).

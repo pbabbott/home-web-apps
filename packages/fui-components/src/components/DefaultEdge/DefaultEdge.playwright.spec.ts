@@ -13,17 +13,17 @@ test.describe('DefaultEdge Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-defaultedge--default');
+    await gotoStory(page, 'diagram-defaultedge--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-defaultedge--default.png',
+      'diagram-defaultedge--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active', async ({ page }) => {
-    await gotoStory(page, 'diagrams-defaultedge--active');
+    await gotoStory(page, 'diagram-defaultedge--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-defaultedge--active.png',
+      'diagram-defaultedge--active.png',
       SCREENSHOT_OPTIONS,
     );
   });

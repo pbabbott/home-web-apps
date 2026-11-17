@@ -9,7 +9,7 @@ import {
 } from './DataList';
 
 const meta = {
-  title: 'Components/DataList',
+  title: 'Data Display/DataList',
   component: DataList.Root,
   parameters: { layout: 'centered' },
   argTypes: {

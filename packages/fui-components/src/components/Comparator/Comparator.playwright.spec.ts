@@ -13,57 +13,57 @@ test.describe('Comparator Visual Regression Tests', () => {
   });
 
   test('synchronized', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--synchronized');
+    await gotoStory(page, 'data-display-comparator--synchronized');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--synchronized.png',
+      'data-display-comparator--synchronized.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('out-of-sync', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--out-of-sync');
+    await gotoStory(page, 'data-display-comparator--out-of-sync');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--out-of-sync.png',
+      'data-display-comparator--out-of-sync.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('in-sync-override', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--in-sync-override');
+    await gotoStory(page, 'data-display-comparator--in-sync-override');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--in-sync-override.png',
+      'data-display-comparator--in-sync-override.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-override', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--color-override');
+    await gotoStory(page, 'data-display-comparator--color-override');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--color-override.png',
+      'data-display-comparator--color-override.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('no-label-or-captions', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--no-label-or-captions');
+    await gotoStory(page, 'data-display-comparator--no-label-or-captions');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--no-label-or-captions.png',
+      'data-display-comparator--no-label-or-captions.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--active');
+    await gotoStory(page, 'data-display-comparator--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--active.png',
+      'data-display-comparator--active.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active-out-of-sync', async ({ page }) => {
-    await gotoStory(page, 'components-comparator--active-out-of-sync');
+    await gotoStory(page, 'data-display-comparator--active-out-of-sync');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-comparator--active-out-of-sync.png',
+      'data-display-comparator--active-out-of-sync.png',
       SCREENSHOT_OPTIONS,
     );
   });
