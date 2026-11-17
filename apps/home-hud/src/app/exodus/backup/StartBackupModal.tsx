@@ -6,6 +6,7 @@ import {
   Badge,
   Button,
   Input,
+  ListItemButton,
   Modal,
   ModalContent,
   ModalDescription,
@@ -268,20 +269,18 @@ function InventoryPicker({
           </Typography>
         )}
         {choices?.items.map((item) => (
-          <button
+          <ListItemButton
             key={item.id}
-            type="button"
-            aria-pressed={item.id === selectedId}
+            selected={item.id === selectedId}
             onClick={() => onSelect(item.id)}
-            className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-left hover:bg-neutral-700 ${item.id === selectedId ? 'bg-neutral-700' : ''}`}
+            startAdornment={
+              <Badge color={item.kind === 'directory' ? 'secondary' : 'dark'}>
+                {item.kind}
+              </Badge>
+            }
           >
-            <Badge color={item.kind === 'directory' ? 'secondary' : 'dark'}>
-              {item.kind}
-            </Badge>
-            <Typography variant="body2" className="break-all">
-              {item.rootPath}
-            </Typography>
-          </button>
+            {item.rootPath}
+          </ListItemButton>
         ))}
       </ScrollList>
       {choices && choices.total > choices.items.length && (
