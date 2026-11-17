@@ -1,4 +1,12 @@
-import { Typography } from '@abbottland/fui-components';
+import {
+  DataList,
+  Typography,
+  type DataListValueColor,
+} from '@abbottland/fui-components';
+
+// One label column width for the whole page so values line up from section to
+// section; wide enough for the longest label ("gluetun-sync healthz").
+const LABEL_WIDTH = '12rem';
 
 interface SectionProps {
   title: string;
@@ -6,7 +14,10 @@ interface SectionProps {
   available?: boolean;
   /** Small caption under the title. */
   note?: string;
+  /** The label/value rows: `Row`s. */
   children: React.ReactNode;
+  /** Content shown after the rows that isn't a label/value pair (lists, empty-state text). */
+  after?: React.ReactNode;
 }
 
 export function Section({
@@ -14,6 +25,7 @@ export function Section({
   available = true,
   note,
   children,
+  after,
 }: SectionProps) {
   return (
     <section className="flex flex-col gap-3">
@@ -26,7 +38,12 @@ export function Section({
         </Typography>
       )}
       {available ? (
-        <dl className="m-0 flex max-w-md flex-col gap-2">{children}</dl>
+        <>
+          <DataList.Root color="primary" size="small" className="max-w-md">
+            {children}
+          </DataList.Root>
+          {after}
+        </>
       ) : (
         <Typography variant="body2" className="text-neutral-400">
           Unavailable.
@@ -39,26 +56,16 @@ export function Section({
 interface RowProps {
   label: string;
   children: React.ReactNode;
-  className?: string;
+  /** State color for the value: success/error/warning, default for plain data. */
+  color?: DataListValueColor;
 }
 
-/** One label/value line; the value is right-aligned like the mockup. */
-export function Row({ label, children, className }: RowProps) {
+/** One label/value line of a Section's DataList. */
+export function Row({ label, children, color }: RowProps) {
   return (
-    <div className="flex items-baseline justify-between gap-6">
-      <dt>
-        <Typography variant="body2" component="span">
-          {label}
-        </Typography>
-      </dt>
-      <dd className="m-0 text-right">
-        <Typography variant="body2" component="span" className={className}>
-          {children}
-        </Typography>
-      </dd>
-    </div>
+    <DataList.Item>
+      <DataList.Label width={LABEL_WIDTH}>{label}</DataList.Label>
+      <DataList.Value color={color}>{children}</DataList.Value>
+    </DataList.Item>
   );
 }
-
-export const OK_CLASS = 'text-primary-600';
-export const BAD_CLASS = 'text-error-400';

@@ -1,5 +1,5 @@
 import type { PublicIp } from '../lib/gluetun-sync-api';
-import { BAD_CLASS, OK_CLASS, Row, Section } from './Section';
+import { Row, Section } from './Section';
 
 interface IpSettingsProps {
   publicIp: PublicIp | null;
@@ -19,7 +19,7 @@ export function IpSettings({ publicIp, homeIp }: IpSettingsProps) {
       {/* Differing IPs are the healthy state: traffic leaves via the VPN, not home. */}
       <Row
         label="IP Difference"
-        className={!known ? undefined : matched ? BAD_CLASS : OK_CLASS}
+        color={!known ? undefined : matched ? 'error' : 'success'}
       >
         {!known ? '—' : matched ? 'Matched' : 'Not matched'}
       </Row>
