@@ -13,89 +13,89 @@ test.describe('DataList Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--default');
+    await gotoStory(page, 'data-display-datalist--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--default.png',
+      'data-display-datalist--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('orientation-horizontal', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--orientation-horizontal');
+    await gotoStory(page, 'data-display-datalist--orientation-horizontal');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--orientation-horizontal.png',
+      'data-display-datalist--orientation-horizontal.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('orientation-vertical', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--orientation-vertical');
+    await gotoStory(page, 'data-display-datalist--orientation-vertical');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--orientation-vertical.png',
+      'data-display-datalist--orientation-vertical.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('size-default', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--size-default');
+    await gotoStory(page, 'data-display-datalist--size-default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--size-default.png',
+      'data-display-datalist--size-default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('size-small', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--size-small');
+    await gotoStory(page, 'data-display-datalist--size-small');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--size-small.png',
+      'data-display-datalist--size-small.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--color-primary');
+    await gotoStory(page, 'data-display-datalist--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--color-primary.png',
+      'data-display-datalist--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-secondary', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--color-secondary');
+    await gotoStory(page, 'data-display-datalist--color-secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--color-secondary.png',
+      'data-display-datalist--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-neutral', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--color-neutral');
+    await gotoStory(page, 'data-display-datalist--color-neutral');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--color-neutral.png',
+      'data-display-datalist--color-neutral.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('item-align', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--item-align');
+    await gotoStory(page, 'data-display-datalist--item-align');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--item-align.png',
+      'data-display-datalist--item-align.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('label-width', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--label-width');
+    await gotoStory(page, 'data-display-datalist--label-width');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--label-width.png',
+      'data-display-datalist--label-width.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('value-colors', async ({ page }) => {
-    await gotoStory(page, 'components-datalist--value-colors');
+    await gotoStory(page, 'data-display-datalist--value-colors');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-datalist--value-colors.png',
+      'data-display-datalist--value-colors.png',
       SCREENSHOT_OPTIONS,
     );
   });

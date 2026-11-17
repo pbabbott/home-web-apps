@@ -13,49 +13,49 @@ test.describe('Tooltip Visual Regression Tests', () => {
   });
 
   test('top', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--top');
+    await gotoStory(page, 'forms-overlays-tooltip--top');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--top.png',
+      'forms-overlays-tooltip--top.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('right', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--right');
+    await gotoStory(page, 'forms-overlays-tooltip--right');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--right.png',
+      'forms-overlays-tooltip--right.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('bottom', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--bottom');
+    await gotoStory(page, 'forms-overlays-tooltip--bottom');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--bottom.png',
+      'forms-overlays-tooltip--bottom.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('left', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--left');
+    await gotoStory(page, 'forms-overlays-tooltip--left');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--left.png',
+      'forms-overlays-tooltip--left.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('align-start', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--align-start');
+    await gotoStory(page, 'forms-overlays-tooltip--align-start');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--align-start.png',
+      'forms-overlays-tooltip--align-start.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('long-content', async ({ page }) => {
-    await gotoStory(page, 'components-tooltip--long-content');
+    await gotoStory(page, 'forms-overlays-tooltip--long-content');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-tooltip--long-content.png',
+      'forms-overlays-tooltip--long-content.png',
       SCREENSHOT_OPTIONS,
     );
   });

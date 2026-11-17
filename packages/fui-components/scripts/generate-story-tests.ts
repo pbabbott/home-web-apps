@@ -22,8 +22,22 @@ interface ComponentTests {
 }
 
 /**
+ * Storybook section prefixes (title `<Section>/<Component>`), matching the
+ * groups in CLAUDE.md's Component Catalog. Values are the story-id slugs.
+ */
+const SECTION_SLUGS = [
+  'layout-surfaces',
+  'text-decoration',
+  'buttons-navigation',
+  'forms-overlays',
+  'data-display',
+  'diagram',
+];
+
+/**
  * Parse a story ID to extract component information
- * e.g., "components-button--color-primary" -> { category: "components", component: "Button", story: "color-primary" }
+ * e.g., "buttons-navigation-button--color-primary" -> { category: "buttons-navigation", component: "Button", story: "color-primary" }
+ * e.g., "showcase-button--colors" -> { category: "showcase", component: "Button", story: "colors" }
  */
 function parseStoryId(storyId: string) {
   const parts = storyId.split('--');
@@ -32,27 +46,25 @@ function parseStoryId(storyId: string) {
   }
 
   const [categoryPath, storyName] = parts;
-  const pathParts = categoryPath.split('-');
+  const category = ['showcase', ...SECTION_SLUGS].find((c) =>
+    categoryPath.startsWith(`${c}-`),
+  );
 
   // Skip non-component stories (like "configure-your-project--docs")
-  if (
-    pathParts[0] !== 'components' &&
-    pathParts[0] !== 'showcase' &&
-    pathParts[0] !== 'diagrams'
-  ) {
+  if (!category) {
     return null;
   }
 
   // Convert kebab-case to PascalCase for component name
   // e.g., "button" -> "Button", "nav-item" -> "NavItem"
-  const componentKebab = pathParts.slice(1).join('-');
+  const componentKebab = categoryPath.slice(category.length + 1);
   const componentName = componentKebab
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
 
   return {
-    category: pathParts[0],
+    category,
     componentName,
     componentKebab,
     storyName,

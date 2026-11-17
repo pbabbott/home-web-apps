@@ -5,7 +5,7 @@ import { TransparentPanel } from './TransparentPanel';
 import { type ReactNode } from 'react';
 
 const meta = {
-  title: 'Components/TransparentPanel',
+  title: 'Layout & Surfaces/TransparentPanel',
   component: TransparentPanel,
   parameters: {
     layout: 'centered',

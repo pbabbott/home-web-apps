@@ -4,7 +4,7 @@ import { fn } from 'storybook/test';
 import { Input, type InputProps } from './Input';
 
 const meta = {
-  title: 'Components/Input',
+  title: 'Forms & Overlays/Input',
   component: Input,
   parameters: {
     layout: 'centered',

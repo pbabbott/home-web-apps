@@ -13,33 +13,33 @@ test.describe('NavItem Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--default');
+    await gotoStory(page, 'buttons-navigation-navitem--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--default.png',
+      'buttons-navigation-navitem--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--active');
+    await gotoStory(page, 'buttons-navigation-navitem--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--active.png',
+      'buttons-navigation-navitem--active.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('without-lines', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--without-lines');
+    await gotoStory(page, 'buttons-navigation-navitem--without-lines');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--without-lines.png',
+      'buttons-navigation-navitem--without-lines.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-right-icon', async ({ page }) => {
-    await gotoStory(page, 'components-navitem--with-right-icon');
+    await gotoStory(page, 'buttons-navigation-navitem--with-right-icon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navitem--with-right-icon.png',
+      'buttons-navigation-navitem--with-right-icon.png',
       SCREENSHOT_OPTIONS,
     );
   });

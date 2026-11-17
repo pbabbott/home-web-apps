@@ -13,33 +13,33 @@ test.describe('Switch Visual Regression Tests', () => {
   });
 
   test('off', async ({ page }) => {
-    await gotoStory(page, 'components-switch--off');
+    await gotoStory(page, 'forms-overlays-switch--off');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-switch--off.png',
+      'forms-overlays-switch--off.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('on', async ({ page }) => {
-    await gotoStory(page, 'components-switch--on');
+    await gotoStory(page, 'forms-overlays-switch--on');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-switch--on.png',
+      'forms-overlays-switch--on.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('disabled', async ({ page }) => {
-    await gotoStory(page, 'components-switch--disabled');
+    await gotoStory(page, 'forms-overlays-switch--disabled');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-switch--disabled.png',
+      'forms-overlays-switch--disabled.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('disabled-on', async ({ page }) => {
-    await gotoStory(page, 'components-switch--disabled-on');
+    await gotoStory(page, 'forms-overlays-switch--disabled-on');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-switch--disabled-on.png',
+      'forms-overlays-switch--disabled-on.png',
       SCREENSHOT_OPTIONS,
     );
   });

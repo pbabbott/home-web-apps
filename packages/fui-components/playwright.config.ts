@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: 'html',
 
   // Store snapshots co-located with components in __screenshots__ folders
-  // e.g., src/components/Button/__screenshots__/components-button--color-primary.png
+  // e.g., src/components/Button/__screenshots__/buttons-navigation-button--color-primary.png
   // These baseline screenshots should be committed to version control
   snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{arg}{ext}',
   expect: {

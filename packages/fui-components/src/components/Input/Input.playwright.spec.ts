@@ -13,49 +13,49 @@ test.describe('Input Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-input--default');
+    await gotoStory(page, 'forms-overlays-input--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--default.png',
+      'forms-overlays-input--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-input--primary');
+    await gotoStory(page, 'forms-overlays-input--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--primary.png',
+      'forms-overlays-input--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-placeholder', async ({ page }) => {
-    await gotoStory(page, 'components-input--with-placeholder');
+    await gotoStory(page, 'forms-overlays-input--with-placeholder');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--with-placeholder.png',
+      'forms-overlays-input--with-placeholder.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('default-with-value', async ({ page }) => {
-    await gotoStory(page, 'components-input--default-with-value');
+    await gotoStory(page, 'forms-overlays-input--default-with-value');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--default-with-value.png',
+      'forms-overlays-input--default-with-value.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary-with-value', async ({ page }) => {
-    await gotoStory(page, 'components-input--primary-with-value');
+    await gotoStory(page, 'forms-overlays-input--primary-with-value');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--primary-with-value.png',
+      'forms-overlays-input--primary-with-value.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('full-width', async ({ page }) => {
-    await gotoStory(page, 'components-input--full-width');
+    await gotoStory(page, 'forms-overlays-input--full-width');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-input--full-width.png',
+      'forms-overlays-input--full-width.png',
       SCREENSHOT_OPTIONS,
     );
   });

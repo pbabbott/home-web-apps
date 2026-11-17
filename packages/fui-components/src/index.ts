@@ -251,6 +251,13 @@ export {
   type ListItemButtonColor,
 } from './components/ListItemButton/ListItemButton';
 
+// StatusIndicator
+export {
+  StatusIndicator,
+  type StatusIndicatorProps,
+  type StatusIndicatorColor,
+} from './components/StatusIndicator/StatusIndicator';
+
 // Tooltip
 export { Tooltip, type TooltipProps } from './components/Tooltip/Tooltip';
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { EdgeDrawer, type EdgeDrawerProps } from './EdgeDrawer';
 
 const meta = {
-  title: 'Components/EdgeDrawer',
+  title: 'Layout & Surfaces/EdgeDrawer',
   component: EdgeDrawer,
   parameters: {
     layout: 'fullscreen',

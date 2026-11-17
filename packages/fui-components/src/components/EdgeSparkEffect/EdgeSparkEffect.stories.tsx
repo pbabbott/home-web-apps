@@ -6,7 +6,7 @@ import { EdgeSparkEffect, type EdgeSparkEffectProps } from './EdgeSparkEffect';
 const SAMPLE_PATH = 'M 20 20 L 20 100 L 220 100 L 220 180';
 
 const meta = {
-  title: 'Components/EdgeSparkEffect',
+  title: 'Diagram/EdgeSparkEffect',
   component: EdgeSparkEffect,
   parameters: {
     layout: 'centered',

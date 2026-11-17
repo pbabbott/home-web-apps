@@ -13,49 +13,49 @@ test.describe('Card Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-card--default');
+    await gotoStory(page, 'layout-surfaces-card--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--default.png',
+      'layout-surfaces-card--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-card--primary');
+    await gotoStory(page, 'layout-surfaces-card--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--primary.png',
+      'layout-surfaces-card--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'components-card--secondary');
+    await gotoStory(page, 'layout-surfaces-card--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--secondary.png',
+      'layout-surfaces-card--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('large', async ({ page }) => {
-    await gotoStory(page, 'components-card--large');
+    await gotoStory(page, 'layout-surfaces-card--large');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--large.png',
+      'layout-surfaces-card--large.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('large-primary', async ({ page }) => {
-    await gotoStory(page, 'components-card--large-primary');
+    await gotoStory(page, 'layout-surfaces-card--large-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--large-primary.png',
+      'layout-surfaces-card--large-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-dot-grid', async ({ page }) => {
-    await gotoStory(page, 'components-card--with-dot-grid');
+    await gotoStory(page, 'layout-surfaces-card--with-dot-grid');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-card--with-dot-grid.png',
+      'layout-surfaces-card--with-dot-grid.png',
       SCREENSHOT_OPTIONS,
     );
   });

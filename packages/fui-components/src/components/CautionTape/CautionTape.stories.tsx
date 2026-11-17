@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CautionTape } from './CautionTape';
 
 const meta = {
-  title: 'Components/CautionTape',
+  title: 'Text & Decoration/CautionTape',
   component: CautionTape,
   parameters: {
     layout: 'centered',

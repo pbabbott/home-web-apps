@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Comparator } from './Comparator';
 
 const meta = {
-  title: 'Components/Comparator',
+  title: 'Data Display/Comparator',
   component: Comparator,
   parameters: {
     layout: 'centered',

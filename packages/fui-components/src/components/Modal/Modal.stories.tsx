@@ -9,7 +9,7 @@ import {
 } from './Modal';
 
 const meta: Meta = {
-  title: 'Components/Modal',
+  title: 'Forms & Overlays/Modal',
   parameters: {
     // ModalContent renders through a Radix Portal, fixed-positioned relative
     // to the viewport rather than nested inside #storybook-root — without

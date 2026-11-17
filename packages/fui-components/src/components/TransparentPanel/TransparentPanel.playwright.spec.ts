@@ -13,81 +13,81 @@ test.describe('TransparentPanel Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--default');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--default.png',
+      'layout-surfaces-transparentpanel--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('dark', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--dark');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--dark');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--dark.png',
+      'layout-surfaces-transparentpanel--dark.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('white', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--white');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--white');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--white.png',
+      'layout-surfaces-transparentpanel--white.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--primary');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--primary.png',
+      'layout-surfaces-transparentpanel--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--secondary');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--secondary.png',
+      'layout-surfaces-transparentpanel--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('success', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--success');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--success');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--success.png',
+      'layout-surfaces-transparentpanel--success.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('error', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--error');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--error');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--error.png',
+      'layout-surfaces-transparentpanel--error.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('warning', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--warning');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--warning');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--warning.png',
+      'layout-surfaces-transparentpanel--warning.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('accent-purple', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--accent-purple');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--accent-purple');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--accent-purple.png',
+      'layout-surfaces-transparentpanel--accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('accent-falcon', async ({ page }) => {
-    await gotoStory(page, 'components-transparentpanel--accent-falcon');
+    await gotoStory(page, 'layout-surfaces-transparentpanel--accent-falcon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-transparentpanel--accent-falcon.png',
+      'layout-surfaces-transparentpanel--accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -13,17 +13,17 @@ test.describe('Panel Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-panel--default');
+    await gotoStory(page, 'layout-surfaces-panel--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-panel--default.png',
+      'layout-surfaces-panel--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-panel--primary');
+    await gotoStory(page, 'layout-surfaces-panel--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-panel--primary.png',
+      'layout-surfaces-panel--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });

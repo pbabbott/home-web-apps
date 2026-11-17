@@ -4,7 +4,7 @@ import { DiagramViewer, type DiagramViewerProps } from './DiagramViewer';
 import examplePostData from './blog-example-post.json';
 
 const meta: Meta<typeof DiagramViewer> = {
-  title: 'Diagrams/DiagramViewer',
+  title: 'Diagram/DiagramViewer',
   component: DiagramViewer,
   parameters: {
     layout: 'padded',

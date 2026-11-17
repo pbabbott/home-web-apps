@@ -54,6 +54,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **DataList** – Radix-Themes-style key/value readout (`DataList.Root/Item/Label/Value`; orientation, size, color; dim labels, bright state-colored values); metadata and status panels.
 - **ListItem** – static list row (`li`) with optional translucent `color` fill, start/end adornments and wrapping text; items in lists and detail rows.
 - **ListItemButton** – clickable/selectable list row (`button`) with translucent `color` fill, `selected` state and adornments; pick-lists such as search results.
+- **StatusIndicator** – fixed-height status row: left label, right glowing pulsing dot (default) or colored status text (`status`); `color` success/error/warning/neutral/primary; stacked up/down lists (hosts, URLs).
 - **Comparator** – two value pills joined by a connector that breaks when they differ (color, `inSync`, label, captions); sync/status checks.
 - **SegmentedProgressBar** – step progress bar with shimmering current segment; multi-step flows.
 
@@ -77,6 +78,10 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 ## Typography
 
 Always use the `Typography` component for all rendered text — no raw `<p>`, `<span>`, `<h*>`, or other HTML text elements. This applies to components and stories alike.
+
+## Storybook Titles
+
+Component stories are titled `<Section>/<Component>` where `<Section>` is the Component Catalog group the component sits in: `Layout & Surfaces`, `Text & Decoration`, `Buttons & Navigation`, `Forms & Overlays`, `Data Display`, `Diagram`. Showcases stay `Showcase/<Component>`. Folders under `src/components/` stay flat; only the title carries the section. The title determines story IDs (`data-display-table--default`) and so the screenshot/spec file names; a new section must also be added to `SECTION_SLUGS` in `scripts/generate-story-tests.ts`. When adding a component, put it in the catalog and give its story the matching section.
 
 ## Storybook Coverage
 

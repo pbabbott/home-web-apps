@@ -7,6 +7,8 @@ import {
   type BadgeColor,
   OutlinedButton,
   Panel,
+  StatusIndicator,
+  type StatusIndicatorColor,
   Switch,
   Typography,
 } from '@abbottland/fui-components';
@@ -214,6 +216,12 @@ function TemperatureMetricPanel({
   );
 }
 
+const STATUS_INDICATOR_COLOR: Record<HostStatus, StatusIndicatorColor> = {
+  online: 'success',
+  offline: 'error',
+  unknown: 'neutral',
+};
+
 function HostListItem({
   host,
   active,
@@ -224,23 +232,29 @@ function HostListItem({
   onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <StatusIndicator
+      component="button"
       onClick={onSelect}
-      className={`flex w-full items-center justify-between gap-2 border px-3 py-2 text-left transition-colors cursor-pointer ${
+      aria-pressed={active}
+      aria-label={`${host.name} (${host.ipAddress}): ${host.status}`}
+      color={STATUS_INDICATOR_COLOR[host.status]}
+      // Only a live host breathes; a pulsing red dot would read as "alive".
+      pulse={host.status === 'online'}
+      className={`w-full cursor-pointer text-left outline outline-1 transition-colors ${
         active
-          ? 'border-primary-500 bg-primary-900/40'
-          : 'border-neutral-700 hover:border-neutral-500'
+          ? 'bg-primary-900/40 outline-primary-500'
+          : 'outline-transparent hover:bg-neutral-800'
       }`}
     >
-      <div className="flex flex-col gap-0.5">
-        <Typography variant="body2">{host.name}</Typography>
-        <Typography variant="caption" className="text-neutral-400">
-          {host.ipAddress}
-        </Typography>
-      </div>
-      <Badge color={STATUS_BADGE_COLOR[host.status]}>{host.status}</Badge>
-    </button>
+      {host.name}
+      <Typography
+        variant="caption"
+        component="span"
+        className="ml-2 text-neutral-500"
+      >
+        {host.ipAddress}
+      </Typography>
+    </StatusIndicator>
   );
 }
 

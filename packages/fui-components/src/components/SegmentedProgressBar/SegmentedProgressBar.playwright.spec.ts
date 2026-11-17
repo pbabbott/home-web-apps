@@ -15,18 +15,21 @@ test.describe('SegmentedProgressBar Visual Regression Tests', () => {
   test('index-before-segment', async ({ page }) => {
     await gotoStory(
       page,
-      'components-segmentedprogressbar--index-before-segment',
+      'data-display-segmentedprogressbar--index-before-segment',
     );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--index-before-segment.png',
+      'data-display-segmentedprogressbar--index-before-segment.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('index-at-segment', async ({ page }) => {
-    await gotoStory(page, 'components-segmentedprogressbar--index-at-segment');
+    await gotoStory(
+      page,
+      'data-display-segmentedprogressbar--index-at-segment',
+    );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--index-at-segment.png',
+      'data-display-segmentedprogressbar--index-at-segment.png',
       SCREENSHOT_OPTIONS,
     );
   });
@@ -34,34 +37,34 @@ test.describe('SegmentedProgressBar Visual Regression Tests', () => {
   test('index-after-segment', async ({ page }) => {
     await gotoStory(
       page,
-      'components-segmentedprogressbar--index-after-segment',
+      'data-display-segmentedprogressbar--index-after-segment',
     );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--index-after-segment.png',
+      'data-display-segmentedprogressbar--index-after-segment.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-label', async ({ page }) => {
-    await gotoStory(page, 'components-segmentedprogressbar--with-label');
+    await gotoStory(page, 'data-display-segmentedprogressbar--with-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--with-label.png',
+      'data-display-segmentedprogressbar--with-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-index', async ({ page }) => {
-    await gotoStory(page, 'components-segmentedprogressbar--with-index');
+    await gotoStory(page, 'data-display-segmentedprogressbar--with-index');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--with-index.png',
+      'data-display-segmentedprogressbar--with-index.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-segmentedprogressbar--default');
+    await gotoStory(page, 'data-display-segmentedprogressbar--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-segmentedprogressbar--default.png',
+      'data-display-segmentedprogressbar--default.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -13,17 +13,17 @@ test.describe('HexagonButton Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonbutton--default');
+    await gotoStory(page, 'buttons-navigation-hexagonbutton--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--default.png',
+      'buttons-navigation-hexagonbutton--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('with-label', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonbutton--with-label');
+    await gotoStory(page, 'buttons-navigation-hexagonbutton--with-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--with-label.png',
+      'buttons-navigation-hexagonbutton--with-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
@@ -31,34 +31,37 @@ test.describe('HexagonButton Visual Regression Tests', () => {
   test('with-label-and-lower-label', async ({ page }) => {
     await gotoStory(
       page,
-      'components-hexagonbutton--with-label-and-lower-label',
+      'buttons-navigation-hexagonbutton--with-label-and-lower-label',
     );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--with-label-and-lower-label.png',
+      'buttons-navigation-hexagonbutton--with-label-and-lower-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('long-label', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonbutton--long-label');
+    await gotoStory(page, 'buttons-navigation-hexagonbutton--long-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--long-label.png',
+      'buttons-navigation-hexagonbutton--long-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('wrapping-long-word', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonbutton--wrapping-long-word');
+    await gotoStory(
+      page,
+      'buttons-navigation-hexagonbutton--wrapping-long-word',
+    );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--wrapping-long-word.png',
+      'buttons-navigation-hexagonbutton--wrapping-long-word.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('active', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonbutton--active');
+    await gotoStory(page, 'buttons-navigation-hexagonbutton--active');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonbutton--active.png',
+      'buttons-navigation-hexagonbutton--active.png',
       SCREENSHOT_OPTIONS,
     );
   });

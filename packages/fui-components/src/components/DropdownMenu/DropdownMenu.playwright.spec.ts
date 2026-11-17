@@ -13,17 +13,17 @@ test.describe('DropdownMenu Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-dropdownmenu--default');
+    await gotoStory(page, 'forms-overlays-dropdownmenu--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dropdownmenu--default.png',
+      'forms-overlays-dropdownmenu--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('open', async ({ page }) => {
-    await gotoStory(page, 'components-dropdownmenu--open');
+    await gotoStory(page, 'forms-overlays-dropdownmenu--open');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-dropdownmenu--open.png',
+      'forms-overlays-dropdownmenu--open.png',
       SCREENSHOT_OPTIONS,
     );
   });

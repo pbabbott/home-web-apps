@@ -13,9 +13,9 @@ test.describe('NavBar Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-navbar--default');
+    await gotoStory(page, 'buttons-navigation-navbar--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-navbar--default.png',
+      'buttons-navigation-navbar--default.png',
       SCREENSHOT_OPTIONS,
     );
   });

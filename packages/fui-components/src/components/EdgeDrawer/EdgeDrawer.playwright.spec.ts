@@ -13,17 +13,17 @@ test.describe('EdgeDrawer Visual Regression Tests', () => {
   });
 
   test('closed', async ({ page }) => {
-    await gotoStory(page, 'components-edgedrawer--closed');
+    await gotoStory(page, 'layout-surfaces-edgedrawer--closed');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgedrawer--closed.png',
+      'layout-surfaces-edgedrawer--closed.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('open', async ({ page }) => {
-    await gotoStory(page, 'components-edgedrawer--open');
+    await gotoStory(page, 'layout-surfaces-edgedrawer--open');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgedrawer--open.png',
+      'layout-surfaces-edgedrawer--open.png',
       SCREENSHOT_OPTIONS,
     );
   });

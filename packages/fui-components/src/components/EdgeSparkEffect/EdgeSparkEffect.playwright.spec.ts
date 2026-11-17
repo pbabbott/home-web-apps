@@ -13,73 +13,73 @@ test.describe('EdgeSparkEffect Visual Regression Tests', () => {
   });
 
   test('color-primary', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-primary');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-primary.png',
+      'diagram-edgesparkeffect--color-primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-secondary', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-secondary');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-secondary.png',
+      'diagram-edgesparkeffect--color-secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-success', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-success');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-success');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-success.png',
+      'diagram-edgesparkeffect--color-success.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-error', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-error');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-error');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-error.png',
+      'diagram-edgesparkeffect--color-error.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-warning', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-warning');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-warning');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-warning.png',
+      'diagram-edgesparkeffect--color-warning.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-purple', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-accent-purple');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-accent-purple');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-accent-purple.png',
+      'diagram-edgesparkeffect--color-accent-purple.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-accent-falcon', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-accent-falcon');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-accent-falcon');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-accent-falcon.png',
+      'diagram-edgesparkeffect--color-accent-falcon.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('color-neutral', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--color-neutral');
+    await gotoStory(page, 'diagram-edgesparkeffect--color-neutral');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--color-neutral.png',
+      'diagram-edgesparkeffect--color-neutral.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('one-shot', async ({ page }) => {
-    await gotoStory(page, 'components-edgesparkeffect--one-shot');
+    await gotoStory(page, 'diagram-edgesparkeffect--one-shot');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-edgesparkeffect--one-shot.png',
+      'diagram-edgesparkeffect--one-shot.png',
       SCREENSHOT_OPTIONS,
     );
   });

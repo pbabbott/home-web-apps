@@ -13,33 +13,33 @@ test.describe('CautionTape Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-cautiontape--default');
+    await gotoStory(page, 'text-decoration-cautiontape--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-cautiontape--default.png',
+      'text-decoration-cautiontape--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('custom-label', async ({ page }) => {
-    await gotoStory(page, 'components-cautiontape--custom-label');
+    await gotoStory(page, 'text-decoration-cautiontape--custom-label');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-cautiontape--custom-label.png',
+      'text-decoration-cautiontape--custom-label.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('straight', async ({ page }) => {
-    await gotoStory(page, 'components-cautiontape--straight');
+    await gotoStory(page, 'text-decoration-cautiontape--straight');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-cautiontape--straight.png',
+      'text-decoration-cautiontape--straight.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('over-content', async ({ page }) => {
-    await gotoStory(page, 'components-cautiontape--over-content');
+    await gotoStory(page, 'text-decoration-cautiontape--over-content');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-cautiontape--over-content.png',
+      'text-decoration-cautiontape--over-content.png',
       SCREENSHOT_OPTIONS,
     );
   });

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HexagonButton } from './HexagonButton';
 
 const meta: Meta<typeof HexagonButton> = {
-  title: 'Components/HexagonButton',
+  title: 'Buttons & Navigation/HexagonButton',
   component: HexagonButton,
   parameters: {
     layout: 'centered',

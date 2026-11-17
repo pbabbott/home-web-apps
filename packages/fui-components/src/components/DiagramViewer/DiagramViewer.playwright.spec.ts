@@ -13,33 +13,33 @@ test.describe('DiagramViewer Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--default');
+    await gotoStory(page, 'diagram-diagramviewer--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--default.png',
+      'diagram-diagramviewer--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('animated-active-edge', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--animated-active-edge');
+    await gotoStory(page, 'diagram-diagramviewer--animated-active-edge');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--animated-active-edge.png',
+      'diagram-diagramviewer--animated-active-edge.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('static-active-edge', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--static-active-edge');
+    await gotoStory(page, 'diagram-diagramviewer--static-active-edge');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--static-active-edge.png',
+      'diagram-diagramviewer--static-active-edge.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('fullscreen-click-handler', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagramviewer--fullscreen-click-handler');
+    await gotoStory(page, 'diagram-diagramviewer--fullscreen-click-handler');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagramviewer--fullscreen-click-handler.png',
+      'diagram-diagramviewer--fullscreen-click-handler.png',
       SCREENSHOT_OPTIONS,
     );
   });

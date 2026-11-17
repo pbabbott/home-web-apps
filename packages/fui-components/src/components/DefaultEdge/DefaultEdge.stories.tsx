@@ -46,7 +46,7 @@ function StoryContainer({ active = false }: { active?: boolean }) {
 }
 
 const meta: Meta<typeof StoryContainer> = {
-  title: 'Diagrams/DefaultEdge',
+  title: 'Diagram/DefaultEdge',
   component: StoryContainer,
   parameters: {
     layout: 'padded',

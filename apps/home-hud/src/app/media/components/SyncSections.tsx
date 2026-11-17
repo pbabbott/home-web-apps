@@ -1,3 +1,4 @@
+import { StatusIndicator } from '@abbottland/fui-components';
 import type { SyncStatus } from '../lib/gluetun-sync-api';
 import { formatRunTime } from '../lib/display';
 import { Row, Section } from './Section';
@@ -20,19 +21,26 @@ export function SyncSections({ status }: SyncSectionsProps) {
 
   return (
     <>
-      <Section title="Most Recent Sync Attempt" available={available}>
-        <Row
-          label="Status"
-          color={
-            s.mostRecentAttemptSuccessful === undefined
-              ? undefined
-              : s.mostRecentAttemptSuccessful
-                ? 'success'
-                : 'error'
-          }
-        >
-          {attemptLabel(s)}
-        </Row>
+      <Section
+        title="Most Recent Sync Attempt"
+        available={available}
+        before={
+          <StatusIndicator
+            component="div"
+            className="max-w-md"
+            color={
+              s.mostRecentAttemptSuccessful === undefined
+                ? 'neutral'
+                : s.mostRecentAttemptSuccessful
+                  ? 'success'
+                  : 'error'
+            }
+            status={attemptLabel(s)}
+          >
+            Status
+          </StatusIndicator>
+        }
+      >
         <Row label="Source">{s.lastAttemptBy ?? '—'}</Row>
         <Row label="Time">
           <TimeValue iso={s.lastAttempt} />

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { TiledHexagons } from './TiledHexagons';
 
 const meta: Meta<typeof TiledHexagons> = {
-  title: 'Components/TiledHexagons',
+  title: 'Buttons & Navigation/TiledHexagons',
   component: TiledHexagons,
   parameters: {
     layout: 'centered',

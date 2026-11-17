@@ -46,7 +46,7 @@ function StoryContainer({ content, colorScheme, selected }: StoryProps) {
 }
 
 const meta: Meta<typeof StoryContainer> = {
-  title: 'Diagrams/TextNode',
+  title: 'Diagram/TextNode',
   component: StoryContainer,
   parameters: {
     layout: 'padded',

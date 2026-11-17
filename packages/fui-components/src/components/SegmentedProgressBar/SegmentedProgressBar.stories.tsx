@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SegmentedProgressBar } from './SegmentedProgressBar';
 
 const meta = {
-  title: 'Components/SegmentedProgressBar',
+  title: 'Data Display/SegmentedProgressBar',
   component: SegmentedProgressBar,
   parameters: {
     layout: 'centered',

@@ -3,7 +3,7 @@ import { HorizontalRule } from './HorizontalRule';
 import { Typography } from '../Typography/Typography';
 
 const meta = {
-  title: 'Components/HorizontalRule',
+  title: 'Layout & Surfaces/HorizontalRule',
   component: HorizontalRule,
   parameters: {
     layout: 'padded',

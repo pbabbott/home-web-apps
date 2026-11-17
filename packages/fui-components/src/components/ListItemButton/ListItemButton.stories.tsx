@@ -4,7 +4,7 @@ import { fn } from 'storybook/test';
 import { ListItemButton } from './ListItemButton';
 
 const meta = {
-  title: 'Components/ListItemButton',
+  title: 'Data Display/ListItemButton',
   component: ListItemButton,
   parameters: { layout: 'padded' },
   argTypes: {

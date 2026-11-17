@@ -9,7 +9,7 @@ import {
 import { DirectoryMenuItems } from '../../stories/shared/DirectoryMenuItems';
 
 const meta: Meta = {
-  title: 'Components/DropdownMenu',
+  title: 'Forms & Overlays/DropdownMenu',
 };
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -13,9 +13,9 @@ test.describe('DiagramEditor Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'diagrams-diagrameditor--default');
+    await gotoStory(page, 'diagram-diagrameditor--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'diagrams-diagrameditor--default.png',
+      'diagram-diagrameditor--default.png',
       SCREENSHOT_OPTIONS,
     );
   });

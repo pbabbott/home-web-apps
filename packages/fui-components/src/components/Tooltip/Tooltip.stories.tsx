@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Tooltip } from './Tooltip';
 
 const meta = {
-  title: 'Components/Tooltip',
+  title: 'Forms & Overlays/Tooltip',
   component: Tooltip,
   parameters: {
     layout: 'centered',

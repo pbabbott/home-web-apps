@@ -13,41 +13,44 @@ test.describe('HexagonalBackground Visual Regression Tests', () => {
   });
 
   test('default', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonalbackground--default');
+    await gotoStory(page, 'layout-surfaces-hexagonalbackground--default');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonalbackground--default.png',
+      'layout-surfaces-hexagonalbackground--default.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('sparks-disabled', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonalbackground--sparks-disabled');
+    await gotoStory(
+      page,
+      'layout-surfaces-hexagonalbackground--sparks-disabled',
+    );
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonalbackground--sparks-disabled.png',
+      'layout-surfaces-hexagonalbackground--sparks-disabled.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('sparks-frozen', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonalbackground--sparks-frozen');
+    await gotoStory(page, 'layout-surfaces-hexagonalbackground--sparks-frozen');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonalbackground--sparks-frozen.png',
+      'layout-surfaces-hexagonalbackground--sparks-frozen.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('ice-theme', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonalbackground--ice-theme');
+    await gotoStory(page, 'layout-surfaces-hexagonalbackground--ice-theme');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonalbackground--ice-theme.png',
+      'layout-surfaces-hexagonalbackground--ice-theme.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('error-theme', async ({ page }) => {
-    await gotoStory(page, 'components-hexagonalbackground--error-theme');
+    await gotoStory(page, 'layout-surfaces-hexagonalbackground--error-theme');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-hexagonalbackground--error-theme.png',
+      'layout-surfaces-hexagonalbackground--error-theme.png',
       SCREENSHOT_OPTIONS,
     );
   });

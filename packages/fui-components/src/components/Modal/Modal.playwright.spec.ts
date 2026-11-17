@@ -13,17 +13,17 @@ test.describe('Modal Visual Regression Tests', () => {
   });
 
   test('primary', async ({ page }) => {
-    await gotoStory(page, 'components-modal--primary');
+    await gotoStory(page, 'forms-overlays-modal--primary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-modal--primary.png',
+      'forms-overlays-modal--primary.png',
       SCREENSHOT_OPTIONS,
     );
   });
 
   test('secondary', async ({ page }) => {
-    await gotoStory(page, 'components-modal--secondary');
+    await gotoStory(page, 'forms-overlays-modal--secondary');
     await expect(page.locator('#storybook-root')).toHaveScreenshot(
-      'components-modal--secondary.png',
+      'forms-overlays-modal--secondary.png',
       SCREENSHOT_OPTIONS,
     );
   });

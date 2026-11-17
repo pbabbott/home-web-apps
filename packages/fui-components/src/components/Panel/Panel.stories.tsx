@@ -5,7 +5,7 @@ import { Panel } from './Panel';
 import { type ReactNode } from 'react';
 
 const meta = {
-  title: 'Components/Panel',
+  title: 'Layout & Surfaces/Panel',
   component: Panel,
   parameters: {
     layout: 'centered',
