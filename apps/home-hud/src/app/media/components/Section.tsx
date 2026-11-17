@@ -14,6 +14,8 @@ interface SectionProps {
   available?: boolean;
   /** Small caption under the title. */
   note?: string;
+  /** Content shown above the rows, e.g. a headline `StatusIndicator`. */
+  before?: React.ReactNode;
   /** The label/value rows: `Row`s. */
   children: React.ReactNode;
   /** Content shown after the rows that isn't a label/value pair (lists, empty-state text). */
@@ -24,6 +26,7 @@ export function Section({
   title,
   available = true,
   note,
+  before,
   children,
   after,
 }: SectionProps) {
@@ -39,6 +42,7 @@ export function Section({
       )}
       {available ? (
         <>
+          {before}
           <DataList.Root color="primary" size="small" className="max-w-md">
             {children}
           </DataList.Root>

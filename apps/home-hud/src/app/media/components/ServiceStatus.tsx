@@ -1,5 +1,5 @@
+import { StatusIndicator, Typography } from '@abbottland/fui-components';
 import type { ServicesResult } from '../lib/gluetun-sync-api';
-import { Row, Section } from './Section';
 
 interface ServiceStatusProps {
   /** gluetun-sync's own `/healthz` answered 200. */
@@ -9,25 +9,32 @@ interface ServiceStatusProps {
 }
 
 function StatusRow({ label, up }: { label: string; up: boolean | null }) {
+  // Unknown (null) is neutral, not red: we don't know it's down.
   return (
-    <Row
-      label={label}
-      color={up === null ? undefined : up ? 'success' : 'error'}
+    <StatusIndicator
+      color={up === null ? 'neutral' : up ? 'success' : 'error'}
+      aria-label={`${label}: ${up === null ? 'unknown' : up ? 'OK' : 'down'}`}
     >
-      {up === null ? '—' : up ? 'OK' : 'DOWN'}
-    </Row>
+      {label}
+    </StatusIndicator>
   );
 }
 
 export function ServiceStatus({ syncHealthy, services }: ServiceStatusProps) {
   return (
-    <Section
-      title="Service Status"
-      note="qbittorrent and gluetun are checked from gluetun-sync's perspective (its own pod), not from home-hud."
-    >
-      <StatusRow label="gluetun-sync healthz" up={syncHealthy} />
-      <StatusRow label="qbittorrent" up={services?.qbittorrent ?? null} />
-      <StatusRow label="gluetun" up={services?.gluetun ?? null} />
-    </Section>
+    <section className="flex flex-col gap-3">
+      <Typography variant="h3" component="h3">
+        Service Status
+      </Typography>
+      <Typography variant="small" className="text-neutral-400">
+        qbittorrent and gluetun are checked from gluetun-sync&apos;s perspective
+        (its own pod), not from home-hud.
+      </Typography>
+      <ul className="m-0 flex max-w-md list-none flex-col gap-1 p-0">
+        <StatusRow label="gluetun-sync healthz" up={syncHealthy} />
+        <StatusRow label="qbittorrent" up={services?.qbittorrent ?? null} />
+        <StatusRow label="gluetun" up={services?.gluetun ?? null} />
+      </ul>
+    </section>
   );
 }

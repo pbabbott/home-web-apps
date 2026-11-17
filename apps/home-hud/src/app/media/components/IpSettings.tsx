@@ -1,3 +1,4 @@
+import { StatusIndicator } from '@abbottland/fui-components';
 import type { PublicIp } from '../lib/gluetun-sync-api';
 import { Row, Section } from './Section';
 
@@ -15,14 +16,18 @@ export function IpSettings({ publicIp, homeIp }: IpSettingsProps) {
     <Section
       title="IP Settings"
       available={publicIp !== null || homeIp !== null}
+      before={
+        // Differing IPs are the healthy state: traffic leaves via the VPN, not home.
+        <StatusIndicator
+          component="div"
+          className="max-w-md"
+          color={!known ? 'neutral' : matched ? 'error' : 'success'}
+          status={!known ? '—' : matched ? 'Matched' : 'Not matched'}
+        >
+          IP Difference
+        </StatusIndicator>
+      }
     >
-      {/* Differing IPs are the healthy state: traffic leaves via the VPN, not home. */}
-      <Row
-        label="IP Difference"
-        color={!known ? undefined : matched ? 'error' : 'success'}
-      >
-        {!known ? '—' : matched ? 'Matched' : 'Not matched'}
-      </Row>
       <Row label="Home IP">{homeIp ?? '—'}</Row>
       <Row label="Public IP">{publicIp?.ip ?? '—'}</Row>
       <Row label="Region">{publicIp?.region ?? '—'}</Row>
