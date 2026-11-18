@@ -50,7 +50,7 @@ function parseStoryId(storyId: string) {
     categoryPath.startsWith(`${c}-`),
   );
 
-  // Skip non-component stories (like "configure-your-project--docs")
+  // Skip non-component stories (like the "home--landing" story)
   if (!category) {
     return null;
   }

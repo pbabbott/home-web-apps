@@ -22,6 +22,21 @@ export const viewports = {
 
 const preview: Preview = {
   parameters: {
+    options: {
+      storySort: {
+        order: [
+          'Home',
+          'Layout & Surfaces',
+          'Text & Decoration',
+          'Buttons & Navigation',
+          'Forms & Overlays',
+          'Data Display',
+          'Diagram',
+          'Showcase',
+          '*',
+        ],
+      },
+    },
     viewport: {
       options: viewports,
     },
