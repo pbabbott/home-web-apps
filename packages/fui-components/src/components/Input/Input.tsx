@@ -52,7 +52,10 @@ export const Input: React.FC<InputProps> = ({
     onBlur?.(e);
   };
 
-  const baseClasses = 'relative';
+  // Shrink the container to the input so the underline and active ornament
+  // match its width. `w-full` on the input needs the container to fill too,
+  // since a percentage width can't resolve against a shrink-to-fit parent.
+  const baseClasses = 'relative w-fit max-w-full has-[input.w-full]:w-full';
   const baseInputClasses =
     'border focus:outline-none focus:ring-0 active:outline-none px-2 rounded-none';
 
