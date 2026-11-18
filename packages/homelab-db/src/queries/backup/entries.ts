@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, ilike, sql } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import type { Database } from '../../client';
 import {
@@ -284,6 +284,8 @@ export type ListBackupEntriesOptions = {
   jobItemId: string;
   status?: BackupEntryStatus;
   issueKind?: BackupEntryIssueKind;
+  /** Case-insensitive substring of the entry's path. */
+  search?: string;
   /** Keyset cursor: the id of the last entry of the previous page. */
   after?: number;
   limit?: number;
@@ -291,6 +293,9 @@ export type ListBackupEntriesOptions = {
 
 const LIST_ENTRIES_DEFAULT_LIMIT = 200;
 const LIST_ENTRIES_MAX_LIMIT = 1000;
+
+/** Escapes `\\`, `%` and `_` so a search term matches literally in `like`. */
+const escapeLike = (value: string) => value.replace(/[\\%_]/g, '\\$&');
 
 /** Ordered by id (insertion order), so paging is stable while entries change status. */
 export const listBackupEntries = async (
@@ -307,6 +312,9 @@ export const listBackupEntries = async (
         eq(t.jobItemId, options.jobItemId),
         options.status ? eq(t.status, options.status) : undefined,
         options.issueKind ? eq(t.issueKind, options.issueKind) : undefined,
+        options.search
+          ? ilike(t.relPath, `%${escapeLike(options.search)}%`)
+          : undefined,
         options.after !== undefined ? gt(t.id, options.after) : undefined,
       ),
     )
