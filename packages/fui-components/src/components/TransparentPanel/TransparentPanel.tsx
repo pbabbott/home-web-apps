@@ -10,16 +10,16 @@ export interface TransparentPanelProps
 
 const getTransparentColorClasses = (color: TransparentPanelColor) => {
   const colors = {
-    default: 'bg-neutral-600/60 text-neutral-50',
-    dark: 'bg-neutral-900/80 text-neutral-50',
-    white: 'bg-neutral-50/70',
-    primary: 'bg-primary-700/60 text-neutral-50',
-    secondary: 'bg-secondary-600/60  text-neutral-50',
-    success: 'bg-success-500/60  text-neutral-50',
-    error: 'bg-error-600/60  text-neutral-50',
-    warning: 'bg-warning-500/60  text-neutral-50',
-    'accent-purple': 'bg-accent-purple-500/60  text-neutral-50',
-    'accent-falcon': 'bg-accent-falcon-600/60 text-neutral-50',
+    default: 'bg-neutral-600/25 text-neutral-50',
+    dark: 'bg-neutral-900/30 text-neutral-50',
+    white: 'bg-neutral-50/25',
+    primary: 'bg-primary-700/25 text-neutral-50',
+    secondary: 'bg-secondary-600/25  text-neutral-50',
+    success: 'bg-success-500/25  text-neutral-50',
+    error: 'bg-error-600/25  text-neutral-50',
+    warning: 'bg-warning-500/25  text-neutral-50',
+    'accent-purple': 'bg-accent-purple-500/25  text-neutral-50',
+    'accent-falcon': 'bg-accent-falcon-600/25 text-neutral-50',
   };
   return colors[color] || '';
 };
@@ -30,7 +30,10 @@ export const TransparentPanel: React.FC<TransparentPanelProps> = ({
   children,
   ...props
 }) => {
-  const baseClasses = 'px-4 py-2 transition-colors relative';
+  // Frosted-glass look: blur whatever is behind the translucent fill and add a
+  // faint inset edge (ring, so it doesn't change the box size).
+  const baseClasses =
+    'px-4 py-2 transition-colors relative backdrop-blur-sm ring-1 ring-inset ring-neutral-300/10';
 
   const classes = twMerge(
     baseClasses,

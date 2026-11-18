@@ -1,3 +1,4 @@
+import { HexagonalBackground } from '../../components/HexagonalBackground/HexagonalBackground';
 import { TransparentPanel } from '../../components/TransparentPanel/TransparentPanel';
 import { type ReactNode } from 'react';
 import type { StoryObj } from '@storybook/react-vite';
@@ -15,37 +16,42 @@ type Story = StoryObj<typeof meta>;
 
 // Function to render all colors in a grid
 const renderColorGrid = () => (
-  <div className="grid grid-cols-4 gap-6">
-    <TransparentPanel color="default">
-      <PanelContent>Default</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="dark">
-      <PanelContent>Dark</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="white">
-      <PanelContent>White</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="primary">
-      <PanelContent>Primary</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="secondary">
-      <PanelContent>Secondary</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="success">
-      <PanelContent>Success</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="error">
-      <PanelContent>Error</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="warning">
-      <PanelContent>Warning</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="accent-purple">
-      <PanelContent>Purple</PanelContent>
-    </TransparentPanel>
-    <TransparentPanel color="accent-falcon">
-      <PanelContent>Falcon</PanelContent>
-    </TransparentPanel>
+  <div className="relative p-8">
+    <div className="absolute inset-0">
+      <HexagonalBackground />
+    </div>
+    <div className="relative grid grid-cols-4 gap-6">
+      <TransparentPanel color="default">
+        <PanelContent>Default</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="dark">
+        <PanelContent>Dark</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="white">
+        <PanelContent>White</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="primary">
+        <PanelContent>Primary</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="secondary">
+        <PanelContent>Secondary</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="success">
+        <PanelContent>Success</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="error">
+        <PanelContent>Error</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="warning">
+        <PanelContent>Warning</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="accent-purple">
+        <PanelContent>Purple</PanelContent>
+      </TransparentPanel>
+      <TransparentPanel color="accent-falcon">
+        <PanelContent>Falcon</PanelContent>
+      </TransparentPanel>
+    </div>
   </div>
 );
 

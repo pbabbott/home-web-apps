@@ -19,6 +19,7 @@ import {
   TabsTrigger,
 } from '../../components/Tabs/Tabs';
 import { Button } from '../../components/Button/Button';
+import { Card } from '../../components/Card/Card';
 import { Comparator } from '../../components/Comparator/Comparator';
 import { HexagonalBackground } from '../../components/HexagonalBackground/HexagonalBackground';
 import { Input } from '../../components/Input/Input';
@@ -148,7 +149,10 @@ const LandingPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 self-center border border-neutral-300/10 bg-neutral-900/30 p-6 backdrop-blur-sm">
+        <TransparentPanel
+          color="dark"
+          className="flex flex-col gap-6 self-center p-6"
+        >
           <NavBar>
             {NAV.map((n, i) => (
               <NavItem
@@ -184,7 +188,7 @@ const LandingPage = () => {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-6">
-              <TransparentPanel color="dark" className="flex flex-col gap-4">
+              <TransparentPanel color="default" className="flex flex-col gap-4">
                 <Input
                   color="primary"
                   placeholder="Search components"
@@ -210,7 +214,7 @@ const LandingPage = () => {
                 </div>
               </TransparentPanel>
 
-              <TransparentPanel color="dark" className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <StatusIndicator color="success" status="online">
                   blog
                 </StatusIndicator>
@@ -220,7 +224,7 @@ const LandingPage = () => {
                 <StatusIndicator color="error" status="offline">
                   gluetun
                 </StatusIndicator>
-              </TransparentPanel>
+              </div>
 
               <SegmentedProgressBar
                 totalSegments={10}
@@ -228,6 +232,22 @@ const LandingPage = () => {
                 showLabel
                 labelText="Deploying"
               />
+              <Card
+                color="primary"
+                dotGrid
+                onClick={() => {
+                  window.location.search =
+                    '?path=/story/layout-surfaces-panel--default';
+                }}
+              >
+                <Typography variant="h5" component="h2">
+                  Compose your HUD
+                </Typography>
+                <Typography variant="body2" className="text-neutral-300">
+                  Panels, cards and hexagons that snap together. Click to open
+                  the component docs.
+                </Typography>
+              </Card>
             </div>
 
             <div className="flex flex-col items-center gap-6">
@@ -289,7 +309,7 @@ const LandingPage = () => {
           <div className="relative h-16 overflow-hidden">
             <CautionTape label="under construction" />
           </div>
-        </div>
+        </TransparentPanel>
       </div>
     </div>
   );
