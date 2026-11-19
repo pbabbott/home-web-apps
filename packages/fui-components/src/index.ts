@@ -181,6 +181,13 @@ export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
 // NavItem
 export { NavItem, type NavItemProps } from './components/NavItem/NavItem';
 
+// ConnectedNav
+export {
+  ConnectedNav,
+  type ConnectedNavProps,
+  type ConnectedNavItem,
+} from './components/ConnectedNav/ConnectedNav';
+
 // Panel
 export { Panel, type PanelProps } from './components/Panel/Panel';
 export { type PanelColor } from './components/Panel/types';

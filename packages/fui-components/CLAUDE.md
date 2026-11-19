@@ -38,6 +38,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **TiledHexagons** – honeycomb grid of hexagon tiles; launchers and icon menus.
 - **NavBar** – top navigation container with decorative line; site header.
 - **NavItem** – polymorphic nav link with icons and connector lines; items inside NavBar.
+- **ConnectedNav** – two-level nav: NavBar plus an indented subnav joined by a traced line with a ringed joint and a one-shot spark on selection; sectioned site navigation.
 
 **Forms & overlays**
 
