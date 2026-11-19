@@ -80,7 +80,7 @@ export default function ReaderToolsDrawer() {
           component="label"
           htmlFor="highlight-ai-switch"
         >
-          Highlight AI Generated Text
+          Highlight Text Written With AI
         </Typography>
         <Switch
           id="highlight-ai-switch"
@@ -118,7 +118,7 @@ export default function ReaderToolsDrawer() {
                   component="span"
                   className="text-neutral-400"
                 >
-                  {aiWords.toLocaleString()} AI-generated words
+                  {aiWords.toLocaleString()} words written with AI
                 </Typography>
               </div>
               <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function ReaderToolsDrawer() {
                   component="span"
                   className="text-neutral-400"
                 >
-                  {aiPercent}% AI-generated
+                  {aiPercent}% written with AI
                 </Typography>
               </div>
             </>

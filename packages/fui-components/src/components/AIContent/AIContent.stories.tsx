@@ -11,7 +11,7 @@ const meta = {
   argTypes: {
     highlighted: {
       control: 'boolean',
-      description: 'Whether this block is flagged as AI-generated',
+      description: 'Whether this block is flagged as written with AI',
     },
     animated: {
       control: 'boolean',
