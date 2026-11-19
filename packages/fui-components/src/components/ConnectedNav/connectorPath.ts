@@ -37,3 +37,15 @@ export function buildConnectorPath({
     `L ${subX} ${subY}`,
   ].join(' ');
 }
+
+/** Path length from the start to the elbow where the line turns into the subnav. */
+export function connectorJointLength({
+  sx,
+  sy,
+  midY,
+  gutterX,
+  subY,
+}: ConnectorPoints): number {
+  if (Math.abs(sx - gutterX) < 1) return Math.abs(subY - sy);
+  return Math.abs(midY - sy) + Math.abs(sx - gutterX) + Math.abs(subY - midY);
+}

@@ -14,7 +14,11 @@ import { EdgeSparkEffect } from '../EdgeSparkEffect/EdgeSparkEffect';
 import { MaskReveal } from '../MaskReveal/MaskReveal';
 import { NavBar } from '../NavBar/NavBar';
 import { NavItem } from '../NavItem/NavItem';
-import { buildConnectorPath, type ConnectorPoints } from './connectorPath';
+import {
+  buildConnectorPath,
+  connectorJointLength,
+  type ConnectorPoints,
+} from './connectorPath';
 
 export interface ConnectedNavItem {
   id: string;
@@ -91,7 +95,11 @@ export function ConnectedNav({
   const itemRefs = useRef(new Map<string, HTMLElement>());
   const subItemRefs = useRef(new Map<string, HTMLElement>());
 
-  const [path, setPath] = useState<{ d: string; joint: [number, number] }>();
+  const [path, setPath] = useState<{
+    d: string;
+    joint: [number, number];
+    jointLen: number;
+  }>();
   const [sparkPath, setSparkPath] = useState<string | null>(null);
   const [sparkKey, setSparkKey] = useState(0);
   const isFirstRef = useRef(true);
@@ -99,6 +107,9 @@ export function ConnectedNav({
   // clipped until the spark arrives, then wipes in left to right.
   const [wipe, setWipe] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  // The ringed joint stays hidden until the spark's head reaches it.
+  const [jointHidden, setJointHidden] = useState(false);
+  const pathRef = useRef<SVGPathElement>(null);
 
   const setItemRef = useCallback(
     (map: Map<string, HTMLElement>, id: string) => (el: HTMLElement | null) => {
@@ -149,7 +160,11 @@ export function ConnectedNav({
       return null;
     }
     const d = buildConnectorPath(pts);
-    setPath({ d, joint: [pts.gutterX, pts.subY] });
+    setPath({
+      d,
+      joint: [pts.gutterX, pts.subY],
+      jointLen: connectorJointLength(pts),
+    });
     return d;
   }, [measure]);
 
@@ -163,6 +178,7 @@ export function ConnectedNav({
       setSparkPath(d);
       setSparkKey((k) => k + 1);
       setWipe(true);
+      setJointHidden(true);
       setRevealed(false);
     }
     // Re-run only when the selected top item changes.
@@ -184,6 +200,39 @@ export function ConnectedNav({
       Math.max(0, sparkDuration * 1000 - ARRIVE_EARLY_MS),
     );
     return () => clearTimeout(t);
+    // Restart only for a new spark pass.
+  }, [sparkKey]);
+
+  // The line draws itself behind the spark's head: same duration, same linear
+  // timing, so the dash edge stays glued to the head dot.
+  useLayoutEffect(() => {
+    const el = pathRef.current;
+    if (!sparkPath || !el) return;
+    const len = el.getTotalLength();
+    const jointLen = path?.jointLen ?? len;
+    const total = sparkDuration * 1000;
+    el.style.strokeDasharray = `${len}`;
+    el.style.strokeDashoffset = `${len}`;
+    const start = performance.now();
+    let rafId: number;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / total);
+      el.style.strokeDashoffset = `${len * (1 - p)}`;
+      if (p * len >= jointLen) setJointHidden(false);
+      if (p < 1) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        el.style.strokeDasharray = '';
+        el.style.strokeDashoffset = '';
+        setJointHidden(false);
+      }
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(rafId);
+      el.style.strokeDasharray = '';
+      el.style.strokeDashoffset = '';
+    };
     // Restart only for a new spark pass.
   }, [sparkKey]);
 
@@ -290,6 +339,7 @@ export function ConnectedNav({
           aria-hidden="true"
         >
           <path
+            ref={pathRef}
             id={connectorId}
             d={path.d}
             fill="none"
@@ -298,20 +348,27 @@ export function ConnectedNav({
             vectorEffect="non-scaling-stroke"
           />
           {/* Ringed dot at the elbow where the line enters the subnav. */}
-          <circle
-            cx={path.joint[0]}
-            cy={path.joint[1]}
-            r={4}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1}
-          />
-          <circle
-            cx={path.joint[0]}
-            cy={path.joint[1]}
-            r={2}
-            fill="currentColor"
-          />
+          <g
+            style={{
+              opacity: jointHidden ? 0 : 1,
+              transition: 'opacity 150ms',
+            }}
+          >
+            <circle
+              cx={path.joint[0]}
+              cy={path.joint[1]}
+              r={4}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1}
+            />
+            <circle
+              cx={path.joint[0]}
+              cy={path.joint[1]}
+              r={2}
+              fill="currentColor"
+            />
+          </g>
           {sparkPath && (
             <EdgeSparkEffect
               key={sparkKey}
