@@ -4,13 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Badge,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  OutlinedButton,
   Panel,
   ScrollableTable,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Table,
   TableBody,
   TableHead,
@@ -38,6 +37,10 @@ interface AuditClientProps {
   events: AuditEvent[] | null;
   nextCursor: string | null;
 }
+
+// Radix Select rejects an empty item value, so the "All …" items use this
+// sentinel instead of '' / undefined.
+const ALL = '__all__';
 
 const ACTOR_COLORS = {
   human: 'primary',
@@ -73,64 +76,52 @@ export function AuditClient({
           <Typography variant="small" className="text-neutral-400">
             Source
           </Typography>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton type="button" size="small">
-                {sourceNames.get(sourceId ?? '') ?? 'All sources'}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Source">
-              <DropdownMenuItem
-                onSelect={() => router.push(auditUrl({ ...view, source: '' }))}
-              >
-                All sources
-              </DropdownMenuItem>
+          <Select
+            // An unknown source id in the URL falls back to "All sources".
+            value={sourceNames.has(sourceId ?? '') ? sourceId! : ALL}
+            onValueChange={(value) =>
+              router.push(
+                auditUrl({ ...view, source: value === ALL ? '' : value }),
+              )
+            }
+          >
+            <SelectTrigger size="small" className="min-w-[160px]" />
+            <SelectContent label="Source">
+              <SelectItem value={ALL}>All sources</SelectItem>
               {sources.map((source) => (
-                <DropdownMenuItem
-                  key={source.id}
-                  onSelect={() =>
-                    router.push(auditUrl({ ...view, source: source.id }))
-                  }
-                >
+                <SelectItem key={source.id} value={source.id}>
                   {source.name}
-                </DropdownMenuItem>
+                </SelectItem>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center gap-2">
           <Typography variant="small" className="text-neutral-400">
             Event
           </Typography>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton type="button" size="small">
-                {type ? AUDIT_EVENT_LABELS[type] : 'All events'}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Event">
-              <DropdownMenuItem
-                onSelect={() =>
-                  router.push(auditUrl({ ...view, type: undefined }))
-                }
-              >
-                All events
-              </DropdownMenuItem>
+          <Select
+            value={type ?? ALL}
+            onValueChange={(value) =>
+              router.push(
+                auditUrl({
+                  ...view,
+                  type: value === ALL ? undefined : parseAuditEventType(value),
+                }),
+              )
+            }
+          >
+            <SelectTrigger size="small" className="min-w-[160px]" />
+            <SelectContent label="Event">
+              <SelectItem value={ALL}>All events</SelectItem>
               {Object.entries(AUDIT_EVENT_LABELS).map(([value, label]) => (
-                <DropdownMenuItem
-                  key={value}
-                  onSelect={() =>
-                    router.push(
-                      auditUrl({ ...view, type: parseAuditEventType(value) }),
-                    )
-                  }
-                >
+                <SelectItem key={value} value={value}>
                   {label}
-                </DropdownMenuItem>
+                </SelectItem>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

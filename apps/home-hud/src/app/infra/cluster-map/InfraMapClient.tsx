@@ -7,13 +7,12 @@ import {
   Badge,
   type BadgeColor,
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  OutlinedButton,
   Panel,
   Scrollbar,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   TiledHexagons,
   Typography,
 } from '@abbottland/fui-components';
@@ -42,8 +41,15 @@ const METRIC_OPTIONS: { value: MapMetric; label: string }[] = [
   { value: 'restarts', label: 'Restarts' },
 ];
 
-const GROUP_BY_OPTIONS: { value: GroupDimension | null; label: string }[] = [
-  { value: null, label: 'None' },
+// Radix Select rejects an empty value, so "no grouping" is the string 'none'
+// (the same token the URL uses) rather than null.
+const NO_GROUPING = 'none';
+
+const GROUP_BY_OPTIONS: {
+  value: GroupDimension | typeof NO_GROUPING;
+  label: string;
+}[] = [
+  { value: NO_GROUPING, label: 'None' },
   { value: 'namespace', label: 'Namespace' },
   { value: 'node', label: 'Node' },
   { value: 'workload', label: 'Workload' },
@@ -244,8 +250,6 @@ export function InfraMapClient({
   groupBy,
 }: InfraMapClientProps) {
   const router = useRouter();
-  const [metricMenuOpen, setMetricMenuOpen] = useState(false);
-  const [groupMenuOpen, setGroupMenuOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Keyed by pod id rather than a single "current" slot: a stale fetch for
   // a since-deselected pod just writes into an entry nothing reads anymore,
@@ -296,8 +300,10 @@ export function InfraMapClient({
     router.push(buildFilterUrl(nextMetric, groupBy));
   }
 
-  function selectGroupBy(nextGroupBy: GroupDimension | null) {
-    router.push(buildFilterUrl(metric, nextGroupBy));
+  function selectGroupBy(nextGroupBy: GroupDimension | typeof NO_GROUPING) {
+    router.push(
+      buildFilterUrl(metric, nextGroupBy === NO_GROUPING ? null : nextGroupBy),
+    );
   }
 
   const items = podMap?.items ?? [];
@@ -341,42 +347,45 @@ export function InfraMapClient({
       </Typography>
 
       <div className="flex items-center gap-3 self-start">
-        <DropdownMenu open={groupMenuOpen} onOpenChange={setGroupMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <OutlinedButton size="small">
-              Group by:{' '}
-              {GROUP_BY_OPTIONS.find((o) => o.value === groupBy)?.label}
-            </OutlinedButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent label="Group by">
-            {GROUP_BY_OPTIONS.map((option) => (
-              <DropdownMenuItem
-                key={option.label}
-                onSelect={() => selectGroupBy(option.value)}
-              >
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Typography variant="small" className="text-neutral-400">
+            Group by
+          </Typography>
+          <Select
+            value={groupBy ?? NO_GROUPING}
+            onValueChange={(value) =>
+              selectGroupBy(value as GroupDimension | typeof NO_GROUPING)
+            }
+          >
+            <SelectTrigger size="small" className="min-w-[140px]" />
+            <SelectContent label="Group by">
+              {GROUP_BY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <DropdownMenu open={metricMenuOpen} onOpenChange={setMetricMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <OutlinedButton size="small">
-              Metric: {METRIC_OPTIONS.find((o) => o.value === metric)?.label}
-            </OutlinedButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent label="Color by">
-            {METRIC_OPTIONS.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                onSelect={() => selectMetric(option.value)}
-              >
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Typography variant="small" className="text-neutral-400">
+            Metric
+          </Typography>
+          <Select
+            value={metric}
+            onValueChange={(value) => selectMetric(value as MapMetric)}
+          >
+            <SelectTrigger size="small" className="min-w-[140px]" />
+            <SelectContent label="Color by">
+              {METRIC_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {podMap === null ? (

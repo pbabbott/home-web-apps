@@ -6,10 +6,6 @@ import {
   Badge,
   type BadgeColor,
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Modal,
   ModalContent,
   ModalDescription,
@@ -17,6 +13,10 @@ import {
   ModalTrigger,
   OutlinedButton,
   ScrollableTable,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Table,
   TableBody,
   TableHead,
@@ -34,6 +34,10 @@ const fileRenameStatusColor: Record<FileRenameStatus, BadgeColor> = {
   applied: 'success',
   rejected: 'error',
 };
+
+// Radix Select rejects an empty item value, so the "All …" items that clear a
+// filter use this sentinel instead of null.
+const ALL = '__all__';
 
 const STATUS_OPTIONS: FileRenameStatus[] = ['pending', 'applied', 'rejected'];
 
@@ -91,12 +95,9 @@ export function FileRenamesClient({
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
-  const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
-  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<FileRenameStatus | null>(
     null,
   );
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -189,68 +190,71 @@ export function FileRenamesClient({
 
       <div className="flex flex-col gap-2 self-start">
         <div className="flex items-center gap-4">
-          <DropdownMenu open={seriesMenuOpen} onOpenChange={setSeriesMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton size="small">
-                Series: {selectedSeries ?? 'All'}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Filter by Series">
-              <DropdownMenuItem onSelect={() => selectSeries(null)}>
-                All Series
-              </DropdownMenuItem>
-              {series.map((s) => (
-                <DropdownMenuItem
-                  key={s.id}
-                  onSelect={() => selectSeries(s.seriesName)}
-                >
-                  {s.seriesName}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Typography variant="small" className="text-neutral-400">
+              Series
+            </Typography>
+            <Select
+              value={selectedSeries ?? ALL}
+              onValueChange={(value) =>
+                selectSeries(value === ALL ? null : value)
+              }
+            >
+              <SelectTrigger size="small" className="min-w-[160px]" />
+              <SelectContent label="Filter by Series">
+                <SelectItem value={ALL}>All Series</SelectItem>
+                {series.map((s) => (
+                  <SelectItem key={s.id} value={s.seriesName}>
+                    {s.seriesName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton size="small">
-                Season: {selectedSeason ?? 'All'}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Filter by Season">
-              <DropdownMenuItem onSelect={() => selectSeason(null)}>
-                All Seasons
-              </DropdownMenuItem>
-              {SEASON_OPTIONS.map((season) => (
-                <DropdownMenuItem
-                  key={season}
-                  onSelect={() => selectSeason(season)}
-                >
-                  Season {season}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Typography variant="small" className="text-neutral-400">
+              Season
+            </Typography>
+            <Select
+              value={selectedSeason === null ? ALL : String(selectedSeason)}
+              onValueChange={(value) =>
+                selectSeason(value === ALL ? null : Number(value))
+              }
+            >
+              <SelectTrigger size="small" className="min-w-[140px]" />
+              <SelectContent label="Filter by Season">
+                <SelectItem value={ALL}>All Seasons</SelectItem>
+                {SEASON_OPTIONS.map((season) => (
+                  <SelectItem key={season} value={String(season)}>
+                    Season {season}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <DropdownMenu open={statusMenuOpen} onOpenChange={setStatusMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton size="small">
-                Status: {selectedStatus ?? 'All'}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Filter by Status">
-              <DropdownMenuItem onSelect={() => selectStatus(null)}>
-                All Statuses
-              </DropdownMenuItem>
-              {STATUS_OPTIONS.map((status) => (
-                <DropdownMenuItem
-                  key={status}
-                  onSelect={() => selectStatus(status)}
-                >
-                  {status}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Typography variant="small" className="text-neutral-400">
+              Status
+            </Typography>
+            <Select
+              value={selectedStatus ?? ALL}
+              onValueChange={(value) =>
+                selectStatus(value === ALL ? null : (value as FileRenameStatus))
+              }
+            >
+              <SelectTrigger size="small" className="min-w-[140px]" />
+              <SelectContent label="Filter by Status">
+                <SelectItem value={ALL}>All Statuses</SelectItem>
+                {STATUS_OPTIONS.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {selectedSeason !== null && (
             <Modal open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
