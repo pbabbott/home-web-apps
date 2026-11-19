@@ -186,14 +186,14 @@ export default function PromiseSection() {
                 className="text-primary-500 shrink-0"
               />
               <Typography variant="body1" component="p">
-                All AI-generated text on this site is explicitly labeled.
+                All text written with AI on this site is explicitly labeled.
               </Typography>
             </div>
           </TransparentPanel>
           <AIContent>
             <Typography variant="body2" component="p">
               Try it out - use the panel on the left side of the screen to
-              highlight this AI-generated text.
+              highlight this text written with AI.
             </Typography>
           </AIContent>
         </div>
