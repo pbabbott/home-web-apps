@@ -60,6 +60,7 @@
   "devDependencies": {
     "@abbottland/abctl": "workspace:*",
     "@abbottland/eslint-config": "workspace:*",
+    "@abbottland/fui-icons": "workspace:*",
     "@microsoft/api-extractor": "7.58.9",
     "@playwright/test": "^1.57.0",
     "@storybook/addon-a11y": "^10.4.0",

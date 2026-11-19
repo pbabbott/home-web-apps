@@ -7,8 +7,8 @@ import {
   MagnifyingGlassIcon,
 } from '@radix-ui/react-icons';
 
+import { Icon } from '@abbottland/fui-icons';
 import { Badge } from '../../components/Badge/Badge';
-import { CautionTape } from '../../components/CautionTape/CautionTape';
 import { DataList } from '../../components/DataList/DataList';
 import { HorizontalRule } from '../../components/HorizontalRule/HorizontalRule';
 import { OutlinedButton } from '../../components/OutlinedButton/OutlinedButton';
@@ -19,6 +19,7 @@ import {
   TabsTrigger,
 } from '../../components/Tabs/Tabs';
 import { Button } from '../../components/Button/Button';
+import { Card } from '../../components/Card/Card';
 import { Comparator } from '../../components/Comparator/Comparator';
 import { HexagonalBackground } from '../../components/HexagonalBackground/HexagonalBackground';
 import { Input } from '../../components/Input/Input';
@@ -29,7 +30,10 @@ import { Scrollbar } from '../../components/Scrollbar/Scrollbar';
 import { SegmentedProgressBar } from '../../components/SegmentedProgressBar/SegmentedProgressBar';
 import { StatusIndicator } from '../../components/StatusIndicator/StatusIndicator';
 import { Switch } from '../../components/Switch/Switch';
-import { TiledHexagons } from '../../components/TiledHexagons/TiledHexagons';
+import {
+  TiledHexagons,
+  type HexStatus,
+} from '../../components/TiledHexagons/TiledHexagons';
 import { TransparentPanel } from '../../components/TransparentPanel/TransparentPanel';
 import { Typography } from '../../components/Typography/Typography';
 
@@ -46,11 +50,17 @@ const NAV = [
   { label: 'Tokens', icon: GridIcon },
 ];
 
-const HEX = [
+type HexTile = { label: string; lowerLabel: string; status?: HexStatus };
+
+const HEX: HexTile[] = [
   { label: 'blog', lowerLabel: '8%', status: 'healthy' as const },
   { label: 'video-api', lowerLabel: '34%', status: 'warning' as const },
   { label: 'gluetun', lowerLabel: '95%', status: 'error' as const },
   { label: 'postgres', lowerLabel: '41%', status: 'healthy' as const },
+  { label: 'redis', lowerLabel: '12%' },
+  { label: 'harbor', lowerLabel: '27%' },
+  { label: 'plex', lowerLabel: '63%' },
+  { label: 'dashy', lowerLabel: '5%' },
 ];
 
 const LOREM =
@@ -74,7 +84,7 @@ const ScrollPanel = () => {
   useEffect(sync, []);
 
   return (
-    <Panel color="accent-purple" className="flex flex-row gap-2">
+    <Panel color="white" className="flex flex-row gap-2">
       <div
         ref={ref}
         onScroll={sync}
@@ -132,23 +142,29 @@ const LandingPage = () => {
           <div className="flex flex-wrap gap-3">
             <Button
               component="a"
-              href="?path=/story/buttons-navigation-button--default"
+              href="/?path=/story/buttons-navigation-button--color-primary"
+              target="_top"
             >
               Browse components
             </Button>
-            <Button
-              variant="text"
+            <OutlinedButton
               component="a"
-              href="https://github.com/pbabbott/home-web-apps"
+              href="https://github.com/pbabbott/home-web-apps/tree/main/packages/fui-components"
               target="_blank"
               rel="noreferrer"
             >
-              GitHub
-            </Button>
+              <span className="inline-flex items-center gap-2">
+                <Icon name="github" size={16} className="!text-current" />{' '}
+                GitHub
+              </span>
+            </OutlinedButton>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 self-center border border-neutral-300/10 bg-neutral-900/30 p-6 backdrop-blur-sm">
+        <TransparentPanel
+          color="dark"
+          className="flex flex-col gap-6 self-center p-6"
+        >
           <NavBar>
             {NAV.map((n, i) => (
               <NavItem
@@ -167,6 +183,7 @@ const LandingPage = () => {
             <Badge color="success">healthy</Badge>
             <Badge color="warning">beta</Badge>
             <Badge color="accent-purple">new</Badge>
+            <Badge color="dark">internal</Badge>
             <div className="ml-auto flex gap-2">
               {['grid', 'list', 'graph'].map((v) => (
                 <OutlinedButton
@@ -184,7 +201,7 @@ const LandingPage = () => {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="flex flex-col gap-6">
-              <TransparentPanel color="dark" className="flex flex-col gap-4">
+              <TransparentPanel color="default" className="flex flex-col gap-4">
                 <Input
                   color="primary"
                   placeholder="Search components"
@@ -200,27 +217,26 @@ const LandingPage = () => {
                     Glow {on ? 'on' : 'off'}
                   </Typography>
                 </label>
-                <div className="flex items-center gap-3">
-                  <Button>Deploy</Button>
-                  <Button variant="text">
+                <div className="flex items-center justify-end gap-3">
+                  <OutlinedButton color="secondary">
                     <span className="inline-flex items-center gap-2">
                       <MagnifyingGlassIcon /> Inspect
                     </span>
-                  </Button>
+                  </OutlinedButton>
+                  <Button>Deploy</Button>
                 </div>
               </TransparentPanel>
 
-              <TransparentPanel color="dark" className="flex flex-col gap-2">
-                <StatusIndicator color="success" status="online">
-                  blog
-                </StatusIndicator>
-                <StatusIndicator color="warning" status="degraded">
-                  video-api
-                </StatusIndicator>
-                <StatusIndicator color="error" status="offline">
-                  gluetun
-                </StatusIndicator>
-              </TransparentPanel>
+              <DataList.Root>
+                <DataList.Item>
+                  <DataList.Label>Host</DataList.Label>
+                  <DataList.Value color="success">hogwarts</DataList.Value>
+                </DataList.Item>
+                <DataList.Item>
+                  <DataList.Label>Uptime</DataList.Label>
+                  <DataList.Value>42 days</DataList.Value>
+                </DataList.Item>
+              </DataList.Root>
 
               <SegmentedProgressBar
                 totalSegments={10}
@@ -228,6 +244,22 @@ const LandingPage = () => {
                 showLabel
                 labelText="Deploying"
               />
+              <Card
+                color="primary"
+                dotGrid
+                onClick={() => {
+                  (window.top ?? window).location.href =
+                    '/?path=/story/layout-surfaces-panel--default';
+                }}
+              >
+                <Typography variant="h5" component="h2">
+                  Compose your HUD
+                </Typography>
+                <Typography variant="body2" className="text-neutral-300">
+                  Panels, cards and hexagons that snap together. Click to open
+                  the component docs.
+                </Typography>
+              </Card>
             </div>
 
             <div className="flex flex-col items-center gap-6">
@@ -240,7 +272,7 @@ const LandingPage = () => {
                 />
               </div>
               <TiledHexagons
-                maxHorizontal={2}
+                maxHorizontal={3}
                 tiles={HEX.map((t, i) => ({
                   ...t,
                   active: i === hex,
@@ -248,36 +280,32 @@ const LandingPage = () => {
                 }))}
               />
               <div className="w-full">
-                <Tabs defaultValue="host">
-                  <TabsList>
-                    <TabsTrigger value="host">Host</TabsTrigger>
-                    <TabsTrigger value="net">Network</TabsTrigger>
+                <Tabs defaultValue="text">
+                  <TabsList className="mb-3">
+                    <TabsTrigger value="text">Text</TabsTrigger>
+                    <TabsTrigger value="glow">Glow</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="host">
-                    <DataList.Root>
-                      <DataList.Item>
-                        <DataList.Label>Host</DataList.Label>
-                        <DataList.Value color="success">
-                          hogwarts
-                        </DataList.Value>
-                      </DataList.Item>
-                      <DataList.Item>
-                        <DataList.Label>Uptime</DataList.Label>
-                        <DataList.Value>42 days</DataList.Value>
-                      </DataList.Item>
-                    </DataList.Root>
+                  <TabsContent value="text">
+                    <div className="flex flex-col gap-2">
+                      <StatusIndicator color="success" status="online">
+                        blog
+                      </StatusIndicator>
+                      <StatusIndicator color="warning" status="degraded">
+                        video-api
+                      </StatusIndicator>
+                      <StatusIndicator color="error" status="offline">
+                        gluetun
+                      </StatusIndicator>
+                    </div>
                   </TabsContent>
-                  <TabsContent value="net">
-                    <DataList.Root>
-                      <DataList.Item>
-                        <DataList.Label>Address</DataList.Label>
-                        <DataList.Value>192.168.4.20</DataList.Value>
-                      </DataList.Item>
-                      <DataList.Item>
-                        <DataList.Label>Latency</DataList.Label>
-                        <DataList.Value color="warning">48 ms</DataList.Value>
-                      </DataList.Item>
-                    </DataList.Root>
+                  <TabsContent value="glow">
+                    <div className="flex flex-col gap-2">
+                      <StatusIndicator color="success">blog</StatusIndicator>
+                      <StatusIndicator color="warning">
+                        video-api
+                      </StatusIndicator>
+                      <StatusIndicator color="error">gluetun</StatusIndicator>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
@@ -285,11 +313,7 @@ const LandingPage = () => {
           </div>
 
           <ScrollPanel />
-
-          <div className="relative h-16 overflow-hidden">
-            <CautionTape label="under construction" />
-          </div>
-        </div>
+        </TransparentPanel>
       </div>
     </div>
   );
