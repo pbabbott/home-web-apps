@@ -200,7 +200,11 @@ export function FileRenamesClient({
                 selectSeries(value === ALL ? null : value)
               }
             >
-              <SelectTrigger size="small" className="min-w-[160px]" />
+              <SelectTrigger
+                aria-label="Series"
+                size="small"
+                className="min-w-[160px]"
+              />
               <SelectContent label="Filter by Series">
                 <SelectItem value={ALL}>All Series</SelectItem>
                 {selectedSeries !== null &&
@@ -230,7 +234,11 @@ export function FileRenamesClient({
                 selectSeason(value === ALL ? null : Number(value))
               }
             >
-              <SelectTrigger size="small" className="min-w-[140px]" />
+              <SelectTrigger
+                aria-label="Season"
+                size="small"
+                className="min-w-[140px]"
+              />
               <SelectContent label="Filter by Season">
                 <SelectItem value={ALL}>All Seasons</SelectItem>
                 {SEASON_OPTIONS.map((season) => (
@@ -252,7 +260,11 @@ export function FileRenamesClient({
                 selectStatus(value === ALL ? null : (value as FileRenameStatus))
               }
             >
-              <SelectTrigger size="small" className="min-w-[140px]" />
+              <SelectTrigger
+                aria-label="Status"
+                size="small"
+                className="min-w-[140px]"
+              />
               <SelectContent label="Filter by Status">
                 <SelectItem value={ALL}>All Statuses</SelectItem>
                 {STATUS_OPTIONS.map((status) => (

@@ -140,7 +140,11 @@ export function AddRuleModal({
                 setSourceId(value === ALL_SOURCES ? '' : value)
               }
             >
-              <SelectTrigger size="small" className="w-full" />
+              <SelectTrigger
+                aria-label="Applies to"
+                size="small"
+                className="w-full"
+              />
               <SelectContent label="Applies to">
                 <SelectItem value={ALL_SOURCES}>
                   All sources (global)
@@ -171,7 +175,11 @@ export function AddRuleModal({
               value={scope}
               onValueChange={(value) => setScope(value as ExclusionRuleScope)}
             >
-              <SelectTrigger size="small" className="w-full" />
+              <SelectTrigger
+                aria-label="Scope"
+                size="small"
+                className="w-full"
+              />
               <SelectContent label="Scope">
                 {(Object.keys(SCOPE_LABELS) as ExclusionRuleScope[]).map(
                   (value) => (

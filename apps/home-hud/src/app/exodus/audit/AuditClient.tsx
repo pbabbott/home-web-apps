@@ -85,7 +85,11 @@ export function AuditClient({
               )
             }
           >
-            <SelectTrigger size="small" className="min-w-[160px]" />
+            <SelectTrigger
+              aria-label="Source"
+              size="small"
+              className="min-w-[160px]"
+            />
             <SelectContent label="Source">
               <SelectItem value={ALL}>All sources</SelectItem>
               {sources.map((source) => (
@@ -112,7 +116,11 @@ export function AuditClient({
               )
             }
           >
-            <SelectTrigger size="small" className="min-w-[160px]" />
+            <SelectTrigger
+              aria-label="Event"
+              size="small"
+              className="min-w-[160px]"
+            />
             <SelectContent label="Event">
               <SelectItem value={ALL}>All events</SelectItem>
               {Object.entries(AUDIT_EVENT_LABELS).map(([value, label]) => (

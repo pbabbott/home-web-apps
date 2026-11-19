@@ -1,9 +1,8 @@
 import React, { useCallback, useContext, useRef } from 'react';
 import * as RDM from '@radix-ui/react-dropdown-menu';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
-import { Typography } from '../Typography/Typography';
 import { DropdownCloseCtx } from './DropdownMenu';
-import { flashItem } from './menuShared';
+import { MenuItemLabel, flashItem, menuItemClassName } from './menuShared';
 
 export interface DropdownMenuItemProps
   extends React.ComponentProps<typeof RDM.Item> {
@@ -44,23 +43,11 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <RDM.Item
       ref={itemRef}
       onSelect={handleSelect}
-      className={extendedTwMerge(
-        'flex items-center gap-3 px-3 py-2 text-neutral-300',
-        'cursor-pointer outline-none transition-colors duration-200',
-        'data-[highlighted]:bg-primary-500 data-[highlighted]:text-neutral-900',
-        'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
-        className,
-      )}
+      className={extendedTwMerge(menuItemClassName, className)}
       {...props}
     >
       {Icon && <Icon width={20} height={20} />}
-      <Typography
-        variant="button"
-        component="span"
-        className="text-inherit grow"
-      >
-        {children}
-      </Typography>
+      <MenuItemLabel>{children}</MenuItemLabel>
       {RightIcon && <RightIcon width={16} height={16} className="opacity-60" />}
     </RDM.Item>
   );

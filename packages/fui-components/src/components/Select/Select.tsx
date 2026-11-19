@@ -11,8 +11,15 @@ import * as RS from '@radix-ui/react-select';
 import { CheckIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 import { Typography } from '../Typography/Typography';
-import { DottedDecoration } from '../DropdownMenu/DottedDecoration';
-import { LBracket, flashItem, useClipReveal } from '../DropdownMenu/menuShared';
+import {
+  MenuItemLabel,
+  MenuPanel,
+  composeRefs,
+  flashItem,
+  menuContentClassName,
+  menuItemClassName,
+  useClipReveal,
+} from '../DropdownMenu/menuShared';
 
 interface SelectCtxValue {
   /** Items register their element so the root can flash it on selection. */
@@ -205,46 +212,29 @@ export const SelectContent: React.FC<SelectContentProps> = ({
   children,
   sideOffset = 8,
   collisionPadding = 8,
+  ref,
   ...props
 }) => {
-  const contentRef = useClipReveal(animated);
+  const revealRef = useClipReveal(animated);
 
   return (
     <RS.Portal container={container}>
       <RS.Content
-        ref={contentRef}
+        {...props}
+        ref={composeRefs(revealRef, ref)}
         position="popper"
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={extendedTwMerge(
-          'relative z-50 flex min-w-[var(--radix-select-trigger-width)] flex-col bg-neutral-900/30 backdrop-blur-sm',
+          menuContentClassName,
+          'min-w-[var(--radix-select-trigger-width)]',
           'max-h-[var(--radix-select-content-available-height)]',
-          'border border-primary-700 text-neutral-300 pb-3 px-2',
           className,
         )}
-        {...props}
       >
-        <LBracket position="top-left" />
-        <LBracket position="bottom-left" />
-        <LBracket position="bottom-right" />
-
-        {label && (
-          <div className="relative flex items-center justify-center px-8 py-2 border-b border-primary-900 text-primary-500 tracking-wider">
-            <Typography variant="caption" component="span">
-              {label}
-            </Typography>
-          </div>
-        )}
-        <div
-          className={extendedTwMerge(
-            'flex min-h-0 px-2 pb-1',
-            // Without a label header, push items down level with the corner brackets.
-            label ? 'pt-1' : 'pt-3',
-          )}
-        >
+        <MenuPanel label={label}>
           <RS.Viewport className="flex-1">{children}</RS.Viewport>
-          <DottedDecoration className="text-primary-700 opacity-60 self-center pr-1" />
-        </div>
+        </MenuPanel>
       </RS.Content>
     </RS.Portal>
   );
@@ -259,6 +249,7 @@ export const SelectItem: React.FC<SelectItemProps> = ({
   value,
   className,
   children,
+  ref,
   ...props
 }) => {
   const { register, unregister } = useContext(SelectCtx);
@@ -278,25 +269,15 @@ export const SelectItem: React.FC<SelectItemProps> = ({
 
   return (
     <RS.Item
-      ref={itemRef}
-      value={value}
-      className={extendedTwMerge(
-        'flex items-center gap-3 px-3 py-2 text-neutral-300',
-        'cursor-pointer outline-none transition-colors duration-200',
-        'data-[highlighted]:bg-primary-500 data-[highlighted]:text-neutral-900',
-        'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
-        className,
-      )}
       {...props}
+      ref={composeRefs(itemRef, ref)}
+      value={value}
+      className={extendedTwMerge(menuItemClassName, className)}
     >
       {Icon && <Icon width={20} height={20} />}
-      <Typography
-        variant="button"
-        component="span"
-        className="text-inherit grow"
-      >
+      <MenuItemLabel>
         <RS.ItemText>{children}</RS.ItemText>
-      </Typography>
+      </MenuItemLabel>
       <RS.ItemIndicator>
         <CheckIcon width={16} height={16} />
       </RS.ItemIndicator>

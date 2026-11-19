@@ -35,6 +35,7 @@ export function HostSelectField({
       onValueChange={(next) => onChange(next === NONE ? '' : next)}
     >
       <SelectTrigger
+        aria-label="Host"
         size="small"
         placeholder="Select a host"
         className="min-w-[200px]"

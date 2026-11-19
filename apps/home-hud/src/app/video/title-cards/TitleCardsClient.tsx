@@ -99,6 +99,7 @@ export function TitleCardsClient({
           </Typography>
           <Select value={selectedSeries ?? ''} onValueChange={selectSeries}>
             <SelectTrigger
+              aria-label="Series"
               size="small"
               placeholder="All"
               className="min-w-[160px]"
@@ -127,6 +128,7 @@ export function TitleCardsClient({
             onValueChange={(value) => selectSeason(Number(value))}
           >
             <SelectTrigger
+              aria-label="Season"
               size="small"
               placeholder="All"
               className="min-w-[140px]"

@@ -1,9 +1,15 @@
-import { useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import anime from 'animejs';
+import { extendedTwMerge } from '../../utils/extendTwMerge';
+import { neutral, primary } from '../../tokens/colors';
+import { Typography } from '../Typography/Typography';
+import { DottedDecoration } from './DottedDecoration';
 
 /**
  * Visual chrome shared by DropdownMenu and Select so both menus look and
- * behave identically: corner brackets, diagonal clip-reveal, item flash.
+ * behave identically: the panel (brackets, label header, dotted rail), item
+ * styling, diagonal clip-reveal and the item confirm flash. A look change
+ * made here applies to both.
  */
 
 const prefersReducedMotion = () =>
@@ -84,8 +90,8 @@ export const useClipReveal = (animated: boolean) => {
   }, []);
 };
 
-const PRIMARY_500 = '#3AFCFF';
-const NEUTRAL_900 = '#23272B';
+const PRIMARY_500 = primary[500];
+const NEUTRAL_900 = neutral[900];
 const FLASH_MS = 75;
 const FLASH_COUNT = 2;
 
@@ -126,3 +132,77 @@ export const flashItem = (el: HTMLElement, onDone: () => void) => {
     reset();
   };
 };
+
+/** Merges refs so a caller-supplied `ref` doesn't displace the internal one. */
+export const composeRefs =
+  <T,>(...refs: (React.Ref<T> | undefined)[]) =>
+  (node: T | null) => {
+    for (const ref of refs) {
+      if (typeof ref === 'function') ref(node);
+      else if (ref) (ref as React.MutableRefObject<T | null>).current = node;
+    }
+  };
+
+/** Classes for the menu surface (Radix Content), minus width/height rules. */
+export const menuContentClassName =
+  'relative z-50 flex flex-col bg-neutral-900/30 backdrop-blur-sm border border-primary-700 text-neutral-300 pb-3 px-2';
+
+/** Classes for a menu row (Radix Item). */
+export const menuItemClassName = extendedTwMerge(
+  'flex items-center gap-3 px-3 py-2 text-neutral-300',
+  'cursor-pointer outline-none transition-colors duration-200',
+  'data-[highlighted]:bg-primary-500 data-[highlighted]:text-neutral-900',
+  'data-[disabled]:pointer-events-none data-[disabled]:opacity-40',
+);
+
+/** The label text inside a menu row. */
+export const MenuItemLabel: React.FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => (
+  <Typography variant="button" component="span" className="text-inherit grow">
+    {children}
+  </Typography>
+);
+
+interface MenuPanelProps {
+  label?: string;
+  /** Extra control in the label header (e.g. a close button). */
+  headerAction?: React.ReactNode;
+  /** Let the body scroll (DropdownMenu); Select scrolls in its Viewport. */
+  scrollBody?: boolean;
+  children: React.ReactNode;
+}
+
+/** Brackets, optional label header, body and dotted rail around menu items. */
+export const MenuPanel: React.FC<MenuPanelProps> = ({
+  label,
+  headerAction,
+  scrollBody,
+  children,
+}) => (
+  <>
+    <LBracket position="top-left" />
+    <LBracket position="bottom-left" />
+    <LBracket position="bottom-right" />
+
+    {label && (
+      <div className="relative flex items-center justify-center px-8 py-2 border-b border-primary-900 text-primary-500 tracking-wider">
+        <Typography variant="caption" component="span">
+          {label}
+        </Typography>
+        {headerAction}
+      </div>
+    )}
+    <div
+      className={extendedTwMerge(
+        'flex min-h-0 px-2 pb-1',
+        scrollBody && 'overflow-y-auto',
+        // Without a label header, push items down level with the corner brackets.
+        label ? 'pt-1' : 'pt-3',
+      )}
+    >
+      {children}
+      <DottedDecoration className="text-primary-700 opacity-60 self-center pr-1" />
+    </div>
+  </>
+);

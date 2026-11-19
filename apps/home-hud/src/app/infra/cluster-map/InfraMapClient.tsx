@@ -357,7 +357,11 @@ export function InfraMapClient({
               selectGroupBy(value as GroupDimension | typeof NO_GROUPING)
             }
           >
-            <SelectTrigger size="small" className="min-w-[140px]" />
+            <SelectTrigger
+              aria-label="Group by"
+              size="small"
+              className="min-w-[140px]"
+            />
             <SelectContent label="Group by">
               {GROUP_BY_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -376,7 +380,11 @@ export function InfraMapClient({
             value={metric}
             onValueChange={(value) => selectMetric(value as MapMetric)}
           >
-            <SelectTrigger size="small" className="min-w-[140px]" />
+            <SelectTrigger
+              aria-label="Metric"
+              size="small"
+              className="min-w-[140px]"
+            />
             <SelectContent label="Color by">
               {METRIC_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>

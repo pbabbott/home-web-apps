@@ -195,7 +195,11 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
               value={operation}
               onValueChange={(value) => setOperation(value as JobOperation)}
             >
-              <SelectTrigger size="small" className="min-w-[160px]" />
+              <SelectTrigger
+                aria-label="Operation"
+                size="small"
+                className="min-w-[160px]"
+              />
               <SelectContent label="Choose Operation">
                 {OPERATION_OPTIONS.map((op) => (
                   <SelectItem key={op} value={op}>
@@ -215,6 +219,7 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
                 }
               >
                 <SelectTrigger
+                  aria-label="Series"
                   size="small"
                   placeholder="None"
                   className="min-w-[160px]"
@@ -236,7 +241,11 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
                 value={String(effectiveSeason)}
                 onValueChange={(value) => setSeason(Number(value))}
               >
-                <SelectTrigger size="small" className="min-w-[140px]" />
+                <SelectTrigger
+                  aria-label="Season"
+                  size="small"
+                  className="min-w-[140px]"
+                />
                 <SelectContent label="Choose Season">
                   {seasonOptions.map((s) => (
                     <SelectItem key={s} value={String(s)}>

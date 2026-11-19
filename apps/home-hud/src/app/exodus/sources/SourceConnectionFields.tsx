@@ -89,7 +89,7 @@ export function SourceConnectionFields({
           set({ type: value as ConnectionForm['type'] })
         }
       >
-        <SelectTrigger size="small" />
+        <SelectTrigger aria-label="Connection type" size="small" />
         <SelectContent label="Connection type">
           <SelectItem value="none">{TYPE_LABELS.none}</SelectItem>
           <SelectItem value="smb">{TYPE_LABELS.smb}</SelectItem>

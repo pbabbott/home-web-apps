@@ -45,6 +45,7 @@ export function BackupPicker({
         onValueChange={(id) => router.push(href(id))}
       >
         <SelectTrigger
+          aria-label={label}
           size="small"
           placeholder="None"
           className="min-w-[160px]"

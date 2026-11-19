@@ -140,7 +140,11 @@ export function PromoteSkippedModal({
                 setKindTouched(true);
               }}
             >
-              <SelectTrigger size="small" className="w-full" />
+              <SelectTrigger
+                aria-label="Kind"
+                size="small"
+                className="w-full"
+              />
               <SelectContent label="Kind">
                 {(Object.keys(KIND_LABELS) as (keyof typeof KIND_LABELS)[]).map(
                   (value) => (
