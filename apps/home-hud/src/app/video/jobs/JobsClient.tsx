@@ -122,6 +122,12 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
     { length: Math.max(1, lastSeason - FIRST_SEASON + 1) },
     (_, i) => FIRST_SEASON + i,
   );
+  // Switching to a series with fewer seasons must not leave a stale season
+  // selected (and submitted) that is no longer one of the options.
+  const effectiveSeason = Math.min(
+    season,
+    seasonOptions.length + FIRST_SEASON - 1,
+  );
 
   const totalPages = jobs ? Math.max(1, Math.ceil(jobs.length / PAGE_SIZE)) : 1;
   const pageJobs = jobs?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -136,7 +142,7 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
         operationNeedsSeries(operation)
           ? selectedSeries?.seriesName
           : undefined,
-        operationNeedsSeason(operation) ? season : undefined,
+        operationNeedsSeason(operation) ? effectiveSeason : undefined,
         operationSupportsModelOverride(operation) ? model.trim() : undefined,
       );
       router.refresh();
@@ -227,7 +233,7 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
           {operationNeedsSeason(operation) && (
             <SelectField label="Season">
               <Select
-                value={String(season)}
+                value={String(effectiveSeason)}
                 onValueChange={(value) => setSeason(Number(value))}
               >
                 <SelectTrigger size="small" className="min-w-[140px]" />

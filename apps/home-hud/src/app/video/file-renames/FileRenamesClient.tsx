@@ -203,6 +203,14 @@ export function FileRenamesClient({
               <SelectTrigger size="small" className="min-w-[160px]" />
               <SelectContent label="Filter by Series">
                 <SelectItem value={ALL}>All Series</SelectItem>
+                {selectedSeries !== null &&
+                  !series.some((s) => s.seriesName === selectedSeries) && (
+                    // URL names a series that isn't in the list: keep it
+                    // selectable so the trigger still shows the current value.
+                    <SelectItem value={selectedSeries}>
+                      {selectedSeries}
+                    </SelectItem>
+                  )}
                 {series.map((s) => (
                   <SelectItem key={s.id} value={s.seriesName}>
                     {s.seriesName}

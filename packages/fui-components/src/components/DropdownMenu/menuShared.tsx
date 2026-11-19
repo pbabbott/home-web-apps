@@ -89,8 +89,14 @@ const NEUTRAL_900 = '#23272B';
 const FLASH_MS = 75;
 const FLASH_COUNT = 2;
 
+/** Plays the confirm flash, then calls `onDone`. Returns a cancel function. */
 export const flashItem = (el: HTMLElement, onDone: () => void) => {
   let count = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const reset = () => {
+    el.style.backgroundColor = '';
+    el.style.color = '';
+  };
   const on = () => {
     el.style.backgroundColor = PRIMARY_500;
     el.style.color = NEUTRAL_900;
@@ -101,19 +107,22 @@ export const flashItem = (el: HTMLElement, onDone: () => void) => {
   };
   const tick = () => {
     if (count >= FLASH_COUNT) {
-      el.style.backgroundColor = '';
-      el.style.color = '';
-      setTimeout(onDone, 20);
+      reset();
+      timer = setTimeout(onDone, 20);
       return;
     }
     on();
-    setTimeout(() => {
+    timer = setTimeout(() => {
       off();
-      setTimeout(() => {
+      timer = setTimeout(() => {
         count++;
         tick();
       }, FLASH_MS);
     }, FLASH_MS);
   };
   tick();
+  return () => {
+    clearTimeout(timer);
+    reset();
+  };
 };

@@ -104,6 +104,11 @@ export function TitleCardsClient({
               className="min-w-[160px]"
             />
             <SelectContent label="Filter by Series">
+              {selectedSeries !== null && !selectedSeriesRow && (
+                // URL names a series that isn't in the list: keep it selectable
+                // so the trigger still shows the current value.
+                <SelectItem value={selectedSeries}>{selectedSeries}</SelectItem>
+              )}
               {series.map((s) => (
                 <SelectItem key={s.id} value={s.seriesName}>
                   {s.seriesName}
@@ -127,6 +132,12 @@ export function TitleCardsClient({
               className="min-w-[140px]"
             />
             <SelectContent label="Filter by Season">
+              {selectedSeason !== null &&
+                !seasonOptions.includes(selectedSeason) && (
+                  <SelectItem value={String(selectedSeason)}>
+                    Season {selectedSeason}
+                  </SelectItem>
+                )}
               {seasonOptions.map((season) => (
                 <SelectItem key={season} value={String(season)}>
                   Season {season}

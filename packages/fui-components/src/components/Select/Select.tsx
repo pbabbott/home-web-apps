@@ -2,6 +2,8 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -15,9 +17,13 @@ import { LBracket, flashItem, useClipReveal } from '../DropdownMenu/menuShared';
 interface SelectCtxValue {
   /** Items register their element so the root can flash it on selection. */
   register: (value: string, el: HTMLElement | null) => void;
+  unregister: (value: string, el: HTMLElement) => void;
 }
 
-const SelectCtx = createContext<SelectCtxValue>({ register: () => {} });
+const SelectCtx = createContext<SelectCtxValue>({
+  register: () => {},
+  unregister: () => {},
+});
 
 export interface SelectProps
   extends Omit<React.ComponentProps<typeof RS.Root>, 'open'> {
@@ -27,20 +33,26 @@ export interface SelectProps
 /**
  * Select root. Value and open state are managed here (controlled or not) so
  * that SelectItem can play the DropdownMenu confirm flash before committing.
+ *
+ * Controlled-ness is decided by whether the `value` prop is passed at all, so
+ * `value={undefined}` means "controlled, nothing selected" (shows the
+ * placeholder) rather than falling back to internal state.
  */
-export const Select: React.FC<SelectProps> = ({
-  value: valueProp,
-  defaultValue,
-  onValueChange,
-  open: openProp,
-  defaultOpen = false,
-  onOpenChange,
-  children,
-  ...props
-}) => {
+export const Select: React.FC<SelectProps> = (allProps) => {
+  const {
+    value: valueProp,
+    defaultValue,
+    onValueChange,
+    open: openProp,
+    defaultOpen = false,
+    onOpenChange,
+    children,
+    ...props
+  } = allProps;
+  const valueControlled = 'value' in allProps;
   const [valueState, setValueState] = useState(defaultValue);
   const [openState, setOpenState] = useState(defaultOpen);
-  const value = valueProp !== undefined ? valueProp : valueState;
+  const value = valueControlled ? valueProp : valueState;
   const open = openProp !== undefined ? openProp : openState;
 
   const onValueChangeRef = useRef(onValueChange);
@@ -50,10 +62,27 @@ export const Select: React.FC<SelectProps> = ({
 
   const itemEls = useRef(new Map<string, HTMLElement>());
   const flashing = useRef(false);
+  const cancelFlash = useRef<(() => void) | null>(null);
 
+  // Drop a pending flash if the Select unmounts mid-flash, so the callbacks
+  // don't fire after the component is gone.
+  useEffect(
+    () => () => {
+      cancelFlash.current?.();
+      cancelFlash.current = null;
+      flashing.current = false;
+    },
+    [],
+  );
+
+  // `el` is only removed if it is still the registered element: Radix mounts
+  // items in a detached fragment while closed, and that copy unmounting must
+  // not evict the live one.
   const register = useCallback((v: string, el: HTMLElement | null) => {
     if (el) itemEls.current.set(v, el);
-    else itemEls.current.delete(v);
+  }, []);
+  const unregister = useCallback((v: string, el: HTMLElement) => {
+    if (itemEls.current.get(v) === el) itemEls.current.delete(v);
   }, []);
 
   const handleOpenChange = useCallback((next: boolean) => {
@@ -66,6 +95,7 @@ export const Select: React.FC<SelectProps> = ({
   const commit = useCallback(
     (next: string) => {
       flashing.current = false;
+      cancelFlash.current = null;
       setValueState(next);
       onValueChangeRef.current?.(next);
       handleOpenChange(false);
@@ -76,21 +106,26 @@ export const Select: React.FC<SelectProps> = ({
   // Flash-confirm the chosen item (same as DropdownMenuItem), then commit.
   const handleValueChange = useCallback(
     (next: string) => {
+      // A second pick while the flash is playing must not commit twice.
+      if (flashing.current) return;
       const el = itemEls.current.get(next);
-      if (!el) {
+      if (!el || !el.isConnected) {
         commit(next);
         return;
       }
       flashing.current = true;
-      flashItem(el, () => commit(next));
+      cancelFlash.current = flashItem(el, () => commit(next));
     },
     [commit],
   );
 
+  const ctx = useMemo(() => ({ register, unregister }), [register, unregister]);
+
   return (
-    <SelectCtx.Provider value={{ register }}>
+    <SelectCtx.Provider value={ctx}>
       <RS.Root
-        value={value}
+        // Always controlled; '' makes Radix show the placeholder.
+        value={value ?? ''}
         onValueChange={handleValueChange}
         open={open}
         onOpenChange={handleOpenChange}
@@ -226,10 +261,19 @@ export const SelectItem: React.FC<SelectItemProps> = ({
   children,
   ...props
 }) => {
-  const { register } = useContext(SelectCtx);
+  const { register, unregister } = useContext(SelectCtx);
+  const registered = useRef<HTMLElement | null>(null);
   const itemRef = useCallback(
-    (el: HTMLDivElement | null) => register(value, el),
-    [register, value],
+    (el: HTMLDivElement | null) => {
+      if (el) {
+        registered.current = el;
+        register(value, el);
+      } else if (registered.current) {
+        unregister(value, registered.current);
+        registered.current = null;
+      }
+    },
+    [register, unregister, value],
   );
 
   return (
