@@ -1,14 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  OutlinedButton,
   Panel,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Typography,
 } from '@abbottland/fui-components';
 import { TitleCardMosaic, type DupGroupBorderColor } from './TitleCardMosaic';
@@ -57,8 +55,6 @@ export function TitleCardsClient({
   series,
 }: TitleCardsClientProps) {
   const router = useRouter();
-  const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
-  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
 
   const selectedSeriesRow = series.find((s) => s.seriesName === selectedSeries);
   const lastSeason = selectedSeriesRow?.seasonCount ?? DEFAULT_LAST_SEASON;
@@ -97,41 +93,61 @@ export function TitleCardsClient({
       </Typography>
 
       <div className="flex items-center gap-3 self-start">
-        <DropdownMenu open={seriesMenuOpen} onOpenChange={setSeriesMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <OutlinedButton size="small">
-              Series: {selectedSeries ?? 'All'}
-            </OutlinedButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent label="Filter by Series">
-            {series.map((s) => (
-              <DropdownMenuItem
-                key={s.id}
-                onSelect={() => selectSeries(s.seriesName)}
-              >
-                {s.seriesName}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Typography variant="small" className="text-neutral-400">
+            Series
+          </Typography>
+          <Select value={selectedSeries ?? ''} onValueChange={selectSeries}>
+            <SelectTrigger
+              aria-label="Series"
+              size="small"
+              placeholder="All"
+              className="min-w-[160px]"
+            />
+            <SelectContent label="Filter by Series">
+              {selectedSeries !== null && !selectedSeriesRow && (
+                // URL names a series that isn't in the list: keep it selectable
+                // so the trigger still shows the current value.
+                <SelectItem value={selectedSeries}>{selectedSeries}</SelectItem>
+              )}
+              {series.map((s) => (
+                <SelectItem key={s.id} value={s.seriesName}>
+                  {s.seriesName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <DropdownMenu open={seasonMenuOpen} onOpenChange={setSeasonMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <OutlinedButton size="small">
-              Season: {selectedSeason ?? 'All'}
-            </OutlinedButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent label="Filter by Season">
-            {seasonOptions.map((season) => (
-              <DropdownMenuItem
-                key={season}
-                onSelect={() => selectSeason(season)}
-              >
-                Season {season}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Typography variant="small" className="text-neutral-400">
+            Season
+          </Typography>
+          <Select
+            value={selectedSeason === null ? '' : String(selectedSeason)}
+            onValueChange={(value) => selectSeason(Number(value))}
+          >
+            <SelectTrigger
+              aria-label="Season"
+              size="small"
+              placeholder="All"
+              className="min-w-[140px]"
+            />
+            <SelectContent label="Filter by Season">
+              {selectedSeason !== null &&
+                !seasonOptions.includes(selectedSeason) && (
+                  <SelectItem value={String(selectedSeason)}>
+                    Season {selectedSeason}
+                  </SelectItem>
+                )}
+              {seasonOptions.map((season) => (
+                <SelectItem key={season} value={String(season)}>
+                  Season {season}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {!ready ? (

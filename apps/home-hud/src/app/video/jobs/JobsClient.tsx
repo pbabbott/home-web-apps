@@ -3,17 +3,18 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   Badge,
   type BadgeColor,
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   OutlinedButton,
   ScrollableTable,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Table,
   TableBody,
   TableHead,
@@ -85,6 +86,23 @@ interface JobsClientProps {
   series: Series[];
 }
 
+function SelectField({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Typography variant="small" className="text-neutral-400">
+        {label}
+      </Typography>
+      {children}
+    </div>
+  );
+}
+
 export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
@@ -96,9 +114,6 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
   );
   const [season, setSeason] = useState(FIRST_SEASON);
   const [model, setModel] = useState('');
-  const [operationMenuOpen, setOperationMenuOpen] = useState(false);
-  const [seriesMenuOpen, setSeriesMenuOpen] = useState(false);
-  const [seasonMenuOpen, setSeasonMenuOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -106,6 +121,12 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
   const seasonOptions = Array.from(
     { length: Math.max(1, lastSeason - FIRST_SEASON + 1) },
     (_, i) => FIRST_SEASON + i,
+  );
+  // Switching to a series with fewer seasons must not leave a stale season
+  // selected (and submitted) that is no longer one of the options.
+  const effectiveSeason = Math.min(
+    season,
+    seasonOptions.length + FIRST_SEASON - 1,
   );
 
   const totalPages = jobs ? Math.max(1, Math.ceil(jobs.length / PAGE_SIZE)) : 1;
@@ -121,7 +142,7 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
         operationNeedsSeries(operation)
           ? selectedSeries?.seriesName
           : undefined,
-        operationNeedsSeason(operation) ? season : undefined,
+        operationNeedsSeason(operation) ? effectiveSeason : undefined,
         operationSupportsModelOverride(operation) ? model.trim() : undefined,
       );
       router.refresh();
@@ -169,63 +190,71 @@ export function JobsClient({ jobs, aiStatus, series }: JobsClientProps) {
 
       <div className="flex flex-col gap-2 self-start">
         <div className="flex items-center gap-4">
-          <DropdownMenu
-            open={operationMenuOpen}
-            onOpenChange={setOperationMenuOpen}
-          >
-            <DropdownMenuTrigger asChild>
-              <OutlinedButton size="small">
-                Operation: {operationLabels[operation]}
-              </OutlinedButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent label="Choose Operation">
-              {OPERATION_OPTIONS.map((op) => (
-                <DropdownMenuItem key={op} onSelect={() => setOperation(op)}>
-                  {operationLabels[op]}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectField label="Operation">
+            <Select
+              value={operation}
+              onValueChange={(value) => setOperation(value as JobOperation)}
+            >
+              <SelectTrigger
+                aria-label="Operation"
+                size="small"
+                className="min-w-[160px]"
+              />
+              <SelectContent label="Choose Operation">
+                {OPERATION_OPTIONS.map((op) => (
+                  <SelectItem key={op} value={op}>
+                    {operationLabels[op]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SelectField>
 
           {operationNeedsSeries(operation) && (
-            <DropdownMenu
-              open={seriesMenuOpen}
-              onOpenChange={setSeriesMenuOpen}
-            >
-              <DropdownMenuTrigger asChild>
-                <OutlinedButton size="small">
-                  Series: {selectedSeries?.seriesName ?? 'None'}
-                </OutlinedButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent label="Choose Series">
-                {series.map((s) => (
-                  <DropdownMenuItem
-                    key={s.id}
-                    onSelect={() => setSelectedSeries(s)}
-                  >
-                    {s.seriesName}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SelectField label="Series">
+              <Select
+                value={selectedSeries?.id}
+                onValueChange={(id) =>
+                  setSelectedSeries(series.find((s) => s.id === id))
+                }
+              >
+                <SelectTrigger
+                  aria-label="Series"
+                  size="small"
+                  placeholder="None"
+                  className="min-w-[160px]"
+                />
+                <SelectContent label="Choose Series">
+                  {series.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.seriesName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </SelectField>
           )}
 
           {operationNeedsSeason(operation) && (
-            <DropdownMenu
-              open={seasonMenuOpen}
-              onOpenChange={setSeasonMenuOpen}
-            >
-              <DropdownMenuTrigger asChild>
-                <OutlinedButton size="small">Season: {season}</OutlinedButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent label="Choose Season">
-                {seasonOptions.map((s) => (
-                  <DropdownMenuItem key={s} onSelect={() => setSeason(s)}>
-                    Season {s}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SelectField label="Season">
+              <Select
+                value={String(effectiveSeason)}
+                onValueChange={(value) => setSeason(Number(value))}
+              >
+                <SelectTrigger
+                  aria-label="Season"
+                  size="small"
+                  className="min-w-[140px]"
+                />
+                <SelectContent label="Choose Season">
+                  {seasonOptions.map((s) => (
+                    <SelectItem key={s} value={String(s)}>
+                      Season {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </SelectField>
           )}
 
           {operationSupportsModelOverride(operation) && (

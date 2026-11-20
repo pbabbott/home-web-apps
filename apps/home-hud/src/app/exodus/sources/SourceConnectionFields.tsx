@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   OutlinedButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Typography,
 } from '@abbottland/fui-components';
 import type { ShareMapping, SourceConnection } from './lib/homelab-api';
@@ -67,7 +66,6 @@ export function SourceConnectionFields({
   testing,
   onTest,
 }: SourceConnectionFieldsProps) {
-  const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const set = (patch: Partial<ConnectionForm>) =>
     onChange({ ...form, ...patch });
   const setMapping = (index: number, patch: Partial<ShareMapping>) =>
@@ -85,21 +83,18 @@ export function SourceConnectionFields({
         </Typography>
       </legend>
 
-      <DropdownMenu open={typeMenuOpen} onOpenChange={setTypeMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          <OutlinedButton type="button" size="small">
-            {TYPE_LABELS[form.type]}
-          </OutlinedButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent label="Connection type">
-          <DropdownMenuItem onSelect={() => set({ type: 'none' })}>
-            {TYPE_LABELS.none}
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => set({ type: 'smb' })}>
-            {TYPE_LABELS.smb}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Select
+        value={form.type}
+        onValueChange={(value) =>
+          set({ type: value as ConnectionForm['type'] })
+        }
+      >
+        <SelectTrigger aria-label="Connection type" size="small" />
+        <SelectContent label="Connection type">
+          <SelectItem value="none">{TYPE_LABELS.none}</SelectItem>
+          <SelectItem value="smb">{TYPE_LABELS.smb}</SelectItem>
+        </SelectContent>
+      </Select>
 
       {form.type === 'smb' && (
         <>

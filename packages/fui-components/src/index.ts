@@ -149,6 +149,19 @@ export {
   type MaskRevealDirection,
 } from './components/MaskReveal/MaskReveal';
 
+// Select
+export {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  type SelectProps,
+  type SelectSize,
+  type SelectTriggerProps,
+  type SelectContentProps,
+  type SelectItemProps,
+} from './components/Select/Select';
+
 // DropdownMenu
 export {
   DropdownMenu,

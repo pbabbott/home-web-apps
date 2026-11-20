@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  OutlinedButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
 } from '@abbottland/fui-components';
 import type { Host } from '../../infra/hosts/lib/homelab-api';
+
+// Radix Select rejects an empty item value, so "No host" uses this sentinel.
+const NONE = '__none__';
 
 interface HostSelectFieldProps {
   hosts: Host[];
@@ -25,32 +26,28 @@ export function HostSelectField({
   required = false,
   onChange,
 }: HostSelectFieldProps) {
-  const [open, setOpen] = useState(false);
   const selected = hosts.find((host) => host.id === value);
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <OutlinedButton type="button" size="small">
-          {selected
-            ? `${selected.name} (${selected.ipAddress})`
-            : required
-              ? 'Select a host'
-              : 'No host'}
-        </OutlinedButton>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent label="Host">
-        {!required && (
-          <DropdownMenuItem onSelect={() => onChange('')}>
-            No host
-          </DropdownMenuItem>
-        )}
+    <Select
+      // '' shows the placeholder (required and nothing picked yet).
+      value={selected ? selected.id : required ? '' : NONE}
+      onValueChange={(next) => onChange(next === NONE ? '' : next)}
+    >
+      <SelectTrigger
+        aria-label="Host"
+        size="small"
+        placeholder="Select a host"
+        className="min-w-[200px]"
+      />
+      <SelectContent label="Host">
+        {!required && <SelectItem value={NONE}>No host</SelectItem>}
         {hosts.map((host) => (
-          <DropdownMenuItem key={host.id} onSelect={() => onChange(host.id)}>
+          <SelectItem key={host.id} value={host.id}>
             {host.name} ({host.ipAddress})
-          </DropdownMenuItem>
+          </SelectItem>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </SelectContent>
+    </Select>
   );
 }

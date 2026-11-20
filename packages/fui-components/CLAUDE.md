@@ -47,6 +47,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **Tabs** – tabs with chamfered style and sliding indicator (Radix); switching views.
 - **Modal** – dialog (Radix: Trigger, Close, Content, Title, Description); focused tasks and confirmations.
 - **DropdownMenu** – dropdown (Radix: Trigger, Content, Item); action menus.
+- **Select** – single-choice picker (Radix: Trigger, Content, Item) whose menu is styled exactly like DropdownMenu; pick one value from a list.
 - **Tooltip** – hover tooltip with delay and optional controlled state; short hints.
 
 **Data display**
