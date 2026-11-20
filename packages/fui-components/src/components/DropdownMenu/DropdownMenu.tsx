@@ -4,7 +4,7 @@ import { Cross1Icon } from '@radix-ui/react-icons';
 import { extendedTwMerge } from '../../utils/extendTwMerge';
 import {
   MenuPanel,
-  composeRefs,
+  useComposedRefs,
   menuContentClassName,
   useClipReveal,
 } from './menuShared';
@@ -54,12 +54,13 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
   ...props
 }) => {
   const revealRef = useClipReveal(animated);
+  const contentRef = useComposedRefs(revealRef, ref);
 
   return (
     <RDM.Portal container={container}>
       <RDM.Content
         {...props}
-        ref={composeRefs(revealRef, ref)}
+        ref={contentRef}
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={extendedTwMerge(

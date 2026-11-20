@@ -14,7 +14,7 @@ import { Typography } from '../Typography/Typography';
 import {
   MenuItemLabel,
   MenuPanel,
-  composeRefs,
+  useComposedRefs,
   flashItem,
   menuContentClassName,
   menuItemClassName,
@@ -216,12 +216,13 @@ export const SelectContent: React.FC<SelectContentProps> = ({
   ...props
 }) => {
   const revealRef = useClipReveal(animated);
+  const contentRef = useComposedRefs(revealRef, ref);
 
   return (
     <RS.Portal container={container}>
       <RS.Content
         {...props}
-        ref={composeRefs(revealRef, ref)}
+        ref={contentRef}
         position="popper"
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
@@ -267,10 +268,12 @@ export const SelectItem: React.FC<SelectItemProps> = ({
     [register, unregister, value],
   );
 
+  const composedItemRef = useComposedRefs(itemRef, ref);
+
   return (
     <RS.Item
       {...props}
-      ref={composeRefs(itemRef, ref)}
+      ref={composedItemRef}
       value={value}
       className={extendedTwMerge(menuItemClassName, className)}
     >

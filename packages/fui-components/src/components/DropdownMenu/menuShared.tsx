@@ -133,15 +133,20 @@ export const flashItem = (el: HTMLElement, onDone: () => void) => {
   };
 };
 
-/** Merges refs so a caller-supplied `ref` doesn't displace the internal one. */
-export const composeRefs =
-  <T,>(...refs: (React.Ref<T> | undefined)[]) =>
-  (node: T | null) => {
+/**
+ * Merges refs so a caller-supplied `ref` doesn't displace the internal one.
+ * Memoised on the refs: Radix memoises its own composition on the ref it is
+ * given, so a new function every render would re-attach it every render.
+ */
+export const useComposedRefs = <T,>(
+  ...refs: (React.Ref<T> | undefined)[]
+): React.RefCallback<T> =>
+  useCallback((node: T | null) => {
     for (const ref of refs) {
       if (typeof ref === 'function') ref(node);
       else if (ref) (ref as React.MutableRefObject<T | null>).current = node;
     }
-  };
+  }, refs);
 
 /** Classes for the menu surface (Radix Content), minus width/height rules. */
 export const menuContentClassName =
