@@ -27,7 +27,6 @@ const NAV_ITEMS: ConnectedNavItem[] = [
       { id: '/exodus/sources', label: 'Sources' },
       { id: '/exodus/inventory', label: 'Inventory' },
       { id: '/exodus/backup', label: 'Backup' },
-      { id: '/exodus/rules', label: 'Exclusion Rules' },
       { id: '/exodus/audit', label: 'Audit Log' },
       { id: '/exodus/architecture', label: 'Architecture' },
     ],

@@ -355,17 +355,12 @@ describe('coverage', () => {
     const queued = await makeInventoryItem(sourceId, 'C:\\b\\queued.txt');
     const failed = await makeInventoryItem(sourceId, 'C:\\b\\failed.txt');
     const untouched = await makeInventoryItem(sourceId, 'C:\\b\\untouched.txt');
-    const excluded = await makeInventoryItem(sourceId, 'C:\\skip\\x.txt');
     await makeInventoryItem(sourceId, 'C:\\b\\rejected.txt', {
       decision: 'rejected',
     });
     await makeInventoryItem(sourceId, 'C:\\b\\undecided.txt', {
       decision: 'pending',
     });
-    await db.$client.query(
-      "insert into exclusion_rules (source_id, path, normalized_path, scope) values ($1, 'C:\\skip', 'c:\\skip', 'exclude_subtree')",
-      [sourceId],
-    );
     await createBackupJob(
       db,
       {
@@ -373,14 +368,7 @@ describe('coverage', () => {
         destinationId: destination.id,
         selection: {},
         sourceDirName: 'test-source',
-        items: [
-          planned(queued),
-          planned(failed),
-          planned(excluded, {
-            status: 'excluded',
-            statusReason: 'excluded_by_rule',
-          }),
-        ],
+        items: [planned(queued), planned(failed)],
       },
       HUMAN,
     );
@@ -402,11 +390,10 @@ describe('coverage', () => {
     expect(bucketOf.get(queued.rootPath)).toBe('pending');
     expect(bucketOf.get(failed.rootPath)).toBe('blocked');
     expect(bucketOf.get(untouched.rootPath)).toBe('never_attempted');
-    expect(bucketOf.get(excluded.rootPath)).toBe('excluded_rule');
     expect(bucketOf.get('C:\\b\\rejected.txt')).toBe('rejected');
     expect(bucketOf.get('C:\\b\\undecided.txt')).toBe('undecided');
-    expect(report.total).toBe(6);
-    expect(Object.values(report.counts).reduce((a, n) => a + n, 0)).toBe(6);
+    expect(report.total).toBe(5);
+    expect(Object.values(report.counts).reduce((a, n) => a + n, 0)).toBe(5);
     expect(report.allAccounted).toBe(false);
     expect(
       (

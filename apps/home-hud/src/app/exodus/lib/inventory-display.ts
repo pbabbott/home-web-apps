@@ -249,14 +249,13 @@ export const formatSize = (bytes: number): string => {
 
 /**
  * Whether a checked path can be promoted from the directory a job visited:
- * nothing already sits at the path, no rule excludes it, nothing above
+ * nothing already sits at the path, nothing above
  * approves it (or carves it out), and the visited directory is strictly above.
  */
 export function canPromoteCheckedPath(coverage: PathCoverage): boolean {
   const visited = coverage.visitedDirectory;
 
   if (!visited || coverage.exact) return false;
-  if (coverage.exclusion.state === 'excluded') return false;
   if (coverage.status === 'covered' || coverage.status === 'carved_out') {
     return false;
   }

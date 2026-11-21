@@ -12,13 +12,11 @@ import {
   type InventoryItemDecision,
   type InventoryItemKind,
 } from '../../schema/discovery';
-import { listApplicableRules, resolveExclusion } from '../exclusion-rules';
 import { ACTIVE_BACKUP_JOB_STATUSES } from './shared';
 
 export type BackupCoverageBucket =
   | 'covered'
   | 'redundant_covered'
-  | 'excluded_rule'
   | 'rejected'
   | 'undecided'
   | 'pending'
@@ -29,7 +27,6 @@ export type BackupCoverageBucket =
 export const BACKUP_COVERAGE_BUCKETS: BackupCoverageBucket[] = [
   'covered',
   'redundant_covered',
-  'excluded_rule',
   'rejected',
   'undecided',
   'pending',
@@ -39,8 +36,8 @@ export const BACKUP_COVERAGE_BUCKETS: BackupCoverageBucket[] = [
 ];
 
 /**
- * Buckets that stop `allAccounted`. `rejected` and `excluded_rule` are
- * intentional and do not. `never_attempted` also holds approved items whose
+ * Buckets that stop `allAccounted`. `rejected` is
+ * intentional and does not. `never_attempted` also holds approved items whose
  * jobs ended without trying them (a cancelled job leaves them `queued`).
  */
 export const BLOCKING_BACKUP_COVERAGE_BUCKETS: BackupCoverageBucket[] = [
@@ -54,8 +51,6 @@ export const BLOCKING_BACKUP_COVERAGE_BUCKETS: BackupCoverageBucket[] = [
 /** What is known about one inventory item at one destination. */
 export type BackupCoverageFacts = {
   decision: InventoryItemDecision;
-  /** Approved but under an `exclude_subtree` rule. */
-  excludedByRule: boolean;
   /** Some job item for it at the destination is `verified`. */
   verified: boolean;
   /** A nested item whose covering item verified it. */
@@ -78,7 +73,6 @@ export const classifyBackupCoverage = (
   if (facts.decision === 'pending') return 'undecided';
   if (facts.verified) return 'covered';
   if (facts.redundantCovered) return 'redundant_covered';
-  if (facts.excludedByRule) return 'excluded_rule';
   if (facts.activeWork) return 'pending';
   if (facts.latestOutcome) return facts.latestOutcome;
 
@@ -161,8 +155,6 @@ export const getBackupCoverage = async (
     .from(inv)
     .where(eq(inv.sourceId, input.sourceId))
     .orderBy(inv.normalizedRootPath);
-
-  const rules = await listApplicableRules(db, [input.sourceId]);
 
   const jobItems = await db
     .select({
@@ -284,9 +276,6 @@ export const getBackupCoverage = async (
 
     const bucket = classifyBackupCoverage({
       decision: item.decision,
-      excludedByRule:
-        item.decision === 'approved' &&
-        resolveExclusion(rules, item.normalizedRootPath).state === 'excluded',
       verified,
       redundantCovered,
       activeWork,

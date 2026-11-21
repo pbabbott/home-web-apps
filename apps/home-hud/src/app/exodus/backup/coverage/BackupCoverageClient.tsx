@@ -57,7 +57,10 @@ export function BackupCoverageClient({
       <div className="flex flex-col gap-2">
         <OutlinedButton
           component={Link}
-          href={backupOverviewUrl(sourceId ?? undefined, destinationId ?? undefined)}
+          href={backupOverviewUrl(
+            sourceId ?? undefined,
+            destinationId ?? undefined,
+          )}
           color="secondary"
           size="small"
           className="self-start"
@@ -101,7 +104,9 @@ export function BackupCoverageClient({
                         ? 'All accounted for'
                         : 'Not everything is accounted for'}
                     </Typography>
-                    <Badge color={coverage.allAccounted ? 'success' : 'warning'}>
+                    <Badge
+                      color={coverage.allAccounted ? 'success' : 'warning'}
+                    >
                       {coverage.allAccounted ? 'yes' : 'no'}
                     </Badge>
                   </div>
@@ -195,7 +200,9 @@ export function BackupCoverageClient({
                               {item.latestAttempt ? (
                                 <div className="flex flex-col gap-1">
                                   <Link
-                                    href={backupJobUrl(item.latestAttempt.jobId)}
+                                    href={backupJobUrl(
+                                      item.latestAttempt.jobId,
+                                    )}
                                     className="text-primary-400 hover:underline"
                                   >
                                     {item.latestAttempt.itemStatus} · job{' '}
@@ -234,9 +241,10 @@ export function BackupCoverageClient({
                 </Typography>
                 {review && (
                   <Typography variant="body2">
-                    Discovery review (display only): {review.directories.reviewed}{' '}
-                    directories reviewed, {review.directories.notReviewed} not
-                    reviewed, {review.directories.unknown} without a result,{' '}
+                    Discovery review (display only):{' '}
+                    {review.directories.reviewed} directories reviewed,{' '}
+                    {review.directories.notReviewed} not reviewed,{' '}
+                    {review.directories.unknown} without a result,{' '}
                     {review.directories.notExplored} not explored, across{' '}
                     {review.jobs.length} completed discovery{' '}
                     {review.jobs.length === 1 ? 'job' : 'jobs'}.

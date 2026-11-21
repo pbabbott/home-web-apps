@@ -55,8 +55,6 @@ function describeCoverage(coverage: DiskCoverage): {
         label: `Own queue item · ${coverage.status}`,
         color: QUEUE_STATUS_COLOR[coverage.status],
       };
-    case 'excluded':
-      return { label: 'Excluded by rule', color: 'secondary' };
     case 'inventory_inside':
       return {
         label: `${coverage.count} inventory ${coverage.count === 1 ? 'item' : 'items'} inside`,

@@ -6,7 +6,6 @@ import {
 
 const base: BackupCoverageFacts = {
   decision: 'approved',
-  excludedByRule: false,
   verified: false,
   redundantCovered: false,
   activeWork: false,
@@ -39,12 +38,6 @@ describe('classifyBackupCoverage', () => {
   it('puts a nested item whose covering item verified it in redundant_covered', () => {
     expect(classifyBackupCoverage({ ...base, redundantCovered: true })).toBe(
       'redundant_covered',
-    );
-  });
-
-  it('puts an approved item under an exclusion rule in excluded_rule', () => {
-    expect(classifyBackupCoverage({ ...base, excludedByRule: true })).toBe(
-      'excluded_rule',
     );
   });
 

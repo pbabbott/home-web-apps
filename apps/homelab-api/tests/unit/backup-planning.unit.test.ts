@@ -2,11 +2,7 @@ import {
   slugifySourceDirName,
   toDestRelPath,
 } from '../../src/services/backup/dest-paths';
-import {
-  planBackup,
-  type PlanInput,
-  type PlanRule,
-} from '../../src/services/backup/planner';
+import { planBackup, type PlanInput } from '../../src/services/backup/planner';
 import { destinationFolderWarning } from '../../src/services/backup/planning';
 
 type Item = PlanInput['inventory'][number];
@@ -22,18 +18,10 @@ const item = (rootPath: string, over: Partial<Item> = {}): Item => ({
   ...over,
 });
 
-const rule = (path: string, scope: PlanRule['scope'] = 'exclude_subtree') => ({
-  id: `10000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`,
-  scope,
-  path,
-  normalizedPath: path.toLowerCase(),
-});
-
 const plan = (inventory: Item[], over: Partial<PlanInput> = {}) =>
   planBackup({
     selection: {},
     inventory,
-    rules: [],
     coveredIds: new Set(),
     priorDestRelPaths: new Map(),
     ...over,
@@ -75,23 +63,6 @@ describe('planBackup', () => {
       { path: 'C:\\a\\junk', reason: 'rejected_item', refId: rejected.id },
     ]);
     expect(result.notEligible).toEqual([]);
-  });
-
-  it('marks an approved item under an exclude_subtree rule excluded', () => {
-    const result = plan([item('C:\\a\\b')], { rules: [rule('C:\\a')] });
-
-    expect(result.items[0]).toMatchObject({
-      status: 'excluded',
-      statusReason: 'excluded_by_rule',
-    });
-  });
-
-  it('ignores selective_only rules', () => {
-    const result = plan([item('C:\\a')], {
-      rules: [rule('C:\\a', 'selective_only')],
-    });
-
-    expect(result.items[0].status).toBe('queued');
   });
 
   it('skips an item nested in an approved directory of the job', () => {
@@ -163,18 +134,15 @@ describe('planBackup', () => {
     ).toBe('queued');
   });
 
-  it('records rejected nested items and exclusion rules as carve-outs, dropping redundant ones', () => {
+  it('records rejected nested items as carve-outs, dropping redundant ones', () => {
     const outer = item('C:\\a');
     const r1 = item('C:\\a\\r1', { decision: 'rejected' });
     const r2 = item('C:\\a\\r1\\deep', { decision: 'rejected' });
     const elsewhere = item('C:\\z\\r', { decision: 'rejected' });
-    const ex = rule('C:\\a\\cache');
-    const above = rule('C:\\other');
 
-    const result = plan([outer, r1, r2, elsewhere], { rules: [ex, above] });
+    const result = plan([outer, r1, r2, elsewhere]);
 
     expect(statusOf(result, 'C:\\a')?.carveOuts).toEqual([
-      { path: 'C:\\a\\cache', reason: 'exclusion_rule', refId: ex.id },
       { path: 'C:\\a\\r1', reason: 'rejected_item', refId: r1.id },
     ]);
   });

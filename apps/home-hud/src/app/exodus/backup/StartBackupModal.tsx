@@ -44,7 +44,6 @@ function PlanSummary({ plan }: { plan: BackupPlan }) {
         : `${formatSize(plan.summary.estimatedBytes)}${plan.summary.unestimatedItems > 0 ? ' or more' : ''}`,
     ],
     ['Items without a size estimate', String(plan.summary.unestimatedItems)],
-    ['Excluded by a rule', String(plan.summary.excluded)],
     ['Already on the destination', String(plan.summary.skippedAlreadyCovered)],
     [
       'Inside another approved folder',
@@ -68,9 +67,8 @@ function PlanSummary({ plan }: { plan: BackupPlan }) {
       ))}
       {plan.summary.toCopy === 0 && (
         <Typography variant="body2" className="text-warning-400">
-          Nothing to copy: every selected item is already on the destination,
-          excluded, or inside another approved folder, so a job cannot be
-          created.
+          Nothing to copy: every selected item is already on the destination, or
+          inside another approved folder, so a job cannot be created.
         </Typography>
       )}
       {plan.warnings.map((warning) => (

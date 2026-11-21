@@ -9,7 +9,6 @@ import {
   listBackupJobs,
   listDiscoveryJobs,
   listInventoryForBackupPlanning,
-  listExclusionRules,
   listUnresolvedInventoryItemIds,
   ACTIVE_BACKUP_JOB_STATUSES,
   type Actor,
@@ -112,10 +111,9 @@ export async function planJob(
       }
     : selection;
 
-  const [inventory, rules, coverage, priorDestRelPaths, discoveryJobs] =
+  const [inventory, coverage, priorDestRelPaths, discoveryJobs] =
     await Promise.all([
       listInventoryForBackupPlanning(db, sourceId),
-      listExclusionRules(db, { sourceId }),
       getBackupCoverage(db, { sourceId, destinationId: destination.id }),
       getPriorVerifiedDestRelPaths(db, sourceId, destination.id),
       listDiscoveryJobs(db, sourceId),
@@ -130,7 +128,6 @@ export async function planJob(
   const { items, notEligible } = planBackup({
     selection: planned,
     inventory,
-    rules,
     coveredIds,
     priorDestRelPaths,
   });

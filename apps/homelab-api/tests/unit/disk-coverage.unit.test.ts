@@ -27,7 +27,6 @@ const run = (
     inventoryUnder: [],
     coveredByInventoryParent: false,
     queueStatuses: new Map(),
-    isExcluded: () => false,
     result,
     skipReview,
     ...overrides,
@@ -122,15 +121,13 @@ describe('classifyEntries', () => {
     ]);
   });
 
-  it('recognises a queue item of its own and an exclusion rule', () => {
-    const out = run([entry('Sub', true), entry('Skip', true)], {
+  it('recognises a queue item of its own', () => {
+    const out = run([entry('Sub', true)], {
       queueStatuses: new Map([['c:\\users\\you\\docs\\sub', 'queued']]),
-      isExcluded: (p) => p === 'c:\\users\\you\\docs\\skip',
     });
 
     expect(out.entries.map((e) => e.coverage)).toEqual([
       { kind: 'queued', status: 'queued' },
-      { kind: 'excluded' },
     ]);
   });
 
@@ -168,7 +165,6 @@ describe('classifyEntries', () => {
       ],
       coveredByInventoryParent: false,
       queueStatuses: new Map(),
-      isExcluded: () => false,
       result: null,
       skipReview: { reviewed: null, paths: [], patterns: [] },
     });

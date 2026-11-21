@@ -4,26 +4,21 @@ import { evidence, type ClaimedItem } from './selective-agent';
 
 // Runs against the real local dev Postgres, so everything created here is
 // deleted afterwards. Sources cascade to jobs, queue items,
-// inventory items and source-level rules; global rules and the audit log (which has
-// no foreign keys by design) are removed explicitly.
+// inventory items; the audit log (which has no foreign keys by design) is
+// removed explicitly.
 const createdSourceIds: string[] = [];
-const createdRuleIds: string[] = [];
 
 /** Registers the cleanup hook for everything the helpers below create. */
 export const useInventoryCleanup = (): void => {
   afterEach(async () => {
     await db.$client.query(
-      'delete from audit_events where source_id = any($1) or exclusion_rule_id = any($2)',
-      [createdSourceIds, createdRuleIds],
+      'delete from audit_events where source_id = any($1)',
+      [createdSourceIds],
     );
-    await db.$client.query('delete from exclusion_rules where id = any($1)', [
-      createdRuleIds,
-    ]);
     await db.$client.query('delete from sources where id = any($1)', [
       createdSourceIds,
     ]);
     createdSourceIds.length = 0;
-    createdRuleIds.length = 0;
   });
 };
 
@@ -38,20 +33,6 @@ export const createSource = async (): Promise<string> => {
   createdSourceIds.push(res.body.id);
 
   return res.body.id;
-};
-
-export const createRule = async (body: {
-  sourceId?: string | null;
-  path: string;
-  scope: 'selective_only' | 'exclude_subtree';
-}) => {
-  const res = await getRequest()
-    .post('/exclusion-rules')
-    .send(body)
-    .expect(201);
-  createdRuleIds.push(res.body.id);
-
-  return res.body as { id: string };
 };
 
 export type Job = { id: string };

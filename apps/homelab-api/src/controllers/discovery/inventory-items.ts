@@ -20,10 +20,10 @@ import { MAX_INVENTORY_ITEMS_PER_REQUEST } from '../../schemas/discovery';
 // Who: agent (propose_inventory_items).
 export const proposeInventoryItemsOperation = {
   summary: 'Propose inventory items for a claimed directory',
-  description: `An inventory item is a proposed backup unit, usually a directory (one repository or photo folder, not one per file or subfolder) and occasionally a standalone file. It creates no queue items. Upserts by source + normalized root path, so repeating a call or rediscovering in a later job updates the same inventory item instead of duplicating it. Each root path must be the claimed directory or lie inside it. Writes only the agent's fields (recommendation, confidence, reason, evidence); it never touches a human decision, and a recommendation is never an approval. Audit events are written only when an inventory item is created or its recommendation/confidence changes. Guardrails (400): back_up/skip need medium or high confidence (low means needs_review); a git repository can only be skipped when its local state is known and clean. Nesting is allowed, but each result lists coveredBy (existing inventory items whose root is an ancestor) and covers (existing inventory items beneath it), with their decision; nothing is inherited, so check them and avoid proposing a repository's internal folders. A path covered by an exclusion rule rejects the batch (409). Up to ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call.`,
+  description: `An inventory item is a proposed backup unit, usually a directory (one repository or photo folder, not one per file or subfolder) and occasionally a standalone file. It creates no queue items. Upserts by source + normalized root path, so repeating a call or rediscovering in a later job updates the same inventory item instead of duplicating it. Each root path must be the claimed directory or lie inside it. Writes only the agent's fields (recommendation, confidence, reason, evidence); it never touches a human decision, and a recommendation is never an approval. Audit events are written only when an inventory item is created or its recommendation/confidence changes. Guardrails (400): back_up/skip need medium or high confidence (low means needs_review); a git repository can only be skipped when its local state is known and clean. Nesting is allowed, but each result lists coveredBy (existing inventory items whose root is an ancestor) and covers (existing inventory items beneath it), with their decision; nothing is inherited, so check them and avoid proposing a repository's internal folders. Up to ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call.`,
   mcp: {
     name: 'propose_inventory_items',
-    description: `Recommend backup units from the directory you claimed: a repo or project root, a data folder, or one file (max ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call). Re-proposing a path updates your recommendation, never a human's decision. Queues nothing. A path under an exclusion rule rejects the batch. Results list coveredBy / covers (existing items containing or inside it); a non-empty coveredBy means probably not a separate unit.`,
+    description: `Recommend backup units from the directory you claimed: a repo or project root, a data folder, or one file (max ${MAX_INVENTORY_ITEMS_PER_REQUEST} per call). Re-proposing a path updates your recommendation, never a human's decision. Queues nothing. Results list coveredBy / covers (existing items containing or inside it); a non-empty coveredBy means probably not a separate unit.`,
   },
 } satisfies Operation;
 
@@ -80,7 +80,7 @@ export const listSourceInventoryItems = handle(
 export const pathCoverageOperation = {
   summary: 'Check whether a path is covered by the inventory',
   description:
-    'Read-only. Walks the path and its ancestors against the source’s inventory items. `status` is `covered` when the nearest decided item at or above the path is approved, `carved_out` when it is rejected inside a farther approved item, `rejected` when it is rejected and nothing above approves, `pending` when items exist but none is decided, `uncovered` when there are none. Also reports `exact`, `coveredBy` and `covers` items, the exclusion rule state, the deepest known agent skip at or above the path, and the deepest queue item (any job) at or above it, which a human can promote the path from. The path need not exist.',
+    'Read-only. Walks the path and its ancestors against the source’s inventory items. `status` is `covered` when the nearest decided item at or above the path is approved, `carved_out` when it is rejected inside a farther approved item, `rejected` when it is rejected and nothing above approves, `pending` when items exist but none is decided, `uncovered` when there are none. Also reports `exact`, `coveredBy` and `covers` items, the deepest known agent skip at or above the path, and the deepest queue item (any job) at or above it, which a human can promote the path from. The path need not exist.',
   hud: '/exodus/inventory',
 } satisfies Operation;
 
@@ -93,13 +93,13 @@ export const checkPathCoverage = handle(
   },
 );
 
-// Does: fetch one inventory item, with how exclusion rules currently treat it.
+// Does: fetch one inventory item.
 // Who: human (home-hud inventory details modal). No MCP tool: the agent lists
 // inventory items with list_inventory_items.
 export const getInventoryItemOperation = {
   summary: 'Get an inventory item',
   description:
-    'Includes `exclusion`: `none`, `selective` or `excluded`, with the deciding rule ids. An excluded or selective path cannot be approved.',
+    'Returns the inventory item with its agent recommendation and human decision.',
   hud: '/exodus/inventory',
 } satisfies Operation;
 
@@ -116,7 +116,7 @@ export const getInventoryItem = handle(
 export const decideInventoryItemOperation = {
   summary: 'Approve or reject an inventory item',
   description:
-    'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). Approval is refused for paths under an exclusion rule. An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow. Approving a `directory` item also marks the active job’s still-`queued` items inside it `skipped` (see inventory-directory); reversing the approval does not requeue them. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
+    'Sets `approved`, `rejected`, or back to `pending`, with an optional note. Only a human actor may decide (X-Actor-Type other than human is 409). An approval normally covers the inventory item’s whole subtree; it is the authorization and scope for a future copy workflow. Approving a `directory` item also marks the active job’s still-`queued` items inside it `skipped` (see inventory-directory); reversing the approval does not requeue them. Repeating the current decision and note changes nothing and records no audit event. Rediscovery never resets a decision.',
   hud: '/exodus/inventory',
 } satisfies Operation;
 
@@ -137,7 +137,7 @@ export const decideInventoryItem = handle(
 export const promoteInventoryItemOperation = {
   summary: 'Promote a skipped path to an approved inventory item',
   description:
-    'Corrects an agent skip. The path must be inside the queue item’s directory (usually one listed in its `skipped`). Creates an inventory item that is already `approved` (promoting is the human’s approval) with a `back_up` recommendation, and writes an `inventory_item.promoted` audit event. The queue item’s `result` is left as the agent wrote it. Only a human actor may promote (409 otherwise). Refused with 409 when the path already has an inventory item (`inventoryItemId` in the details, nothing is overwritten), when an exclusion rule covers it, or when it is outside the directory. Lists `coveredBy` / `covers` like a proposal.',
+    'Corrects an agent skip. The path must be inside the queue item’s directory (usually one listed in its `skipped`). Creates an inventory item that is already `approved` (promoting is the human’s approval) with a `back_up` recommendation, and writes an `inventory_item.promoted` audit event. The queue item’s `result` is left as the agent wrote it. Only a human actor may promote (409 otherwise). Refused with 409 when the path already has an inventory item (`inventoryItemId` in the details, nothing is overwritten), or when it is outside the directory. Lists `coveredBy` / `covers` like a proposal.',
   hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 
@@ -159,7 +159,7 @@ export const promoteInventoryItem = handle(
 export const inventoryDirectoryOperation = {
   summary: 'Add a whole directory to the inventory',
   description:
-    'Approves the directory as one inventory item, so exploring inside it is unnecessary. Approves the agent’s proposal for the queue item’s directory when there is one (its agent fields are untouched, like any decision), otherwise creates an approved `directory` item with a `back_up` recommendation. Either way, the active job’s still-`queued` items inside the directory are marked `skipped`, and later enqueues or claims under it are skipped too (`queue_items.inventoried` audit event); in-progress and finished items are untouched. Only a human actor may do this (409 otherwise). Refused with 409 when an exclusion rule covers the path. `created` says whether the item is new; `skippedQueueItems` how many queue items were skipped now. Lists `coveredBy` / `covers` like a proposal.',
+    'Approves the directory as one inventory item, so exploring inside it is unnecessary. Approves the agent’s proposal for the queue item’s directory when there is one (its agent fields are untouched, like any decision), otherwise creates an approved `directory` item with a `back_up` recommendation. Either way, the active job’s still-`queued` items inside the directory are marked `skipped`, and later enqueues or claims under it are skipped too (`queue_items.inventoried` audit event); in-progress and finished items are untouched. Only a human actor may do this (409 otherwise). `created` says whether the item is new; `skippedQueueItems` how many queue items were skipped now. Lists `coveredBy` / `covers` like a proposal.',
   hud: '/exodus/jobs/[id]',
 } satisfies Operation;
 

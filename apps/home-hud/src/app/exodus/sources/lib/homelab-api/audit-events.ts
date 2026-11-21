@@ -1,10 +1,6 @@
 import { getJson } from './http';
 
 export type AuditEventType =
-  | 'exclusion_rule.created'
-  | 'exclusion_rule.updated'
-  | 'exclusion_rule.deleted'
-  | 'queue_items.excluded'
   | 'queue_items.inventoried'
   | 'inventory_item.created'
   | 'inventory_item.recommendation_changed'
@@ -41,7 +37,6 @@ export interface AuditEvent {
   id: string;
   sourceId: string | null;
   jobId: string | null;
-  exclusionRuleId: string | null;
   inventoryItemId: string | null;
   eventType: AuditEventType;
   actorType: 'human' | 'openclaw' | 'system';

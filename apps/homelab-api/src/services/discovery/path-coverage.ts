@@ -4,9 +4,6 @@ import {
   findKnownSkipsAt,
   findNestedInventoryItems,
   getSourceById,
-  listExclusionRules,
-  resolveExclusion,
-  type ExclusionResolution,
   type KnownSkip,
   type NestedInventoryItem,
   type VisitedQueueItem,
@@ -42,7 +39,6 @@ export type PathCoverage = {
   coveredBy: NestedInventoryItem[];
   /** Inventory items beneath the path (capped). */
   covers: NestedInventoryItem[];
-  exclusion: ExclusionResolution;
   /** The deepest agent skip at or above the path, newest first on a tie. */
   skip: KnownSkip | null;
   /** The deepest queue item at or above the path, in any job. */
@@ -145,9 +141,8 @@ export async function checkPathCoverage(
   const ancestors = ancestorsOf(normalizedPath);
   const atOrAbove = [normalizedPath, ...ancestors];
 
-  const [nested, rules, skips, visited] = await Promise.all([
+  const [nested, skips, visited] = await Promise.all([
     findNestedInventoryItems(db, sourceId, normalizedPath, atOrAbove),
-    listExclusionRules(db, { sourceId }),
     findKnownSkipsAt(db, sourceId, atOrAbove),
     findDeepestQueueItemAt(db, sourceId, atOrAbove),
   ]);
@@ -166,7 +161,6 @@ export async function checkPathCoverage(
     exact,
     coveredBy,
     covers: nested.covers,
-    exclusion: resolveExclusion(rules, normalizedPath),
     skip: pickBearingSkip(skips, normalizedPath),
     visitedDirectory: visited ?? null,
   };

@@ -212,7 +212,6 @@ export const planWarningText = (warning: BackupPlanWarning): string =>
 export const COVERAGE_BUCKET_LABEL: Record<BackupCoverageBucket, string> = {
   covered: 'Covered',
   redundant_covered: 'Covered inside a folder',
-  excluded_rule: 'Excluded by rule',
   rejected: 'Rejected',
   undecided: 'Undecided',
   pending: 'In progress',
@@ -230,7 +229,6 @@ export const COVERAGE_BUCKETS: BackupCoverageBucket[] = [
   'blocked',
   'covered',
   'redundant_covered',
-  'excluded_rule',
   'rejected',
 ];
 
@@ -249,7 +247,6 @@ export const isBlockingBucket = (bucket: BackupCoverageBucket): boolean =>
 export const COVERAGE_BUCKET_COLOR: Record<BackupCoverageBucket, BadgeColor> = {
   covered: 'success',
   redundant_covered: 'success',
-  excluded_rule: 'dark',
   rejected: 'dark',
   undecided: 'warning',
   pending: 'secondary',

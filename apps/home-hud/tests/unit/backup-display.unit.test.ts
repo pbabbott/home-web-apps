@@ -263,7 +263,7 @@ describe('coverage buckets', () => {
       ).every(isBlockingBucket),
     ).toBe(true);
     expect(
-      (['covered', 'redundant_covered', 'excluded_rule', 'rejected'] as const)
+      (['covered', 'redundant_covered', 'rejected'] as const)
         .map(isBlockingBucket)
         .some(Boolean),
     ).toBe(false);

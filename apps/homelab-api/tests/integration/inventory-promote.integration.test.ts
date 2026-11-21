@@ -8,7 +8,6 @@ import {
   propose,
   proposal,
   startAndClaim,
-  createRule,
   createSource,
   useInventoryCleanup,
 } from './fixtures/inventory';
@@ -107,21 +106,6 @@ describe('promoting a skipped path', () => {
       inventoryItemId: first.body.id,
     });
     expect(await listInventoryItems(sourceId)).toHaveLength(1);
-  });
-
-  it('refuses a path under an exclusion rule', async () => {
-    const sourceId = await createSource();
-    const { item } = await skipKeeper(sourceId);
-    await createRule({
-      sourceId,
-      path: DOWNLOADS,
-      scope: 'exclude_subtree',
-    });
-
-    const res = await promote(item, { path: KEEPER, kind: 'file' }).expect(409);
-
-    expect(res.body.blocked).toHaveLength(1);
-    expect(await listInventoryItems(sourceId)).toHaveLength(0);
   });
 
   it('refuses a path outside, or equal to, the queue item’s directory', async () => {
@@ -338,17 +322,6 @@ describe('inventorying a whole directory', () => {
       {},
       { 'X-Actor-Type': 'openclaw', 'X-Actor-Id': 'agent' },
     ).expect(409);
-
-    expect(await listInventoryItems(sourceId)).toHaveLength(0);
-    expect((await statusesOf(job.id))[FINANCE]).toBe('queued');
-  });
-
-  it('refuses a directory under an exclusion rule', async () => {
-    const sourceId = await createSource();
-    const { job, drive } = await driveWithChildren(sourceId);
-    await createRule({ sourceId, path: DRIVE, scope: 'selective_only' });
-
-    await inventoryDirectory(drive).expect(409);
 
     expect(await listInventoryItems(sourceId)).toHaveLength(0);
     expect((await statusesOf(job.id))[FINANCE]).toBe('queued');

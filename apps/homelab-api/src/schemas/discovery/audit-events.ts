@@ -3,14 +3,9 @@ import { z } from 'zod';
 export const auditEventListQuerySchema = z.object({
   sourceId: z.uuid().optional(),
   jobId: z.uuid().optional(),
-  exclusionRuleId: z.uuid().optional(),
   inventoryItemId: z.uuid().optional(),
   eventType: z
     .enum([
-      'exclusion_rule.created',
-      'exclusion_rule.updated',
-      'exclusion_rule.deleted',
-      'queue_items.excluded',
       'queue_items.inventoried',
       'inventory_item.created',
       'inventory_item.recommendation_changed',

@@ -67,7 +67,7 @@ export function AuditClient({
           Audit Log
         </Typography>
         <Typography variant="body2" className="text-neutral-400">
-          Changes to exclusion rules and review decisions, newest first.
+          Changes to inventory items and review decisions, newest first.
         </Typography>
       </div>
 

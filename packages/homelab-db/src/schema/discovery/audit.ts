@@ -11,7 +11,7 @@ import { dateTime } from './shared';
 import { auditActorTypeEnum } from './enums';
 
 /**
- * Append-only record of changes to exclusion and review state. The id columns
+ * Append-only record of changes to review state. The id columns
  * deliberately have no foreign keys: the log must outlive the rows it
  * describes (a removed rule, a deleted source). `details` holds before/after
  * values and is kept small by the callers.
@@ -23,7 +23,6 @@ export const auditEvents = pgTable(
     sourceId: uuid('source_id'),
     jobId: uuid('job_id'),
     queueItemId: uuid('queue_item_id'),
-    exclusionRuleId: uuid('exclusion_rule_id'),
     inventoryItemId: uuid('inventory_item_id'),
     destinationId: uuid('destination_id'),
     backupJobId: uuid('backup_job_id'),
@@ -43,10 +42,6 @@ export const auditEvents = pgTable(
     ),
     index('audit_events_source_idx').on(table.sourceId, table.createdAt.desc()),
     index('audit_events_job_idx').on(table.jobId, table.createdAt.desc()),
-    index('audit_events_rule_idx').on(
-      table.exclusionRuleId,
-      table.createdAt.desc(),
-    ),
     index('audit_events_inventory_item_idx').on(
       table.inventoryItemId,
       table.createdAt.desc(),
@@ -63,10 +58,6 @@ export const auditEvents = pgTable(
 );
 
 export type AuditEventType =
-  | 'exclusion_rule.created'
-  | 'exclusion_rule.updated'
-  | 'exclusion_rule.deleted'
-  | 'queue_items.excluded'
   | 'queue_items.inventoried'
   | 'inventory_item.created'
   | 'inventory_item.recommendation_changed'

@@ -4,7 +4,6 @@ import { backupDestinationsPaths } from './backup/destinations';
 import { backupCoveragePaths } from './backup/coverage';
 import { backupItemsPaths } from './backup/items';
 import { backupJobsPaths } from './backup/jobs';
-import { exclusionRulesPaths } from './discovery/exclusion-rules';
 import { discoveryJobsPaths } from './discovery/discovery-jobs';
 import { queueItemsPaths } from './discovery/queue-items';
 import { queueItemLifecyclePaths } from './discovery/queue-item-lifecycle';
@@ -59,7 +58,6 @@ export const openApiSpec = createDocument({
     'Discovery Jobs',
     'Queue Items',
     'Inventory Items',
-    'Exclusion Rules',
     'Backup Destinations',
     'Backup Jobs',
     'Backup Coverage',
@@ -80,7 +78,6 @@ export const openApiSpec = createDocument({
     ...tagged('Discovery Jobs', discoveryJobsPaths),
     ...tagged('Queue Items', queueItemsPaths),
     ...tagged('Queue Items', queueItemLifecyclePaths),
-    ...tagged('Exclusion Rules', exclusionRulesPaths),
     ...tagged('Inventory Items', inventoryItemsPaths),
     ...tagged('Queue Items', skipAcknowledgementsPaths),
     ...tagged('Queue Items', onDiskReviewsPaths),

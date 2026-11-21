@@ -27,8 +27,6 @@ jest.mock('../../src/services/discovery', () => {
     failItem: jest.fn(),
     skipItem: jest.fn(),
     retryItem: jest.fn(),
-    listExclusionRules: jest.fn(),
-    createExclusionRule: jest.fn(),
     proposeInventoryItems: jest.fn(),
     listSourceInventoryItems: jest.fn(),
     listSourceKnownSkips: jest.fn(),
@@ -72,69 +70,16 @@ describe('MCP endpoint (/mcp)', () => {
       'claim_directory',
       'claim_next_directory',
       'complete_directory',
-      'create_exclusion_rule',
       'fail_directory',
       'get_discovery_job',
       'heartbeat_directory',
       'list_discovery_jobs',
-      'list_exclusion_rules',
       'list_inventory_items',
       'list_known_skips',
       'propose_inventory_items',
       'release_directory',
       'skip_directory',
     ]);
-  });
-
-  it('create_exclusion_rule records the rule as the openclaw actor', async () => {
-    (discoveryService.createExclusionRule as jest.Mock).mockResolvedValue({
-      id: ID,
-    });
-
-    const { isError, body } = await call('create_exclusion_rule', {
-      sourceId: ID,
-      path: 'C:\\Users\\You\\app\\dist',
-      scope: 'exclude_subtree',
-      reason: 'generated build output',
-      workerId: 'w1',
-    });
-
-    expect(isError).toBeFalsy();
-    expect(body).toEqual({ id: ID });
-    expect(discoveryService.createExclusionRule).toHaveBeenCalledWith(
-      {
-        sourceId: ID,
-        path: 'C:\\Users\\You\\app\\dist',
-        scope: 'exclude_subtree',
-        reason: 'generated build output',
-      },
-      { type: 'openclaw', id: 'w1' },
-    );
-  });
-
-  it('create_exclusion_rule cannot create a global rule', async () => {
-    (discoveryService.createExclusionRule as jest.Mock).mockClear();
-
-    const result = await client.callTool({
-      name: 'create_exclusion_rule',
-      arguments: { path: 'C:\\Windows', scope: 'exclude_subtree' },
-    });
-
-    expect(result.isError).toBe(true);
-    expect(discoveryService.createExclusionRule).not.toHaveBeenCalled();
-  });
-
-  it('list_exclusion_rules lists a source’s rules', async () => {
-    (discoveryService.listExclusionRules as jest.Mock).mockResolvedValue([
-      { id: ID },
-    ]);
-
-    const { body } = await call('list_exclusion_rules', { sourceId: ID });
-
-    expect(body).toEqual([{ id: ID }]);
-    expect(discoveryService.listExclusionRules).toHaveBeenCalledWith({
-      sourceId: ID,
-    });
   });
 
   it('claim_directory applies the lease default and returns a compact item', async () => {
@@ -247,7 +192,7 @@ describe('MCP endpoint (/mcp)', () => {
     expect(discoveryService.releaseItem).toHaveBeenCalledWith(ID, TOKEN);
   });
 
-  it('complete_directory reports queued, excluded and already queued children', async () => {
+  it('complete_directory reports queued, skipped and already queued children', async () => {
     (discoveryService.completeItem as jest.Mock).mockResolvedValue({
       item: { id: ID, status: 'completed' },
       children: [

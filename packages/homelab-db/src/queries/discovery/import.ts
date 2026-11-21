@@ -4,7 +4,6 @@ import {
   auditEvents,
   discoveryJobs,
   discoveryQueueItems,
-  exclusionRules,
   inventoryItems,
   onDiskReviews,
   skipAcknowledgements,
@@ -12,7 +11,6 @@ import {
   type AuditEvent,
   type DiscoveryJob,
   type DiscoveryQueueItem,
-  type ExclusionRule,
   type InventoryItem,
   type NewSource,
   type OnDiskReview,
@@ -149,30 +147,6 @@ export const importInventoryItems = async (
           decidedBy: sql`excluded.decided_by`,
           firstSeenAt: sql`excluded.first_seen_at`,
           lastSeenAt: sql`excluded.last_seen_at`,
-          updatedAt: sql`excluded.updated_at`,
-        },
-      });
-  }
-};
-
-/**
- * Upserts rules by `(sourceId, normalizedPath)`; a null `sourceId` is a
- * global rule.
- */
-export const importExclusionRules = async (
-  db: Database,
-  rows: ExclusionRule[],
-): Promise<void> => {
-  for (const batch of chunk(rows)) {
-    await db
-      .insert(exclusionRules)
-      .values(batch)
-      .onConflictDoUpdate({
-        target: [exclusionRules.sourceId, exclusionRules.normalizedPath],
-        set: {
-          path: sql`excluded.path`,
-          scope: sql`excluded.scope`,
-          reason: sql`excluded.reason`,
           updatedAt: sql`excluded.updated_at`,
         },
       });

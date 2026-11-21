@@ -15,7 +15,7 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 | Sources, discovery jobs, directory queue (database + API)       | The OpenClaw agent itself |
 | Lease-based claiming, retries, resumability                     | Filesystem scanning       |
 | Windows path normalization                                      |                           |
-| Inventory items, human decisions, exclusion rules, audit log    |                           |
+| Inventory items, human decisions, audit log                     |                           |
 | home-hud pages: sources, jobs, inventory item review            | Bulk review actions       |
 | MCP tools for the agent's work loop (`POST /mcp`)               |                           |
 | Per-source file access (SMB) and file preview                   |                           |
@@ -36,7 +36,7 @@ A human registers machines, starts and monitors jobs, and handles problems. The 
 - [How Processing Works](./processing.md) - claiming and leases, incremental exploration, failures and retries, finishing a job, paths.
 - [API and MCP](./api.md) - REST routes and the agent's MCP tools.
 - [Inventory Items and Selective Discovery](./inventory.md) - the agent's three actions, inventory item model, confidence, evidence, decisions and rediscovery.
-- [Exclusion Rules and Audit](./exclusion-review-audit.md) - rules, enforcement, and the audit log.
+- [Review and Audit](./review-audit.md) - review decisions and the audit log.
 - [UI (home-hud)](./ui.md) - the `/exodus/*` pages.
 - [Decisions and Learnings](./decisions.md) - design decisions, gotchas, and lessons from building it.
 - [Backup](./backup.md) - the built part of the backup feature: the `backup_*` data model, the queries behind it, the API (destinations, planning, jobs, coverage), the worker and destination validation, the copy engine, its resilience (pauses, shutdown, a stalled mount, parallelism), the destination layout, and what a verified copy does not guarantee.

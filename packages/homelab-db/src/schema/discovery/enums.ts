@@ -20,11 +20,6 @@ export const inventoryItemKindEnum = pgEnum('inventory_item_kind', [
   'directory',
 ]);
 
-export const exclusionRuleScopeEnum = pgEnum('exclusion_rule_scope', [
-  'selective_only',
-  'exclude_subtree',
-]);
-
 export const inventoryItemRecommendationEnum = pgEnum(
   'inventory_item_recommendation',
   ['back_up', 'skip', 'needs_review'],

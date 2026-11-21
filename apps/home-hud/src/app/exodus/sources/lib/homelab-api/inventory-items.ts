@@ -54,13 +54,6 @@ export interface InventoryItem {
   lastSeenAt: string;
 }
 
-export type ExclusionState = 'none' | 'selective' | 'excluded';
-
-/** An inventory item plus how exclusion rules currently treat its path. */
-export interface InventoryItemWithExclusion extends InventoryItem {
-  exclusion: { state: ExclusionState; ruleIds: string[] };
-}
-
 export interface InventoryItemQuery {
   recommendation?: InventoryItemRecommendation;
   decision?: InventoryItemDecision;
@@ -139,7 +132,6 @@ export interface PathCoverage {
   coveredBy: NestedInventoryItem[];
   /** Inventory items beneath the path (capped). */
   covers: NestedInventoryItem[];
-  exclusion: { state: ExclusionState; ruleIds: string[] };
   /** The deepest agent skip at or above the path. */
   skip: {
     path: string;

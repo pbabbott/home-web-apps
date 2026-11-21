@@ -116,7 +116,6 @@ export type DiskCoverage =
       acknowledged: boolean;
     }
   | { kind: 'queued'; status: QueueItemStatus }
-  | { kind: 'excluded' }
   | { kind: 'inventory_inside'; count: number }
   | { kind: 'uncovered' };
 

@@ -8,11 +8,6 @@ import {
   type InventoryItem,
 } from '../../schema/discovery';
 import { insertAuditEvent, type Actor } from '../audit';
-import {
-  listApplicableRules,
-  resolveExclusion,
-  rulesBySource,
-} from '../exclusion-rules';
 import { DiscoveryError } from '../shared';
 import { applyDecision, skipInventoriedInActiveJob } from './decisions';
 
@@ -32,8 +27,7 @@ export type PromoteInventoryItemInput = {
  * human may do it: promoting is the human's approval. The queue item may be
  * in any status and no claim is needed. Never overwrites: a path that
  * already has an inventory item is refused (409 with `inventoryItemId`), so
- * an agent row or a human decision is never replaced. A path under an
- * exclusion rule is refused like any other proposal.
+ * an agent row or a human decision is never replaced.
  */
 export const promoteInventoryItem = async (
   db: Database,
@@ -75,22 +69,6 @@ export const promoteInventoryItem = async (
         'conflict',
         'this path is already an inventory item',
         { inventoryItemId: existing.id },
-      );
-    }
-
-    const rules = rulesBySource(
-      await listApplicableRules(tx, [queued.sourceId]),
-      queued.sourceId,
-    );
-    const { state, ruleIds } = resolveExclusion(
-      rules,
-      input.normalizedRootPath,
-    );
-    if (state !== 'none') {
-      throw new DiscoveryError(
-        'conflict',
-        'paths covered by an exclusion rule cannot be inventory items',
-        { blocked: [{ path: input.rootPath, state, ruleIds }] },
       );
     }
 
@@ -174,7 +152,7 @@ export type InventoriedDirectory = {
  * agent's proposal for it when there is one (agent fields untouched, like
  * any decision), otherwise creates an approved directory item. Either way the
  * active job's queued items beneath it are skipped, so its subtree is not
- * explored. Human only; a path under an exclusion rule is refused.
+ * explored. Human only.
  */
 export const inventoryQueueItemDirectory = async (
   db: Database,
@@ -219,19 +197,6 @@ export const inventoryQueueItemDirectory = async (
         'conflict',
         'this path is already a file inventory item',
         { inventoryItemId: existing.id },
-      );
-    }
-
-    const rules = rulesBySource(
-      await listApplicableRules(tx, [queued.sourceId]),
-      queued.sourceId,
-    );
-    const { state, ruleIds } = resolveExclusion(rules, queued.normalizedPath);
-    if (state !== 'none') {
-      throw new DiscoveryError(
-        'conflict',
-        'paths covered by an exclusion rule cannot be inventory items',
-        { blocked: [{ path: queued.path, state, ruleIds }] },
       );
     }
 

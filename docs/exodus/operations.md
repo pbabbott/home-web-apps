@@ -68,4 +68,3 @@ Not started, and not decided:
 - Review UI extras: bulk approve/reject (most urgent: a Downloads folder yields many file items), search by path, and a link from an inventory item to its audit history.
 - Nested-inventory item inheritance and overrides.
 - Stale inventory items (source file since deleted or moved): detect from `lastSeenAt` or have the copy workflow report them.
-- Pattern-based exclusion (globs such as `node_modules`); rules are exact paths today.

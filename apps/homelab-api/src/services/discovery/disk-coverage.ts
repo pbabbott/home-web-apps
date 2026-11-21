@@ -24,7 +24,6 @@ export type Coverage =
     }
   /** The job gave it a queue item of its own, which accounts for it. */
   | { kind: 'queued'; status: DiscoveryQueueItemStatus }
-  | { kind: 'excluded' }
   /** A directory with inventory items deeper down but none of its own. */
   | { kind: 'inventory_inside'; count: number }
   | { kind: 'uncovered' };
@@ -41,8 +40,6 @@ export type CoverageInputs = {
   coveredByInventoryParent: boolean;
   /** The job's queue items at the entries' paths, keyed by normalized path. */
   queueStatuses: ReadonlyMap<string, DiscoveryQueueItemStatus>;
-  /** Whether an exclusion rule excludes this normalized path. */
-  isExcluded: (normalizedPath: string) => boolean;
   result: QueueItemResult | null;
   skipReview: SkipReview;
 };
@@ -61,7 +58,7 @@ export const childOf = (
 /**
  * Says how each direct entry of a directory is accounted for. Precedence:
  * inventory item, inventory parent, skip (by path, then pattern), queue item
- * of its own, exclusion rule, inventory deeper down, else not covered.
+ * of its own, inventory deeper down, else not covered.
  */
 export function classifyEntries(inputs: CoverageInputs): {
   entries: DiskEntry[];
@@ -132,8 +129,6 @@ export function classifyEntries(inputs: CoverageInputs): {
     const status = inputs.queueStatuses.get(normalizedPath);
 
     if (status) return { kind: 'queued', status };
-
-    if (inputs.isExcluded(normalizedPath)) return { kind: 'excluded' };
 
     const count = inside.get(normalizedPath);
 

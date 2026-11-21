@@ -24,7 +24,6 @@ export {
   sources,
   discoveryJobs,
   discoveryQueueItems,
-  exclusionRules,
   auditEvents,
   inventoryItemKindEnum,
   sourceTypeEnum,
@@ -33,7 +32,6 @@ export {
   sourceConnectionSelectSchema,
   discoveryJobStatusEnum,
   discoveryQueueItemStatusEnum,
-  exclusionRuleScopeEnum,
   inventoryItemRecommendationEnum,
   inventoryItemConfidenceEnum,
   inventoryItemDecisionEnum,
@@ -42,7 +40,6 @@ export {
   sourceSelectSchema,
   discoveryJobSelectSchema,
   discoveryQueueItemSelectSchema,
-  exclusionRuleSelectSchema,
   auditEventSelectSchema,
   inventoryItemSelectSchema,
   skipAcknowledgementSelectSchema,
@@ -64,9 +61,6 @@ export type {
   NewDiscoveryQueueItem,
   DiscoveryQueueItemStatus,
   InventoryItemKind,
-  ExclusionRule,
-  NewExclusionRule,
-  ExclusionRuleScope,
   InventoryItem,
   NewInventoryItem,
   InventoryItemRecommendation,
@@ -135,21 +129,6 @@ export type {
 } from './queries/audit';
 
 export {
-  resolveExclusion,
-  listExclusionRules,
-  createExclusionRule,
-  updateExclusionRule,
-  deleteExclusionRule,
-} from './queries/exclusion-rules';
-export type {
-  ExclusionState,
-  ExclusionResolution,
-  ListExclusionRulesOptions,
-  CreateExclusionRuleInput,
-  UpdateExclusionRuleInput,
-} from './queries/exclusion-rules';
-
-export {
   upsertInventoryItems,
   getInventoryItemById,
   decideInventoryItem,
@@ -169,7 +148,6 @@ export type {
   InventoryItemInput,
   UpsertInventoryItemsInput,
   UpsertedInventoryItem,
-  InventoryItemWithExclusion,
   DecideInventoryItemInput,
   ListInventoryItemsOptions,
   NestedInventoryItem,
@@ -228,7 +206,6 @@ export {
   importDiscoveryJobs,
   importQueueItems,
   importInventoryItems,
-  importExclusionRules,
   importSkipAcknowledgements,
   importAuditEvents,
 } from './queries/discovery';

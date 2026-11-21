@@ -5,7 +5,6 @@ import {
   actorHeaders,
   conflictResponse,
   discoveryNotFoundResponse,
-  exclusionResolutionSchema,
 } from './common';
 import {
   decideInventoryItemOperation,
@@ -80,10 +79,6 @@ const inventoriedDirectorySchema = z.object({
   covers: z.array(nestedInventoryItemSchema),
 });
 
-const inventoryItemWithExclusionSchema = inventoryItemSchema.extend({
-  exclusion: exclusionResolutionSchema,
-});
-
 const pathCoverageSchema = z.object({
   path: z.string(),
   normalizedPath: z.string(),
@@ -102,7 +97,6 @@ const pathCoverageSchema = z.object({
   covers: z.array(nestedInventoryItemSchema).meta({
     description: 'Inventory items beneath the path, at most 50.',
   }),
-  exclusion: exclusionResolutionSchema,
   skip: z
     .object({
       path: z.string(),
@@ -171,7 +165,7 @@ export const inventoryItemsPaths = {
         '400': validationErrorResponse,
         '404': discoveryNotFoundResponse('queue item'),
         '409': conflictResponse(
-          'The claim is no longer valid, a path is outside the claimed directory, or a path is covered by an exclusion rule',
+          'The claim is no longer valid, or a path is outside the claimed directory',
         ),
       },
     },
@@ -216,7 +210,7 @@ export const inventoryItemsPaths = {
         '200': {
           description: 'The inventory item',
           content: {
-            'application/json': { schema: inventoryItemWithExclusionSchema },
+            'application/json': { schema: inventoryItemSchema },
           },
         },
         '400': validationErrorResponse,
@@ -245,9 +239,7 @@ export const inventoryItemsPaths = {
         },
         '400': validationErrorResponse,
         '404': discoveryNotFoundResponse('inventory item'),
-        '409': conflictResponse(
-          'The actor is not a human, or the path is covered by an exclusion rule and cannot be approved',
-        ),
+        '409': conflictResponse('The actor is not a human'),
       },
     },
   },
@@ -275,7 +267,7 @@ export const inventoryItemsPaths = {
         '400': validationErrorResponse,
         '404': discoveryNotFoundResponse('queue item'),
         '409': conflictResponse(
-          'The actor is not a human, an exclusion rule covers the path, or the path is a file inventory item',
+          'The actor is not a human, or the path is a file inventory item',
         ),
       },
     },
@@ -302,7 +294,7 @@ export const inventoryItemsPaths = {
         '400': validationErrorResponse,
         '404': discoveryNotFoundResponse('queue item'),
         '409': conflictResponse(
-          'The actor is not a human, the path already has an inventory item, is under an exclusion rule, or is outside the queue item’s directory',
+          'The actor is not a human, the path already has an inventory item, or is outside the queue item’s directory',
         ),
       },
     },
