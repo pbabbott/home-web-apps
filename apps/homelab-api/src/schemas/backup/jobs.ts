@@ -97,6 +97,9 @@ export const backupEntryListQuerySchema = z.object({
       'source_changed',
     ])
     .optional(),
+  search: z.string().trim().min(1).max(255).optional().meta({
+    description: 'Case-insensitive substring of the entry path.',
+  }),
   after: z.coerce.number().int().min(0).optional().meta({
     description: 'Cursor: the `next` value of the previous page.',
   }),

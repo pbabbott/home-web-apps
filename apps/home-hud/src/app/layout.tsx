@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import '@abbottland/fui-components/globals.css';
 import './globals.css';
 import { Nav } from './components/Nav';
 
