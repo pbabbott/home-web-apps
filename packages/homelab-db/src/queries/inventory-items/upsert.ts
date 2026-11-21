@@ -12,7 +12,6 @@ import {
 } from '../../schema/discovery';
 import { insertAuditEvent } from '../audit';
 import { activeClaim, claimMissError } from '../discovery/claims';
-import { DiscoveryError } from '../shared';
 
 export type InventoryItemInput = {
   kind: InventoryItemKind;
