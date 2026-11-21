@@ -77,6 +77,10 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 
 `@microsoft/api-extractor` is pinned to an exact version in both root `package.json` (`pnpm.overrides`, alongside `@microsoft/api-extractor-model`) and this package's `devDependencies`. That version must keep its bundled TypeScript in sync with this repo's `typescript` version (see comment in `vite.config.ts`) — a mismatch doesn't error, it silently produces an empty `dist/index.d.ts`. Bump all three together, never just one.
 
+## Styles for consumers
+
+Apps import `@abbottland/fui-components/tailwind.css` (Tailwind-free partial) after their own `@import 'tailwindcss'`; `globals.css` (`tailwindcss` + partial) is for Storybook only. See [Monorepo Architecture](../../docs/dev-guide-monorepo-architecture.md#frontend-apps-blog-diagram-maker-home-hud).
+
 ## Typography
 
 Always use the `Typography` component for all rendered text — no raw `<p>`, `<span>`, `<h*>`, or other HTML text elements. This applies to components and stories alike.
