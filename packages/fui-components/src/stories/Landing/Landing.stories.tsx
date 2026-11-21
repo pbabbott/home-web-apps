@@ -142,7 +142,7 @@ const LandingPage = () => {
           <div className="flex flex-wrap gap-3">
             <Button
               component="a"
-              href="/?path=/story/buttons-navigation-button--color-primary"
+              href="/?path=/story/showcase-button--colors-and-variants"
               target="_top"
             >
               Browse components
