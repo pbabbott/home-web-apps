@@ -20,7 +20,7 @@ const INITIAL_STATS: PageWordStats = {
 const PAGE_CONTENT_SELECTOR = '[data-page-content]';
 
 // Set on the child wrapper inside AIContent (fui-components), around
-// `children` only — excludes the "AI-GENERATED" label text from the count.
+// `children` only — excludes the "WRITTEN WITH AI" label text from the count.
 const AI_CONTENT_SELECTOR = '[data-ai-content-body]';
 
 function countWords(text: string): number {

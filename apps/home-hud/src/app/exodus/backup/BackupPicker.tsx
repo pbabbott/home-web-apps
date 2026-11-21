@@ -2,11 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  OutlinedButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Typography,
 } from '@abbottland/fui-components';
 
@@ -41,23 +40,24 @@ export function BackupPicker({
       <Typography variant="small" className="text-neutral-400">
         {label}
       </Typography>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <OutlinedButton type="button" size="small">
-            {options.find((o) => o.id === selected)?.name ?? 'None'}
-          </OutlinedButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent label={label}>
+      <Select
+        value={options.some((o) => o.id === selected) ? selected : ''}
+        onValueChange={(id) => router.push(href(id))}
+      >
+        <SelectTrigger
+          aria-label={label}
+          size="small"
+          placeholder="None"
+          className="min-w-[160px]"
+        />
+        <SelectContent label={label}>
           {options.map((option) => (
-            <DropdownMenuItem
-              key={option.id}
-              onSelect={() => router.push(href(option.id))}
-            >
+            <SelectItem key={option.id} value={option.id}>
               {option.name}
-            </DropdownMenuItem>
+            </SelectItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </SelectContent>
+      </Select>
     </div>
   );
 

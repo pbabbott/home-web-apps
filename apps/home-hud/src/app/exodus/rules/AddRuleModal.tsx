@@ -3,16 +3,16 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import {
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   Modal,
   ModalContent,
   ModalDescription,
   ModalTitle,
   OutlinedButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Typography,
 } from '@abbottland/fui-components';
 import {
@@ -34,6 +34,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
     </label>
   );
 }
+
+// Radix Select rejects an empty item value, so "all sources" uses a sentinel.
+const ALL_SOURCES = '__all__';
 
 const SCOPE_LABELS: Record<ExclusionRuleScope, string> = {
   exclude_subtree: 'Exclude subtree: skip it and everything beneath it',
@@ -126,33 +129,33 @@ export function AddRuleModal({
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
           <Field label="Applies to">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <OutlinedButton
-                  type="button"
-                  size="small"
-                  color="primary"
-                  className="w-full"
-                  disabled={editing}
-                >
-                  {sources.find((source) => source.id === sourceId)?.name ??
-                    'All sources (global)'}
-                </OutlinedButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent label="Applies to">
-                <DropdownMenuItem onSelect={() => setSourceId('')}>
+            <Select
+              disabled={editing}
+              value={
+                sources.some((source) => source.id === sourceId)
+                  ? sourceId
+                  : ALL_SOURCES
+              }
+              onValueChange={(value) =>
+                setSourceId(value === ALL_SOURCES ? '' : value)
+              }
+            >
+              <SelectTrigger
+                aria-label="Applies to"
+                size="small"
+                className="w-full"
+              />
+              <SelectContent label="Applies to">
+                <SelectItem value={ALL_SOURCES}>
                   All sources (global)
-                </DropdownMenuItem>
+                </SelectItem>
                 {sources.map((source) => (
-                  <DropdownMenuItem
-                    key={source.id}
-                    onSelect={() => setSourceId(source.id)}
-                  >
+                  <SelectItem key={source.id} value={source.id}>
                     {source.name}
-                  </DropdownMenuItem>
+                  </SelectItem>
                 ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label="Path">
@@ -168,30 +171,25 @@ export function AddRuleModal({
           </Field>
 
           <Field label="Scope">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <OutlinedButton
-                  type="button"
-                  size="small"
-                  color="primary"
-                  className="w-full"
-                >
-                  {SCOPE_LABELS[scope]}
-                </OutlinedButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent label="Scope">
+            <Select
+              value={scope}
+              onValueChange={(value) => setScope(value as ExclusionRuleScope)}
+            >
+              <SelectTrigger
+                aria-label="Scope"
+                size="small"
+                className="w-full"
+              />
+              <SelectContent label="Scope">
                 {(Object.keys(SCOPE_LABELS) as ExclusionRuleScope[]).map(
                   (value) => (
-                    <DropdownMenuItem
-                      key={value}
-                      onSelect={() => setScope(value)}
-                    >
+                    <SelectItem key={value} value={value}>
                       {SCOPE_LABELS[value]}
-                    </DropdownMenuItem>
+                    </SelectItem>
                   ),
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label="Reason (optional)">

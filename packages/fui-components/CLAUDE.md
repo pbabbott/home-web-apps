@@ -27,7 +27,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **Typography** – all text, with variants and a polymorphic `component` prop; always use for rendered text.
 - **Badge** – small hex-pointed colored label; tags and status.
 - **CautionTape** – tilted animated hazard-stripe banner; warnings, "under construction".
-- **AIContent** – marks a block as AI-generated with highlight rule and optional glow.
+- **AIContent** – marks a block as written with AI, with a highlight bracket and gradient text and optional glow.
 - **MaskReveal** – animated mask reveal for content (direction/duration/delay); entrance animations.
 
 **Buttons & navigation**
@@ -38,6 +38,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **TiledHexagons** – honeycomb grid of hexagon tiles; launchers and icon menus.
 - **NavBar** – top navigation container with decorative line; site header.
 - **NavItem** – polymorphic nav link with icons and connector lines; items inside NavBar.
+- **ConnectedNav** – two-level nav: NavBar plus an indented subnav joined by a traced line with a ringed joint and a one-shot spark on selection; sectioned site navigation.
 
 **Forms & overlays**
 
@@ -46,6 +47,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **Tabs** – tabs with chamfered style and sliding indicator (Radix); switching views.
 - **Modal** – dialog (Radix: Trigger, Close, Content, Title, Description); focused tasks and confirmations.
 - **DropdownMenu** – dropdown (Radix: Trigger, Content, Item); action menus.
+- **Select** – single-choice picker (Radix: Trigger, Content, Item) whose menu is styled exactly like DropdownMenu; pick one value from a list.
 - **Tooltip** – hover tooltip with delay and optional controlled state; short hints.
 
 **Data display**

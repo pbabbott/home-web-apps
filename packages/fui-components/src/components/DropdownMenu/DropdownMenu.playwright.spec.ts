@@ -27,4 +27,44 @@ test.describe('DropdownMenu Visual Regression Tests', () => {
       SCREENSHOT_OPTIONS,
     );
   });
+
+  test('with-label', async ({ page }) => {
+    await gotoStory(page, 'forms-overlays-dropdownmenu--with-label');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'forms-overlays-dropdownmenu--with-label.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('without-label', async ({ page }) => {
+    await gotoStory(page, 'forms-overlays-dropdownmenu--without-label');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'forms-overlays-dropdownmenu--without-label.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('without-icons', async ({ page }) => {
+    await gotoStory(page, 'forms-overlays-dropdownmenu--without-icons');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'forms-overlays-dropdownmenu--without-icons.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('right-icons', async ({ page }) => {
+    await gotoStory(page, 'forms-overlays-dropdownmenu--right-icons');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'forms-overlays-dropdownmenu--right-icons.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
+
+  test('disabled-item', async ({ page }) => {
+    await gotoStory(page, 'forms-overlays-dropdownmenu--disabled-item');
+    await expect(page.locator('#storybook-root')).toHaveScreenshot(
+      'forms-overlays-dropdownmenu--disabled-item.png',
+      SCREENSHOT_OPTIONS,
+    );
+  });
 });

@@ -3,16 +3,16 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import {
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   Modal,
   ModalContent,
   ModalDescription,
   ModalTitle,
   OutlinedButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Typography,
 } from '@abbottland/fui-components';
 import { guessKind } from './job-display';
@@ -133,33 +133,28 @@ export function PromoteSkippedModal({
           )}
 
           <Field label="Kind">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <OutlinedButton
-                  type="button"
-                  size="small"
-                  color="primary"
-                  className="w-full"
-                >
-                  {KIND_LABELS[kind]}
-                </OutlinedButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent label="Kind">
+            <Select
+              value={kind}
+              onValueChange={(value) => {
+                setKind(value as keyof typeof KIND_LABELS);
+                setKindTouched(true);
+              }}
+            >
+              <SelectTrigger
+                aria-label="Kind"
+                size="small"
+                className="w-full"
+              />
+              <SelectContent label="Kind">
                 {(Object.keys(KIND_LABELS) as (keyof typeof KIND_LABELS)[]).map(
                   (value) => (
-                    <DropdownMenuItem
-                      key={value}
-                      onSelect={() => {
-                        setKind(value);
-                        setKindTouched(true);
-                      }}
-                    >
+                    <SelectItem key={value} value={value}>
                       {KIND_LABELS[value]}
-                    </DropdownMenuItem>
+                    </SelectItem>
                   ),
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label="Note (optional)">

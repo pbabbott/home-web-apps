@@ -149,6 +149,19 @@ export {
   type MaskRevealDirection,
 } from './components/MaskReveal/MaskReveal';
 
+// Select
+export {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  type SelectProps,
+  type SelectSize,
+  type SelectTriggerProps,
+  type SelectContentProps,
+  type SelectItemProps,
+} from './components/Select/Select';
+
 // DropdownMenu
 export {
   DropdownMenu,
@@ -180,6 +193,13 @@ export { NavBar, type NavBarProps } from './components/NavBar/NavBar';
 
 // NavItem
 export { NavItem, type NavItemProps } from './components/NavItem/NavItem';
+
+// ConnectedNav
+export {
+  ConnectedNav,
+  type ConnectedNavProps,
+  type ConnectedNavItem,
+} from './components/ConnectedNav/ConnectedNav';
 
 // Panel
 export { Panel, type PanelProps } from './components/Panel/Panel';
