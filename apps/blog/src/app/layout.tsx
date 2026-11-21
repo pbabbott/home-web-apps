@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import '@abbottland/fui-components/globals.css';
 import './globals.css';
 import ProxyNavigationFixer from '@/components/ProxyNavigationFixer/ProxyNavigationFixer';
 import DebugModal from '@/components/DebugModal/DebugModal';

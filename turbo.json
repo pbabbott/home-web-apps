@@ -45,6 +45,8 @@
         "!src/**/*.stories.{ts,tsx}",
         "!src/**/*.test.{ts,tsx}",
         "vite.config.ts",
+        "*.css",
+        "tailwind.config.ts",
         "tsconfig*.json",
         "package.json"
       ],
@@ -56,6 +58,8 @@
         "src/**",
         ".storybook/**",
         "vite.config.ts",
+        "*.css",
+        "tailwind.config.ts",
         "tsconfig*.json",
         "package.json"
       ],

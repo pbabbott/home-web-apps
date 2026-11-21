@@ -14,10 +14,11 @@ All follow the same pattern:
 
 `video-api` additionally depends on PostgreSQL via a shared `packages/*-db` library package (Drizzle ORM). See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md).
 
-## Frontend apps (`blog`, `diagram-maker`)
+## Frontend apps (`blog`, `diagram-maker`, `home-hud`)
 
 - Next.js 16 with `@mdx-js/loader` for content
 - TailwindCSS 4 with PostCSS
+- One Tailwind compile per app: the app's `src/app/globals.css` does `@import 'tailwindcss';` then `@import '@abbottland/fui-components/tailwind.css';` (fonts, base layer, library `@config`/content scan), then its own `@config`. Do **not** also import `@abbottland/fui-components/globals.css` from `layout.tsx`: that is a second compile whose later `.text-*` utilities override library-only ones (e.g. `AIContent`'s `[&_*]:text-transparent`).
 
 ## Shared config packages
 

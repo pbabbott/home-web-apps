@@ -135,6 +135,8 @@ export async function rerunUnresolvedBackupJob(
 export interface BackupEntryFilter {
   status?: BackupEntryStatus;
   issueKind?: BackupEntryIssueKind;
+  /** Substring of the file path. */
+  search?: string;
   /** The `next` of the previous page. */
   after?: number;
 }
@@ -148,6 +150,7 @@ export async function listBackupEntries(
 
   if (filter.status) query.set('status', filter.status);
   if (filter.issueKind) query.set('issueKind', filter.issueKind);
+  if (filter.search) query.set('search', filter.search);
   if (filter.after !== undefined) query.set('after', String(filter.after));
 
   return send('GET', `/backup-job-items/${itemId}/entries?${query}`);

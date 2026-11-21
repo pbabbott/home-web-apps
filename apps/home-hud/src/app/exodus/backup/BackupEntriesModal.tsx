@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Badge,
+  Input,
   Modal,
   ModalContent,
   ModalDescription,
@@ -48,6 +49,8 @@ export function BackupEntriesModal({
       ? 'failed'
       : undefined,
   );
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<BackupEntry[]>([]);
   const [next, setNext] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +61,11 @@ export function BackupEntriesModal({
   useEffect(() => {
     let cancelled = false;
 
-    void listBackupEntries(item.id, { status, after: page }).then((result) => {
+    void listBackupEntries(item.id, {
+      status,
+      search: query || undefined,
+      after: page,
+    }).then((result) => {
       if (cancelled) return;
 
       setLoading(false);
@@ -80,7 +87,23 @@ export function BackupEntriesModal({
     return () => {
       cancelled = true;
     };
-  }, [item.id, status, page]);
+  }, [item.id, status, query, page]);
+
+  // Debounce typing, then reload from the start with the new term.
+  useEffect(() => {
+    const term = search.trim();
+    if (term === query) return;
+
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setEntries([]);
+      setNext(null);
+      setPage(undefined);
+      setQuery(term);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search, query]);
 
   function pick(value: BackupEntryStatus | undefined) {
     setLoading(true);
@@ -111,6 +134,15 @@ export function BackupEntriesModal({
             </OutlinedButton>
           ))}
         </div>
+
+        <Input
+          type="search"
+          className="mt-4"
+          aria-label="Search files"
+          placeholder="Search file paths"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         {error && (
           <Typography variant="body2" className="mt-4 text-error-400">
