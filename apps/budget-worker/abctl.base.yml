@@ -1,0 +1,7 @@
+registryWithNamespace: harbor.local.abbottland.io/library
+buildPreset: pnpm-turbo-docker-build
+build:
+  repository: budget-worker-base
+  target: builder
+  push: 'true'
+  buildCache: harbor.local.abbottland.io/build-cache

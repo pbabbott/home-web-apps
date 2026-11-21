@@ -12,7 +12,7 @@ All follow the same pattern:
 - Docker Compose for local dev dependencies; `abctl` for Docker builds and publishing
 - Jest projects config with separate `unit`, `int`, and `smoke` suites
 
-`video-api` additionally depends on PostgreSQL via a shared `packages/*-db` library package (Drizzle ORM). See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md).
+`video-api` and `budget-api` additionally depend on PostgreSQL via a shared `packages/*-db` library package (Drizzle ORM); each has a matching `*-worker` that claims jobs from the same database. See [Postgres & Drizzle](./dev-guide-postgres-drizzle.md).
 
 ## Frontend apps (`blog`, `diagram-maker`, `home-hud`)
 
