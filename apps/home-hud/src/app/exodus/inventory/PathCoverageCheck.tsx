@@ -162,20 +162,6 @@ export function PathCoverageCheck({ sourceId }: PathCoverageCheckProps) {
             </div>
           )}
 
-          {coverage.exclusion.state !== 'none' && (
-            <Typography variant="body2" className="text-warning-400">
-              {coverage.exclusion.state === 'excluded'
-                ? 'An exclusion rule excludes this path, so it cannot be approved.'
-                : 'A selective-only rule is on this exact path, so it cannot be an inventory item itself.'}{' '}
-              <Link
-                href="/exodus/rules"
-                className="text-primary-400 hover:underline"
-              >
-                View rules
-              </Link>
-            </Typography>
-          )}
-
           {coverage.skip && (
             <Typography variant="body2" className="text-neutral-400">
               The agent skipped{' '}

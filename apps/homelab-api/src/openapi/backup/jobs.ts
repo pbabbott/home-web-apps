@@ -108,22 +108,20 @@ const planItemSchema = z.object({
       'Path under the source folder at the destination: `C/Users/Me`, `UNC/server/share/a`.',
   }),
   status: z.enum(['queued', 'skipped', 'excluded']),
-  statusReason: z
-    .enum(['already_covered', 'redundant_nested', 'excluded_by_rule'])
-    .nullish(),
+  statusReason: z.enum(['already_covered', 'redundant_nested']).nullish(),
   estimatedSizeBytes: z.number().nullish(),
   carveOuts: z
     .array(
       z.object({
         path: z.string(),
-        reason: z.enum(['rejected_item', 'exclusion_rule']),
+        reason: z.enum(['rejected_item']),
         refId: z.uuid(),
       }),
     )
     .optional()
     .meta({
       description:
-        'For a queued directory: nested rejected items and `exclude_subtree` rules that are left out of the copy.',
+        'For a queued directory: nested rejected items that are left out of the copy.',
     }),
   coveredByInventoryItemId: z.uuid().optional(),
   coveredByRootPath: z.string().optional(),

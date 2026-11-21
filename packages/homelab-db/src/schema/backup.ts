@@ -99,7 +99,7 @@ export type BackupDestinationValidation = {
 /** Why part of a directory item is not copied. */
 export type BackupCarveOut = {
   path: string;
-  reason: 'rejected_item' | 'exclusion_rule';
+  reason: 'rejected_item';
   refId: string;
 };
 

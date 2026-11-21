@@ -11,10 +11,11 @@ The `backup_*` tables (migration `0016`) are described in [backup.md](./backup.m
 - **`discovery_jobs`** — one run over a source, rooted at `root_path`. Status: `pending` → `running` → `completed` | `failed` | `cancelled`. A partial unique index allows only **one active (pending/running) job per source**.
 - **`discovery_queue_items`** — one directory to explore within a job. Status: `queued` → `in_progress` → `completed` | `skipped` | `failed`. `job_id` is required and cascades on delete; unique on `(job_id, normalized_path)`. The source is reached through the job. Fields: `priority` (higher claimed first), `attempt_count`, `max_attempts` (default 3), `last_error`, `available_at` (retry backoff), and the lease (`claimed_by`, `claim_token`, `lease_expires_at`). `reason` records why it was queued and `result` (`{ summary?, skipped: [{ path, reason }], skippedGroups?: [{ pattern, count?, reason }] }`) what the worker concluded, including paths it deliberately did not queue. No job-level lifecycle is duplicated on items.
 - **`inventory_items`** — see [Inventory Items](./inventory.md). Unique on `(source_id, normalized_root_path)`. Agent-owned recommendation columns and human-owned `decision*` columns; `first_job_id` / `last_job_id` (set null if a job is deleted); a `CHECK` that `decided_at` is set unless `decision` is `pending`.
-- **`exclusion_rules`** — see [Exclusion rules](./exclusion-review-audit.md). `source_id` is null for a global rule; unique on `(source_id, normalized_path)` with `NULLS NOT DISTINCT`.
 - **`audit_events`** — append-only log. Its id columns have **no foreign keys** so events outlive the rows they describe.
 
 **State checks.** `discovery_queue_items` has `CHECK`s that `0 <= attempt_count <= max_attempts` and that an `in_progress` item has `claimed_by`, `claim_token` and `lease_expires_at` all set; `inventory_items` checks `decided_at` is set unless `pending`. The queries already keep to these, so the database now rejects an illegal state instead of storing it.
+
+Migration `0018` removed exclusion rules: it dropped the `exclusion_rules` table, the `exclusion_rule_scope` enum and `audit_events.exclusion_rule_id`, and deleted the `exclusion_rule.*` and `queue_items.excluded` audit events. Older backup carve-outs may still hold an `exclusion_rule` reason; it is left as stored.
 
 Migration history: `0012_source_connections` added `source_connections` and the `source_connection.*` audit event types (not to be confused with the older renames described below, whose numbering the rest of this paragraph keeps).
 

@@ -82,8 +82,7 @@ export function QueueDirectoriesModal({
         <ModalTitle>Queue Directories</ModalTitle>
         <ModalDescription>
           Point the agent at more places inside this job&apos;s root ({rootPath}
-          ). One path per line. Paths under an exclusion rule are skipped
-          immediately.
+          ). One path per line.
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">

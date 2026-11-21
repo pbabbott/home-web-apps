@@ -8,7 +8,6 @@ erDiagram
     hosts ||--o{ backup_destinations : "host_id (RESTRICT)"
     sources ||--o{ discovery_jobs : "source_id (CASCADE)"
     discovery_jobs ||--o{ discovery_queue_items : "job_id (CASCADE)"
-    sources |o--o{ exclusion_rules : "source_id (CASCADE)"
     sources ||--o{ inventory_items : "source_id (CASCADE)"
     sources ||--o| source_connections : "source_id (CASCADE)"
     sources ||--o{ skip_acknowledgements : "source_id (CASCADE)"
@@ -121,17 +120,6 @@ erDiagram
         timestamptz updated_at
     }
 
-    exclusion_rules {
-        uuid id PK
-        uuid source_id FK "nullable, null = global; UK with normalized_path (NULLS NOT DISTINCT)"
-        text path
-        text normalized_path
-        exclusion_rule_scope scope "selective_only | exclude_subtree"
-        text reason "nullable"
-        timestamptz created_at
-        timestamptz updated_at
-    }
-
     skip_acknowledgements {
         uuid id PK
         uuid source_id FK
@@ -197,7 +185,7 @@ erDiagram
         text root_path
         text normalized_root_path
         text dest_rel_path "path under the destination source folder"
-        jsonb carve_outs "rejected items and exclusion rules inside a directory"
+        jsonb carve_outs "rejected items inside a directory"
         uuid covered_by_job_item_id FK "nullable, redundant nested item"
         bigint estimated_size_bytes "nullable"
         backup_job_item_status status "queued | in_progress | verified | failed | blocked | skipped | excluded"
@@ -248,7 +236,6 @@ erDiagram
         uuid source_id "no FK"
         uuid job_id "no FK"
         uuid queue_item_id "no FK"
-        uuid exclusion_rule_id "no FK"
         uuid inventory_item_id "no FK"
         uuid destination_id "no FK, backup destination"
         uuid backup_job_id "no FK"
@@ -267,7 +254,7 @@ erDiagram
 - **Uniqueness.** `discovery_queue_items` is unique on `(job_id, normalized_path)`. `inventory_items` is unique on `(source_id, normalized_root_path)`. `discovery_jobs` has a partial unique index on `source_id` where status is `pending` or `running`, so a source has at most one active job.
 - **State checks (migration `0007`).** `discovery_queue_items`: `0 <= attempt_count <= max_attempts`, and `in_progress` requires `claimed_by`, `claim_token` and `lease_expires_at`. `inventory_items`: `decided_at` is set unless `decision = 'pending'` (migration `0010`).
 - **Review candidates (migration `0010`, renamed `inventory_items` by `0012`).** An inventory item is the agent's proposed backup unit, unique per `(source_id, normalized_root_path)`. The agent owns the recommendation columns and a human owns the `decision*` columns; the agent upsert never writes the latter, and a `CHECK` requires `decided_at` unless the decision is `pending`. `0010` moved the old catalogue's review decisions into it (`candidate`→`approved`, `not_needed`→`rejected`, a noted `needs_review`→`pending`).
-- **Audit (migration `0009`).** `audit_events` ids have no foreign keys on purpose: the log must outlive deleted rules, items and sources. `exclusion_rules` is unique per owner and path, and `NULLS NOT DISTINCT` makes that cover global rules.
+- **Audit (migration `0009`).** `audit_events` ids have no foreign keys on purpose: the log must outlive deleted items and sources.
 - **Normalized paths** are lowercased, so Windows paths compare case-insensitively.
 - **Catalogue removal (migration `0011`).** The old per-path `inventory_items` catalogue and `audit_events.inventory_item_id` were dropped, the legacy `inventory_item.review_*` audit events were deleted, and the `inventory_item_type` enum was renamed `candidate_kind`.
 - **Rename (migration `0012`).** `review_candidates` became `inventory_items`; the `candidate_*` enums became `inventory_item_*`; `audit_events.review_candidate_id` became `inventory_item_id`; `review_candidate.*` audit event types became `inventory_item.*`. Constraints and indexes were renamed to match; no data moved.
@@ -280,3 +267,4 @@ erDiagram
 - **Backup state checks.** `backup_job_items`: `0 <= attempt_count <= max_attempts`, `max_attempts > 0`, `in_progress` requires the claim fields, `verified` requires `completed_at` and `enumeration_complete`. `backup_entries`: `verified` requires `verified_at` and, for a file, `sha256` and `dest_rel_path`; `failed` requires `issue_kind`. `backup_jobs`: `stalled_reason` and `stalled_since` are set together, and a finished job has `finished_at`. `backup_destinations.root_dir` is relative and has no `..` segment.
 - **Backup counts are derived** from job items and entries, never stored. Coverage is derived too: an inventory item is covered at a destination when some `verified` job item for it exists in a job to that destination.
 - **Backup audit.** `audit_events` gained `destination_id`, `backup_job_id` and `backup_job_item_id`, with no foreign keys for the same reason as the others.
+- **Exclusion rules removed (migration `0018`).** The `exclusion_rules` table, `exclusion_rule_scope` enum, `audit_events.exclusion_rule_id` (and its index) were dropped, and the `exclusion_rule.*` and `queue_items.excluded` audit events were deleted.

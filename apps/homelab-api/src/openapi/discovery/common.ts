@@ -181,10 +181,3 @@ export const actorHeaders = z.object({
     description: 'Free-form identifier of the actor, for the audit log.',
   }),
 });
-
-export const exclusionResolutionSchema = z.object({
-  state: z.enum(['none', 'selective', 'excluded']),
-  ruleIds: z.array(z.uuid()).meta({
-    description: 'The rules that decided the state.',
-  }),
-});

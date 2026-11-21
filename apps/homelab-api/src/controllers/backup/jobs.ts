@@ -15,7 +15,7 @@ import type {
 export const planBackupJobOperation = {
   summary: 'Plan a backup job (dry run)',
   description:
-    'Applies the planning rules to the source’s inventory and writes nothing. Approved items under an `exclude_subtree` rule are `excluded`; approved items inside another approved directory the job copies are `skipped` (`redundant_nested`); with `skipAlreadyCovered` (default) items already verified at the destination are `skipped` (`already_covered`); the rest are `queued`. Items that are not approved are listed in `notEligible` and are not part of the job. The summary gives the estimated size and how many items have no estimate, and `warnings` flags an active discovery job and an existing source folder at the destination. 409: unknown or disabled destination, an active job for this source and destination, a source folder name taken by another source, or nothing to back up.',
+    'Applies the planning rules to the source’s inventory and writes nothing. Approved items inside another approved directory the job copies are `skipped` (`redundant_nested`); with `skipAlreadyCovered` (default) items already verified at the destination are `skipped` (`already_covered`); the rest are `queued`. Items that are not approved are listed in `notEligible` and are not part of the job. The summary gives the estimated size and how many items have no estimate, and `warnings` flags an active discovery job and an existing source folder at the destination. 409: unknown or disabled destination, an active job for this source and destination, a source folder name taken by another source, or nothing to back up.',
   hud: '/exodus/backup',
 } satisfies Operation;
 

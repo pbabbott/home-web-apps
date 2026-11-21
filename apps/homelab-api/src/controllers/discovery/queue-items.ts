@@ -99,7 +99,7 @@ export const enqueueQueueItems = handle(
 export const claimQueueItemOperation = {
   summary: 'Claim the next directory to inspect',
   description:
-    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first, and queued items inside an approved directory inventory item or under an exclusion rule are skipped rather than handed out. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
+    'Atomically leases the highest-priority eligible item (concurrent callers never get the same one) and starts the job if it was pending. Items whose lease expired are reclaimed first, and queued items inside an approved directory inventory item are skipped rather than handed out. Keep the item’s claimToken: every later call on the item needs it. Always 200: when nothing is claimable, item is null and reason says whether to stop (queue_empty), wait for a retry delay (retry_backoff), or wait for other workers (in_progress), with retryAt telling when to ask again.',
   mcp: {
     name: 'claim_directory',
     description:
@@ -176,7 +176,7 @@ export const heartbeatQueueItem = handle(
 export const completeQueueItemOperation = {
   summary: 'Complete a claimed directory and enqueue the follow-ups it needs',
   description:
-    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped`, `skippedGroups` and `unreadable` are stored on the item as its result; each `unreadable` child (access denied) is also recorded at once as a failed item, with no attempt spent, for a human to retry. Follow-ups under an exclusion rule are skipped immediately.',
+    'The completion and the discoveredPaths enqueue happen in one transaction, so follow-up work is never lost to a crash in between. Queue only paths that warrant more inspection (with a reason), not every child. `summary`, `skipped`, `skippedGroups` and `unreadable` are stored on the item as its result; each `unreadable` child (access denied) is also recorded at once as a failed item, with no attempt spent, for a human to retry.',
   mcp: {
     name: 'complete_directory',
     description:
@@ -320,7 +320,7 @@ export const retryFailedQueueItems = handle(
 export const listKnownSkipsOperation = {
   summary: 'List paths earlier jobs chose not to explore',
   description:
-    'Derived from the `skipped` lists stored on the source’s queue items, newest reason per path (case-insensitive), ordered by path. These are per-run judgments, not exclusion rules: a later run may revisit one, and nothing here blocks exploring or proposing a path. Filter with `pathPrefix` (default limit 200, max 1000).',
+    'Derived from the `skipped` lists stored on the source’s queue items, newest reason per path (case-insensitive), ordered by path. These are per-run judgments: a later run may revisit one, and nothing here blocks exploring or proposing a path. Filter with `pathPrefix` (default limit 200, max 1000).',
   mcp: {
     name: 'list_known_skips',
     description:
@@ -339,7 +339,7 @@ export const listKnownSkips = handle(
   },
 );
 
-// Does: list a queue item's directory on the source and say how each entry is covered (inventory item, skip, queue item, exclusion rule).
+// Does: list a queue item's directory on the source and say how each entry is covered (inventory item, skip, queue item).
 // Who: human (home-hud directory page, "On disk"). No MCP tool.
 export const getDirectoryListingOperation = {
   summary: 'List a directory on disk with its coverage',

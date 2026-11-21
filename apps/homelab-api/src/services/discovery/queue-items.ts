@@ -297,7 +297,7 @@ export async function getQueueItemDetail(id: string): Promise<QueueItemDetail> {
 
 /**
  * Paths earlier jobs of the source chose not to explore, newest reason per
- * path. A per-run judgment the agent may revisit, not an exclusion rule.
+ * path. A per-run judgment the agent may revisit.
  */
 export async function listSourceKnownSkips(
   sourceId: string,

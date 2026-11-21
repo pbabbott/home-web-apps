@@ -1,10 +1,6 @@
 import type { AuditEvent, AuditEventType } from '../sources/lib/homelab-api';
 
 export const AUDIT_EVENT_LABELS: Record<AuditEventType, string> = {
-  'exclusion_rule.created': 'Rule created',
-  'exclusion_rule.updated': 'Rule updated',
-  'exclusion_rule.deleted': 'Rule removed',
-  'queue_items.excluded': 'Queue skipped',
   'queue_items.inventoried': 'Queue skipped (inventoried)',
   'inventory_item.created': 'Inventory item proposed',
   'inventory_item.recommendation_changed': 'Recommendation changed',
@@ -54,14 +50,6 @@ export function parseAuditEventType(
     ? (value as AuditEventType)
     : undefined;
 }
-
-const SCOPE_WORDS: Record<string, string> = {
-  exclude_subtree: 'exclude subtree',
-  selective_only: 'selective only',
-};
-
-const scopeWord = (scope: unknown): string =>
-  typeof scope === 'string' ? (SCOPE_WORDS[scope] ?? scope) : '?';
 
 const RECOMMENDATION_WORDS: Record<string, string> = {
   back_up: 'back up',
@@ -125,12 +113,6 @@ export function describeAuditEvent(event: AuditEvent): string {
   const d = (event.details ?? {}) as AuditDetails;
 
   switch (event.eventType) {
-    case 'exclusion_rule.created':
-      return `${d.path ?? '?'} (${scopeWord(d.scope)}, ${d.global ? 'all sources' : 'one source'})${d.reason ? `: ${d.reason}` : ''}`;
-    case 'exclusion_rule.updated':
-      return `${d.path ?? '?'}: ${scopeWord(d.before?.scope)} → ${scopeWord(d.after?.scope)}`;
-    case 'exclusion_rule.deleted':
-      return `${d.path ?? '?'} (${scopeWord(d.scope)})`;
     case 'inventory_item.created':
       return `${d.path ?? '?'}: ${recommendationWord(d.recommendation)} (${d.confidence ?? '?'} confidence)`;
     case 'inventory_item.recommendation_changed': {
@@ -143,8 +125,6 @@ export function describeAuditEvent(event: AuditEvent): string {
       return `${d.path ?? '?'}: ${decisionWord(d.from)} → ${decisionWord(d.to)}`;
     case 'inventory_item.promoted':
       return `${d.path ?? '?'}${d.wholeDirectory ? ': added as a whole directory' : ''}${d.skipReason ? `: was skipped as "${d.skipReason}"` : ''}`;
-    case 'queue_items.excluded':
-      return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped by an exclusion rule`;
     case 'queue_items.inventoried':
       return `${d.count ?? '?'} queued director${d.count === 1 ? 'y' : 'ies'} skipped: inside an approved directory`;
     case 'skip.acknowledged':

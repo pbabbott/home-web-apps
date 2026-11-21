@@ -226,7 +226,6 @@ describe('canPromoteCheckedPath', () => {
     exact: null,
     coveredBy: [],
     covers: [],
-    exclusion: { state: 'none', ruleIds: [] },
     skip: null,
     visitedDirectory: {
       id: 'q',
@@ -250,12 +249,7 @@ describe('canPromoteCheckedPath', () => {
     expect(canPromoteCheckedPath(coverage({ status: 'pending' }))).toBe(true);
   });
 
-  it('refuses an excluded path, or one that already has an item', () => {
-    expect(
-      canPromoteCheckedPath(
-        coverage({ exclusion: { state: 'excluded', ruleIds: ['r'] } }),
-      ),
-    ).toBe(false);
+  it('refuses a path that already has an item', () => {
     expect(
       canPromoteCheckedPath(
         coverage({

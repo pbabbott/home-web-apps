@@ -150,15 +150,6 @@ describe('known skips across jobs', () => {
       { path: `${ROOT}\\cache`, reason: 'generated' },
     ]);
 
-    expect(
-      (
-        await getRequest()
-          .get('/exclusion-rules')
-          .query({ sourceId })
-          .expect(200)
-      ).body,
-    ).toEqual([]);
-
     const { item } = await startAndClaim(sourceId);
     await propose(item, [proposal(`${ROOT}\\cache`)]).expect(200);
     const done = await getRequest()

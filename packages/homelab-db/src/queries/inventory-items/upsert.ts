@@ -12,12 +12,6 @@ import {
 } from '../../schema/discovery';
 import { insertAuditEvent } from '../audit';
 import { activeClaim, claimMissError } from '../discovery/claims';
-import {
-  listApplicableRules,
-  resolveExclusion,
-  rulesBySource,
-} from '../exclusion-rules';
-import { DiscoveryError } from '../shared';
 
 export type InventoryItemInput = {
   kind: InventoryItemKind;
@@ -70,8 +64,7 @@ const jsonEqual = (a: unknown, b: unknown): boolean =>
  *
  * An audit event is written only when an inventory item is created or its
  * recommendation/confidence changes; an identical re-proposal just refreshes
- * `lastJobId`/`lastSeenAt`. Any path under an exclusion rule (excluded
- * subtree, or exactly a `selective_only` path) rejects the whole batch.
+ * `lastJobId`/`lastSeenAt`.
  */
 export const upsertInventoryItems = async (
   db: Database,
@@ -107,23 +100,6 @@ export const upsertInventoryItems = async (
           : 0,
     );
     if (ordered.length === 0) return [];
-
-    const rules = rulesBySource(
-      await listApplicableRules(tx, [claimed.sourceId]),
-      claimed.sourceId,
-    );
-    const blocked = ordered.flatMap((c) => {
-      const { state, ruleIds } = resolveExclusion(rules, c.normalizedRootPath);
-
-      return state === 'none' ? [] : [{ path: c.rootPath, state, ruleIds }];
-    });
-    if (blocked.length > 0) {
-      throw new DiscoveryError(
-        'conflict',
-        'paths covered by an exclusion rule cannot be inventory items',
-        { blocked },
-      );
-    }
 
     const t = inventoryItems;
     const inserted = await tx

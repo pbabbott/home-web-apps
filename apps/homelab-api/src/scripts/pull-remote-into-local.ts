@@ -13,7 +13,6 @@ import {
   linkBackupJobItemCoverage,
   listInventoryKeysForImport,
   importDiscoveryJobs,
-  importExclusionRules,
   importInventoryItems,
   importQueueItems,
   importOnDiskReviews,
@@ -27,7 +26,6 @@ import {
   type BackupEntry,
   type BackupJob,
   type BackupJobItem,
-  type ExclusionRule,
   type ExporterType,
   type HostType,
   type InventoryItem,
@@ -252,23 +250,6 @@ async function syncDiscovery(
       return localId ? [[source.id, localId] as const] : [];
     }),
   );
-  // Rules whose source is unknown locally are dropped, not made global.
-  const remoteRules = await fetchRemoteJson<ExclusionRule[]>(
-    `${remoteUrl}/exclusion-rules`,
-  );
-  const rules = remoteRules.flatMap((rule) => {
-    if (rule.sourceId === null) {
-      return [reviveDates(rule, ['createdAt', 'updatedAt'])];
-    }
-    const sourceId = localSourceIdByRemoteId.get(rule.sourceId);
-
-    return sourceId
-      ? [reviveDates({ ...rule, sourceId }, ['createdAt', 'updatedAt'])]
-      : [];
-  });
-  await importExclusionRules(db, rules);
-  console.log(`  ~ ${rules.length} exclusion rule(s)`);
-
   let auditCount = 0;
   let before: string | undefined;
   for (;;) {

@@ -11,18 +11,9 @@ import { toDestRelPath } from './dest-paths';
 // The planning rules of docs/exodus/backup.md ("Planning") as a pure
 // function: no database, no clock, so every case is a unit test.
 
-export type PlanRule = {
-  id: string;
-  scope: 'selective_only' | 'exclude_subtree';
-  path: string;
-  normalizedPath: string;
-};
-
 export type PlanInput = {
   selection: BackupJobSelection;
   inventory: BackupPlanningInventoryItem[];
-  /** Rules that apply to the source (its own plus global). */
-  rules: PlanRule[];
   /** Inventory items already covered at the destination. */
   coveredIds: ReadonlySet<string>;
   /** Destination paths of items that have a verified copy at the destination. */
@@ -70,20 +61,18 @@ const notEligibleReason = (decision: string) =>
  * before anything inside it:
  *
  * 1. not approved -> `notEligible`, not part of the job;
- * 2. under an `exclude_subtree` rule -> `excluded`;
- * 3. inside an approved directory that this job copies, with no rejected
+ * 2. inside an approved directory that this job copies, with no rejected
  *    item in between -> `skipped` (`redundant_nested`), covered by it;
- * 4. already covered at the destination -> `skipped` (`already_covered`);
- * 5. otherwise `queued`, with carve-outs for a directory.
+ * 3. already covered at the destination -> `skipped` (`already_covered`);
+ * 4. otherwise `queued`, with carve-outs for a directory.
  *
- * A directory the job does not copy (already covered, excluded) does not
+ * A directory the job does not copy (already covered) does not
  * cover what is inside it: the nested item is planned on its own, where
  * adoption of identical files makes a repeat copy harmless.
  */
 export const planBackup = ({
   selection,
   inventory,
-  rules,
   coveredIds,
   priorDestRelPaths,
 }: PlanInput): PlanResult => {
@@ -107,10 +96,7 @@ export const planBackup = ({
       reason: notEligibleReason(item.decision),
     }));
 
-  const exclusionRules = rules.filter((r) => r.scope === 'exclude_subtree');
   const rejected = inventory.filter((item) => item.decision === 'rejected');
-  const isExcluded = (path: string) =>
-    exclusionRules.some((r) => isWithinPath(r.normalizedPath, path));
 
   const byPath = new Map<string, PlanItem>();
   const items: PlanItem[] = [];
@@ -144,13 +130,7 @@ export const planBackup = ({
           ),
       );
 
-    if (isExcluded(item.normalizedRootPath)) {
-      planned = {
-        ...base,
-        status: 'excluded',
-        statusReason: 'excluded_by_rule',
-      };
-    } else if (cover) {
+    if (cover) {
       planned = {
         ...base,
         status: 'skipped',
@@ -166,11 +146,7 @@ export const planBackup = ({
         status: 'queued',
         ...(item.kind === 'directory'
           ? {
-              carveOuts: carveOutsFor(
-                item.normalizedRootPath,
-                rejected,
-                exclusionRules,
-              ),
+              carveOuts: carveOutsFor(item.normalizedRootPath, rejected),
             }
           : {}),
       };
@@ -184,14 +160,12 @@ export const planBackup = ({
 };
 
 /**
- * What a directory item must leave out: rejected inventory items inside it
- * and `exclude_subtree` rules inside it (the nearest decided item wins). A
- * carve-out nested in another carve-out is dropped as redundant.
+ * What a directory item must leave out: rejected inventory items inside it.
+ * A carve-out nested in another carve-out is dropped as redundant.
  */
 const carveOutsFor = (
   root: string,
   rejected: BackupPlanningInventoryItem[],
-  exclusionRules: PlanRule[],
 ): BackupCarveOut[] => {
   const all = [
     ...rejected
@@ -205,19 +179,6 @@ const carveOutsFor = (
         carve: {
           path: r.rootPath,
           reason: 'rejected_item' as const,
-          refId: r.id,
-        },
-      })),
-    ...exclusionRules
-      .filter(
-        (r) =>
-          r.normalizedPath !== root && isWithinPath(root, r.normalizedPath),
-      )
-      .map((r) => ({
-        normalized: r.normalizedPath,
-        carve: {
-          path: r.path,
-          reason: 'exclusion_rule' as const,
           refId: r.id,
         },
       })),

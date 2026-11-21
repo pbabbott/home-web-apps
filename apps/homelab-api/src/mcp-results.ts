@@ -79,7 +79,7 @@ export const completeResult = (
   failed: children
     .filter((c) => c.created && c.item.status === 'failed')
     .map((c) => c.item.path),
-  // Under an exclusion rule: enqueued already skipped.
+  // Inside an approved directory: enqueued already skipped.
   excluded: children
     .filter((c) => c.created && c.item.status === 'skipped')
     .map((c) => c.item.path),
@@ -147,23 +147,6 @@ export const knownSkipsResult = (skips: KnownSkip[]) =>
   skips.map(({ path, pattern, count, reason, skippedAt }) =>
     compact({ path, pattern, count, reason, skippedAt }),
   );
-
-type RuleRow = {
-  id: string;
-  sourceId: string | null;
-  path: string;
-  scope: string;
-  reason: string | null;
-};
-
-export const ruleResult = (rule: RuleRow) =>
-  compact({
-    id: rule.id,
-    path: rule.path,
-    scope: rule.scope,
-    reason: rule.reason,
-    global: rule.sourceId === null ? true : undefined,
-  });
 
 type JobRow = {
   id: string;

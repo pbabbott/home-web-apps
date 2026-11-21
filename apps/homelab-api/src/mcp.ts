@@ -4,10 +4,6 @@ import {
   listDiscoveryJobsOperation,
 } from './controllers/discovery/discovery-jobs';
 import {
-  createExclusionRuleOperation,
-  listExclusionRulesOperation,
-} from './controllers/discovery/exclusion-rules';
-import {
   listInventoryItemsOperation,
   proposeInventoryItemsOperation,
 } from './controllers/discovery/inventory-items';
@@ -22,7 +18,6 @@ import {
   knownSkipsResult,
   proposeResult,
   releaseResult,
-  ruleResult,
   skipResult,
 } from './mcp-results';
 import {
@@ -40,8 +35,6 @@ import {
   claimAnyQueueItemBodySchema,
   claimQueueItemBodySchema,
   completeQueueItemBodySchema,
-  createExclusionRuleBodySchema,
-  exclusionRuleListQuerySchema,
   failQueueItemBodySchema,
   heartbeatQueueItemBodySchema,
   jobIdParamsSchema,
@@ -81,10 +74,6 @@ const run = async (label: string, fn: () => Promise<unknown>) => {
   }
 };
 
-const workerIdSchema = claimQueueItemBodySchema.shape.workerId
-  .optional()
-  .describe('Your worker id, for the audit log.');
-
 const jobId = jobIdParamsSchema.shape.id.describe('Job id.');
 const queueItemId = queueItemIdParamsSchema.shape.id.describe(
   'Directory id from claim_directory.',
@@ -93,9 +82,9 @@ const queueItemId = queueItemIdParamsSchema.shape.id.describe(
 /**
  * Builds a fresh MCP server exposing the agent-facing subset of the REST
  * routes in server.ts: the discovery work loop, proposing and listing
- * inventory items, plus listing and creating source-scoped exclusion rules.
- * Source/job creation, job lifecycle (complete, cancel, fail), global rules,
- * editing or deleting rules, approving or rejecting inventory items and the audit
+ * inventory items.
+ * Source/job creation, job lifecycle (complete, cancel, fail),
+ * approving or rejecting inventory items and the audit
  * log stay human-only REST routes. A new
  * instance is created per-request (see server.ts) since the Streamable HTTP
  * transport is mounted in stateless mode.
@@ -303,48 +292,6 @@ export const createMcpServer = (): McpServer => {
     ({ id, claimToken }) =>
       run(releaseQueueItemOperation.mcp.name, async () =>
         releaseResult(await discoveryService.releaseItem(id, claimToken)),
-      ),
-  );
-
-  server.registerTool(
-    listExclusionRulesOperation.mcp.name,
-    {
-      description: listExclusionRulesOperation.mcp.description,
-      inputSchema: {
-        ...exclusionRuleListQuerySchema.shape,
-        sourceId: exclusionRuleListQuerySchema.shape.sourceId
-          .unwrap()
-          .describe('Source whose rules (plus the global ones) to list.'),
-      },
-    },
-    (filters) =>
-      run(listExclusionRulesOperation.mcp.name, async () =>
-        (await discoveryService.listExclusionRules(filters)).map(ruleResult),
-      ),
-  );
-
-  server.registerTool(
-    createExclusionRuleOperation.mcp.name,
-    {
-      description: createExclusionRuleOperation.mcp.description,
-      inputSchema: {
-        ...createExclusionRuleBodySchema.shape,
-        // The agent may only create source-scoped rules; a global rule
-        // affects every machine and is a human decision.
-        sourceId: createExclusionRuleBodySchema.shape.sourceId
-          .unwrap()
-          .describe('Source the rule applies to.'),
-        workerId: workerIdSchema,
-      },
-    },
-    ({ workerId, ...rule }) =>
-      run(createExclusionRuleOperation.mcp.name, async () =>
-        ruleResult(
-          await discoveryService.createExclusionRule(rule, {
-            type: 'openclaw',
-            id: workerId ?? null,
-          }),
-        ),
       ),
   );
 

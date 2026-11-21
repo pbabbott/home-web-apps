@@ -83,7 +83,6 @@ const coverageSchema = z
         'skipped',
       ]),
     }),
-    z.object({ kind: z.literal('excluded') }),
     z.object({
       kind: z.literal('inventory_inside'),
       count: z.number().int(),

@@ -48,7 +48,6 @@ describe('creating and retrieving inventory items', () => {
     const detail = await getRequest().get(`/inventory-items/${id}`).expect(200);
     expect(detail.body).toMatchObject({
       id,
-      exclusion: { state: 'none', ruleIds: [] },
       evidence: { contentKinds: ['source_code'] },
     });
     expect(await listInventoryItems(sourceId)).toHaveLength(1);

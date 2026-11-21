@@ -82,7 +82,7 @@ export const QUEUE_STATUS_DESCRIPTION: Record<QueueItemStatus, string> = {
   completed: 'Explored. Its subdirectories were queued as their own items.',
   failed: 'Exploration errored. See Last error; retry while the job is active.',
   skipped:
-    'Not explored on purpose: excluded by a rule, covered by an approved inventory directory, or skipped by a human.',
+    'Not explored on purpose: covered by an approved inventory directory, or skipped by a human.',
 };
 
 const QUEUE_STATUSES = Object.keys(QUEUE_STATUS_COLOR) as QueueItemStatus[];

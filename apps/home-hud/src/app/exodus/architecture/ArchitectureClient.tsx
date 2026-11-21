@@ -56,10 +56,7 @@ const ACTORS = [
     color: 'accent-falcon',
     fields: [
       ['SCHEMA', 'homelab-db'],
-      [
-        'ENTITIES',
-        'sources jobs queue_items inventory_items exclusion_rules audit_events',
-      ],
+      ['ENTITIES', 'sources jobs queue_items inventory_items audit_events'],
       ['ROLE', 'source of truth'],
       ['UNWRITTEN DATA', 'lost'],
     ],
@@ -79,7 +76,6 @@ const ROUTE_GROUPS = [
   'Discovery Jobs',
   'Queue Items',
   'Inventory Items',
-  'Exclusion Rules',
   'Audit Events',
 ];
 

@@ -185,10 +185,10 @@ describe('inventory item routes', () => {
       expect(sent).not.toHaveProperty('decision');
     });
 
-    it('maps exclusion and claim conflicts to 409 with details', async () => {
+    it('maps claim conflicts to 409 with details', async () => {
       mocked.proposeInventoryItems.mockRejectedValue(
-        new service.DiscoveryError('conflict', 'excluded', {
-          blocked: [{ path: 'C:\\Windows', state: 'excluded', ruleIds: ['r'] }],
+        new service.DiscoveryError('conflict', 'claim lost', {
+          blocked: [{ path: 'C:\\Windows' }],
         }),
       );
 

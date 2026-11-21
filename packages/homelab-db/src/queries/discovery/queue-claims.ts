@@ -5,7 +5,6 @@ import {
   discoveryQueueItems,
   type DiscoveryQueueItem,
 } from '../../schema/discovery';
-import { skipExcludedQueueItems } from '../exclusion-rules';
 import { skipInventoriedQueueItems } from '../inventory-items';
 import { DiscoveryError } from '../shared';
 import { ACTIVE_JOB_STATUSES, activeClaim, claimMissError } from './claims';
@@ -76,12 +75,8 @@ export const claimNextQueueItem = async (
     }
 
     await expireLeases(tx, job.id);
-    // Enforcement point for exclusion rules: anything queued before a rule
-    // existed (or enqueued under one) is skipped here, under the job lock,
-    // before it can be handed out.
-    await skipExcludedQueueItems(tx, { jobId: job.id, sourceId: job.sourceId });
-    // Likewise for an approved directory inventory item: its subtree is
-    // covered, so nothing inside it is handed out.
+    // An approved directory inventory item covers its subtree, so nothing
+    // inside it is handed out.
     await skipInventoriedQueueItems(tx, {
       jobId: job.id,
       sourceId: job.sourceId,

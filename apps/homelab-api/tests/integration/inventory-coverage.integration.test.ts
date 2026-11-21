@@ -6,7 +6,6 @@ import {
   propose,
   proposal,
   startAndClaim,
-  createRule,
   createSource,
   useInventoryCleanup,
 } from './fixtures/inventory';
@@ -74,13 +73,8 @@ describe('checking a path for coverage', () => {
     await check(sourceId, 'relative\\path').expect(400);
   });
 
-  it('reports exclusion rules and agent skips', async () => {
+  it('reports agent skips', async () => {
     const sourceId = await createSource();
-    const rule = await createRule({
-      sourceId,
-      path: `${ROOT}\\node_modules`,
-      scope: 'exclude_subtree',
-    });
     const { job, item } = await startAndClaim(sourceId);
     await getRequest()
       .post(`/queue-items/${item.id}/complete`)
@@ -91,13 +85,6 @@ describe('checking a path for coverage', () => {
       })
       .expect(200);
     await getRequest().post(`/discovery-jobs/${job.id}/complete`).expect(200);
-
-    const excluded = (await check(sourceId, `${ROOT}\\node_modules\\a\\b`))
-      .body;
-    expect(excluded.exclusion).toEqual({
-      state: 'excluded',
-      ruleIds: [rule.id],
-    });
 
     expect(
       (await check(sourceId, `${ROOT}\\cache\\deep\\f`)).body.skip,

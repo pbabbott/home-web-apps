@@ -18,7 +18,6 @@ import {
   type NestedInventoryItem,
   type InventoriedDirectory,
   type InventoryItem,
-  type InventoryItemWithExclusion,
   type UpsertedInventoryItem,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
@@ -147,9 +146,8 @@ export async function listSourceInventoryItems(
   return { items, total };
 }
 
-export const getInventoryItem = (
-  id: string,
-): Promise<InventoryItemWithExclusion> => getInventoryItemById(db, id);
+export const getInventoryItem = (id: string): Promise<InventoryItem> =>
+  getInventoryItemById(db, id);
 
 export const decideInventoryItem = (
   id: string,

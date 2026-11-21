@@ -19,7 +19,7 @@ export const normalizeRelPath = (relPath: string): string =>
 
 /**
  * True when `relPath` is, or lies under, one of the item's carve-outs (a
- * rejected nested item or an `exclude_subtree` rule): those are never copied.
+ * rejected nested item): those are never copied.
  */
 export const makeCarveOutMatcher = (
   normalizedRootPath: string,

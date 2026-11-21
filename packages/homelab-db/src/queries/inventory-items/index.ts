@@ -4,9 +4,6 @@ export {
   decideInventoryItem,
   skipInventoriedQueueItems,
 } from './decisions';
-export type {
-  InventoryItemWithExclusion,
-  DecideInventoryItemInput,
-} from './decisions';
+export type { DecideInventoryItemInput } from './decisions';
 export * from './promote';
 export * from './listing';

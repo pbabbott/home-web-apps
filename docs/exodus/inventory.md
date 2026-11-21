@@ -26,7 +26,6 @@ Inventory items are the **only** output of discovery (the agent proposes them; a
 | Discovery job  | One run over a source; owns the lifecycle.                                                                                                                    |
 | Queue item     | One **bounded unit of work** (inspect this directory). Not a mirror of the filesystem. Carries `reason` (why it was queued) and `result` (summary + skipped). |
 | Inventory item | The agent's proposed backup unit, with recommendation, confidence, evidence and reason, plus the human's decision.                                            |
-| Exclusion rule | A persisted human policy (`selective_only`, `exclude_subtree`).                                                                                               |
 | Audit event    | Append-only record of meaningful changes only.                                                                                                                |
 
 ## The agent's three actions
@@ -108,7 +107,6 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 `PATCH /inventory-items/:id/decision` sets `pending` | `approved` | `rejected` with an optional note. Rules:
 
 - Only a human actor may decide (`X-Actor-Type` other than `human` is 409). There is no MCP tool for it.
-- Approval is refused (409 + `ruleIds`) when an exclusion rule covers the path. Rejecting is always allowed.
 - Any explicit change is allowed and audited, including reversing or resetting to `pending`.
 - Repeating the current decision and note is a no-op with no event. An omitted note is kept when the decision is unchanged and cleared when it changes.
 - An approval normally covers the inventory item's subtree, so internal folders need no separate approval. Approving a `directory` item also skips the queued work beneath it: see [Inventorying a whole directory](#inventorying-a-whole-directory). A nested inventory item can still exist (a subproject can be a legitimate separate unit), so nesting is allowed but made visible: see [Nested inventory items](#nested-inventory-items).
@@ -118,8 +116,8 @@ Concise and grounded. `observations` are facts the agent verified; unknowns go i
 Some directories are better backed up whole than explored (a synced `Google Drive`, a `Dropbox`). On a directory's page (`/exodus/jobs/[id]/directories/[itemId]`) there is an **Inventory whole directory** button. `POST /queue-items/:id/inventory-directory` (`{ note? }`, REST only, no MCP tool) approves that directory as one inventory item:
 
 - If the agent already proposed the directory, that item is approved like any decision (`inventory_item.decision_changed`; the agent's fields are untouched). Otherwise an approved `directory` item is created (`back_up`, `high`, minimal evidence; `inventory_item.promoted` with `wholeDirectory: true`). The response says which (`created`) and how many queue items were skipped (`skippedQueueItems`).
-- Human actor only (409 otherwise). A path under an exclusion rule is 409 with `blocked`.
-- **Queued work inside an approved directory is skipped**, whichever way it was approved (this button, **Approve** on `/exodus/inventory`, or promote). At that moment only the directory just approved is acted on: the job's `queued` items at or beneath it become `skipped` (`lastError: skipped: covered by approved inventory item <path>`, naming the nearest approved directory that covers it), and a separate check enforces **every** approved directory when paths are enqueued or follow-ups are queued and at every claim, like exclusion rules (so work queued before another approval is skipped when the agent next claims, never as a side effect of an unrelated click). `in_progress` items finish; `completed` and `failed` items are untouched; approved files and non-approved items cover nothing. One `queue_items.inventoried` event (actor `system`) records each batch.
+- Human actor only (409 otherwise).
+- **Queued work inside an approved directory is skipped**, whichever way it was approved (this button, **Approve** on `/exodus/inventory`, or promote). At that moment only the directory just approved is acted on: the job's `queued` items at or beneath it become `skipped` (`lastError: skipped: covered by approved inventory item <path>`, naming the nearest approved directory that covers it), and a separate check enforces **every** approved directory when paths are enqueued or follow-ups are queued and at every claim (so work queued before another approval is skipped when the agent next claims, never as a side effect of an unrelated click). `in_progress` items finish; `completed` and `failed` items are untouched; approved files and non-approved items cover nothing. One `queue_items.inventoried` event (actor `system`) records each batch.
 - It is one-way: rejecting or resetting the item later does not requeue what was skipped. Queue the paths again (job detail page) or start a new job.
 
 ## Promoting a skipped path
@@ -128,7 +126,7 @@ The agent's skips are judgments and can be wrong. A directory's page lists its s
 
 - Human actor only (409 otherwise).
 - The path must lie strictly inside the queue item's directory.
-- Never overwrites: a path that already has an inventory item is 409 with `inventoryItemId`, so an agent row or a human decision is never replaced. A path under an exclusion rule is 409 with `blocked`, like a proposal.
+- Never overwrites: a path that already has an inventory item is 409 with `inventoryItemId`, so an agent row or a human decision is never replaced.
 - The row is `recommendation: back_up`, `confidence: high`, with minimal evidence (`sufficientInformation: false`) and a reason recording the agent's skip reason. `firstJobId` / `lastJobId` are the queue item's job, and `inventory_item.promoted` is audited.
 - The queue item's `result` is left as the agent wrote it, so known skips still reports the path. A later agent proposal for the same path updates the agent fields and never the approval, as in [Rediscovery](#rediscovery).
 
@@ -177,11 +175,10 @@ A reviewer who finds a path deep in the filesystem wants to know whether it alre
 
 Pending items never decide: a pending item inside an approved one leaves the path `covered`. Alongside the status the response carries `decidingItem`, `exact` (the item at the path), `coveredBy` (ancestors, farthest first), `covers` (beneath, at most 50), and:
 
-- `exclusion` — how rules treat the path, as on an inventory item.
 - `skip` — the deepest [known skip](#remembering-skips-across-jobs) at or above the path (newest on a tie). A pattern skip counts when it matches the path's segment directly under the pattern's directory.
 - `visitedDirectory` — the deepest queue item at or above the path in _any_ job of the source.
 
-When nothing covers a path, the panel offers **Promote to inventory**, which reuses [promote](#promoting-a-skipped-path) with `visitedDirectory` as the queue item. It is shown only when no item sits at the path, no rule excludes it, nothing above approves it, and the visited directory is strictly above the path. A path no job has reached has no queue item to promote from; start a job at it or an ancestor.
+When nothing covers a path, the panel offers **Promote to inventory**, which reuses [promote](#promoting-a-skipped-path) with `visitedDirectory` as the queue item. It is shown only when no item sits at the path, nothing above approves it, and the visited directory is strictly above the path. A path no job has reached has no queue item to promote from; start a job at it or an ancestor.
 
 ## Rediscovery
 
@@ -192,15 +189,6 @@ Identity is `(source, normalized root path)` (case-insensitive). Re-proposing th
 - identical re-proposals only refresh `lastJobId` / `lastSeenAt`, with no audit event.
 
 A human can compare `recommendedAt` with `decidedAt` to notice that the agent changed its mind after a decision.
-
-## Exclusion rules versus agent judgments
-
-Rules are policy; skips are per-run judgments. The agent skipping `C:\Windows` does not create a rule — create one only when a human policy is intended.
-
-- `exclude_subtree` — the path and its descendants are not explored or backed up. A global rule beats any source rule.
-- `selective_only` — the path itself cannot be an inventory item, but descendants are explored and may be.
-
-Enforcement: proposing an inventory item under an `exclude_subtree` rule, or exactly on a `selective_only` path, rejects the whole batch with 409 and a `blocked` list. Follow-up work under an `exclude_subtree` rule is marked `skipped` the moment it is enqueued (`complete_directory` and the human enqueue route), and every claim rechecks, in case a rule was added after work was queued. Adding a rule never deletes inventory items or their history; an existing inventory item that becomes covered can no longer be approved.
 
 ## Audit
 
@@ -221,7 +209,7 @@ Each is written in the same transaction as its change. Listing a directory, skip
 
 `complete_directory`'s `skipped` is stored on that queue item, which belongs to one job. So a later job could re-inspect `C:\Windows`. `GET /sources/:id/known-skips` (MCP `list_known_skips`) gathers the `skipped` entries from all of the source's earlier jobs: one row per path (case-insensitive), the newest reason and spelling, which job recorded it and when, ordered by path, with `pathPrefix` and `limit` (default 200, max 1000). The agent playbook tells it to call this, with the job root as `pathPrefix`, at the start of a run.
 
-Pattern skips (`skippedGroups`) are listed too, with `path` set to the directory, plus `pattern` and `count`; one row per directory and pattern (case-insensitive), newest reason wins, and the `pathPrefix` filter applies to the directory. A pattern entry covers the matching direct children of `path`, not `path` itself. It is derived from the stored results, not a table or a rule: a skip stays a per-run judgment. Nothing it lists blocks queueing or proposing a path, the agent may revisit one if its reason looks wrong, and only a human policy belongs in an exclusion rule. If a skip should be permanent, create a source-scoped rule instead.
+Pattern skips (`skippedGroups`) are listed too, with `path` set to the directory, plus `pattern` and `count`; one row per directory and pattern (case-insensitive), newest reason wins, and the `pathPrefix` filter applies to the directory. A pattern entry covers the matching direct children of `path`, not `path` itself. It is derived from the stored results, not a table or a rule: a skip stays a per-run judgment. Nothing it lists blocks queueing or proposing a path, the agent may revisit one if its reason looks wrong.
 
 ## Prerequisite: filesystem access
 

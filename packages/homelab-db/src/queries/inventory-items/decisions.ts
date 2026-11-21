@@ -10,26 +10,16 @@ import {
 import { insertAuditEvent, type Actor } from '../audit';
 import { ACTIVE_JOB_STATUSES } from '../discovery/claims';
 import {
-  listApplicableRules,
-  resolveExclusion,
-  rulesBySource,
-  type ExclusionResolution,
-} from '../exclusion-rules';
-import {
   DiscoveryError,
   MAX_AUDITED_ITEM_IDS,
   coversSql,
   type Tx,
 } from '../shared';
 
-export type InventoryItemWithExclusion = InventoryItem & {
-  exclusion: ExclusionResolution;
-};
-
 export const getInventoryItemById = async (
   db: Database,
   id: string,
-): Promise<InventoryItemWithExclusion> => {
+): Promise<InventoryItem> => {
   const [inventoryItem] = await db
     .select()
     .from(inventoryItems)
@@ -38,15 +28,7 @@ export const getInventoryItemById = async (
   if (!inventoryItem)
     throw new DiscoveryError('not_found', 'inventory item not found');
 
-  const rules = await listApplicableRules(db, [inventoryItem.sourceId]);
-
-  return {
-    ...inventoryItem,
-    exclusion: resolveExclusion(
-      rulesBySource(rules, inventoryItem.sourceId),
-      inventoryItem.normalizedRootPath,
-    ),
-  };
+  return inventoryItem;
 };
 
 export type DecideInventoryItemInput = {
@@ -63,7 +45,6 @@ export type DecideInventoryItemInput = {
 /**
  * Writes a decision onto a locked inventory item row, with its audit event.
  * Returns the row unchanged (no event) when neither decision nor note differ.
- * Approval requires the path to be free of exclusion rules.
  */
 export const applyDecision = async (
   tx: Tx,
@@ -71,28 +52,6 @@ export const applyDecision = async (
   input: DecideInventoryItemInput,
 ): Promise<InventoryItem> => {
   const t = inventoryItems;
-
-  if (input.decision === 'approved') {
-    const rules = rulesBySource(
-      await listApplicableRules(tx, [before.sourceId]),
-      before.sourceId,
-    );
-    const { state, ruleIds } = resolveExclusion(
-      rules,
-      before.normalizedRootPath,
-    );
-
-    if (state !== 'none') {
-      throw new DiscoveryError(
-        'conflict',
-        'excluded paths cannot be approved',
-        {
-          state,
-          ruleIds,
-        },
-      );
-    }
-  }
 
   const decisionChanged = before.decision !== input.decision;
   const note =
@@ -138,7 +97,7 @@ export const applyDecision = async (
  * Skips every still-queued item of the job that sits at or under an
  * approved directory inventory item: approving a directory covers its whole
  * subtree, so exploring inside it is wasted work. Called wherever work is
- * handed out or queued (like `skipExcludedQueueItems`), and right after a
+ * handed out or queued, and right after a
  * human approves a directory, where `underPath` limits it to that directory. In-progress items are left to finish; completed and
  * failed items are untouched. Records one system audit event when anything was
  * skipped.
@@ -238,8 +197,7 @@ export const skipInventoriedInActiveJob = async (
 
 /**
  * Records a human's decision. Only a human actor may decide: agent
- * recommendations never approve or reject. Approval requires the path to be
- * free of exclusion rules. Any explicit change is allowed (including
+ * recommendations never approve or reject. Any explicit change is allowed (including
  * reversing or resetting to `pending`) and audited; repeating the current
  * decision and note is a no-op with no event. Touches only the decision
  * columns. Approving a directory skips the active job's queued items beneath

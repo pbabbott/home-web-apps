@@ -46,7 +46,6 @@ export type BackupEntryIssueKind =
 export type BackupCoverageBucket =
   | 'covered'
   | 'redundant_covered'
-  | 'excluded_rule'
   | 'rejected'
   | 'undecided'
   | 'pending'

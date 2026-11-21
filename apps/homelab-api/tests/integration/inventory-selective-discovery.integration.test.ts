@@ -14,7 +14,6 @@ import {
   proposal,
   startAndClaim,
   unique,
-  createRule,
   createSource,
   useInventoryCleanup,
 } from './fixtures/inventory';
@@ -170,126 +169,6 @@ describe('selective discovery of a fixture drive', () => {
     });
     // A skip recommendation is still just pending: nothing is auto-rejected.
     expect(clean.decision).toBe('pending');
-  });
-});
-
-describe('exclusion rules', () => {
-  it('rejects inventory items under exclude_subtree and on a selective_only path itself', async () => {
-    const sourceId = await createSource();
-    const subtree = await createRule({
-      sourceId,
-      path: `${ROOT}\\old`,
-      scope: 'exclude_subtree',
-    });
-    const selective = await createRule({
-      sourceId,
-      path: `${ROOT}\\data`,
-      scope: 'selective_only',
-    });
-    const { item } = await startAndClaim(sourceId);
-
-    const blocked = await propose(item, [
-      proposal(`${ROOT}\\old\\x`),
-      proposal(`${ROOT}\\data`),
-      proposal(`${ROOT}\\fine`),
-    ]).expect(409);
-    expect(blocked.body.blocked).toEqual([
-      { path: 'C:\\code\\data', state: 'selective', ruleIds: [selective.id] },
-      { path: 'C:\\code\\old\\x', state: 'excluded', ruleIds: [subtree.id] },
-    ]);
-    // All or nothing: the allowed path was not recorded either.
-    expect(await listInventoryItems(sourceId)).toHaveLength(0);
-
-    // A descendant of a selective_only path is still explorable and proposable.
-    await propose(item, [proposal(`${ROOT}\\data\\child`)]).expect(200);
-  });
-
-  it('lets a global exclude_subtree win over a source rule beneath it', async () => {
-    const sourceId = await createSource();
-    const base = `${ROOT}\\g-${unique()}`;
-    const global = await createRule({ path: base, scope: 'exclude_subtree' });
-    await createRule({
-      sourceId,
-      path: `${base}\\sub`,
-      scope: 'selective_only',
-    });
-    const { item } = await startAndClaim(sourceId);
-
-    const res = await propose(item, [proposal(`${base}\\sub\\x`)]).expect(409);
-
-    expect(res.body.blocked[0]).toMatchObject({
-      state: 'excluded',
-      ruleIds: [global.id],
-    });
-  });
-
-  it('skips follow-up work under an exclusion rule when it is queued, and rechecks at claim', async () => {
-    const sourceId = await createSource();
-    await createRule({
-      sourceId,
-      path: `${ROOT}\\cache`,
-      scope: 'exclude_subtree',
-    });
-    const { job, item } = await startAndClaim(sourceId);
-
-    const done = await getRequest()
-      .post(`/queue-items/${item.id}/complete`)
-      .send({
-        claimToken: item.claimToken,
-        discoveredPaths: [
-          { path: `${ROOT}\\cache\\deep`, reason: 'looked interesting' },
-          { path: `${ROOT}\\docs`, reason: 'documents' },
-        ],
-      })
-      .expect(200);
-
-    const status = Object.fromEntries(
-      done.body.children.map((c: any) => [c.path, c.status]),
-    );
-    expect(status).toEqual({
-      'C:\\code\\cache\\deep': 'skipped',
-      'C:\\code\\docs': 'queued',
-    });
-
-    // A rule added after the work was queued is honored when it is claimed.
-    await createRule({
-      sourceId,
-      path: `${ROOT}\\docs`,
-      scope: 'exclude_subtree',
-    });
-    const next = await getRequest()
-      .post(`/discovery-jobs/${job.id}/queue-items/claim`)
-      .send({ workerId: 'w1', leaseSeconds: 300 })
-      .expect(200);
-    expect(next.body.item).toBeNull();
-    expect(next.body.reason).toBe('queue_empty');
-  });
-
-  it('keeps inventory item history when a rule is added, and blocks approval', async () => {
-    const sourceId = await createSource();
-    const { job, item } = await startAndClaim(sourceId);
-    const res = await propose(item, [proposal(`${ROOT}\\keep-me`)]).expect(200);
-    const id = res.body[0].id;
-    await finish(job, item);
-
-    const rule = await createRule({
-      sourceId,
-      path: `${ROOT}\\keep-me`,
-      scope: 'exclude_subtree',
-    });
-
-    // Nothing was deleted: the inventory item remains, now flagged by the rule.
-    const detail = await getRequest().get(`/inventory-items/${id}`).expect(200);
-    expect(detail.body.exclusion).toEqual({
-      state: 'excluded',
-      ruleIds: [rule.id],
-    });
-    expect(await listInventoryItems(sourceId)).toHaveLength(1);
-
-    const blocked = await decide(id, { decision: 'approved' }).expect(409);
-    expect(blocked.body.ruleIds).toEqual([rule.id]);
-    // A human can still reject it.
-    await decide(id, { decision: 'rejected' }).expect(200);
   });
 });
 

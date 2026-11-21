@@ -3,10 +3,8 @@ import {
   getDiscoveryJobById,
   getQueueItemById,
   listAcknowledgedSkipKeys,
-  listExclusionRules,
   listInventoryUnder,
   listJobQueueStatusesAt,
-  resolveExclusion,
   DiscoveryError,
 } from '@abbottland/homelab-db';
 import { db } from '../../db';
@@ -27,7 +25,7 @@ export type DirectoryListing = {
   /** Entries found, before the cap. */
   total: number;
   truncated: boolean;
-  /** Entries nothing accounts for: no inventory item, skip, queue item or rule. */
+  /** Entries nothing accounts for: no inventory item, skip or queue item. */
   uncovered: number;
   entries: DiskEntry[];
 };
@@ -35,7 +33,7 @@ export type DirectoryListing = {
 /**
  * Lists the direct children of a queue item's directory over the source's
  * connection and says how each is accounted for (inventory item, skip, queue
- * item of its own, exclusion rule), so a reviewer can find what was missed.
+ * item of its own), so a reviewer can find what was missed.
  * Only the item's own directory is listed, so this cannot browse the machine.
  */
 export const getDirectoryListing = (
@@ -63,7 +61,7 @@ export const getDirectoryListing = (
       const normalizedDirectory = normalizeWindowsPath(
         item.path,
       ).normalizedPath;
-      const [inventoryUnder, nested, queueStatuses, rules, acknowledged] =
+      const [inventoryUnder, nested, queueStatuses, acknowledged] =
         await Promise.all([
           listInventoryUnder(db, job.sourceId, normalizedDirectory),
           findNestedInventoryItems(
@@ -77,7 +75,6 @@ export const getDirectoryListing = (
             job.id,
             shown.map((entry) => childOf(item.path, entry.name).normalizedPath),
           ),
-          listExclusionRules(db, { sourceId: job.sourceId }),
           listAcknowledgedSkipKeys(db, job.sourceId, normalizedDirectory),
         ]);
       const { entries, uncovered } = classifyEntries({
@@ -86,8 +83,6 @@ export const getDirectoryListing = (
         inventoryUnder,
         coveredByInventoryParent: nested.coveredBy.length > 0,
         queueStatuses,
-        isExcluded: (normalizedPath) =>
-          resolveExclusion(rules, normalizedPath).state === 'excluded',
         result: item.result,
         skipReview: reviewSkips(item.path, item.result, {
           acknowledged: new Set(acknowledged),

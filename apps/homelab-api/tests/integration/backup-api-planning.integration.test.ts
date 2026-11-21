@@ -39,13 +39,6 @@ describe('planning', () => {
     const rejected = await makeInventoryItem(sourceId, 'C:\\data\\f.txt', {
       decision: 'rejected',
     });
-    const excluded = await makeInventoryItem(sourceId, 'C:\\cache\\x', {
-      kind: 'directory',
-    });
-    await api()
-      .post('/exclusion-rules')
-      .send({ sourceId, path: 'C:\\cache', scope: 'exclude_subtree' })
-      .expect(201);
 
     return {
       sourceId,
@@ -56,7 +49,6 @@ describe('planning', () => {
       rejectedChild,
       pending,
       rejected,
-      excluded,
     };
   };
 
@@ -71,7 +63,6 @@ describe('planning', () => {
       toCopy: 2,
       skippedRedundantNested: 1,
       skippedAlreadyCovered: 0,
-      excluded: 1,
       notEligible: 3,
       unestimatedItems: 2,
     });
@@ -96,10 +87,6 @@ describe('planning', () => {
       status: 'skipped',
       statusReason: 'redundant_nested',
       coveredByInventoryItemId: s.dir.id,
-    });
-    expect(byPath['C:\\cache\\x']).toMatchObject({
-      status: 'excluded',
-      statusReason: 'excluded_by_rule',
     });
     expect(
       res.body.notEligible.map((n: { decision: string }) => n.decision).sort(),

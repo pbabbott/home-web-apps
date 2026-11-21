@@ -5,7 +5,6 @@ import {
   discoveryQueueItems,
   type DiscoveryQueueItem,
 } from '../../schema/discovery';
-import { skipExcludedQueueItems } from '../exclusion-rules';
 import { skipInventoriedQueueItems } from '../inventory-items';
 import { DiscoveryError } from '../shared';
 import { ACTIVE_JOB_STATUSES } from './claims';
@@ -51,11 +50,10 @@ export const enqueueQueueItems = async (
   });
 
 /**
- * Applies exclusion rules and approved directory inventory items to freshly
- * queued paths in the same transaction, so work under an `exclude_subtree`
- * rule or inside an approved directory is `skipped` the moment it is queued
- * rather than waiting for the next claim. Claim rechecks too, because rules
- * and approvals can change after work was queued. Returns the rows as they now stand.
+ * Applies approved directory inventory items to freshly queued paths in the
+ * same transaction, so work inside an approved directory is `skipped` the
+ * moment it is queued rather than waiting for the next claim. Claim rechecks
+ * too, because approvals can change after work was queued. Returns the rows as they now stand.
  */
 export const refreshAfterSkips = async (
   tx: Tx,
@@ -65,9 +63,7 @@ export const refreshAfterSkips = async (
   if (queued.length === 0) return queued;
 
   const scope = { jobId: job.id, sourceId: job.sourceId };
-  const skipped =
-    (await skipExcludedQueueItems(tx, scope)) +
-    (await skipInventoriedQueueItems(tx, scope));
+  const skipped = await skipInventoriedQueueItems(tx, scope);
   if (skipped === 0) return queued;
 
   const rows = await tx

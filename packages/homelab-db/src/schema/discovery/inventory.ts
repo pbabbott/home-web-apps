@@ -6,7 +6,6 @@ import {
   pgTable,
   text,
   timestamp,
-  unique,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
@@ -14,47 +13,12 @@ import { createSelectSchema } from 'drizzle-zod';
 import { dateTime } from './shared';
 import {
   inventoryItemKindEnum,
-  exclusionRuleScopeEnum,
   inventoryItemRecommendationEnum,
   inventoryItemConfidenceEnum,
   inventoryItemDecisionEnum,
 } from './enums';
 import { sources } from './sources';
 import { discoveryJobs, discoveryQueueItems } from './jobs';
-
-/**
- * A persistent rule that limits discovery. `sourceId` null means the rule is
- * global (applies to every source). `exclude_subtree` drops the path and
- * everything beneath it; `selective_only` only stops the path itself from
- * being a backup inventory item while its descendants are still explored. One rule
- * per path per owner (source or global); NULLS NOT DISTINCT makes the unique
- * index cover global rules too.
- */
-export const exclusionRules = pgTable(
-  'exclusion_rules',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    sourceId: uuid('source_id').references(() => sources.id, {
-      onDelete: 'cascade',
-    }),
-    path: text('path').notNull(),
-    normalizedPath: text('normalized_path').notNull(),
-    scope: exclusionRuleScopeEnum('scope').notNull(),
-    reason: text('reason'),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    unique('exclusion_rules_owner_path_unique')
-      .on(table.sourceId, table.normalizedPath)
-      .nullsNotDistinct(),
-    index('exclusion_rules_path_idx').on(table.normalizedPath),
-  ],
-);
 
 /**
  * A human's "I agree with this skip". Kept apart from the queue item's `result`
@@ -256,11 +220,6 @@ export type InventoryItemEvidence = {
 export type InventoryItemKind =
   (typeof inventoryItemKindEnum.enumValues)[number];
 
-export type ExclusionRule = typeof exclusionRules.$inferSelect;
-export type NewExclusionRule = typeof exclusionRules.$inferInsert;
-export type ExclusionRuleScope =
-  (typeof exclusionRuleScopeEnum.enumValues)[number];
-
 export type InventoryItem = typeof inventoryItems.$inferSelect;
 export type NewInventoryItem = typeof inventoryItems.$inferInsert;
 export type InventoryItemRecommendation =
@@ -274,11 +233,6 @@ export type SkipAcknowledgement = typeof skipAcknowledgements.$inferSelect;
 export type NewSkipAcknowledgement = typeof skipAcknowledgements.$inferInsert;
 export type OnDiskReview = typeof onDiskReviews.$inferSelect;
 export type NewOnDiskReview = typeof onDiskReviews.$inferInsert;
-
-export const exclusionRuleSelectSchema = createSelectSchema(exclusionRules, {
-  createdAt: dateTime,
-  updatedAt: dateTime,
-});
 
 export const skipAcknowledgementSelectSchema = createSelectSchema(
   skipAcknowledgements,
