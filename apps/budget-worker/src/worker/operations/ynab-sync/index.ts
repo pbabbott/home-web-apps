@@ -1,5 +1,9 @@
 import type { BudgetJob } from '@abbottland/budget-db';
-import { getYnabSyncState, recordYnabRawResponse } from '@abbottland/budget-db';
+import {
+  createBudgetJob,
+  getYnabSyncState,
+  recordYnabRawResponse,
+} from '@abbottland/budget-db';
 import { YnabApiError, ynabGet } from '../../../api/ynab/ynab-client';
 import { config, YNAB_PLAN_UNSET, YNAB_TOKEN_UNSET } from '../../../config';
 import { db } from '../../../db';
@@ -109,6 +113,11 @@ export const ynabSync = async (job: BudgetJob): Promise<OperationResult> => {
     } else {
       throw err;
     }
+  }
+
+  // Typed tables are built by a separate, re-runnable job; no YNAB cost.
+  if (stored > 0) {
+    await createBudgetJob(db, { operation: 'ynab_transform', parameters: {} });
   }
 
   const base = `Stored ${stored} raw responses in ${requests} requests`;

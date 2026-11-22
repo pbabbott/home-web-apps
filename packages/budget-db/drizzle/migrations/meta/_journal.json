@@ -15,6 +15,13 @@
       "when": 1795300672700,
       "tag": "0001_kind_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795372177994,
+      "tag": "0002_tiresome_gladiator",
+      "breakpoints": true
     }
   ]
 }

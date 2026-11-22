@@ -42,4 +42,4 @@ Add it to `YNAB_ENDPOINTS` in `packages/budget-db/src/schema/ynab-raw-responses.
 
 ## Not built yet
 
-Normalised tables built from the raw rows, a home-hud UI, the scheduled trigger (k8s CronJob), and payload retention/compaction.
+Normalised tables are built by the `ynab_transform` job (see [YNAB typed tables](./ynab-tables.md)). Not built yet: transform status in home-hud, the scheduled trigger (k8s CronJob), and payload retention/compaction.

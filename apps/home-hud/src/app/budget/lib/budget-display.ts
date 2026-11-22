@@ -10,6 +10,7 @@ import type {
 export const operationLabels: Record<string, string> = {
   hello: 'Hello',
   ynab_sync: 'YNAB Sync',
+  ynab_transform: 'YNAB Transform',
 };
 
 export const jobStatusColor: Record<

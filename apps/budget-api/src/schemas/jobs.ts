@@ -48,6 +48,31 @@ const ynabSyncJobSchema = z.object({
     .default({}),
 });
 
+const ynabTransformJobSchema = z.object({
+  operation: z.literal('ynab_transform'),
+  parameters: z
+    .object({
+      endpoints: z
+        .array(
+          z.enum([
+            'accounts',
+            'categories',
+            'months',
+            'payees',
+            'scheduled_transactions',
+            'transactions',
+          ]),
+        )
+        .optional()
+        .meta({ description: 'Only transform these endpoints (default: all)' }),
+      rebuild: z.boolean().optional().meta({
+        description:
+          'Drop the typed rows for these endpoints and re-fold every raw response (no YNAB calls)',
+      }),
+    })
+    .default({}),
+});
+
 /**
  * Discriminated on `operation` so each job type declares its own
  * `parameters` shape. Adding a new operation means adding a branch here
@@ -56,6 +81,7 @@ const ynabSyncJobSchema = z.object({
 export const createJobSchema = z.discriminatedUnion('operation', [
   helloJobSchema,
   ynabSyncJobSchema,
+  ynabTransformJobSchema,
 ]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;

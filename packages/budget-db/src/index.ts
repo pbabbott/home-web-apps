@@ -69,3 +69,28 @@ export {
   hasAppliedLatestMigration,
   MIGRATIONS_FOLDER,
 } from './migrations';
+
+export {
+  applyYnabRawResponse,
+  getLatestYnabPlansResponse,
+  getYnabRawPayload,
+  getYnabTransformState,
+  listPendingYnabRawResponses,
+  listYnabRawPlanIds,
+  resetYnabTransform,
+  upsertYnabPlans,
+  YNAB_ENDPOINT_TABLES,
+} from './queries/ynab-transform';
+export type {
+  ApplyYnabRawResponseInput,
+  PendingYnabRawResponse,
+  YnabPlanEndpoint,
+  YnabTransformRows,
+} from './queries/ynab-transform';
+
+export * from './schema/ynab-entities';
+export * from './schema/ynab-transactions';
+export * from './schema/ynab-months';
+export { ynabTransformState } from './schema/ynab-transform-state';
+export type { YnabTransformState } from './schema/ynab-transform-state';
+export { ynabTransactionsEnriched } from './schema/views/ynab-transactions-enriched';
