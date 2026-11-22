@@ -91,15 +91,22 @@ export function recentJobStats(
   };
 }
 
-// Fixed locale/timeZone so server and client render identical text.
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
+// Fixed locale so server and client render identical text. The server (and
+// the first client render) use UTC; <LocalDate> switches to the browser's
+// timezone after mount.
+const utcFormatter = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'medium',
   timeStyle: 'short',
   timeZone: 'UTC',
 });
 
-export function formatDate(iso: string): string {
-  return dateFormatter.format(new Date(iso));
+const localFormatter = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+export function formatDate(iso: string, local = false): string {
+  return (local ? localFormatter : utcFormatter).format(new Date(iso));
 }
 
 /** Plan-scoped endpoints in the order they are shown. */

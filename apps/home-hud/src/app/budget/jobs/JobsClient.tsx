@@ -16,9 +16,9 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { createJob, type BudgetJobRequest } from '../lib/actions';
+import { LocalDate } from '../lib/LocalDate';
 import type { BudgetJob } from '../lib/budget-api';
 import {
-  formatDate,
   jobStatusColor,
   operationLabels,
   shortId,
@@ -133,7 +133,9 @@ export function JobsClient({ jobs }: { jobs: BudgetJob[] | null }) {
                         </Badge>
                       </Td>
                       <Td>{job.error ?? job.message ?? '—'}</Td>
-                      <Td>{formatDate(job.createdAt)}</Td>
+                      <Td>
+                        <LocalDate iso={job.createdAt} />
+                      </Td>
                     </TableRow>
                   ))}
                 </TableBody>

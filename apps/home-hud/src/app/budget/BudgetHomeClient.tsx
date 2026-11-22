@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { Footer } from '../components/Footer';
+import { LocalDate } from './lib/LocalDate';
 import type {
   BudgetJob,
   YnabPlan,
@@ -17,7 +18,6 @@ import type {
 import {
   describeRun,
   formatBytes,
-  formatDate,
   groupCursorsByPlan,
   jobStatusColor,
   mostRecentBy,
@@ -121,7 +121,7 @@ export function BudgetHomeClient({
                           variant="caption"
                           className="text-neutral-300"
                         >
-                          {formatDate(lastSync.createdAt)}
+                          <LocalDate iso={lastSync.createdAt} />
                         </Typography>
                       </div>
                       <Typography variant="body2" className="truncate">
@@ -169,7 +169,7 @@ export function BudgetHomeClient({
                     Last Synced
                   </Typography>
                   <Typography variant="body2">
-                    {lastSyncedAt ? formatDate(lastSyncedAt) : 'Never'}
+                    {lastSyncedAt ? <LocalDate iso={lastSyncedAt} /> : 'Never'}
                   </Typography>
                   {latestRun && (
                     <Typography variant="caption" className="text-neutral-300">

@@ -14,6 +14,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
+import { LocalDate } from '../lib/LocalDate';
 import type {
   YnabPlan,
   YnabRawResponseSummary,
@@ -23,7 +24,6 @@ import type {
 import {
   describeRun,
   formatBytes,
-  formatDate,
   groupCursorsByPlan,
   PLAN_ENDPOINT_ORDER,
   planLabel,
@@ -121,7 +121,7 @@ export function YnabClient({
 
                       return (
                         <Td key={endpoint}>
-                          {state ? formatDate(state.lastSyncedAt) : '—'}
+                          {state ? <LocalDate iso={state.lastSyncedAt} /> : '—'}
                         </Td>
                       );
                     })}
@@ -173,7 +173,9 @@ export function YnabClient({
                   return (
                     <Fragment key={key}>
                       <TableRow>
-                        <Td>{formatDate(run.startedAt)}</Td>
+                        <Td>
+                          <LocalDate iso={run.startedAt} />
+                        </Td>
                         <Td>{describeRun(run)}</Td>
                         <Td>{formatBytes(run.totalBytes)}</Td>
                         <Td>{shortId(run.jobId)}</Td>
