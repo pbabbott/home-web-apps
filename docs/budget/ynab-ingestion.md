@@ -22,18 +22,17 @@ YNAB allows **200 requests/hour per token**. Every response is stored verbatim i
 {
   "operation": "ynab_sync",
   "parameters": {
-    "planIds": ["..."],
     "endpoints": ["transactions"],
     "full": false
   }
 }
 ```
 
-All parameters are optional. `full: true` ignores cursors (full snapshots; use sparingly). A normal run costs `1 + 6 × plans` requests. The job stops cleanly, completing with a message listing what was skipped, once `X-Rate-Limit` shows ≥ 170/200 used or YNAB returns 429; the next run resumes from the stored cursors. `GET /ynab/sync-state` shows the cursors.
+All parameters are optional. Only the plan named by `YNAB_PLAN_ID` is ever synced (there is no per-job plan override, and "full sync" doesn't change that); the job fails if that variable is unset or the plan isn't visible to the token. `full: true` ignores cursors (full snapshots; use sparingly). A run costs 7 requests (1 plan list + 6 endpoints for the one plan). The job stops cleanly, completing with a message listing what was skipped, once `X-Rate-Limit` shows ≥ 170/200 used or YNAB returns 429; the next run resumes from the stored cursors. `GET /ynab/sync-state` shows the cursors, `GET /ynab/sync-runs` one summary row per sync (full downloads vs updates, total size), `GET /ynab/plans` the plan names, and `GET /ynab/raw-responses` per-response metadata (never payloads). home-hud's `/budget/ynab` page shows these.
 
 ## Configuration
 
-`budget-worker` reads `YNAB_API_TOKEN` (Personal Access Token) and `YNAB_API_URL` (default `https://api.ynab.com/v1`) from environment variables; see `apps/budget-worker/sample.env`. The token comes from 1Password: `abctl.yml` maps the item **`YNAB PAT`** (field `ynab_pat`, vault `Homelab`) to `YNAB_API_TOKEN`, so `pnpm env:generate` fills `.env` locally and in CI, same as `Github PAT` for `harbor-cleanup`. That item must exist before `env:generate` will succeed.
+`budget-worker` reads `YNAB_API_TOKEN` (Personal Access Token), `YNAB_PLAN_ID` (the id from the plan's app.ynab.com URL) and `YNAB_API_URL` (default `https://api.ynab.com/v1`) from environment variables; see `apps/budget-worker/sample.env`. The token comes from 1Password: `abctl.yml` maps the item **`YNAB PAT`** (field `ynab_pat`, vault `Homelab`) to `YNAB_API_TOKEN`, so `pnpm env:generate` fills `.env` locally and in CI, same as `Github PAT` for `harbor-cleanup`. That item must exist before `env:generate` will succeed.
 
 The token defaults to the sentinel `not-configured` so a missing token doesn't stop the worker at startup; `ynab_sync` fails the job instead. It is only sent as a bearer header and never logged. k8s deployment (injecting the same secret) is not done yet.
 

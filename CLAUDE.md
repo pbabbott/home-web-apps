@@ -16,7 +16,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
-- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Jobs: `hello`, `ynab_sync`; see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
+- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Jobs: `hello`, `ynab_sync`; shown in home-hud under `/budget`; see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
 - `budget-worker` — Node worker that polls `budget-db` for pending budget jobs and runs them (`ynab_sync` pulls raw YNAB data); see [`apps/budget-worker/README.md`](./apps/budget-worker/README.md).
 - `harbor-cleanup` — Express service that deletes old Harbor image tags (cron + startup run; irreversible). Deployed by `home-kubernetes`; **read `home-kubernetes/docs/ai-reference/harbor-cleanup.md` before changing its tag rules or repo list**. Its `CLEANUP_DRY_RUN` is a strict boolean.
 - `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [`apps/backup-worker/CLAUDE.md`](./apps/backup-worker/CLAUDE.md).

@@ -31,7 +31,7 @@ services:
     image: postgres:17-alpine
     container_name: budget-worker-postgres
     ports:
-      - '5433:5432'
+      - '5432:5432'
     environment:
       - POSTGRES_DB=budget
       - POSTGRES_USER=budget

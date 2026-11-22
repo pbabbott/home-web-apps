@@ -12,6 +12,7 @@ Express.js API for the budget feature. It accepts job requests and stores them d
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, newest first (max 100).
 - `GET /jobs/:id` — fetch one job.
 - `GET /ynab/sync-state` — YNAB delta cursor per plan/endpoint.
+- `GET /ynab/sync-runs`, `GET /ynab/plans`, `GET /ynab/raw-responses` — metadata for the home-hud YNAB page (never raw payloads).
 - `GET /docs` — Swagger UI, generated from the Zod schemas (`src/openapi.ts`).
 
 Schema and migrations live in `@abbottland/budget-db` (`packages/budget-db`), shared with `budget-worker`. The app applies pending migrations itself at startup under an advisory lock; see [Postgres & Drizzle](../../docs/dev-guide-postgres-drizzle.md).

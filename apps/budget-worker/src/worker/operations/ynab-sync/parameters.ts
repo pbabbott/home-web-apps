@@ -7,8 +7,6 @@ export const PLAN_ENDPOINTS = YNAB_ENDPOINTS.filter(
 );
 
 export type YnabSyncParameters = {
-  /** Restrict to these plan ids; default is every plan the token can see. */
-  planIds?: string[];
   /** Restrict to these plan-scoped endpoints; default is all of PLAN_ENDPOINTS. */
   endpoints?: Exclude<YnabEndpoint, 'plans'>[];
   /** Ignore stored cursors and fetch full snapshots. */
@@ -20,12 +18,9 @@ export const isYnabSyncParameters = (
 ): value is YnabSyncParameters => {
   if (typeof value !== 'object' || value === null) return false;
 
-  const { planIds, endpoints, full } = value as Record<string, unknown>;
+  const { endpoints, full } = value as Record<string, unknown>;
 
   return (
-    (planIds === undefined ||
-      (Array.isArray(planIds) &&
-        planIds.every((p) => typeof p === 'string'))) &&
     (endpoints === undefined ||
       (Array.isArray(endpoints) &&
         endpoints.every((e) =>

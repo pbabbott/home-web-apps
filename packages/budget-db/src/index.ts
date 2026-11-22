@@ -48,10 +48,17 @@ export {
   getYnabSyncState,
   listYnabSyncState,
   listYnabRawResponses,
+  listYnabRawResponseSummaries,
+  listYnabPlans,
+  listYnabSyncRuns,
 } from './queries/ynab-raw';
 export type {
   RecordYnabRawResponseInput,
   ListYnabRawResponsesOptions,
+  ListYnabRawResponseSummariesOptions,
+  YnabRawResponseSummary,
+  YnabPlanSummary,
+  YnabSyncRun,
 } from './queries/ynab-raw';
 
 export {

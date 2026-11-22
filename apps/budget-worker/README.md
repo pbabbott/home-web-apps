@@ -2,7 +2,7 @@
 
 Background worker for the budget feature. It polls `budget_jobs` (via `@abbottland/budget-db`), claims the oldest pending job with `FOR UPDATE SKIP LOCKED`, runs the handler registered for its `operation`, and records completion or failure. Jobs are created through `budget-api`. Structured like `video-worker`.
 
-Operations: `hello` (placeholder) and `ynab_sync`, which stores raw YNAB API responses; see [YNAB ingestion](../../docs/budget/ynab-ingestion.md). Needs `YNAB_API_TOKEN`.
+Operations: `hello` (placeholder) and `ynab_sync`, which stores raw YNAB API responses; see [YNAB ingestion](../../docs/budget/ynab-ingestion.md). Needs `YNAB_API_TOKEN`; `YNAB_PLAN_ID` picks the one plan to sync.
 
 ## Layout
 
@@ -14,7 +14,7 @@ Operations: `hello` (placeholder) and `ynab_sync`, which stores raw YNAB API res
 
 ## Development
 
-Port `4006`. Postgres is published on host port `5433` (same as `homelab-api`/`backup-worker` dev deps, so only one of those can be up at a time).
+Port `4006`. It shares one Postgres (database `budget`) with `budget-api`: the API creates jobs there and the worker claims them. Either app's `pnpm dev:deps` starts it on host port `5432`; run it from just one of them. (Don't use 5433: `homelab-api` and `backup-worker` dev deps own it.)
 
 ```sh
 cp sample.env .env

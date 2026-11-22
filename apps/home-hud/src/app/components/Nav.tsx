@@ -41,6 +41,15 @@ const NAV_ITEMS: ConnectedNavItem[] = [
       { id: '/video/file-renames', label: 'File Renames' },
     ],
   },
+  {
+    id: '/budget',
+    label: 'Budget',
+    children: [
+      { id: '/budget', label: 'Dashboard' },
+      { id: '/budget/jobs', label: 'Jobs' },
+      { id: '/budget/ynab', label: 'YNAB Data' },
+    ],
+  },
   { id: '/media', label: 'Media' },
 ];
 

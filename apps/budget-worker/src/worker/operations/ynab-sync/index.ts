@@ -1,7 +1,7 @@
 import type { BudgetJob } from '@abbottland/budget-db';
 import { getYnabSyncState, recordYnabRawResponse } from '@abbottland/budget-db';
 import { YnabApiError, ynabGet } from '../../../api/ynab/ynab-client';
-import { config, YNAB_TOKEN_UNSET } from '../../../config';
+import { config, YNAB_PLAN_UNSET, YNAB_TOKEN_UNSET } from '../../../config';
 import { db } from '../../../db';
 import { JobProcessingError } from '../../job-processing-error';
 import type { OperationResult } from '../operation-result';
@@ -26,7 +26,12 @@ export const ynabSync = async (job: BudgetJob): Promise<OperationResult> => {
     throw new JobProcessingError('YNAB_API_TOKEN is not configured');
   }
 
-  const { planIds, endpoints = PLAN_ENDPOINTS, full = false } = job.parameters;
+  if (config.ynab.planId === YNAB_PLAN_UNSET) {
+    throw new JobProcessingError('YNAB_PLAN_ID is not configured');
+  }
+
+  const { endpoints = PLAN_ENDPOINTS, full = false } = job.parameters;
+  const targetPlanId = config.ynab.planId;
 
   let requests = 0;
   let stored = 0;
@@ -53,47 +58,50 @@ export const ynabSync = async (job: BudgetJob): Promise<OperationResult> => {
     stored += 1;
     shouldStop(plansResponse.rateLimit?.used);
 
-    const allPlanIds = (
+    const planIds = (
       (plansResponse.body as { data?: { plans?: { id: string }[] } }).data
         ?.plans ?? []
     ).map((plan) => plan.id);
-    const targetPlanIds = planIds
-      ? allPlanIds.filter((id) => planIds.includes(id))
-      : allPlanIds;
 
-    for (const planId of targetPlanIds) {
-      for (const endpoint of endpoints) {
-        if (stopReason) {
-          skipped.push(`${planId}/${endpoint}`);
-          continue;
-        }
+    if (!planIds.includes(targetPlanId)) {
+      throw new JobProcessingError(
+        `YNAB plan not found for this token: ${targetPlanId}`,
+      );
+    }
 
-        const state = full
-          ? undefined
-          : await getYnabSyncState(db, planId, endpoint);
-        const lastKnowledge = state?.serverKnowledge ?? null;
+    const planId = targetPlanId;
 
-        const response = await ynabGet(`/plans/${planId}/${endpoint}`, {
-          lastKnowledge,
-        });
-        requests += 1;
-
-        await recordYnabRawResponse(db, {
-          jobId: job.id,
-          planId,
-          endpoint,
-          requestParams:
-            lastKnowledge === null
-              ? {}
-              : { last_knowledge_of_server: lastKnowledge },
-          serverKnowledgeRequested: lastKnowledge,
-          serverKnowledgeReturned: response.serverKnowledge,
-          httpStatus: response.status,
-          payload: response.body,
-        });
-        stored += 1;
-        shouldStop(response.rateLimit?.used);
+    for (const endpoint of endpoints) {
+      if (stopReason) {
+        skipped.push(`${planId}/${endpoint}`);
+        continue;
       }
+
+      const state = full
+        ? undefined
+        : await getYnabSyncState(db, planId, endpoint);
+      const lastKnowledge = state?.serverKnowledge ?? null;
+
+      const response = await ynabGet(`/plans/${planId}/${endpoint}`, {
+        lastKnowledge,
+      });
+      requests += 1;
+
+      await recordYnabRawResponse(db, {
+        jobId: job.id,
+        planId,
+        endpoint,
+        requestParams:
+          lastKnowledge === null
+            ? {}
+            : { last_knowledge_of_server: lastKnowledge },
+        serverKnowledgeRequested: lastKnowledge,
+        serverKnowledgeReturned: response.serverKnowledge,
+        httpStatus: response.status,
+        payload: response.body,
+      });
+      stored += 1;
+      shouldStop(response.rateLimit?.used);
     }
   } catch (err) {
     if (err instanceof YnabApiError && err.isRateLimited) {

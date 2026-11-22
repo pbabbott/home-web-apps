@@ -8,6 +8,7 @@ import {
   createJobSchema,
   jobIdParamsSchema,
   listJobsQuerySchema,
+  listRawResponsesQuerySchema,
 } from './schemas/jobs';
 
 const validationErrorSchema = z.object({
@@ -139,6 +140,87 @@ export const openApiSpec = createDocument({
               },
             },
           },
+        },
+      },
+    },
+    '/ynab/plans': {
+      get: {
+        summary: 'YNAB plan ids and names',
+        description:
+          'Read from the latest stored plans response; only id and name are extracted.',
+        responses: {
+          '200': {
+            description: 'Plans the token can see',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  plans: z.array(
+                    z.object({ id: z.string(), name: z.string() }),
+                  ),
+                }),
+              },
+            },
+          },
+        },
+      },
+    },
+    '/ynab/sync-runs': {
+      get: {
+        summary: 'One summary row per sync run, newest first',
+        responses: {
+          '200': {
+            description: 'Sync runs with snapshot/delta counts and total size',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  syncRuns: z.array(
+                    z.object({
+                      jobId: z.uuid().nullable(),
+                      startedAt: z.string().meta({ format: 'date-time' }),
+                      responses: z.number(),
+                      snapshots: z.number(),
+                      deltas: z.number(),
+                      totalBytes: z.number(),
+                    }),
+                  ),
+                }),
+              },
+            },
+          },
+        },
+      },
+    },
+    '/ynab/raw-responses': {
+      get: {
+        summary: 'Metadata for stored raw YNAB responses (no payloads)',
+        description:
+          'Newest first. Payloads hold personal financial data and are never returned; this reports size, cursors and timing only.',
+        requestParams: { query: listRawResponsesQuerySchema },
+        responses: {
+          '200': {
+            description: 'Matching raw response summaries',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  rawResponses: z.array(
+                    z.object({
+                      id: z.uuid(),
+                      jobId: z.uuid().nullable(),
+                      planId: z.string().nullable(),
+                      endpoint: z.string(),
+                      serverKnowledgeRequested: z.number().nullable(),
+                      serverKnowledgeReturned: z.number().nullable(),
+                      httpStatus: z.number(),
+                      payloadBytes: z.number(),
+                      payloadSha256: z.string(),
+                      fetchedAt: z.string().meta({ format: 'date-time' }),
+                    }),
+                  ),
+                }),
+              },
+            },
+          },
+          '400': validationErrorResponse,
         },
       },
     },

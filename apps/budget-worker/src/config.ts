@@ -28,6 +28,8 @@ export class PostgresConfig {
 
 export const YNAB_TOKEN_UNSET = 'not-configured';
 
+export const YNAB_PLAN_UNSET = 'not-configured';
+
 export class YnabConfig {
   /** Base URL of the YNAB API. Endpoints are appended by the client. */
   @EnvironmentVariable()
@@ -40,6 +42,15 @@ export class YnabConfig {
    */
   @EnvironmentVariable()
   apiToken: string = YNAB_TOKEN_UNSET;
+
+  /**
+   * The one YNAB plan (budget) to sync: the id from its app.ynab.com URL.
+   * Only this plan is ever synced. Defaults to a sentinel rather than '' (an
+   * empty default would count as a missing required variable and stop the
+   * worker at startup); ynab_sync fails the job when it is unset.
+   */
+  @EnvironmentVariable()
+  planId: string = YNAB_PLAN_UNSET;
 }
 
 export class ApplicationConfig {

@@ -27,9 +27,6 @@ const ynabSyncJobSchema = z.object({
   operation: z.literal('ynab_sync'),
   parameters: z
     .object({
-      planIds: z.array(z.string().min(1)).optional().meta({
-        description: 'Only sync these YNAB plan ids (default: every plan)',
-      }),
       endpoints: z
         .array(
           z.enum([
@@ -70,5 +67,23 @@ export const jobIdParamsSchema = z.object({
 export const listJobsQuerySchema = z.object({
   status: z.enum(JOB_STATUSES).optional(),
 });
+
+export const listRawResponsesQuerySchema = z.object({
+  planId: z.string().min(1).optional(),
+  endpoint: z
+    .enum([
+      'plans',
+      'accounts',
+      'categories',
+      'months',
+      'payees',
+      'scheduled_transactions',
+      'transactions',
+    ])
+    .optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+});
+
+export type ListRawResponsesQuery = z.infer<typeof listRawResponsesQuerySchema>;
 
 export type ListJobsQuery = z.infer<typeof listJobsQuerySchema>;

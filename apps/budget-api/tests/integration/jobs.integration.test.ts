@@ -35,6 +35,40 @@ describe('/jobs', () => {
       .expect(404);
   });
 
+  it('lists raw response metadata without payloads', async () => {
+    await getRequest()
+      .get('/ynab/raw-responses?limit=5&endpoint=transactions')
+      .expect(200)
+      .then((res) => {
+        expect(Array.isArray(res.body.rawResponses)).toBe(true);
+        for (const row of res.body.rawResponses) {
+          expect(row).not.toHaveProperty('payload');
+          expect(typeof row.payloadBytes).toBe('number');
+        }
+      });
+  });
+
+  it('rejects an invalid raw-responses query', async () => {
+    await getRequest().get('/ynab/raw-responses?limit=9999').expect(400);
+  });
+
+  it('exposes ynab plans and sync runs', async () => {
+    await getRequest()
+      .get('/ynab/plans')
+      .expect(200)
+      .then((res) => expect(Array.isArray(res.body.plans)).toBe(true));
+
+    await getRequest()
+      .get('/ynab/sync-runs')
+      .expect(200)
+      .then((res) => {
+        expect(Array.isArray(res.body.syncRuns)).toBe(true);
+        for (const run of res.body.syncRuns) {
+          expect(typeof run.totalBytes).toBe('number');
+        }
+      });
+  });
+
   it('exposes ynab sync state', async () => {
     await getRequest()
       .get('/ynab/sync-state')
