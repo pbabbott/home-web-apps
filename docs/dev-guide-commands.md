@@ -6,7 +6,6 @@ Quick reference for the root-level `pnpm` scripts used day to day. All commands 
 
 ```bash
 pnpm dev          # Start all dev servers
-pnpm dev:ui       # Start only blog, fui-components, diagram-maker
 pnpm dev:deps     # Start Docker dependencies (dev services)
 pnpm dev:deps:down
 ```
