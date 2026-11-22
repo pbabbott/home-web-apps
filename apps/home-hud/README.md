@@ -7,6 +7,7 @@ The purpose of this document is to explain what `home-hud` is and how the applic
 `home-hud` is a Next.js dashboard for at-a-glance views into other home services. Pages include:
 
 - `/video` — reads from `video-api` (`apps/video-api`).
+- `/budget` — reads `budget-api` (`apps/budget-api`): job history, start a YNAB sync, delta cursors and raw-response metadata (never payloads).
 - `/infra/cluster-map` — reads `GET /maps/pods` from `homelab-api` (`apps/homelab-api`) and renders it as a hexagonal status map.
 
 ## Environment Variables
@@ -14,6 +15,7 @@ The purpose of this document is to explain what `home-hud` is and how the applic
 | Variable                 | Required for deployment?                               | Default                 | Purpose                                                                                                                                                                                       |
 | ------------------------ | ------------------------------------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `VIDEO_API_URL`          | **Yes** — set to the deployed `video-api`'s address    | `http://localhost:4002` | Server-side base URL `/video` fetches `video-api` from. Read at request time, not build time.                                                                                                 |
+| `BUDGET_API_URL`         | **Yes** — set to the deployed `budget-api`'s address   | `http://localhost:4005` | Server-side base URL `/budget` fetches `budget-api` from (`src/app/budget/lib/budget-api.ts`). Read at request time, not build time.                                                          |
 | `HOMELAB_API_URL`        | **Yes** — set to the deployed `homelab-api`'s address  | `http://localhost:4003` | Server-side base URL `/infra/cluster-map` and `/media` (`/media/disk-space`) fetch `homelab-api` from (`src/app/infra/cluster-map/lib/homelab-api.ts`). Read at request time, not build time. |
 | `HOMELAB_API_PUBLIC_URL` | No — defaults to `HOMELAB_API_URL`                     | `HOMELAB_API_URL`       | Browser-reachable `homelab-api` address; `/exodus/architecture` links to its Swagger docs (`/docs`) there. Set it when `HOMELAB_API_URL` is a cluster-internal name. Read at request time.    |
 | `GLUETUN_SYNC_URL`       | **Yes** — set to the deployed `gluetun-sync`'s address | `http://localhost:4000` | Server-side base URL `/media` fetches `gluetun-sync` (`GET /status/ports`) from (`src/app/media/lib/gluetun-sync-api.ts`). Read at request time, not build time.                              |

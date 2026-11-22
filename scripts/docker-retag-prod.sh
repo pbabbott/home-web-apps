@@ -49,7 +49,7 @@ REGISTRY="${REGISTRY:-harbor.local.abbottland.io/library}"
 # The images Flux deploys (one ImagePolicy each in home-kubernetes). Deliberately
 # not every published package: node-22-*, playwright-runner and the *-base repos
 # are not deployed and use other tag schemes. Keep in sync with home-kubernetes.
-APPS="${APPS:-blog diagram-maker fui-components gluetun-sync harbor-cleanup home-hud homelab-api video-api video-worker backup-worker}"
+APPS="${APPS:-blog diagram-maker fui-components gluetun-sync harbor-cleanup home-hud homelab-api video-api video-worker budget-api budget-worker backup-worker}"
 
 if ! [[ "$RUN_NUMBER" =~ ^[0-9]+$ ]]; then
   echo "RUN_NUMBER must be numeric, got: ${RUN_NUMBER}" >&2

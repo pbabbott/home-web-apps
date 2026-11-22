@@ -1,0 +1,9 @@
+baseConfig: ./abctl.base.yml
+build:
+  dockerfile: Dockerfile
+  context: .
+  buildCache: harbor.local.abbottland.io/build-cache
+secrets:
+  generateEnv: true
+  envFile: .env
+  envSampleFile: sample.env

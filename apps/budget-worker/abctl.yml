@@ -1,0 +1,15 @@
+baseConfig: ./abctl.base.yml
+build:
+  dockerfile: Dockerfile
+  context: .
+  buildCache: harbor.local.abbottland.io/build-cache
+secrets:
+  generateEnv: true
+  envFile: .env
+  envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: YNAB PAT
+        secretKey: ynab_pat
+        envVarName: YNAB_API_TOKEN

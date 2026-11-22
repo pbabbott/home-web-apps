@@ -1,0 +1,52 @@
+import {
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
+import { createSelectSchema } from 'drizzle-zod';
+import { z } from 'zod';
+
+export const budgetJobStatusEnum = pgEnum('budget_job_status', [
+  'pending',
+  'processing',
+  'completed',
+  'failed',
+]);
+
+export const budgetJobs = pgTable('budget_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  operation: text('operation').notNull(),
+  status: budgetJobStatusEnum('status').notNull().default('pending'),
+  parameters: jsonb('parameters').notNull().default({}),
+  workerId: text('worker_id'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  heartbeatAt: timestamp('heartbeat_at', { withTimezone: true }),
+  error: text('error'),
+  message: text('message'),
+});
+
+export type BudgetJob = typeof budgetJobs.$inferSelect;
+export type NewBudgetJob = typeof budgetJobs.$inferInsert;
+export type BudgetJobStatus = (typeof budgetJobStatusEnum.enumValues)[number];
+
+const dateTime = (schema: z.ZodDate) => schema.meta({ format: 'date-time' });
+
+/**
+ * Zod schema derived directly from the budgetJobs table, so a column
+ * added/renamed/retyped here is reflected everywhere this is consumed
+ * (currently: budget-api's generated OpenAPI docs) without hand-editing.
+ */
+export const budgetJobSelectSchema = createSelectSchema(budgetJobs, {
+  parameters: () => z.record(z.string(), z.unknown()),
+  createdAt: dateTime,
+  startedAt: dateTime,
+  completedAt: dateTime,
+  heartbeatAt: dateTime,
+});
