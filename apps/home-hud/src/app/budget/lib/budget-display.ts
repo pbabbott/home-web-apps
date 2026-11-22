@@ -10,6 +10,7 @@ import type {
 export const operationLabels: Record<string, string> = {
   hello: 'Hello',
   ynab_sync: 'YNAB Sync',
+  ynab_transform: 'YNAB Transform',
 };
 
 export const jobStatusColor: Record<
@@ -91,15 +92,22 @@ export function recentJobStats(
   };
 }
 
-// Fixed locale/timeZone so server and client render identical text.
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
+// Fixed locale so server and client render identical text. The server (and
+// the first client render) use UTC; <LocalDate> switches to the browser's
+// timezone after mount.
+const utcFormatter = new Intl.DateTimeFormat('en-US', {
   dateStyle: 'medium',
   timeStyle: 'short',
   timeZone: 'UTC',
 });
 
-export function formatDate(iso: string): string {
-  return dateFormatter.format(new Date(iso));
+const localFormatter = new Intl.DateTimeFormat('en-US', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+export function formatDate(iso: string, local = false): string {
+  return (local ? localFormatter : utcFormatter).format(new Date(iso));
 }
 
 /** Plan-scoped endpoints in the order they are shown. */
@@ -158,4 +166,48 @@ export function describeRun(
   if (other > 0) parts.push(plural(other, 'plan list', 'plan lists'));
 
   return parts.join(' + ') || 'nothing stored';
+}
+
+/** Jobs shown on the sync page: pulling from YNAB and building the typed tables. */
+const SYNC_PAGE_OPERATIONS = ['ynab_sync', 'ynab_transform'];
+
+/** Short label for the Type column, e.g. "sync (full)" or "transform (rebuild)". */
+export function syncJobType(
+  job: Pick<BudgetJob, 'operation' | 'parameters'>,
+): string {
+  if (job.operation === 'ynab_transform') {
+    return job.parameters.rebuild ? 'transform (rebuild)' : 'transform';
+  }
+
+  return job.parameters.full ? 'sync (full)' : 'sync (update)';
+}
+
+export interface SyncJobRow {
+  job: BudgetJob;
+  /** What the job stored; null while pending/processing or if it failed before storing. */
+  run: YnabSyncRun | null;
+}
+
+/**
+ * One row per `ynab_sync`/`ynab_transform` job, newest first, joined to its stored-response
+ * summary by job id. Runs are derived from raw responses, so jobs that never
+ * stored anything have `run: null`.
+ */
+export function joinSyncJobs(
+  jobs: BudgetJob[] | null,
+  runs: YnabSyncRun[] | null,
+): SyncJobRow[] {
+  const runByJob = new Map(
+    (runs ?? []).flatMap((run) =>
+      run.jobId ? [[run.jobId, run] as const] : [],
+    ),
+  );
+
+  return (jobs ?? [])
+    .filter((job) => SYNC_PAGE_OPERATIONS.includes(job.operation))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .map((job) => ({ job, run: runByJob.get(job.id) ?? null }));
 }

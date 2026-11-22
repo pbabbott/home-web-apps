@@ -3,6 +3,7 @@ import {
   getYnabSyncState,
   listYnabPlans,
   listYnabRawResponses,
+  listBudgetJobs,
   listYnabSyncRuns,
   type BudgetJob,
 } from '@abbottland/budget-db';
@@ -67,6 +68,12 @@ describe('ynab_sync', () => {
       snapshots: 1,
       deltas: 0,
     });
+
+    expect(
+      (await listBudgetJobs(db)).filter(
+        (j) => j.operation === 'ynab_transform',
+      ),
+    ).toHaveLength(1);
 
     const afterFirst = await listYnabRawResponses(db, {
       planId: 'plan-a',

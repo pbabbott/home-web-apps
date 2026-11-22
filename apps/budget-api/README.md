@@ -8,7 +8,7 @@ Express.js API for the budget feature. It accepts job requests and stores them d
 
 - `GET /healthz` — liveness (from `@abbottland/express`).
 - `GET /readyz` — readiness; `200` if Postgres is reachable and the schema is current, `503` otherwise.
-- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Operations: `hello` (`parameters: { name? }`) and `ynab_sync` (see [YNAB ingestion](../../docs/budget/ynab-ingestion.md)).
+- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Operations: `hello` (`parameters: { name? }`), `ynab_sync` (see [YNAB ingestion](../../docs/budget/ynab-ingestion.md)) and `ynab_transform` (see [YNAB typed tables](../../docs/budget/ynab-tables.md)).
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, newest first (max 100).
 - `GET /jobs/:id` — fetch one job.
 - `GET /ynab/sync-state` — YNAB delta cursor per plan/endpoint.

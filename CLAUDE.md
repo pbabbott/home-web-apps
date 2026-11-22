@@ -16,8 +16,8 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
-- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Jobs: `hello`, `ynab_sync`; shown in home-hud under `/budget`; see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
-- `budget-worker` — Node worker that polls `budget-db` for pending budget jobs and runs them (`ynab_sync` pulls raw YNAB data); see [`apps/budget-worker/README.md`](./apps/budget-worker/README.md).
+- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Jobs: `hello`, `ynab_sync`, `ynab_transform`; shown in home-hud under `/budget`; see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
+- `budget-worker` — Node worker that polls `budget-db` for pending budget jobs and runs them (`ynab_sync` pulls raw YNAB data, `ynab_transform` builds the typed tables from it); see [`apps/budget-worker/README.md`](./apps/budget-worker/README.md).
 - `harbor-cleanup` — Express service that deletes old Harbor image tags (cron + startup run; irreversible). Deployed by `home-kubernetes`; **read `home-kubernetes/docs/ai-reference/harbor-cleanup.md` before changing its tag rules or repo list**. Its `CLEANUP_DRY_RUN` is a strict boolean.
 - `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [`apps/backup-worker/CLAUDE.md`](./apps/backup-worker/CLAUDE.md).
 
@@ -63,6 +63,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - [CI Performance](./docs/ci-performance.md) - Pointer to the CI investigation, status and run log in Drive (`My Homelab / CI Optimization`), plus the rules for running a CI experiment.
 - [Blog Identity](./docs/blog-identity.md) - Analysis of published/draft posts in `apps/blog`.
 - [YNAB ingestion](./docs/budget/ynab-ingestion.md) - Raw, append-only YNAB landing layer in `budget-db` (delta cursors, rate-limit budget, how to run a sync).
+- [YNAB typed tables](./docs/budget/ynab-tables.md) - Typed, queryable tables built from the raw layer by the `ynab_transform` job (layers, rebuild, how to add a column or mart).
 - [Exodus](./docs/exodus/README.md) - Windows-to-NAS file migration: discovery queue design, API, UI, and decisions so far.
 - Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
 

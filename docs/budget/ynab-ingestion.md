@@ -28,7 +28,7 @@ YNAB allows **200 requests/hour per token**. Every response is stored verbatim i
 }
 ```
 
-All parameters are optional. Only the plan named by `YNAB_PLAN_ID` is ever synced (there is no per-job plan override, and "full sync" doesn't change that); the job fails if that variable is unset or the plan isn't visible to the token. `full: true` ignores cursors (full snapshots; use sparingly). A run costs 7 requests (1 plan list + 6 endpoints for the one plan). The job stops cleanly, completing with a message listing what was skipped, once `X-Rate-Limit` shows ≥ 170/200 used or YNAB returns 429; the next run resumes from the stored cursors. `GET /ynab/sync-state` shows the cursors, `GET /ynab/sync-runs` one summary row per sync (full downloads vs updates, total size), `GET /ynab/plans` the plan names, and `GET /ynab/raw-responses` per-response metadata (never payloads). home-hud's `/budget/ynab` page shows these.
+All parameters are optional. Only the plan named by `YNAB_PLAN_ID` is ever synced (there is no per-job plan override, and "full sync" doesn't change that); the job fails if that variable is unset or the plan isn't visible to the token. `full: true` ignores cursors (full snapshots; use sparingly). A run costs 7 requests (1 plan list + 6 endpoints for the one plan). The job stops cleanly, completing with a message listing what was skipped, once `X-Rate-Limit` shows ≥ 170/200 used or YNAB returns 429; the next run resumes from the stored cursors. `GET /ynab/sync-state` shows the cursors, `GET /ynab/sync-runs` one summary row per sync (full downloads vs updates, total size), `GET /ynab/plans` the plan names, and `GET /ynab/raw-responses` per-response metadata (never payloads). home-hud's `/budget/sync` page shows these.
 
 ## Configuration
 
@@ -42,4 +42,4 @@ Add it to `YNAB_ENDPOINTS` in `packages/budget-db/src/schema/ynab-raw-responses.
 
 ## Not built yet
 
-Normalised tables built from the raw rows, a home-hud UI, the scheduled trigger (k8s CronJob), and payload retention/compaction.
+Normalised tables are built by the `ynab_transform` job (see [YNAB typed tables](./ynab-tables.md)). Not built yet: transform status in home-hud, the scheduled trigger (k8s CronJob), and payload retention/compaction.
