@@ -20,7 +20,7 @@ Conventions: primary key `(plan_id, id)` (months: `(plan_id, month)`; month cate
 2. Each response is mapped by a pure function in `ynab-transform/mappers.ts` to typed rows, then upserted by primary key. Split lines (`*_subtransactions`) are replaced wholesale for every parent present in the response.
 3. A response with no cursor (`server_knowledge_requested` is null) is a full snapshot: it lists every live entity, so rows of that plan and table it did not touch are marked `deleted`.
 4. Rows and watermark advance in **one transaction**, so a crash neither skips nor double-applies. A response that fails to map fails the job naming the raw response id; the watermark stays put and the next run retries it.
-5. `plans` has no deltas: only the newest `plans` response is applied.
+5. `plans` has no deltas: only the newest `plans` response is applied, and only if `ynab_plans` does not already hold rows from it.
 
 `rebuild: true` drops the typed rows and watermark for the chosen endpoints and re-folds every raw response. Use it after changing a mapper or a table.
 

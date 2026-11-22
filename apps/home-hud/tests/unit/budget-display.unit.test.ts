@@ -10,6 +10,7 @@ import {
   planLabel,
   isFullSnapshot,
   joinSyncJobs,
+  syncJobType,
   mostRecentBy,
   recentJobStats,
   responseKind,
@@ -173,24 +174,46 @@ describe('joinSyncJobs', () => {
     totalBytes: 100,
   });
 
-  it('keeps only ynab_sync jobs, newest first, joined to their run', () => {
+  it('keeps only sync and transform jobs, newest first, joined to their run', () => {
     const older = job('completed', '2026-01-01T00:00:00Z');
     const newer = job('failed', '2026-01-02T00:00:00Z');
     const hello = {
       ...job('completed', '2026-01-03T00:00:00Z'),
       operation: 'hello',
     };
+    const transform = {
+      ...job('completed', '2026-01-04T00:00:00Z'),
+      operation: 'ynab_transform',
+    };
     const rows = joinSyncJobs(
-      [older, hello, newer],
+      [older, hello, newer, transform],
       [run(older.id), run(null)],
     );
 
-    expect(rows.map((r) => r.job.id)).toEqual([newer.id, older.id]);
+    expect(rows.map((r) => r.job.id)).toEqual([
+      transform.id,
+      newer.id,
+      older.id,
+    ]);
     expect(rows[0].run).toBeNull();
-    expect(rows[1].run?.jobId).toBe(older.id);
+    expect(rows[2].run?.jobId).toBe(older.id);
   });
 
   it('handles null inputs', () => {
     expect(joinSyncJobs(null, null)).toEqual([]);
+  });
+});
+
+describe('syncJobType', () => {
+  const type = (operation: string, parameters: Record<string, unknown> = {}) =>
+    syncJobType({ operation, parameters });
+
+  it('labels sync and transform jobs', () => {
+    expect(type('ynab_sync')).toBe('sync (update)');
+    expect(type('ynab_sync', { full: true })).toBe('sync (full)');
+    expect(type('ynab_transform')).toBe('transform');
+    expect(type('ynab_transform', { rebuild: true })).toBe(
+      'transform (rebuild)',
+    );
   });
 });

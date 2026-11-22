@@ -342,6 +342,20 @@ export const getLatestYnabPlansResponse = async (
   return row;
 };
 
+/** True when `ynab_plans` already holds rows written from this raw response. */
+export const isYnabPlansCurrent = async (
+  db: Database,
+  rawResponseId: string,
+): Promise<boolean> => {
+  const [row] = await db
+    .select({ id: ynabPlans.id })
+    .from(ynabPlans)
+    .where(eq(ynabPlans.lastRawResponseId, rawResponseId))
+    .limit(1);
+
+  return row !== undefined;
+};
+
 export const upsertYnabPlans = async (
   db: Database,
   rows: YnabPlanRow[],

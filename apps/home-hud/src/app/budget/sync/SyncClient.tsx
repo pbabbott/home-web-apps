@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@abbottland/fui-components';
 import { LocalDate } from '../lib/LocalDate';
-import { createJob } from '../lib/actions';
+import { createJob, type BudgetJobRequest } from '../lib/actions';
 import type {
   BudgetJob,
   YnabPlan,
@@ -34,12 +34,16 @@ import {
   PLAN_ENDPOINT_ORDER,
   planLabel,
   responseKind,
+  syncJobType,
 } from '../lib/budget-display';
 
 const PAGE_SIZE = 10;
 
 const FULL_SYNC_WARNING =
   'A full sync re-downloads the configured plan from scratch (7 of YNAB’s 200 requests/hour and a lot of stored data). Continue?';
+
+const REBUILD_WARNING =
+  'Rebuild deletes the typed YNAB tables and re-creates them from the stored raw responses. It makes no YNAB API calls. Continue?';
 
 const kindColor: Record<ReturnType<typeof responseKind>, BadgeColor> = {
   snapshot: 'warning',
@@ -82,12 +86,12 @@ export function SyncClient({
       return next;
     });
 
-  async function start(full: boolean) {
+  async function start(request: BudgetJobRequest) {
     setSubmitting(true);
     setSubmitError(null);
 
     try {
-      await createJob({ operation: 'ynab_sync', full });
+      await createJob(request);
       router.refresh();
     } catch (err) {
       setSubmitError(
@@ -119,6 +123,11 @@ export function SyncClient({
           what changed, so later syncs are tiny.
         </Typography>
         <Typography variant="body2" className="text-neutral-400">
+          A transform turns the stored responses into queryable tables without
+          calling YNAB (a sync starts one automatically). Rebuild recreates the
+          tables from scratch.
+        </Typography>
+        <Typography variant="body2" className="text-neutral-400">
           Only metadata is shown here. The stored data itself is personal
           financial data and is never displayed.
         </Typography>
@@ -129,7 +138,7 @@ export function SyncClient({
           <Button
             size="small"
             disabled={submitting}
-            onClick={() => void start(false)}
+            onClick={() => void start({ operation: 'ynab_sync' })}
           >
             {submitting ? 'Starting…' : 'Run YNAB sync'}
           </Button>
@@ -137,12 +146,36 @@ export function SyncClient({
             size="small"
             disabled={submitting}
             onClick={() => {
-              if (window.confirm(FULL_SYNC_WARNING)) void start(true);
+              if (window.confirm(FULL_SYNC_WARNING)) {
+                void start({ operation: 'ynab_sync', full: true });
+              }
             }}
           >
             Run full sync
           </OutlinedButton>
-          <OutlinedButton size="small" onClick={() => router.refresh()}>
+          <OutlinedButton
+            size="small"
+            disabled={submitting}
+            onClick={() => void start({ operation: 'ynab_transform' })}
+          >
+            Run transform
+          </OutlinedButton>
+          <OutlinedButton
+            size="small"
+            disabled={submitting}
+            onClick={() => {
+              if (window.confirm(REBUILD_WARNING)) {
+                void start({ operation: 'ynab_transform', rebuild: true });
+              }
+            }}
+          >
+            Rebuild tables
+          </OutlinedButton>
+          <OutlinedButton
+            size="small"
+            color="secondary"
+            onClick={() => router.refresh()}
+          >
             Refresh
           </OutlinedButton>
         </div>
@@ -244,7 +277,7 @@ export function SyncClient({
                           <Td>
                             <LocalDate iso={job.createdAt} />
                           </Td>
-                          <Td>{job.parameters.full ? 'full' : 'update'}</Td>
+                          <Td>{syncJobType(job)}</Td>
                           <Td>
                             <Badge color={jobStatusColor[job.status]}>
                               {job.status}

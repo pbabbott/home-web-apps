@@ -247,6 +247,20 @@ describe('ynab_transform', () => {
     expect(Number(enriched[0].amountUnits)).toBeCloseTo(-12.34);
   });
 
+  it('does not rewrite plans when no new plans response arrived', async () => {
+    const planId = 'plan-unchanged';
+    await recordYnabRawResponse(db, {
+      endpoint: 'plans',
+      httpStatus: 200,
+      payload: { data: { plans: [{ id: planId, name: 'Same' }] } },
+    });
+
+    expect((await run()).message).toContain('(1 rows written)');
+    expect((await run()).message).toBe(
+      'Applied 0 raw responses (0 rows written).',
+    );
+  });
+
   it('rejects invalid parameters', async () => {
     await expect(run({ endpoints: ['plans'] })).rejects.toThrow('invalid');
   });

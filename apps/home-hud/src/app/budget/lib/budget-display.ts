@@ -168,6 +168,20 @@ export function describeRun(
   return parts.join(' + ') || 'nothing stored';
 }
 
+/** Jobs shown on the sync page: pulling from YNAB and building the typed tables. */
+const SYNC_PAGE_OPERATIONS = ['ynab_sync', 'ynab_transform'];
+
+/** Short label for the Type column, e.g. "sync (full)" or "transform (rebuild)". */
+export function syncJobType(
+  job: Pick<BudgetJob, 'operation' | 'parameters'>,
+): string {
+  if (job.operation === 'ynab_transform') {
+    return job.parameters.rebuild ? 'transform (rebuild)' : 'transform';
+  }
+
+  return job.parameters.full ? 'sync (full)' : 'sync (update)';
+}
+
 export interface SyncJobRow {
   job: BudgetJob;
   /** What the job stored; null while pending/processing or if it failed before storing. */
@@ -175,7 +189,7 @@ export interface SyncJobRow {
 }
 
 /**
- * One row per `ynab_sync` job, newest first, joined to its stored-response
+ * One row per `ynab_sync`/`ynab_transform` job, newest first, joined to its stored-response
  * summary by job id. Runs are derived from raw responses, so jobs that never
  * stored anything have `run: null`.
  */
@@ -190,7 +204,7 @@ export function joinSyncJobs(
   );
 
   return (jobs ?? [])
-    .filter((job) => job.operation === 'ynab_sync')
+    .filter((job) => SYNC_PAGE_OPERATIONS.includes(job.operation))
     .sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),

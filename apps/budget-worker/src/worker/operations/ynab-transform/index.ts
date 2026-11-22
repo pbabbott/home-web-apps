@@ -2,6 +2,7 @@ import {
   applyYnabRawResponse,
   getLatestYnabPlansResponse,
   getYnabRawPayload,
+  isYnabPlansCurrent,
   listPendingYnabRawResponses,
   listYnabRawPlanIds,
   resetYnabTransform,
@@ -35,7 +36,8 @@ export const ynabTransform = async (
 
   const latestPlans = await getLatestYnabPlansResponse(db);
 
-  if (latestPlans) {
+  // The plans response has no cursor, so check whether it was already applied.
+  if (latestPlans && !(await isYnabPlansCurrent(db, latestPlans.id))) {
     const plans = mapPlans(latestPlans.payload, latestPlans.id);
 
     await upsertYnabPlans(db, plans);

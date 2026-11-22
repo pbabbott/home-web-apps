@@ -75,6 +75,7 @@ export {
   getLatestYnabPlansResponse,
   getYnabRawPayload,
   getYnabTransformState,
+  isYnabPlansCurrent,
   listPendingYnabRawResponses,
   listYnabRawPlanIds,
   resetYnabTransform,
