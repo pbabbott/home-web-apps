@@ -77,7 +77,7 @@ export function BudgetHomeClient({
           </TransparentPanel>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Link href="/budget/jobs" className="block">
+            <Link href="/budget/sync" className="block">
               <Panel color="primary" className="flex h-full flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <Typography variant="h5" component="h2">
@@ -137,7 +137,7 @@ export function BudgetHomeClient({
               </Panel>
             </Link>
 
-            <Link href="/budget/ynab" className="block">
+            <Link href="/budget/sync" className="block">
               <Panel
                 color="accent-falcon"
                 className="flex h-full flex-col gap-4"

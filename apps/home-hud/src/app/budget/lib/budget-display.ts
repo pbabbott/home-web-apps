@@ -166,3 +166,33 @@ export function describeRun(
 
   return parts.join(' + ') || 'nothing stored';
 }
+
+export interface SyncJobRow {
+  job: BudgetJob;
+  /** What the job stored; null while pending/processing or if it failed before storing. */
+  run: YnabSyncRun | null;
+}
+
+/**
+ * One row per `ynab_sync` job, newest first, joined to its stored-response
+ * summary by job id. Runs are derived from raw responses, so jobs that never
+ * stored anything have `run: null`.
+ */
+export function joinSyncJobs(
+  jobs: BudgetJob[] | null,
+  runs: YnabSyncRun[] | null,
+): SyncJobRow[] {
+  const runByJob = new Map(
+    (runs ?? []).flatMap((run) =>
+      run.jobId ? [[run.jobId, run] as const] : [],
+    ),
+  );
+
+  return (jobs ?? [])
+    .filter((job) => job.operation === 'ynab_sync')
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .map((job) => ({ job, run: runByJob.get(job.id) ?? null }));
+}

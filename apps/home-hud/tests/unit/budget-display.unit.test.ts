@@ -1,6 +1,7 @@
 import type {
   BudgetJob,
   YnabRawResponseSummary,
+  YnabSyncRun,
 } from '../../src/app/budget/lib/budget-api';
 import {
   describeRun,
@@ -8,6 +9,7 @@ import {
   groupCursorsByPlan,
   planLabel,
   isFullSnapshot,
+  joinSyncJobs,
   mostRecentBy,
   recentJobStats,
   responseKind,
@@ -158,5 +160,37 @@ describe('describeRun', () => {
     expect(describeRun({ snapshots: 0, deltas: 0, responses: 0 })).toBe(
       'nothing stored',
     );
+  });
+});
+
+describe('joinSyncJobs', () => {
+  const run = (jobId: string | null): YnabSyncRun => ({
+    jobId,
+    startedAt: '2026-01-01T00:00:00Z',
+    responses: 7,
+    snapshots: 6,
+    deltas: 0,
+    totalBytes: 100,
+  });
+
+  it('keeps only ynab_sync jobs, newest first, joined to their run', () => {
+    const older = job('completed', '2026-01-01T00:00:00Z');
+    const newer = job('failed', '2026-01-02T00:00:00Z');
+    const hello = {
+      ...job('completed', '2026-01-03T00:00:00Z'),
+      operation: 'hello',
+    };
+    const rows = joinSyncJobs(
+      [older, hello, newer],
+      [run(older.id), run(null)],
+    );
+
+    expect(rows.map((r) => r.job.id)).toEqual([newer.id, older.id]);
+    expect(rows[0].run).toBeNull();
+    expect(rows[1].run?.jobId).toBe(older.id);
+  });
+
+  it('handles null inputs', () => {
+    expect(joinSyncJobs(null, null)).toEqual([]);
   });
 });
