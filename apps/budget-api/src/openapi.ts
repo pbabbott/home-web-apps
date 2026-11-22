@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { createDocument } from 'zod-openapi';
-import { budgetJobSelectSchema } from '@abbottland/budget-db';
+import {
+  budgetJobSelectSchema,
+  ynabSyncStateSelectSchema,
+} from '@abbottland/budget-db';
 import {
   createJobSchema,
   jobIdParamsSchema,
@@ -117,6 +120,25 @@ export const openApiSpec = createDocument({
             },
           },
           '400': validationErrorResponse,
+        },
+      },
+    },
+    '/ynab/sync-state': {
+      get: {
+        summary: 'YNAB delta cursors per plan and endpoint',
+        description:
+          'The server_knowledge each (plan, endpoint) has been synced up to, and when. Raw payloads are not exposed.',
+        responses: {
+          '200': {
+            description: 'Current cursors',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  syncState: z.array(ynabSyncStateSelectSchema),
+                }),
+              },
+            },
+          },
         },
       },
     },

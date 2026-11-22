@@ -23,6 +23,34 @@ const helloJobSchema = z.object({
     .default({}),
 });
 
+const ynabSyncJobSchema = z.object({
+  operation: z.literal('ynab_sync'),
+  parameters: z
+    .object({
+      planIds: z.array(z.string().min(1)).optional().meta({
+        description: 'Only sync these YNAB plan ids (default: every plan)',
+      }),
+      endpoints: z
+        .array(
+          z.enum([
+            'accounts',
+            'categories',
+            'months',
+            'payees',
+            'scheduled_transactions',
+            'transactions',
+          ]),
+        )
+        .optional()
+        .meta({ description: 'Only sync these endpoints (default: all)' }),
+      full: z.boolean().optional().meta({
+        description:
+          'Ignore stored delta cursors and fetch full snapshots (costs more of the 200 requests/hour)',
+      }),
+    })
+    .default({}),
+});
+
 /**
  * Discriminated on `operation` so each job type declares its own
  * `parameters` shape. Adding a new operation means adding a branch here
@@ -30,6 +58,7 @@ const helloJobSchema = z.object({
  */
 export const createJobSchema = z.discriminatedUnion('operation', [
   helloJobSchema,
+  ynabSyncJobSchema,
 ]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;

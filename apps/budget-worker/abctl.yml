@@ -7,3 +7,9 @@ secrets:
   generateEnv: true
   envFile: .env
   envSampleFile: sample.env
+  onePassword:
+    vault: Homelab
+    items:
+      - secretName: YNAB PAT
+        secretKey: ynab_pat
+        envVarName: YNAB_API_TOKEN

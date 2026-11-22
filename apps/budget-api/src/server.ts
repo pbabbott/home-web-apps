@@ -12,6 +12,7 @@ import {
 import { config } from './config';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
+import { listSyncState } from './controllers/ynab';
 import { openApiSpec } from './openapi';
 import {
   createJobSchema,
@@ -34,7 +35,8 @@ export const createServer = (): Express => {
     .get('/readyz', getReady)
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
-    .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob);
+    .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
+    .get('/ynab/sync-state', listSyncState);
 
   configureErrorHandler(app);
 

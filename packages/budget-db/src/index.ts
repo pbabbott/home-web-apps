@@ -27,6 +27,34 @@ export type {
 } from './queries/budget-jobs';
 
 export {
+  ynabRawResponses,
+  ynabRawResponseSelectSchema,
+  YNAB_ENDPOINTS,
+} from './schema/ynab-raw-responses';
+export type {
+  YnabRawResponse,
+  NewYnabRawResponse,
+  YnabEndpoint,
+} from './schema/ynab-raw-responses';
+
+export {
+  ynabSyncState,
+  ynabSyncStateSelectSchema,
+} from './schema/ynab-sync-state';
+export type { YnabSyncState } from './schema/ynab-sync-state';
+
+export {
+  recordYnabRawResponse,
+  getYnabSyncState,
+  listYnabSyncState,
+  listYnabRawResponses,
+} from './queries/ynab-raw';
+export type {
+  RecordYnabRawResponseInput,
+  ListYnabRawResponsesOptions,
+} from './queries/ynab-raw';
+
+export {
   runMigrations,
   runMigrationsWithLock,
   hasAppliedLatestMigration,

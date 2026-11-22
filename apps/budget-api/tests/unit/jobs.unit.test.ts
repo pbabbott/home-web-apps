@@ -12,4 +12,22 @@ describe('createJobSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts a ynab_sync job with options', () => {
+    const result = createJobSchema.safeParse({
+      operation: 'ynab_sync',
+      parameters: { planIds: ['p1'], endpoints: ['transactions'], full: true },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a ynab_sync job with an unknown endpoint', () => {
+    const result = createJobSchema.safeParse({
+      operation: 'ynab_sync',
+      parameters: { endpoints: ['plans'] },
+    });
+
+    expect(result.success).toBe(false);
+  });
 });

@@ -26,6 +26,22 @@ export class PostgresConfig {
   password: string = '';
 }
 
+export const YNAB_TOKEN_UNSET = 'not-configured';
+
+export class YnabConfig {
+  /** Base URL of the YNAB API. Endpoints are appended by the client. */
+  @EnvironmentVariable()
+  apiUrl: string = 'https://api.ynab.com/v1';
+
+  /**
+   * YNAB Personal Access Token. Defaults to a sentinel rather than '' so a
+   * missing token does not stop the whole worker at startup (hello jobs and
+   * probes still work); ynab_sync fails the job when it is unset.
+   */
+  @EnvironmentVariable()
+  apiToken: string = YNAB_TOKEN_UNSET;
+}
+
 export class ApplicationConfig {
   @EnvironmentVariable({ variableType: EnvironmentVariableType.NUMBER })
   port: number = 4006;
@@ -36,6 +52,9 @@ export class ApplicationConfig {
 
   @ConfigSection({ sectionPrefix: 'POSTGRES' })
   postgres = new PostgresConfig();
+
+  @ConfigSection({ sectionPrefix: 'YNAB' })
+  ynab = new YnabConfig();
 }
 
 export let config: ApplicationConfig;

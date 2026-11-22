@@ -16,8 +16,8 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `gluetun-sync` — Express.js service that syncs qBitTorrent ports with Gluetun VPN
 - `pi-led-api` — Express.js REST API for Raspberry Pi LED strip control
 - `video-api` — Express.js API that queues video-processing jobs (Postgres-backed) for a separate video-worker
-- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Skeleton only (hello-world `hello` job); see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
-- `budget-worker` — Node worker that polls `budget-db` for pending budget jobs and runs them. Skeleton only; see [`apps/budget-worker/README.md`](./apps/budget-worker/README.md).
+- `budget-api` — Express.js API that queues budget jobs (Postgres-backed) for a separate budget-worker. Jobs: `hello`, `ynab_sync`; see [`apps/budget-api/README.md`](./apps/budget-api/README.md).
+- `budget-worker` — Node worker that polls `budget-db` for pending budget jobs and runs them (`ynab_sync` pulls raw YNAB data); see [`apps/budget-worker/README.md`](./apps/budget-worker/README.md).
 - `harbor-cleanup` — Express service that deletes old Harbor image tags (cron + startup run; irreversible). Deployed by `home-kubernetes`; **read `home-kubernetes/docs/ai-reference/harbor-cleanup.md` before changing its tag rules or repo list**. Its `CLEANUP_DRY_RUN` is a strict boolean.
 - `backup-worker` — Node worker that serves one Exodus backup destination (NFS): validates it and copies approved inventory to it. See [`apps/backup-worker/CLAUDE.md`](./apps/backup-worker/CLAUDE.md).
 
@@ -36,7 +36,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - `next-middleware` — Shared Next.js route handlers (`healthz`, `metrics`) for the frontend apps
 - `logger` — Minimal shared logging helper
 - `node-22-alpine`, `node-22-dev` — Base Docker images (Alpine runtime; full Debian dev image) built with `abctl`
-- `budget-db` — Drizzle ORM schema, migrations, and query helpers for `budget-api`/`budget-worker` (Postgres; `budget_jobs` queue table so far). Same shape as `video-db`; see [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
+- `budget-db` — Drizzle ORM schema, migrations, and query helpers for `budget-api`/`budget-worker` (Postgres; `budget_jobs` queue plus the raw YNAB tables). Same shape as `video-db`; see [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
 - `video-db` — Drizzle ORM schema, migrations, and query helpers for `video-api` (Postgres). See [Postgres & Drizzle](./docs/dev-guide-postgres-drizzle.md).
 
 ## Architecture
@@ -62,6 +62,7 @@ This is a private TypeScript monorepo using **pnpm workspaces** and **Turborepo*
 - [Image Tag Footer Tracing](./docs/image-tag-footer-tracing.md) - How `IMAGE_TAG` flows from source to the live footer value.
 - [CI Performance](./docs/ci-performance.md) - Pointer to the CI investigation, status and run log in Drive (`My Homelab / CI Optimization`), plus the rules for running a CI experiment.
 - [Blog Identity](./docs/blog-identity.md) - Analysis of published/draft posts in `apps/blog`.
+- [YNAB ingestion](./docs/budget/ynab-ingestion.md) - Raw, append-only YNAB landing layer in `budget-db` (delta cursors, rate-limit budget, how to run a sync).
 - [Exodus](./docs/exodus/README.md) - Windows-to-NAS file migration: discovery queue design, API, UI, and decisions so far.
 - Test guides: [Unit](./docs/test-guide-unit.md) | [Integration](./docs/test-guide-integration.md) | [Smoke](./docs/test-guide-smoke.md) | [UI](./docs/test-guide-ui.md) | [E2E](./docs/test-guide-e2e.md)
 

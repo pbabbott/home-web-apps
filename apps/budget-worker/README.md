@@ -2,7 +2,7 @@
 
 Background worker for the budget feature. It polls `budget_jobs` (via `@abbottland/budget-db`), claims the oldest pending job with `FOR UPDATE SKIP LOCKED`, runs the handler registered for its `operation`, and records completion or failure. Jobs are created through `budget-api`. Structured like `video-worker`.
 
-**Status: skeleton.** Only a hello-world `hello` operation exists.
+Operations: `hello` (placeholder) and `ynab_sync`, which stores raw YNAB API responses; see [YNAB ingestion](../../docs/budget/ynab-ingestion.md). Needs `YNAB_API_TOKEN`.
 
 ## Layout
 

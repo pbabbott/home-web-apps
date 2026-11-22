@@ -34,4 +34,13 @@ describe('/jobs', () => {
       .get('/jobs/123e4567-e89b-12d3-a456-426614174000')
       .expect(404);
   });
+
+  it('exposes ynab sync state', async () => {
+    await getRequest()
+      .get('/ynab/sync-state')
+      .expect(200)
+      .then((res) => {
+        expect(Array.isArray(res.body.syncState)).toBe(true);
+      });
+  });
 });

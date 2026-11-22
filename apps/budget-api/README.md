@@ -2,15 +2,16 @@
 
 Express.js API for the budget feature. It accepts job requests and stores them durably in PostgreSQL for `budget-worker` (`apps/budget-worker`) to claim and process. Structured like `video-api`.
 
-**Status: skeleton.** Only a hello-world `hello` operation exists; the real budget domain (accounts, transactions, etc.) is not built yet.
+**Status: early.** Job queue plus raw YNAB ingestion; the modelled budget domain is not built yet.
 
 ## Routes
 
 - `GET /healthz` — liveness (from `@abbottland/express`).
 - `GET /readyz` — readiness; `200` if Postgres is reachable and the schema is current, `503` otherwise.
-- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Currently only `hello` (`parameters: { name? }`).
+- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Operations: `hello` (`parameters: { name? }`) and `ynab_sync` (see [YNAB ingestion](../../docs/budget/ynab-ingestion.md)).
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, newest first (max 100).
 - `GET /jobs/:id` — fetch one job.
+- `GET /ynab/sync-state` — YNAB delta cursor per plan/endpoint.
 - `GET /docs` — Swagger UI, generated from the Zod schemas (`src/openapi.ts`).
 
 Schema and migrations live in `@abbottland/budget-db` (`packages/budget-db`), shared with `budget-worker`. The app applies pending migrations itself at startup under an advisory lock; see [Postgres & Drizzle](../../docs/dev-guide-postgres-drizzle.md).

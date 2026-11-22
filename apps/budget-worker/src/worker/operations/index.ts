@@ -1,5 +1,6 @@
 import type { BudgetJob } from '@abbottland/budget-db';
 import { hello } from './hello';
+import { ynabSync } from './ynab-sync';
 import type { OperationResult } from './operation-result';
 
 export type OperationHandler = (job: BudgetJob) => Promise<OperationResult>;
@@ -10,4 +11,5 @@ export type OperationHandler = (job: BudgetJob) => Promise<OperationResult>;
  */
 export const operationHandlers: Record<string, OperationHandler | undefined> = {
   hello,
+  ynab_sync: ynabSync,
 };
