@@ -21,6 +21,6 @@ cp sample.env .env
 pnpm dev:deps
 pnpm dev
 pnpm test:unit
-pnpm test:int        # needs dev:deps running
+pnpm test:int        # needs dev:deps running; runs in its own throwaway DB (budget_worker_test)
 pnpm dev:deps:down
 ```

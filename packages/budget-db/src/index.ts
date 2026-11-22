@@ -61,6 +61,8 @@ export type {
   YnabSyncRun,
 } from './queries/ynab-raw';
 
+export { assertTestDatabaseName, recreateTestDatabase } from './test-database';
+
 export {
   runMigrations,
   runMigrationsWithLock,

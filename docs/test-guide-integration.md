@@ -70,3 +70,7 @@ Steps:
 ## JUnit Reporting
 
 `jestReporters` (from `@abbottland/jest-presets`) activates `jest-junit` when `CI=true`. Output goes to `<rootDir>/test-results/test-results.xml`. The composite action `.github/actions/publish-test-results` picks this up and annotates the PR.
+
+## Database isolation (budget apps)
+
+`budget-api` and `budget-worker` share one dev Postgres, so their integration setup never uses the `budget` database. `tests/jest.integration.setup.ts` calls `recreateTestDatabase` from `@abbottland/budget-db`, which drops and recreates a throwaway database on the same server (`budget_api_test` / `budget_worker_test`) before each test file, then migrates it. Names must match `*_test` or the helper refuses to run, so it can't wipe a real database. The connecting user needs `CREATEDB` (the dev/CI Postgres image's user does). The leftover `*_test` databases are harmless and recreated on the next run.

@@ -31,7 +31,7 @@ cp sample.env .env
 pnpm dev:deps        # starts Postgres only; the app migrates itself on start
 pnpm dev             # tsc-watch + node
 pnpm test:unit
-pnpm test:int        # needs dev:deps running
+pnpm test:int        # needs dev:deps running; runs in its own throwaway DB (budget_api_test)
 pnpm dev:deps:down
 ```
 
