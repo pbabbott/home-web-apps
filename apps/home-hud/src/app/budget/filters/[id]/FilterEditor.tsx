@@ -25,6 +25,7 @@ import {
   saveFilterSelection,
 } from '../../lib/actions';
 import type {
+  FilterMatchRow,
   FilterPreview,
   FilterSelection,
   YnabReference,
@@ -44,6 +45,62 @@ interface Props {
   loadError: string | null;
 }
 
+interface CategorySuggestion {
+  categoryId: string;
+  label: string;
+  count: number;
+  total: number;
+}
+
+interface AmountSuggestion {
+  min: string;
+  max: string;
+  count: number;
+}
+
+/** Min/max signed amount over a payee's non-transfer, non-split transactions. */
+function usualAmountRange(rows: FilterMatchRow[]): AmountSuggestion | null {
+  const amounts = rows
+    .filter((row) => !row.isTransfer && !row.isSplit)
+    .map((row) => Math.round(Number(row.amountUnits) * 1000))
+    .filter(Number.isFinite);
+
+  if (amounts.length === 0) return null;
+
+  return {
+    min: milliunitsToUnits(Math.min(...amounts)),
+    max: milliunitsToUnits(Math.max(...amounts)),
+    count: amounts.length,
+  };
+}
+
+/** Most common category among a payee's categorized, non-transfer, non-split rows. */
+function usualCategory(rows: FilterMatchRow[]): CategorySuggestion | null {
+  const counts = new Map<string, { label: string; count: number }>();
+  let total = 0;
+
+  for (const row of rows) {
+    if (!row.categoryId || row.isTransfer || row.isSplit) continue;
+    total += 1;
+    const entry = counts.get(row.categoryId) ?? {
+      label: [row.categoryGroupName, row.categoryName]
+        .filter(Boolean)
+        .join(': '),
+      count: 0,
+    };
+    entry.count += 1;
+    counts.set(row.categoryId, entry);
+  }
+
+  let best: CategorySuggestion | null = null;
+
+  for (const [categoryId, { label, count }] of counts) {
+    if (!best || count > best.count) best = { categoryId, label, count, total };
+  }
+
+  return best;
+}
+
 export function FilterEditor({ rule, planId, reference, loadError }: Props) {
   const router = useRouter();
   const [name, setName] = useState(rule?.name ?? '');
@@ -61,7 +118,7 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
   const [categoryId, setCategoryId] = useState<string | null>(
     rule?.categoryId ?? null,
   );
-  const [autoApprove, setAutoApprove] = useState(rule?.autoApprove ?? false);
+  const [autoApprove, setAutoApprove] = useState(rule?.autoApprove ?? true);
 
   const [preview, setPreview] = useState<FilterPreview | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -69,6 +126,17 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const requestId = useRef(0);
+
+  // Payee -> usual category. An existing rule's category counts as a manual
+  // choice, so it is never overwritten by a suggestion.
+  const categoryTouched = useRef(rule?.categoryId != null);
+  const suggestRequestId = useRef(0);
+  const [suggestion, setSuggestion] = useState<CategorySuggestion | null>(null);
+  const amountTouched = useRef(
+    rule?.amountMinMilliunits != null || rule?.amountMaxMilliunits != null,
+  );
+  const [amountSuggestion, setAmountSuggestion] =
+    useState<AmountSuggestion | null>(null);
 
   const minUnits = unitsToMilliunits(min);
   const maxUnits = unitsToMilliunits(max);
@@ -128,6 +196,61 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     minUnits,
     maxUnits,
   ]);
+
+  async function handlePayeeChange(next: string | null) {
+    setPayeeId(next);
+    setSuggestion(null);
+    setAmountSuggestion(null);
+    const id = ++suggestRequestId.current;
+    if (!next || !planId) {
+      if (!categoryTouched.current) setCategoryId(null);
+      if (!amountTouched.current) {
+        setMin('');
+        setMax('');
+      }
+      return;
+    }
+
+    try {
+      const result = await previewFilterSelection({
+        planId,
+        accountId: null,
+        payeeId: next,
+        amountMinMilliunits: null,
+        amountMaxMilliunits: null,
+      });
+      if (id !== suggestRequestId.current) return;
+
+      const best = usualCategory(result.rows);
+      // Hidden categories aren't selectable, so don't suggest them.
+      const usable =
+        best && categoryOptions.some((o) => o.value === best.categoryId)
+          ? best
+          : null;
+
+      setSuggestion(usable);
+      if (!categoryTouched.current) setCategoryId(usable?.categoryId ?? null);
+
+      const range = usualAmountRange(result.rows);
+      setAmountSuggestion(range);
+      if (!amountTouched.current) {
+        setMin(range?.min ?? '');
+        setMax(range?.max ?? '');
+      }
+    } catch {
+      // The suggestion is a convenience; the live preview reports real errors.
+    }
+  }
+
+  function handleAmountChange(set: (value: string) => void, value: string) {
+    amountTouched.current = true;
+    set(value);
+  }
+
+  function handleCategoryChange(next: string | null) {
+    categoryTouched.current = true;
+    setCategoryId(next);
+  }
 
   const canSave =
     planId !== null &&
@@ -213,128 +336,144 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
         </Typography>
       )}
 
-      <section className="flex max-w-xl flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <Typography variant="body2">Name</Typography>
-          <Input
-            value={name}
-            placeholder="Mortgage"
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
+      <label className="flex max-w-xl flex-col gap-1">
+        <Typography variant="body2">Name</Typography>
+        <Input
+          value={name}
+          placeholder="Mortgage"
+          onChange={(e) => setName(e.target.value)}
+        />
+      </label>
 
-        <Typography variant="h3" component="h2">
-          Select transactions
-        </Typography>
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <section className="flex flex-col gap-4">
+          <Typography variant="h3" component="h2">
+            Select transactions
+          </Typography>
 
-        <div className="flex flex-col gap-1">
-          <Typography variant="body2">Account</Typography>
-          <Combobox
-            options={accountOptions}
-            value={accountId}
-            onValueChange={setAccountId}
-            clearLabel="Any account"
-            placeholder="Any account"
-            searchPlaceholder="Search accounts…"
-            emptyText="No accounts found"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <Typography variant="body2">Payee</Typography>
-          <Combobox
-            options={payeeOptions}
-            value={payeeId}
-            onValueChange={setPayeeId}
-            clearLabel="Any payee"
-            placeholder="Any payee"
-            searchPlaceholder="Search payees…"
-            emptyText="No payees found"
-          />
-        </div>
-
-        <div className="flex gap-4">
-          <label className="flex flex-1 flex-col gap-1">
-            <Typography variant="body2">Amount min</Typography>
-            <Input
-              value={min}
-              placeholder="-2500"
-              onChange={(e) => setMin(e.target.value)}
+          <div className="flex flex-col gap-1">
+            <Typography variant="body2">Payee</Typography>
+            <Combobox
+              options={payeeOptions}
+              value={payeeId}
+              onValueChange={handlePayeeChange}
+              clearLabel="Any payee"
+              placeholder="Any payee"
+              searchPlaceholder="Search payees…"
+              emptyText="No payees found"
             />
-          </label>
-          <label className="flex flex-1 flex-col gap-1">
-            <Typography variant="body2">Amount max</Typography>
-            <Input
-              value={max}
-              placeholder="-2000"
-              onChange={(e) => setMax(e.target.value)}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <Typography variant="body2">Account</Typography>
+            <Combobox
+              options={accountOptions}
+              value={accountId}
+              onValueChange={setAccountId}
+              clearLabel="Any account"
+              placeholder="Any account"
+              searchPlaceholder="Search accounts…"
+              emptyText="No accounts found"
             />
-          </label>
-        </div>
-        <Typography variant="caption" className="text-neutral-400">
-          Outflows are negative: a 2,200.00 payment is -2200. Leave a side blank
-          for no limit.
-        </Typography>
-        {amountInvalid && (
-          <Typography variant="body2" className="text-red-400">
-            Enter numbers, with min no greater than max.
+          </div>
+
+          <div className="flex gap-4">
+            <label className="flex flex-1 flex-col gap-1">
+              <Typography variant="body2">Amount min</Typography>
+              <Input
+                value={min}
+                placeholder="-2500"
+                onChange={(e) => handleAmountChange(setMin, e.target.value)}
+              />
+            </label>
+            <label className="flex flex-1 flex-col gap-1">
+              <Typography variant="body2">Amount max</Typography>
+              <Input
+                value={max}
+                placeholder="-2000"
+                onChange={(e) => handleAmountChange(setMax, e.target.value)}
+              />
+            </label>
+          </div>
+          <Typography variant="caption" className="text-neutral-400">
+            Outflows are negative: a 2,200.00 payment is -2200. Leave a side
+            blank for no limit.
           </Typography>
-        )}
-
-        <Typography variant="h3" component="h2">
-          Then, for unapproved matches
-        </Typography>
-
-        <div className="flex flex-col gap-1">
-          <Typography variant="body2">Categorize as</Typography>
-          <Combobox
-            options={categoryOptions}
-            value={categoryId}
-            onValueChange={setCategoryId}
-            clearLabel="Don’t categorize"
-            placeholder="Don’t categorize"
-            searchPlaceholder="Search categories…"
-            emptyText="No categories found"
-          />
-        </div>
-
-        <label className="flex items-center gap-3">
-          <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
-          <Typography variant="body2">Auto approve</Typography>
-        </label>
-
-        <label className="flex items-center gap-3">
-          <Switch checked={enabled} onCheckedChange={setEnabled} />
-          <Typography variant="body2">
-            Enabled (runs after each sync)
-          </Typography>
-        </label>
-
-        {saveError && (
-          <Typography variant="body2" className="text-red-400">
-            {saveError}
-          </Typography>
-        )}
-
-        <div className="flex gap-3">
-          <Button
-            size="small"
-            disabled={!canSave || saving}
-            onClick={() => void save()}
-          >
-            {rule ? 'Save changes' : 'Create rule'}
-          </Button>
-          {rule && (
-            <OutlinedButton
-              size="small"
-              disabled={saving}
-              onClick={() => void remove()}
-            >
-              Delete
-            </OutlinedButton>
+          {amountSuggestion && (
+            <Typography variant="caption" className="text-neutral-400">
+              Past range for this payee: {amountSuggestion.min} to{' '}
+              {amountSuggestion.max} ({amountSuggestion.count} transactions)
+            </Typography>
           )}
-        </div>
-      </section>
+          {amountInvalid && (
+            <Typography variant="body2" className="text-red-400">
+              Enter numbers, with min no greater than max.
+            </Typography>
+          )}
+        </section>
+
+        <section className="flex flex-col gap-4">
+          <Typography variant="h3" component="h2">
+            Then, for unapproved matches
+          </Typography>
+
+          <div className="flex flex-col gap-1">
+            <Typography variant="body2">Categorize as</Typography>
+            <Combobox
+              options={categoryOptions}
+              value={categoryId}
+              onValueChange={handleCategoryChange}
+              clearLabel="Don’t categorize"
+              placeholder="Don’t categorize"
+              searchPlaceholder="Search categories…"
+              emptyText="No categories found"
+            />
+            {suggestion && (
+              <Typography variant="caption" className="text-neutral-400">
+                Usually {suggestion.label} ({suggestion.count} of{' '}
+                {suggestion.total} past transactions for this payee)
+              </Typography>
+            )}
+          </div>
+
+          <label className="flex items-center gap-3">
+            <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
+            <Typography variant="body2">Auto approve</Typography>
+          </label>
+
+          <label className="flex items-center gap-3">
+            <Switch checked={enabled} onCheckedChange={setEnabled} />
+            <Typography variant="body2">
+              Enabled (runs after each sync)
+            </Typography>
+          </label>
+
+          {saveError && (
+            <Typography variant="body2" className="text-red-400">
+              {saveError}
+            </Typography>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              size="small"
+              disabled={!canSave || saving}
+              onClick={() => void save()}
+            >
+              {rule ? 'Save changes' : 'Create rule'}
+            </Button>
+            {rule && (
+              <OutlinedButton
+                size="small"
+                disabled={saving}
+                onClick={() => void remove()}
+              >
+                Delete
+              </OutlinedButton>
+            )}
+          </div>
+        </section>
+      </div>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
