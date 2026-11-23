@@ -174,8 +174,8 @@ export function BackupOverviewClient({
                 {status.validationPending
                   ? 'Validation was requested, but no worker is running for this destination, so nothing will happen until one starts. '
                   : 'No worker running for this destination. Validation and copying wait until one starts. '}
-                Start the backup worker with this destination’s export mounted;
-                it claims the destination by itself.
+                Start the backup worker with this destination&apos;s export
+                mounted; it claims the destination by itself.
               </Typography>
             )}
             {status?.validationPending && !status.noWorker && (

@@ -30,6 +30,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+// prettier-ignore
+const REGISTER_HELP = 'Register the NFS export Exodus copies to. This is the export\'s identity; the backup worker with it mounted claims the destination by itself. Validate it afterwards.';
+
 /**
  * Registers an NFS destination, like Add Source does for a machine, or edits
  * `destination` when given. Mount it only while open, so each opening starts
@@ -99,7 +102,7 @@ export function AddDestinationModal({
         <ModalDescription>
           {editing
             ? 'The export and folder cannot change while a job is active or anything is already verified here. Validate again afterwards.'
-            : 'Register the NFS export Exodus copies to. This is the export’s identity; the backup worker with it mounted claims the destination by itself. Validate it afterwards.'}
+            : REGISTER_HELP}
         </ModalDescription>
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
@@ -142,7 +145,7 @@ export function AddDestinationModal({
             <Input
               value={rootDir}
               onChange={(e) => setRootDir(e.target.value)}
-              placeholder="blank writes at the export’s root"
+              placeholder="blank writes at the export's root"
             />
           </Field>
 

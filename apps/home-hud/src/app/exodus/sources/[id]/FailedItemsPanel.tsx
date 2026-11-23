@@ -108,7 +108,7 @@ export function FailedItemsPanel({
 
       {items.some((item) => !activeJobIds.has(item.jobId)) && (
         <Typography variant="body2">
-          Failures from a finished job can’t be retried. Start a new job to
+          Failures from a finished job can&apos;t be retried. Start a new job to
           explore those directories again.
         </Typography>
       )}

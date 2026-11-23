@@ -423,8 +423,8 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
               options={categoryOptions}
               value={categoryId}
               onValueChange={handleCategoryChange}
-              clearLabel="Don’t categorize"
-              placeholder="Don’t categorize"
+              clearLabel="Don't categorize"
+              placeholder="Don't categorize"
               searchPlaceholder="Search categories…"
               emptyText="No categories found"
             />

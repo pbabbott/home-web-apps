@@ -106,7 +106,7 @@ export function BackupProgressPanel({
       )}
       {job.status === 'planned' && (
         <Typography variant="body2" className="text-neutral-400">
-          Waiting for the destination’s worker to pick it up.
+          Waiting for the destination&apos;s worker to pick it up.
         </Typography>
       )}
       {job.status === 'completed_with_issues' && (
