@@ -4,7 +4,7 @@ A **FilterSelection** is a saved rule that selects YNAB transactions and says wh
 
 ## Model (`packages/budget-db`)
 
-- `budget_filter_selections` — the rule: `account_id?`, `payee_id?`, `amount_min_milliunits?`, `amount_max_milliunits?` (at least one filter), `category_id?`, `auto_approve` (at least one action), `enabled`. Filters match by YNAB **id**, so renaming an account or payee in YNAB does not break a rule. Amounts are signed milliunits: outflows are negative.
+- `budget_filter_selections` — the rule: `account_id?`, `payee_id?` (or instead `payee_match_type?` + `payee_pattern?`: a case-insensitive text match on the payee name — equals / starts with / contains / ends with — so one rule can cover payee variants such as "Royal Bank" / "Royal Bank Mortgage"; a rule uses either the id or the pattern), `amount_min_milliunits?`, `amount_max_milliunits?` (at least one filter), `category_id?`, `auto_approve` (at least one action), `enabled`. Filters match by YNAB **id**, so renaming an account or payee in YNAB does not break a rule. Amounts are signed milliunits: outflows are negative.
 - `budget_filter_selection_audit` — append-only. One row per action (`categorize` / `approve`) with `status` `applied`, `skipped_conflict` or `failed`, the transaction snapshot, `from_value` / `to_value`, and `rule_description` + `rule_snapshot`: the rule's text and fields **as they were at apply time**. There is no foreign key to the rule, so editing or deleting a rule never rewrites history.
 
 ## One matcher for preview and job

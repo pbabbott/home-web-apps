@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PAYEE_MATCH_TYPES } from '@abbottland/budget-db';
 
 const milliunits = z.number().int().meta({
   description:
@@ -9,6 +10,13 @@ const milliunits = z.number().int().meta({
 const filterFields = {
   accountId: z.string().min(1).nullish(),
   payeeId: z.string().min(1).nullish(),
+  payeeMatchType: z.enum(PAYEE_MATCH_TYPES).nullish().meta({
+    description:
+      'How payeePattern is compared with the payee name (case-insensitive). Use with payeePattern instead of payeeId',
+  }),
+  payeePattern: z.string().trim().min(1).max(100).nullish().meta({
+    description: 'Text matched against the payee name, e.g. "Royal"',
+  }),
   amountMinMilliunits: milliunits.nullish(),
   amountMaxMilliunits: milliunits.nullish(),
 };
@@ -16,6 +24,8 @@ const filterFields = {
 type FilterFields = {
   accountId?: string | null;
   payeeId?: string | null;
+  payeeMatchType?: string | null;
+  payeePattern?: string | null;
   amountMinMilliunits?: number | null;
   amountMaxMilliunits?: number | null;
 };
@@ -23,8 +33,13 @@ type FilterFields = {
 const hasFilter = (f: FilterFields) =>
   f.accountId != null ||
   f.payeeId != null ||
+  f.payeePattern != null ||
   f.amountMinMilliunits != null ||
   f.amountMaxMilliunits != null;
+
+const payeeOk = (f: FilterFields) =>
+  (f.payeePattern == null) === (f.payeeMatchType == null) &&
+  !(f.payeePattern != null && f.payeeId != null);
 
 const rangeOk = (f: FilterFields) =>
   f.amountMinMilliunits == null ||
@@ -35,6 +50,9 @@ const rangeOk = (f: FilterFields) =>
 export const previewBodySchema = z
   .object({ planId: z.string().min(1), ...filterFields })
   .refine(hasFilter, { message: 'at least one filter is required' })
+  .refine(payeeOk, {
+    message: 'payeePattern and payeeMatchType go together and exclude payeeId',
+  })
   .refine(rangeOk, { message: 'amount min must be <= amount max' });
 
 export const filterSelectionBodySchema = z
@@ -47,6 +65,9 @@ export const filterSelectionBodySchema = z
     autoApprove: z.boolean().default(false),
   })
   .refine(hasFilter, { message: 'at least one filter is required' })
+  .refine(payeeOk, {
+    message: 'payeePattern and payeeMatchType go together and exclude payeeId',
+  })
   .refine(rangeOk, { message: 'amount min must be <= amount max' })
   .refine((v) => v.categoryId != null || v.autoApprove, {
     message: 'choose at least one action (categorize or auto approve)',

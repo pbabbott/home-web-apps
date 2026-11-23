@@ -10,6 +10,10 @@ import {
   Input,
   OutlinedButton,
   ScrollableTable,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
   Switch,
   Table,
   TableBody,
@@ -28,9 +32,11 @@ import type {
   FilterMatchRow,
   FilterPreview,
   FilterSelection,
+  PayeeMatchType,
   YnabReference,
 } from '../../lib/budget-api';
 import {
+  PAYEE_MATCH_OPTIONS,
   formatUnits,
   milliunitsToUnits,
   unitsToMilliunits,
@@ -109,6 +115,12 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     rule?.accountId ?? null,
   );
   const [payeeId, setPayeeId] = useState<string | null>(rule?.payeeId ?? null);
+  // Text matching on the payee name instead of one exact payee.
+  const [patternMode, setPatternMode] = useState(rule?.payeePattern != null);
+  const [payeePattern, setPayeePattern] = useState(rule?.payeePattern ?? '');
+  const [payeeMatchType, setPayeeMatchType] = useState<PayeeMatchType>(
+    rule?.payeeMatchType ?? 'starts_with',
+  );
   const [min, setMin] = useState(
     milliunitsToUnits(rule?.amountMinMilliunits ?? null),
   );
@@ -138,15 +150,38 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
   const [amountSuggestion, setAmountSuggestion] =
     useState<AmountSuggestion | null>(null);
 
+  const accountOptions = (reference?.accounts ?? []).map((a) => ({
+    value: a.id,
+    label: a.closed ? `${a.name} (closed)` : a.name,
+  }));
+  const payeeOptions = (reference?.payees ?? []).map((p) => ({
+    value: p.id,
+    label: p.name,
+  }));
+  const categoryOptions = (reference?.categories ?? [])
+    .filter((c) => !c.hidden || c.id === rule?.categoryId)
+    .map((c) => ({ value: c.id, label: c.name, group: c.groupName }));
+
   const minUnits = unitsToMilliunits(min);
   const maxUnits = unitsToMilliunits(max);
   const amountInvalid =
     Number.isNaN(minUnits) ||
     Number.isNaN(maxUnits) ||
     (minUnits !== null && maxUnits !== null && minUnits > maxUnits);
+  const trimmedPattern = payeePattern.trim();
+  // What the payee field currently selects; exactly one form at a time.
+  const payeeFilter = patternMode
+    ? {
+        payeeId: null,
+        payeeMatchType: trimmedPattern ? payeeMatchType : null,
+        payeePattern: trimmedPattern || null,
+      }
+    : { payeeId, payeeMatchType: null, payeePattern: null };
+  const hasPayeeFilter =
+    payeeFilter.payeeId !== null || payeeFilter.payeePattern !== null;
   const hasFilter =
     accountId !== null ||
-    payeeId !== null ||
+    hasPayeeFilter ||
     minUnits !== null ||
     maxUnits !== null;
   const hasAction = categoryId !== null || autoApprove;
@@ -166,7 +201,7 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
         const result = await previewFilterSelection({
           planId,
           accountId: accountId,
-          payeeId: payeeId,
+          ...payeeFilter,
           amountMinMilliunits: minUnits,
           amountMaxMilliunits: maxUnits,
         });
@@ -192,17 +227,22 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     hasFilter,
     amountInvalid,
     accountId,
-    payeeId,
+    payeeFilter.payeeId,
+    payeeFilter.payeeMatchType,
+    payeeFilter.payeePattern,
     minUnits,
     maxUnits,
   ]);
 
-  async function handlePayeeChange(next: string | null) {
-    setPayeeId(next);
+  /**
+   * Fills the category and amount range from the past transactions the payee
+   * filter matches (an exact payee or a text pattern). Manual input wins.
+   */
+  async function suggestFromPayee(filter: typeof payeeFilter) {
     setSuggestion(null);
     setAmountSuggestion(null);
     const id = ++suggestRequestId.current;
-    if (!next || !planId) {
+    if (!planId || (filter.payeeId === null && filter.payeePattern === null)) {
       if (!categoryTouched.current) setCategoryId(null);
       if (!amountTouched.current) {
         setMin('');
@@ -215,7 +255,7 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
       const result = await previewFilterSelection({
         planId,
         accountId: null,
-        payeeId: next,
+        ...filter,
         amountMinMilliunits: null,
         amountMaxMilliunits: null,
       });
@@ -239,6 +279,57 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
       }
     } catch {
       // The suggestion is a convenience; the live preview reports real errors.
+    }
+  }
+
+  function handlePayeeChange(next: string | null) {
+    setPayeeId(next);
+    void suggestFromPayee({
+      payeeId: next,
+      payeeMatchType: null,
+      payeePattern: null,
+    });
+  }
+
+  // Pattern mode: suggest as the user types, debounced like the preview.
+  const patternSuggestKey = patternMode
+    ? `${payeeMatchType}:${trimmedPattern}`
+    : null;
+  const initialPatternKey = useRef(patternSuggestKey);
+  useEffect(() => {
+    if (patternSuggestKey === null) return;
+    // An opened existing rule keeps its saved category and amounts.
+    if (patternSuggestKey === initialPatternKey.current) return;
+    initialPatternKey.current = null;
+
+    const timer = setTimeout(() => {
+      void suggestFromPayee({
+        payeeId: null,
+        payeeMatchType: trimmedPattern ? payeeMatchType : null,
+        payeePattern: trimmedPattern || null,
+      });
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+    // suggestFromPayee only reads refs and setters besides these inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patternSuggestKey, planId]);
+
+  function handlePatternModeChange(on: boolean) {
+    setPatternMode(on);
+    if (on) {
+      setPayeeId(null);
+    } else {
+      setPayeePattern('');
+    }
+    // The other form's suggestions no longer apply.
+    suggestRequestId.current++;
+    setSuggestion(null);
+    setAmountSuggestion(null);
+    if (!categoryTouched.current) setCategoryId(null);
+    if (!amountTouched.current) {
+      setMin('');
+      setMax('');
     }
   }
 
@@ -270,7 +361,7 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
         enabled,
         planId,
         accountId: accountId,
-        payeeId: payeeId,
+        ...payeeFilter,
         amountMinMilliunits: minUnits,
         amountMaxMilliunits: maxUnits,
         categoryId: categoryId,
@@ -306,18 +397,6 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     }
   }
 
-  const accountOptions = (reference?.accounts ?? []).map((a) => ({
-    value: a.id,
-    label: a.closed ? `${a.name} (closed)` : a.name,
-  }));
-  const payeeOptions = (reference?.payees ?? []).map((p) => ({
-    value: p.id,
-    label: p.name,
-  }));
-  const categoryOptions = (reference?.categories ?? [])
-    .filter((c) => !c.hidden || c.id === rule?.categoryId)
-    .map((c) => ({ value: c.id, label: c.name, group: c.groupName }));
-
   return (
     <main className="flex min-h-screen flex-col gap-8 bg-neutral-800 p-8">
       <div className="flex items-center gap-4">
@@ -351,17 +430,60 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
             Select transactions
           </Typography>
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <Typography variant="body2">Payee</Typography>
-            <Combobox
-              options={payeeOptions}
-              value={payeeId}
-              onValueChange={handlePayeeChange}
-              clearLabel="Any payee"
-              placeholder="Any payee"
-              searchPlaceholder="Search payees…"
-              emptyText="No payees found"
-            />
+            {patternMode ? (
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1 pr-20">
+                  <Input
+                    className="w-full"
+                    value={payeePattern}
+                    placeholder="Royal"
+                    aria-label="Payee text"
+                    onChange={(e) => setPayeePattern(e.target.value)}
+                  />
+                </div>
+                <div className="w-52 shrink-0">
+                  <Select
+                    value={payeeMatchType}
+                    onValueChange={(v) =>
+                      setPayeeMatchType(v as PayeeMatchType)
+                    }
+                  >
+                    <SelectTrigger
+                      aria-label="Payee match type"
+                      className="w-full min-w-0"
+                    />
+                    <SelectContent>
+                      {PAYEE_MATCH_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ) : (
+              <Combobox
+                options={payeeOptions}
+                value={payeeId}
+                onValueChange={handlePayeeChange}
+                clearLabel="Any payee"
+                placeholder="Any payee"
+                searchPlaceholder="Search payees…"
+                emptyText="No payees found"
+              />
+            )}
+            <label className="flex items-center gap-3">
+              <Switch
+                checked={patternMode}
+                onCheckedChange={handlePatternModeChange}
+              />
+              <Typography variant="body2">
+                Match payee by text (covers name variants)
+              </Typography>
+            </label>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -401,8 +523,9 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
           </Typography>
           {amountSuggestion && (
             <Typography variant="caption" className="text-neutral-400">
-              Past range for this payee: {amountSuggestion.min} to{' '}
-              {amountSuggestion.max} ({amountSuggestion.count} transactions)
+              Past range for {patternMode ? 'matching payees' : 'this payee'}:{' '}
+              {amountSuggestion.min} to {amountSuggestion.max} (
+              {amountSuggestion.count} transactions)
             </Typography>
           )}
           {amountInvalid && (
@@ -431,7 +554,8 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
             {suggestion && (
               <Typography variant="caption" className="text-neutral-400">
                 Usually {suggestion.label} ({suggestion.count} of{' '}
-                {suggestion.total} past transactions for this payee)
+                {suggestion.total} past transactions for{' '}
+                {patternMode ? 'matching payees' : 'this payee'})
               </Typography>
             )}
           </div>

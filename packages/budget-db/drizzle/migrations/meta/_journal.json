@@ -29,6 +29,13 @@
       "when": 1795390374336,
       "tag": "0003_purple_cargill",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795444727209,
+      "tag": "0004_bouncy_mantis",
+      "breakpoints": true
     }
   ]
 }

@@ -1,13 +1,48 @@
 import type {
   BudgetFilterSelection,
   FilterAuditAction,
+  PayeeMatchType,
 } from './schema/budget-filter-selections';
 
 /** Fields that select transactions. All optional, at least one required. */
 export type FilterSelectionFilters = Pick<
   BudgetFilterSelection,
-  'accountId' | 'payeeId' | 'amountMinMilliunits' | 'amountMaxMilliunits'
+  | 'accountId'
+  | 'payeeId'
+  | 'payeeMatchType'
+  | 'payeePattern'
+  | 'amountMinMilliunits'
+  | 'amountMaxMilliunits'
 >;
+
+const MATCH_TYPE_PHRASES: Record<PayeeMatchType, string> = {
+  equals: 'equals',
+  starts_with: 'starts with',
+  contains: 'contains',
+  ends_with: 'ends with',
+};
+
+/**
+ * ILIKE pattern for a payee text match. `%`, `_` and `\` in the user's text
+ * are escaped so they match literally.
+ */
+export const payeeLikePattern = (
+  matchType: PayeeMatchType,
+  text: string,
+): string => {
+  const escaped = text.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+  switch (matchType) {
+    case 'starts_with':
+      return `${escaped}%`;
+    case 'contains':
+      return `%${escaped}%`;
+    case 'ends_with':
+      return `%${escaped}`;
+    default:
+      return escaped;
+  }
+};
 
 /** What a rule does to a matched, unapproved transaction. */
 export type FilterSelectionActions = Pick<
@@ -32,6 +67,7 @@ export type RuleNames = {
 export const hasFilter = (filters: FilterSelectionFilters): boolean =>
   filters.accountId != null ||
   filters.payeeId != null ||
+  filters.payeePattern != null ||
   filters.amountMinMilliunits != null ||
   filters.amountMaxMilliunits != null;
 
@@ -63,6 +99,12 @@ export const describeRule = (
 
   if (rule.payeeId != null) {
     parts.push(`payee "${names.payeeName ?? rule.payeeId}"`);
+  }
+
+  if (rule.payeePattern != null) {
+    parts.push(
+      `payee ${MATCH_TYPE_PHRASES[rule.payeeMatchType ?? 'equals']} "${rule.payeePattern}"`,
+    );
   }
 
   const { amountMinMilliunits: min, amountMaxMilliunits: max } = rule;

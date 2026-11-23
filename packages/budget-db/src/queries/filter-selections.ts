@@ -1,6 +1,9 @@
 import { and, asc, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import type { Database } from '../client';
-import type { FilterSelectionFilters } from '../filter-selection-rules';
+import {
+  payeeLikePattern,
+  type FilterSelectionFilters,
+} from '../filter-selection-rules';
 import {
   budgetFilterSelectionAudit,
   budgetFilterSelections,
@@ -140,6 +143,15 @@ export const filterConditions = (
 
   if (filters.payeeId != null) {
     conditions.push(eq(enriched.payeeId, filters.payeeId));
+  }
+
+  if (filters.payeePattern != null) {
+    conditions.push(
+      sql`${enriched.payeeName} ilike ${payeeLikePattern(
+        filters.payeeMatchType ?? 'equals',
+        filters.payeePattern,
+      )}`,
+    );
   }
 
   if (filters.amountMinMilliunits != null) {

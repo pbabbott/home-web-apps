@@ -4,6 +4,7 @@ import {
   formatMilliunits,
   hasAction,
   hasFilter,
+  payeeLikePattern,
   resolveMatches,
   type FilterSelectionRule,
 } from './filter-selection-rules';
@@ -17,6 +18,8 @@ const rule = (
   planId: 'plan',
   accountId: null,
   payeeId: null,
+  payeeMatchType: null,
+  payeePattern: null,
   amountMinMilliunits: null,
   amountMaxMilliunits: null,
   categoryId: null,
@@ -130,5 +133,31 @@ describe('resolveMatches', () => {
 describe('auditKey', () => {
   it('is stable', () => {
     expect(auditKey('t', 'approve', null)).toBe('t|approve|');
+  });
+});
+
+describe('payee text matching', () => {
+  it('builds ILIKE patterns for each match type', () => {
+    expect(payeeLikePattern('starts_with', 'Royal')).toBe('Royal%');
+    expect(payeeLikePattern('contains', 'Royal')).toBe('%Royal%');
+    expect(payeeLikePattern('ends_with', 'Bank')).toBe('%Bank');
+    expect(payeeLikePattern('equals', 'Royal')).toBe('Royal');
+  });
+
+  it('escapes wildcard characters so they match literally', () => {
+    expect(payeeLikePattern('contains', '50%_off\\')).toBe('%50\\%\\_off\\\\%');
+  });
+
+  it('counts a pattern as a filter and describes it', () => {
+    const r = rule('1', {
+      payeeMatchType: 'starts_with',
+      payeePattern: 'Royal',
+      categoryId: 'c',
+    });
+
+    expect(hasFilter(r)).toBe(true);
+    expect(describeRule(r)).toBe(
+      'rule-1: payee starts with "Royal" -> categorize "c"',
+    );
   });
 });

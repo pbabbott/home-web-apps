@@ -1,11 +1,27 @@
 import type {
   BudgetJob,
   BudgetJobStatus,
+  PayeeMatchType,
   YnabPlan,
   YnabRawResponseSummary,
   YnabSyncRun,
   YnabSyncState,
 } from './budget-api';
+
+/** Payee text match types: select label and rule-summary phrase. */
+export const PAYEE_MATCH_OPTIONS: { value: PayeeMatchType; label: string }[] = [
+  { value: 'starts_with', label: 'Starts with' },
+  { value: 'contains', label: 'Contains' },
+  { value: 'ends_with', label: 'Ends with' },
+  { value: 'equals', label: 'Equals' },
+];
+
+export const MATCH_TYPE_PHRASES: Record<PayeeMatchType, string> = {
+  starts_with: 'starts with',
+  contains: 'contains',
+  ends_with: 'ends with',
+  equals: 'equals',
+};
 
 export const operationLabels: Record<string, string> = {
   hello: 'Hello',

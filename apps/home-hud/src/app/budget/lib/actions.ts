@@ -68,6 +68,8 @@ export async function previewFilterSelection(
     | 'planId'
     | 'accountId'
     | 'payeeId'
+    | 'payeeMatchType'
+    | 'payeePattern'
     | 'amountMinMilliunits'
     | 'amountMaxMilliunits'
   >,
