@@ -14,6 +14,7 @@ import {
   Th,
   Typography,
 } from '@abbottland/fui-components';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LocalDate } from '../lib/LocalDate';
 import type { FilterAuditEntry } from '../lib/budget-api';
@@ -29,9 +30,13 @@ const PAGE_SIZE = 25;
 
 export function AuditClient({
   entries,
+  ruleIds,
 }: {
   entries: FilterAuditEntry[] | null;
+  /** Ids of rules that still exist; null if they could not be loaded. */
+  ruleIds: string[] | null;
 }) {
+  const existingRules = new Set(ruleIds ?? []);
   const router = useRouter();
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil((entries?.length ?? 0) / PAGE_SIZE));
@@ -72,6 +77,7 @@ export function AuditClient({
                   <Th>When</Th>
                   <Th>Transaction</Th>
                   <Th>Change</Th>
+                  <Th>Rule</Th>
                   <Th>Why (rule at the time)</Th>
                   <Th>Status</Th>
                 </TableRow>
@@ -92,6 +98,27 @@ export function AuditClient({
                     </Td>
                     <Td>
                       {e.fromValue ?? '—'} → {e.toValue ?? '—'}
+                    </Td>
+                    <Td>
+                      {e.filterSelectionId &&
+                      existingRules.has(e.filterSelectionId) ? (
+                        <Link
+                          href={`/budget/filters/${e.filterSelectionId}`}
+                          className="text-primary-500 underline"
+                        >
+                          {e.ruleName}
+                        </Link>
+                      ) : (
+                        <>
+                          {e.ruleName}
+                          {e.filterSelectionId && ruleIds !== null && (
+                            <>
+                              <br />
+                              <span className="text-neutral-400">deleted</span>
+                            </>
+                          )}
+                        </>
+                      )}
                     </Td>
                     <Td>
                       {e.ruleDescription}
