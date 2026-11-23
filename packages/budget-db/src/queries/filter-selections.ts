@@ -98,7 +98,8 @@ export const listFilterSelections = async (
 export type FilterAuditCounts = { total: number; applied: number };
 
 /**
- * Audit entry counts per rule id (rules with no entries are absent). Entries
+ * Transactions with audit entries per rule id (a transaction's categorize and
+ * approve rows count once; rules with no entries are absent). Entries
  * whose rule was deleted keep their id but are simply never looked up.
  */
 export const countFilterAuditEntriesByRule = async (
@@ -107,8 +108,8 @@ export const countFilterAuditEntriesByRule = async (
   const rows = await db
     .select({
       filterSelectionId: budgetFilterSelectionAudit.filterSelectionId,
-      total: sql<number>`count(*)::int`,
-      applied: sql<number>`(count(*) filter (where ${budgetFilterSelectionAudit.status} = 'applied'))::int`,
+      total: sql<number>`count(distinct ${budgetFilterSelectionAudit.transactionId})::int`,
+      applied: sql<number>`(count(distinct ${budgetFilterSelectionAudit.transactionId}) filter (where ${budgetFilterSelectionAudit.status} in ('applied', 'unchanged')))::int`,
     })
     .from(budgetFilterSelectionAudit)
     .groupBy(budgetFilterSelectionAudit.filterSelectionId);

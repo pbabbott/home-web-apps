@@ -237,7 +237,7 @@ export const openApiSpec = createDocument({
         responses: {
           '200': {
             description:
-              'All rules, by name, each with auditEntryCount (all audit rows) and auditAppliedCount (status applied)',
+              'All rules, by name, each with auditEntryCount (distinct transactions in the audit log) and auditAppliedCount (of those, applied or already set)',
           },
         },
       },
