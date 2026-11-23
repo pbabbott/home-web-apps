@@ -180,8 +180,14 @@ describe('apply_filter_selections', () => {
     expect(await auditFor('out-of-range')).toHaveLength(0);
     expect(await auditFor('split')).toHaveLength(0);
     expect(await auditFor('transfer')).toHaveLength(0);
-    expect((await auditFor('categorized')).map((e) => e.action)).toEqual([
-      'approve',
+    // already categorized: the existing category is logged as unchanged
+    expect(
+      (await auditFor('categorized'))
+        .map((e) => [e.action, e.status, e.fromValue, e.toValue])
+        .sort(),
+    ).toEqual([
+      ['approve', 'applied', 'unapproved', 'approved'],
+      ['categorize', 'unchanged', 'Other', 'Other'],
     ]);
 
     const jobs = await db.select().from(budgetJobs);

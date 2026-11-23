@@ -176,7 +176,7 @@ export interface FilterAuditEntry {
   action: 'categorize' | 'approve';
   fromValue: string | null;
   toValue: string | null;
-  status: 'applied' | 'skipped_conflict' | 'failed';
+  status: 'applied' | 'skipped_conflict' | 'unchanged' | 'failed';
   error: string | null;
 }
 

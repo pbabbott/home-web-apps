@@ -80,12 +80,21 @@ export const applyFilterSelections = async (
     rules.map((r) => [r.id, r]),
   );
   const txns = new Map<string, ApplicableTransaction>();
+  // Rule that would have categorized a transaction YNAB already categorized.
+  const alreadyCategorized = new Map<string, FilterSelectionRule>();
   const matches: { transactionId: string; rule: FilterSelectionRule }[] = [];
 
   for (const rule of rules) {
     for (const txn of await findApplicableTransactions(db, planId, rule)) {
       txns.set(txn.id, txn);
       // Categorize only uncategorized transactions; approve still applies.
+      if (
+        txn.categoryId !== null &&
+        rule.categoryId !== null &&
+        !alreadyCategorized.has(txn.id)
+      ) {
+        alreadyCategorized.set(txn.id, rule);
+      }
       const effective =
         txn.categoryId !== null ? { ...rule, categoryId: null } : rule;
 
@@ -174,7 +183,22 @@ export const applyFilterSelections = async (
   for (let i = 0; i < items.length && !stopReason; i += PATCH_BATCH_SIZE) {
     const batch = items.slice(i, i + PATCH_BATCH_SIZE);
     const entries = batch.flatMap(({ change, txn, categorize, approve }) => {
-      const out: Omit<NewBudgetFilterSelectionAudit, 'status' | 'error'>[] = [];
+      const out: (Omit<NewBudgetFilterSelectionAudit, 'status' | 'error'> & {
+        status?: 'unchanged';
+      })[] = [];
+      const preset = alreadyCategorized.get(txn.id);
+
+      // No change needed: record the category as it was when the rule ran.
+      // Logged only alongside the approve, so it is written once per txn.
+      if (!categorize && approve && preset && txn.categoryName) {
+        out.push({
+          ...entryBase(preset, txn),
+          action: 'categorize',
+          fromValue: txn.categoryName,
+          toValue: txn.categoryName,
+          status: 'unchanged',
+        });
+      }
 
       if (categorize) {
         out.push({
@@ -215,11 +239,13 @@ export const applyFilterSelections = async (
 
       await recordFilterAuditEntries(
         db,
-        entries.map((e) => ({
-          ...e,
-          status: 'failed' as const,
-          error: message,
-        })),
+        entries
+          .filter((e) => e.status !== 'unchanged')
+          .map((e) => ({
+            ...e,
+            status: 'failed' as const,
+            error: message,
+          })),
       );
       throw new JobProcessingError(
         `apply_filter_selections failed: ${message}`,
@@ -228,9 +254,13 @@ export const applyFilterSelections = async (
 
     await recordFilterAuditEntries(
       db,
-      entries.map((e) => ({ ...e, status: 'applied' as const, error: null })),
+      entries.map((e) => ({
+        ...e,
+        status: e.status ?? ('applied' as const),
+        error: null,
+      })),
     );
-    written += entries.length;
+    written += entries.filter((e) => e.status !== 'unchanged').length;
   }
 
   // Let the change flow back raw -> typed; the follow-up apply then finds nothing.
