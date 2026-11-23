@@ -39,8 +39,8 @@ import {
 
 const PAGE_SIZE = 10;
 
-const FULL_SYNC_WARNING =
-  'A full sync re-downloads the configured plan from scratch (7 of YNAB’s 200 requests/hour and a lot of stored data). Continue?';
+// prettier-ignore
+const FULL_SYNC_WARNING = 'A full sync re-downloads the configured plan from scratch (7 of YNAB\'s 200 requests/hour and a lot of stored data). Continue?';
 
 const REBUILD_WARNING =
   'Rebuild deletes the typed YNAB tables and re-creates them from the stored raw responses. It makes no YNAB API calls. Continue?';
@@ -120,10 +120,10 @@ export function SyncClient({
 
       <div className="flex max-w-3xl flex-col gap-2">
         <Typography variant="body2" className="text-neutral-400">
-          Each sync asks YNAB for a plan’s accounts, categories, months, payees,
-          scheduled transactions and transactions, and stores every answer
-          as-is. The first sync is a full download; after that YNAB only sends
-          what changed, so later syncs are tiny.
+          Each sync asks YNAB for a plan&apos;s accounts, categories, months,
+          payees, scheduled transactions and transactions, and stores every
+          answer as-is. The first sync is a full download; after that YNAB only
+          sends what changed, so later syncs are tiny.
         </Typography>
         <Typography variant="body2" className="text-neutral-400">
           A transform turns the stored responses into queryable tables without

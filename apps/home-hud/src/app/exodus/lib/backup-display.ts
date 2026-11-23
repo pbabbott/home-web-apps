@@ -200,10 +200,10 @@ export const canRerunBackupJob = (
 export const PLAN_WARNING_TEXT: Record<BackupPlanWarning['code'], string> = {
   discovery_job_active:
     'A discovery job is running for this source. Inventory may still change; anything approved later is not part of this job.',
-  destination_folder_exists:
-    'This source’s folder already exists on the destination. Identical files are adopted; different ones are kept next to the existing file, never overwritten.',
-  destination_folder_unknown:
-    'The destination has not been validated, so it is not known whether this source’s folder already exists.',
+  // prettier-ignore
+  destination_folder_exists: 'This source\'s folder already exists on the destination. Identical files are adopted; different ones are kept next to the existing file, never overwritten.',
+  // prettier-ignore
+  destination_folder_unknown: 'The destination has not been validated, so it is not known whether this source\'s folder already exists.',
 };
 
 export const planWarningText = (warning: BackupPlanWarning): string =>

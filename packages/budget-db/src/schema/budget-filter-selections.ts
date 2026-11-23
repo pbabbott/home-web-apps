@@ -9,6 +9,14 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+export const PAYEE_MATCH_TYPES = [
+  'equals',
+  'starts_with',
+  'contains',
+  'ends_with',
+] as const;
+export type PayeeMatchType = (typeof PAYEE_MATCH_TYPES)[number];
+
 /**
  * A saved rule: selects transactions by account / payee / amount range and
  * carries the actions the nightly `apply_filter_selections` job performs on
@@ -22,6 +30,13 @@ export const budgetFilterSelections = pgTable('budget_filter_selections', {
   planId: text('plan_id').notNull(),
   accountId: text('account_id'),
   payeeId: text('payee_id'),
+  /**
+   * Text matching on the payee name, an alternative to `payeeId` (a rule uses
+   * one or the other): `payee_pattern` is compared case-insensitively
+   * according to `payee_match_type`.
+   */
+  payeeMatchType: text('payee_match_type').$type<PayeeMatchType>(),
+  payeePattern: text('payee_pattern'),
   amountMinMilliunits: bigint('amount_min_milliunits', { mode: 'number' }),
   amountMaxMilliunits: bigint('amount_max_milliunits', { mode: 'number' }),
   categoryId: text('category_id'),

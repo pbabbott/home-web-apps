@@ -29,6 +29,8 @@ const toInput = (body: FilterSelectionBody) => ({
   planId: body.planId,
   accountId: body.accountId ?? null,
   payeeId: body.payeeId ?? null,
+  payeeMatchType: body.payeeMatchType ?? null,
+  payeePattern: body.payeePattern ?? null,
   amountMinMilliunits: body.amountMinMilliunits ?? null,
   amountMaxMilliunits: body.amountMaxMilliunits ?? null,
   categoryId: body.categoryId ?? null,
@@ -118,6 +120,8 @@ export const postPreview = async (req: Request, res: Response) => {
       await previewFilterSelection(db, planId, {
         accountId: filters.accountId ?? null,
         payeeId: filters.payeeId ?? null,
+        payeeMatchType: filters.payeeMatchType ?? null,
+        payeePattern: filters.payeePattern ?? null,
         amountMinMilliunits: filters.amountMinMilliunits ?? null,
         amountMaxMilliunits: filters.amountMaxMilliunits ?? null,
       }),

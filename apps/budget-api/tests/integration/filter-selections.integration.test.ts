@@ -60,6 +60,48 @@ describe('/filter-selections', () => {
       .expect(400);
   });
 
+  it('accepts a payee text pattern and rejects half or mixed payee filters', async () => {
+    const rest = { ...body, payeeId: undefined };
+    const pattern = {
+      ...rest,
+      payeeMatchType: 'starts_with',
+      payeePattern: 'Royal',
+    };
+
+    const created = await getRequest()
+      .post('/filter-selections')
+      .send(pattern)
+      .expect(201);
+
+    expect(created.body).toMatchObject({
+      payeeId: null,
+      payeeMatchType: 'starts_with',
+      payeePattern: 'Royal',
+    });
+    await getRequest().delete(`/filter-selections/${created.body.id}`);
+
+    await getRequest()
+      .post('/filter-selections')
+      .send({ ...rest, payeePattern: 'Royal' })
+      .expect(400);
+    await getRequest()
+      .post('/filter-selections')
+      .send({ ...pattern, payeeId: 'payee' })
+      .expect(400);
+    await getRequest()
+      .post('/filter-selections')
+      .send({ ...pattern, payeeMatchType: 'regex' })
+      .expect(400);
+    await getRequest()
+      .post('/filter-selections/preview')
+      .send({
+        planId: 'nothing',
+        payeeMatchType: 'contains',
+        payeePattern: 'x',
+      })
+      .expect(200);
+  });
+
   it('previews matches (empty when nothing synced) and validates input', async () => {
     const res = await getRequest()
       .post('/filter-selections/preview')

@@ -24,7 +24,7 @@ import type {
   FilterSelectionListItem,
   YnabReference,
 } from '../lib/budget-api';
-import { formatUnits } from '../lib/budget-display';
+import { MATCH_TYPE_PHRASES, formatUnits } from '../lib/budget-display';
 
 export function summarize(
   rule: FilterSelection,
@@ -41,6 +41,12 @@ export function summarize(
   if (rule.payeeId) {
     parts.push(
       `payee ${reference?.payees.find((p) => p.id === rule.payeeId)?.name ?? rule.payeeId}`,
+    );
+  }
+
+  if (rule.payeePattern) {
+    parts.push(
+      `payee ${MATCH_TYPE_PHRASES[rule.payeeMatchType ?? 'equals']} "${rule.payeePattern}"`,
     );
   }
 
@@ -91,6 +97,8 @@ export function FiltersClient({
         planId: rule.planId,
         accountId: rule.accountId,
         payeeId: rule.payeeId,
+        payeeMatchType: rule.payeeMatchType,
+        payeePattern: rule.payeePattern,
         amountMinMilliunits: rule.amountMinMilliunits,
         amountMaxMilliunits: rule.amountMaxMilliunits,
         categoryId: rule.categoryId,

@@ -94,6 +94,12 @@ export async function getSyncRuns(): Promise<YnabSyncRun[]> {
   return data.syncRuns;
 }
 
+export type PayeeMatchType =
+  | 'equals'
+  | 'starts_with'
+  | 'contains'
+  | 'ends_with';
+
 export interface FilterSelection {
   id: string;
   name: string;
@@ -101,6 +107,8 @@ export interface FilterSelection {
   planId: string;
   accountId: string | null;
   payeeId: string | null;
+  payeeMatchType: PayeeMatchType | null;
+  payeePattern: string | null;
   amountMinMilliunits: number | null;
   amountMaxMilliunits: number | null;
   categoryId: string | null;
@@ -122,6 +130,8 @@ export interface FilterSelectionInput {
   planId: string;
   accountId: string | null;
   payeeId: string | null;
+  payeeMatchType: PayeeMatchType | null;
+  payeePattern: string | null;
   amountMinMilliunits: number | null;
   amountMaxMilliunits: number | null;
   categoryId: string | null;
