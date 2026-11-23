@@ -21,6 +21,7 @@ import { saveFilterSelection } from '../lib/actions';
 import type {
   FilterSelection,
   FilterSelectionInput,
+  FilterSelectionListItem,
   YnabReference,
 } from '../lib/budget-api';
 import { formatUnits } from '../lib/budget-display';
@@ -72,7 +73,7 @@ export function FiltersClient({
   rules,
   reference,
 }: {
-  rules: FilterSelection[] | null;
+  rules: FilterSelectionListItem[] | null;
   reference: YnabReference | null;
 }) {
   const router = useRouter();
@@ -153,8 +154,8 @@ export function FiltersClient({
                 <Th>Name</Th>
                 <Th>When</Th>
                 <Th>Then</Th>
+                <Th>Audit entries</Th>
                 <Th>Updated</Th>
-                <Th>{''}</Th>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -171,14 +172,28 @@ export function FiltersClient({
                         aria-label={`Enable ${rule.name}`}
                       />
                     </Td>
-                    <Td>{rule.name}</Td>
+                    <Td>
+                      <Link
+                        href={`/budget/filters/${rule.id}`}
+                        className="text-primary-500 underline"
+                      >
+                        {rule.name}
+                      </Link>
+                    </Td>
                     <Td>{when}</Td>
                     <Td>{then}</Td>
                     <Td>
-                      <LocalDate iso={rule.updatedAt} />
+                      {rule.auditAppliedCount}
+                      {rule.auditEntryCount > rule.auditAppliedCount && (
+                        <span className="text-neutral-400">
+                          {' '}
+                          (+{rule.auditEntryCount - rule.auditAppliedCount}{' '}
+                          skipped/failed)
+                        </span>
+                      )}
                     </Td>
                     <Td>
-                      <Link href={`/budget/filters/${rule.id}`}>Edit</Link>
+                      <LocalDate iso={rule.updatedAt} />
                     </Td>
                   </TableRow>
                 );

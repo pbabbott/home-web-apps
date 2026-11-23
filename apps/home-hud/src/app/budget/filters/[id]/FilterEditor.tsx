@@ -465,6 +465,7 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
             {rule && (
               <OutlinedButton
                 size="small"
+                color="error"
                 disabled={saving}
                 onClick={() => void remove()}
               >
