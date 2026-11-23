@@ -71,7 +71,6 @@ export function AuditClient({
                 <TableRow>
                   <Th>When</Th>
                   <Th>Transaction</Th>
-                  <Th>Action</Th>
                   <Th>Change</Th>
                   <Th>Why (rule at the time)</Th>
                   <Th>Status</Th>
@@ -91,7 +90,6 @@ export function AuditClient({
                         {e.accountName ?? ''}
                       </span>
                     </Td>
-                    <Td>{e.action}</Td>
                     <Td>
                       {e.fromValue ?? '—'} → {e.toValue ?? '—'}
                     </Td>
