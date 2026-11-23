@@ -109,6 +109,12 @@ export interface FilterSelection {
   updatedAt: string;
 }
 
+/** A rule as listed: with how many audit entries point at it. */
+export interface FilterSelectionListItem extends FilterSelection {
+  auditEntryCount: number;
+  auditAppliedCount: number;
+}
+
 /** Body for creating/replacing a rule; amounts are signed milliunits. */
 export interface FilterSelectionInput {
   name: string;
@@ -175,8 +181,10 @@ export interface YnabReference {
   }[];
 }
 
-export async function getFilterSelections(): Promise<FilterSelection[]> {
-  const data = await get<{ filterSelections: FilterSelection[] }>(
+export async function getFilterSelections(): Promise<
+  FilterSelectionListItem[]
+> {
+  const data = await get<{ filterSelections: FilterSelectionListItem[] }>(
     '/filter-selections',
   );
   return data.filterSelections;

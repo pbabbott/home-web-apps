@@ -234,7 +234,12 @@ export const openApiSpec = createDocument({
     '/filter-selections': {
       get: {
         summary: 'List filter selections (rules)',
-        responses: { '200': { description: 'All rules, by name' } },
+        responses: {
+          '200': {
+            description:
+              'All rules, by name, each with auditEntryCount (all audit rows) and auditAppliedCount (status applied)',
+          },
+        },
       },
       post: {
         summary: 'Create a filter selection',

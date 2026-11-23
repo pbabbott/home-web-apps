@@ -92,6 +92,38 @@ export const listFilterSelections = async (
     )
     .orderBy(asc(budgetFilterSelections.name));
 
+export type FilterAuditCounts = { total: number; applied: number };
+
+/**
+ * Audit entry counts per rule id (rules with no entries are absent). Entries
+ * whose rule was deleted keep their id but are simply never looked up.
+ */
+export const countFilterAuditEntriesByRule = async (
+  db: Database,
+): Promise<Map<string, FilterAuditCounts>> => {
+  const rows = await db
+    .select({
+      filterSelectionId: budgetFilterSelectionAudit.filterSelectionId,
+      total: sql<number>`count(*)::int`,
+      applied: sql<number>`(count(*) filter (where ${budgetFilterSelectionAudit.status} = 'applied'))::int`,
+    })
+    .from(budgetFilterSelectionAudit)
+    .groupBy(budgetFilterSelectionAudit.filterSelectionId);
+
+  const counts = new Map<string, FilterAuditCounts>();
+
+  for (const row of rows) {
+    if (row.filterSelectionId) {
+      counts.set(row.filterSelectionId, {
+        total: row.total,
+        applied: row.applied,
+      });
+    }
+  }
+
+  return counts;
+};
+
 /**
  * The single place filters become SQL, shared by the preview and the apply
  * job so the preview is exactly what the job will match.

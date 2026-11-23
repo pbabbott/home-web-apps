@@ -110,6 +110,8 @@ export {
   recordFilterAuditEntries,
   listAppliedAuditKeys,
   listFilterAuditEntries,
+  countFilterAuditEntriesByRule,
+  type FilterAuditCounts,
   getYnabReference,
   PREVIEW_ROW_LIMIT,
 } from './queries/filter-selections';

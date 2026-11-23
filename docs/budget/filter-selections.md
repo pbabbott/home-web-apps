@@ -9,7 +9,7 @@ A **FilterSelection** is a saved rule that selects YNAB transactions and says wh
 
 ## One matcher for preview and job
 
-`filterConditions` in `src/queries/filter-selections.ts` builds the SQL over the `ynab_transactions_enriched` view. The editor preview (`POST /filter-selections/preview`) and the job both use it, so the preview is what the job matches. The preview shows all matching history; "would act on" counts only the actionable subset below.
+`filterConditions` in `src/queries/filter-selections.ts` builds the SQL over the `ynab_transactions_enriched` view. `GET /filter-selections` also returns `auditEntryCount` and `auditAppliedCount` per rule (a `group by filter_selection_id` over the audit table; shown on the rules page). The editor preview (`POST /filter-selections/preview`) and the job both use it, so the preview is what the job matches. The preview shows all matching history; "would act on" counts only the actionable subset below.
 
 ## What the job touches
 

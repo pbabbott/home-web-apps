@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import {
+  countFilterAuditEntriesByRule,
   createFilterSelection,
   deleteFilterSelection,
   getFilterSelection,
@@ -36,7 +37,18 @@ const toInput = (body: FilterSelectionBody) => ({
 
 export const listSelections = async (_req: Request, res: Response) => {
   try {
-    res.status(200).json({ filterSelections: await listFilterSelections(db) });
+    const [rules, counts] = await Promise.all([
+      listFilterSelections(db),
+      countFilterAuditEntriesByRule(db),
+    ]);
+
+    res.status(200).json({
+      filterSelections: rules.map((rule) => ({
+        ...rule,
+        auditEntryCount: counts.get(rule.id)?.total ?? 0,
+        auditAppliedCount: counts.get(rule.id)?.applied ?? 0,
+      })),
+    });
   } catch (err) {
     fail(res, 'GET /filter-selections', err);
   }
