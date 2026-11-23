@@ -6,13 +6,10 @@ import { useRouter } from 'next/navigation';
 import {
   Badge,
   Button,
+  Combobox,
   Input,
   OutlinedButton,
   ScrollableTable,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
   Switch,
   Table,
   TableBody,
@@ -38,8 +35,6 @@ import {
   unitsToMilliunits,
 } from '../../lib/budget-display';
 
-const ANY = '__any__';
-const NONE = '__none__';
 const DEBOUNCE_MS = 400;
 
 interface Props {
@@ -53,15 +48,19 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
   const router = useRouter();
   const [name, setName] = useState(rule?.name ?? '');
   const [enabled, setEnabled] = useState(rule?.enabled ?? true);
-  const [accountId, setAccountId] = useState(rule?.accountId ?? ANY);
-  const [payeeId, setPayeeId] = useState(rule?.payeeId ?? ANY);
+  const [accountId, setAccountId] = useState<string | null>(
+    rule?.accountId ?? null,
+  );
+  const [payeeId, setPayeeId] = useState<string | null>(rule?.payeeId ?? null);
   const [min, setMin] = useState(
     milliunitsToUnits(rule?.amountMinMilliunits ?? null),
   );
   const [max, setMax] = useState(
     milliunitsToUnits(rule?.amountMaxMilliunits ?? null),
   );
-  const [categoryId, setCategoryId] = useState(rule?.categoryId ?? NONE);
+  const [categoryId, setCategoryId] = useState<string | null>(
+    rule?.categoryId ?? null,
+  );
   const [autoApprove, setAutoApprove] = useState(rule?.autoApprove ?? false);
 
   const [preview, setPreview] = useState<FilterPreview | null>(null);
@@ -78,11 +77,11 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     Number.isNaN(maxUnits) ||
     (minUnits !== null && maxUnits !== null && minUnits > maxUnits);
   const hasFilter =
-    accountId !== ANY ||
-    payeeId !== ANY ||
+    accountId !== null ||
+    payeeId !== null ||
     minUnits !== null ||
     maxUnits !== null;
-  const hasAction = categoryId !== NONE || autoApprove;
+  const hasAction = categoryId !== null || autoApprove;
 
   // Debounced live preview; stale responses are dropped via requestId.
   useEffect(() => {
@@ -98,8 +97,8 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
       try {
         const result = await previewFilterSelection({
           planId,
-          accountId: accountId === ANY ? null : accountId,
-          payeeId: payeeId === ANY ? null : payeeId,
+          accountId: accountId,
+          payeeId: payeeId,
           amountMinMilliunits: minUnits,
           amountMaxMilliunits: maxUnits,
         });
@@ -147,11 +146,11 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
         name: name.trim(),
         enabled,
         planId,
-        accountId: accountId === ANY ? null : accountId,
-        payeeId: payeeId === ANY ? null : payeeId,
+        accountId: accountId,
+        payeeId: payeeId,
         amountMinMilliunits: minUnits,
         amountMaxMilliunits: maxUnits,
-        categoryId: categoryId === NONE ? null : categoryId,
+        categoryId: categoryId,
         autoApprove,
       });
       router.push('/budget/filters');
@@ -184,9 +183,17 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
     }
   }
 
-  const visibleCategories = (reference?.categories ?? []).filter(
-    (c) => !c.hidden || c.id === rule?.categoryId,
-  );
+  const accountOptions = (reference?.accounts ?? []).map((a) => ({
+    value: a.id,
+    label: a.closed ? `${a.name} (closed)` : a.name,
+  }));
+  const payeeOptions = (reference?.payees ?? []).map((p) => ({
+    value: p.id,
+    label: p.name,
+  }));
+  const categoryOptions = (reference?.categories ?? [])
+    .filter((c) => !c.hidden || c.id === rule?.categoryId)
+    .map((c) => ({ value: c.id, label: c.name, group: c.groupName }));
 
   return (
     <main className="flex min-h-screen flex-col gap-8 bg-neutral-800 p-8">
@@ -222,33 +229,28 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
 
         <div className="flex flex-col gap-1">
           <Typography variant="body2">Account</Typography>
-          <Select value={accountId} onValueChange={setAccountId}>
-            <SelectTrigger placeholder="Any account" />
-            <SelectContent>
-              <SelectItem value={ANY}>Any account</SelectItem>
-              {(reference?.accounts ?? []).map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.name}
-                  {a.closed ? ' (closed)' : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={accountOptions}
+            value={accountId}
+            onValueChange={setAccountId}
+            clearLabel="Any account"
+            placeholder="Any account"
+            searchPlaceholder="Search accounts…"
+            emptyText="No accounts found"
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <Typography variant="body2">Payee</Typography>
-          <Select value={payeeId} onValueChange={setPayeeId}>
-            <SelectTrigger placeholder="Any payee" />
-            <SelectContent>
-              <SelectItem value={ANY}>Any payee</SelectItem>
-              {(reference?.payees ?? []).map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={payeeOptions}
+            value={payeeId}
+            onValueChange={setPayeeId}
+            clearLabel="Any payee"
+            placeholder="Any payee"
+            searchPlaceholder="Search payees…"
+            emptyText="No payees found"
+          />
         </div>
 
         <div className="flex gap-4">
@@ -285,17 +287,15 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
 
         <div className="flex flex-col gap-1">
           <Typography variant="body2">Categorize as</Typography>
-          <Select value={categoryId} onValueChange={setCategoryId}>
-            <SelectTrigger placeholder="Don’t categorize" />
-            <SelectContent>
-              <SelectItem value={NONE}>Don’t categorize</SelectItem>
-              {visibleCategories.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.groupName}: {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={categoryOptions}
+            value={categoryId}
+            onValueChange={setCategoryId}
+            clearLabel="Don’t categorize"
+            placeholder="Don’t categorize"
+            searchPlaceholder="Search categories…"
+            emptyText="No categories found"
+          />
         </div>
 
         <label className="flex items-center gap-3">

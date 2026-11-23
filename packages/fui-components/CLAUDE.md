@@ -48,6 +48,7 @@ What's available for building UIs (blog, home-hud, diagram-maker, …). Source: 
 - **Modal** – dialog (Radix: Trigger, Close, Content, Title, Description); focused tasks and confirmations.
 - **DropdownMenu** – dropdown (Radix: Trigger, Content, Item); action menus.
 - **Select** – single-choice picker (Radix: Trigger, Content, Item) whose menu is styled exactly like DropdownMenu; pick one value from a list.
+- **Combobox** – searchable single-choice picker (Radix Popover + cmdk) styled like Select; `options` (optional `group`), `clearLabel` for a "none" row; use for long lists such as payees and categories.
 - **Tooltip** – hover tooltip with delay and optional controlled state; short hints.
 
 **Data display**
