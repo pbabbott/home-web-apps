@@ -78,3 +78,37 @@ export const ynabGet = async (
     rateLimit: parseRateLimit(response.headers.get('X-Rate-Limit')),
   };
 };
+
+/**
+ * PATCH against the YNAB API with a JSON body. The only write the worker
+ * makes; each call counts against the same 200 requests/hour as a GET.
+ */
+export const ynabPatch = async (
+  path: string,
+  body: unknown,
+): Promise<YnabResponse> => {
+  const response = await fetch(new URL(`${config.ynab.apiUrl}${path}`), {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${config.ynab.apiToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new YnabApiError(
+      response.status,
+      `YNAB API request failed: ${response.status} PATCH ${path}`,
+    );
+  }
+
+  const parsed: unknown = await response.json();
+
+  return {
+    status: response.status,
+    body: parsed,
+    serverKnowledge: extractServerKnowledge(parsed),
+    rateLimit: parseRateLimit(response.headers.get('X-Rate-Limit')),
+  };
+};

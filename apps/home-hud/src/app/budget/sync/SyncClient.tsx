@@ -45,6 +45,9 @@ const FULL_SYNC_WARNING =
 const REBUILD_WARNING =
   'Rebuild deletes the typed YNAB tables and re-creates them from the stored raw responses. It makes no YNAB API calls. Continue?';
 
+const APPLY_RULES_WARNING =
+  'This applies your enabled filter rules now: matching unapproved transactions are categorized and/or approved in YNAB (a few API requests). Every change is recorded on the Audit page. Continue?';
+
 const kindColor: Record<ReturnType<typeof responseKind>, BadgeColor> = {
   snapshot: 'warning',
   delta: 'success',
@@ -170,6 +173,17 @@ export function SyncClient({
             }}
           >
             Rebuild tables
+          </OutlinedButton>
+          <OutlinedButton
+            size="small"
+            disabled={submitting}
+            onClick={() => {
+              if (window.confirm(APPLY_RULES_WARNING)) {
+                void start({ operation: 'apply_filter_selections' });
+              }
+            }}
+          >
+            Apply filter rules
           </OutlinedButton>
           <OutlinedButton
             size="small"

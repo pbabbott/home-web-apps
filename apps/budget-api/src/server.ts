@@ -10,6 +10,16 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
+import {
+  getReference,
+  getSelection,
+  listAudit,
+  listSelections,
+  postPreview,
+  postSelection,
+  putSelection,
+  removeSelection,
+} from './controllers/filter-selections';
 import { getJob, listJobs, postJob } from './controllers/jobs';
 import { getReady } from './controllers/ready';
 import {
@@ -19,6 +29,13 @@ import {
   listSyncState,
 } from './controllers/ynab';
 import { openApiSpec } from './openapi';
+import {
+  filterSelectionBodySchema,
+  filterSelectionIdParamsSchema,
+  listAuditQuerySchema,
+  previewBodySchema,
+  referenceQuerySchema,
+} from './schemas/filter-selections';
 import {
   createJobSchema,
   jobIdParamsSchema,
@@ -42,6 +59,39 @@ export const createServer = (): Express => {
     .post('/jobs', validateBody(createJobSchema), postJob)
     .get('/jobs', validateQuery(listJobsQuerySchema), listJobs)
     .get('/jobs/:id', validateParams(jobIdParamsSchema), getJob)
+    .get('/filter-selections', listSelections)
+    .post(
+      '/filter-selections',
+      validateBody(filterSelectionBodySchema),
+      postSelection,
+    )
+    .post(
+      '/filter-selections/preview',
+      validateBody(previewBodySchema),
+      postPreview,
+    )
+    .get(
+      '/filter-selections/audit',
+      validateQuery(listAuditQuerySchema),
+      listAudit,
+    )
+    .get(
+      '/filter-selections/:id',
+      validateParams(filterSelectionIdParamsSchema),
+      getSelection,
+    )
+    .put(
+      '/filter-selections/:id',
+      validateParams(filterSelectionIdParamsSchema),
+      validateBody(filterSelectionBodySchema),
+      putSelection,
+    )
+    .delete(
+      '/filter-selections/:id',
+      validateParams(filterSelectionIdParamsSchema),
+      removeSelection,
+    )
+    .get('/ynab/reference', validateQuery(referenceQuerySchema), getReference)
     .get('/ynab/plans', listPlans)
     .get('/ynab/sync-runs', listSyncRuns)
     .get('/ynab/sync-state', listSyncState)

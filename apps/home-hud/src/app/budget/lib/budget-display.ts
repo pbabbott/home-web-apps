@@ -11,6 +11,7 @@ export const operationLabels: Record<string, string> = {
   hello: 'Hello',
   ynab_sync: 'YNAB Sync',
   ynab_transform: 'YNAB Transform',
+  apply_filter_selections: 'Apply Filter Rules',
 };
 
 export const jobStatusColor: Record<
@@ -169,12 +170,20 @@ export function describeRun(
 }
 
 /** Jobs shown on the sync page: pulling from YNAB and building the typed tables. */
-const SYNC_PAGE_OPERATIONS = ['ynab_sync', 'ynab_transform'];
+const SYNC_PAGE_OPERATIONS = [
+  'ynab_sync',
+  'ynab_transform',
+  'apply_filter_selections',
+];
 
 /** Short label for the Type column, e.g. "sync (full)" or "transform (rebuild)". */
 export function syncJobType(
   job: Pick<BudgetJob, 'operation' | 'parameters'>,
 ): string {
+  if (job.operation === 'apply_filter_selections') {
+    return 'apply rules';
+  }
+
   if (job.operation === 'ynab_transform') {
     return job.parameters.rebuild ? 'transform (rebuild)' : 'transform';
   }
@@ -210,4 +219,28 @@ export function joinSyncJobs(
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     .map((job) => ({ job, run: runByJob.get(job.id) ?? null }));
+}
+
+/** "-2,500.00" typed by the user to milliunits; blank is null, junk is NaN. */
+export function unitsToMilliunits(text: string): number | null {
+  const cleaned = text.replace(/[,\s$]/g, '');
+
+  if (cleaned === '') return null;
+
+  const value = Number(cleaned);
+
+  return Number.isFinite(value) ? Math.round(value * 1000) : Number.NaN;
+}
+
+/** Milliunits to the plain number string used in the amount inputs. */
+export function milliunitsToUnits(milliunits: number | null): string {
+  return milliunits === null ? '' : String(milliunits / 1000);
+}
+
+/** "-12.34" style display for an amount in currency units. */
+export function formatUnits(units: string | number): string {
+  return Number(units).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }

@@ -7,3 +7,4 @@ export * from './ynab-transactions';
 export * from './ynab-months';
 export * from './ynab-transform-state';
 export * from './views/ynab-transactions-enriched';
+export * from './budget-filter-selections';

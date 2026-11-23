@@ -1,11 +1,18 @@
 'use server';
 
+import type {
+  FilterPreview,
+  FilterSelection,
+  FilterSelectionInput,
+} from './budget-api';
+
 const BUDGET_API_URL = process.env.BUDGET_API_URL ?? 'http://localhost:4005';
 
 export type BudgetJobRequest =
   | { operation: 'hello' }
   | { operation: 'ynab_sync'; full?: boolean }
-  | { operation: 'ynab_transform'; rebuild?: boolean };
+  | { operation: 'ynab_transform'; rebuild?: boolean }
+  | { operation: 'apply_filter_selections' };
 
 const jobBody = (request: BudgetJobRequest) => {
   if (request.operation === 'ynab_sync' && request.full) {
@@ -32,4 +39,51 @@ export async function createJob(request: BudgetJobRequest): Promise<void> {
     const text = await res.text();
     throw new Error(`budget-api POST /jobs returned ${res.status}: ${text}`);
   }
+}
+
+async function send<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const res = await fetch(`${BUDGET_API_URL}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `budget-api ${method} ${path} returned ${res.status}: ${text}`,
+    );
+  }
+
+  return res.status === 204 ? (undefined as T) : res.json();
+}
+
+export async function previewFilterSelection(
+  filters: Pick<
+    FilterSelectionInput,
+    | 'planId'
+    | 'accountId'
+    | 'payeeId'
+    | 'amountMinMilliunits'
+    | 'amountMaxMilliunits'
+  >,
+): Promise<FilterPreview> {
+  return send<FilterPreview>('POST', '/filter-selections/preview', filters);
+}
+
+export async function saveFilterSelection(
+  id: string | null,
+  input: FilterSelectionInput,
+): Promise<FilterSelection> {
+  return id
+    ? send<FilterSelection>('PUT', `/filter-selections/${id}`, input)
+    : send<FilterSelection>('POST', '/filter-selections', input);
+}
+
+export async function deleteFilterSelection(id: string): Promise<void> {
+  await send<void>('DELETE', `/filter-selections/${id}`);
 }

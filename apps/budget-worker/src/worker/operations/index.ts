@@ -1,4 +1,5 @@
 import type { BudgetJob } from '@abbottland/budget-db';
+import { applyFilterSelections } from './apply-filter-selections';
 import { hello } from './hello';
 import { ynabSync } from './ynab-sync';
 import { ynabTransform } from './ynab-transform';
@@ -14,4 +15,5 @@ export const operationHandlers: Record<string, OperationHandler | undefined> = {
   hello,
   ynab_sync: ynabSync,
   ynab_transform: ynabTransform,
+  apply_filter_selections: applyFilterSelections,
 };
