@@ -162,6 +162,14 @@ export {
   type SelectItemProps,
 } from './components/Select/Select';
 
+// Combobox
+export {
+  Combobox,
+  type ComboboxProps,
+  type ComboboxOption,
+  type ComboboxSize,
+} from './components/Combobox/Combobox';
+
 // DropdownMenu
 export {
   DropdownMenu,

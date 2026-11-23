@@ -175,6 +175,8 @@ interface MenuPanelProps {
   headerAction?: React.ReactNode;
   /** Let the body scroll (DropdownMenu); Select scrolls in its Viewport. */
   scrollBody?: boolean;
+  /** Hide the dotted rail (e.g. when the body supplies its own scrollbar). */
+  hideDecoration?: boolean;
   children: React.ReactNode;
 }
 
@@ -183,6 +185,7 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   label,
   headerAction,
   scrollBody,
+  hideDecoration,
   children,
 }) => (
   <>
@@ -207,7 +210,9 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
       )}
     >
       {children}
-      <DottedDecoration className="text-primary-700 opacity-60 self-center pr-1" />
+      {!hideDecoration && (
+        <DottedDecoration className="text-primary-700 opacity-60 self-center pr-1" />
+      )}
     </div>
   </>
 );

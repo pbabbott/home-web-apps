@@ -95,3 +95,31 @@ export * from './schema/ynab-months';
 export { ynabTransformState } from './schema/ynab-transform-state';
 export type { YnabTransformState } from './schema/ynab-transform-state';
 export { ynabTransactionsEnriched } from './schema/views/ynab-transactions-enriched';
+
+export * from './schema/budget-filter-selections';
+export * from './filter-selection-rules';
+export {
+  createFilterSelection,
+  updateFilterSelection,
+  deleteFilterSelection,
+  getFilterSelection,
+  listFilterSelections,
+  filterConditions,
+  previewFilterSelection,
+  findApplicableTransactions,
+  recordFilterAuditEntries,
+  listAppliedAuditKeys,
+  listFilterAuditEntries,
+  countFilterAuditEntriesByRule,
+  type FilterAuditCounts,
+  getYnabReference,
+  PREVIEW_ROW_LIMIT,
+} from './queries/filter-selections';
+export type {
+  FilterSelectionInput,
+  FilterMatchRow,
+  FilterPreview,
+  ApplicableTransaction,
+  ListFilterAuditOptions,
+  YnabReference,
+} from './queries/filter-selections';

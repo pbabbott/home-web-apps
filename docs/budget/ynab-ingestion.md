@@ -36,6 +36,8 @@ All parameters are optional. Only the plan named by `YNAB_PLAN_ID` is ever synce
 
 The token defaults to the sentinel `not-configured` so a missing token doesn't stop the worker at startup; `ynab_sync` fails the job instead. It is only sent as a bearer header and never logged. k8s deployment (injecting the same secret) is not done yet.
 
+CI loads the real token into `.env`, so `apps/budget-worker/tests/jest.integration.setup.ts` overwrites the YNAB config (token unset, dead API URL) before every integration test file. Tests must never reach YNAB: one that needs sync behaviour mocks `ynabGet` and sets its own config (see `ynab-sync.integration.test.ts`).
+
 ## Adding an endpoint
 
 Add it to `YNAB_ENDPOINTS` in `packages/budget-db/src/schema/ynab-raw-responses.ts` (no migration needed, it is a text column), to the `endpoints` enum in `apps/budget-api/src/schemas/jobs.ts`, and re-run a sync.
@@ -43,3 +45,5 @@ Add it to `YNAB_ENDPOINTS` in `packages/budget-db/src/schema/ynab-raw-responses.
 ## Not built yet
 
 Normalised tables are built by the `ynab_transform` job (see [YNAB typed tables](./ynab-tables.md)). Not built yet: transform status in home-hud, the scheduled trigger (k8s CronJob), and payload retention/compaction.
+
+The worker's only YNAB write is the `apply_filter_selections` job (see [Filter rules](./filter-selections.md)); it is blocked by the same guard, and its tests mock `ynabPatch`.

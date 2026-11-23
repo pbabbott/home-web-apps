@@ -1,5 +1,6 @@
 import {
   applyYnabRawResponse,
+  createBudgetJob,
   getLatestYnabPlansResponse,
   getYnabRawPayload,
   isYnabPlansCurrent,
@@ -79,6 +80,15 @@ export const ynabTransform = async (
         }
       }
     }
+  }
+
+  // Only after new data landed: the follow-up apply finds nothing to do once
+  // its own changes have flowed back, which ends the sync -> apply loop.
+  if (responses > 0 && !rebuild) {
+    await createBudgetJob(db, {
+      operation: 'apply_filter_selections',
+      parameters: {},
+    });
   }
 
   return {

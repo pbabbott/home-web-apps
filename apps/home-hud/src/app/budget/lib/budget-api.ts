@@ -93,3 +93,116 @@ export async function getSyncRuns(): Promise<YnabSyncRun[]> {
   const data = await get<{ syncRuns: YnabSyncRun[] }>('/ynab/sync-runs');
   return data.syncRuns;
 }
+
+export interface FilterSelection {
+  id: string;
+  name: string;
+  enabled: boolean;
+  planId: string;
+  accountId: string | null;
+  payeeId: string | null;
+  amountMinMilliunits: number | null;
+  amountMaxMilliunits: number | null;
+  categoryId: string | null;
+  autoApprove: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A rule as listed: with how many audit entries point at it. */
+export interface FilterSelectionListItem extends FilterSelection {
+  auditEntryCount: number;
+  auditAppliedCount: number;
+}
+
+/** Body for creating/replacing a rule; amounts are signed milliunits. */
+export interface FilterSelectionInput {
+  name: string;
+  enabled: boolean;
+  planId: string;
+  accountId: string | null;
+  payeeId: string | null;
+  amountMinMilliunits: number | null;
+  amountMaxMilliunits: number | null;
+  categoryId: string | null;
+  autoApprove: boolean;
+}
+
+export interface FilterMatchRow {
+  id: string;
+  date: string;
+  amountUnits: string;
+  memo: string | null;
+  approved: boolean;
+  accountName: string | null;
+  payeeName: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryGroupName: string | null;
+  isTransfer: boolean;
+  isSplit: boolean;
+}
+
+export interface FilterPreview {
+  matched: number;
+  actionable: number;
+  rows: FilterMatchRow[];
+  truncated: boolean;
+}
+
+export interface FilterAuditEntry {
+  id: string;
+  appliedAt: string;
+  jobId: string | null;
+  filterSelectionId: string | null;
+  ruleName: string;
+  ruleDescription: string;
+  planId: string;
+  transactionId: string;
+  transactionDate: string;
+  transactionAmount: number;
+  accountName: string | null;
+  payeeName: string | null;
+  action: 'categorize' | 'approve';
+  fromValue: string | null;
+  toValue: string | null;
+  status: 'applied' | 'skipped_conflict' | 'failed';
+  error: string | null;
+}
+
+export interface YnabReference {
+  accounts: { id: string; name: string; closed: boolean }[];
+  payees: { id: string; name: string }[];
+  categories: {
+    id: string;
+    name: string;
+    groupName: string;
+    hidden: boolean;
+  }[];
+}
+
+export async function getFilterSelections(): Promise<
+  FilterSelectionListItem[]
+> {
+  const data = await get<{ filterSelections: FilterSelectionListItem[] }>(
+    '/filter-selections',
+  );
+  return data.filterSelections;
+}
+
+export async function getFilterSelection(id: string): Promise<FilterSelection> {
+  return get<FilterSelection>(`/filter-selections/${id}`);
+}
+
+export async function getFilterAudit(limit = 200): Promise<FilterAuditEntry[]> {
+  const data = await get<{ entries: FilterAuditEntry[] }>(
+    `/filter-selections/audit?limit=${limit}`,
+  );
+  return data.entries;
+}
+
+export async function getYnabReference(planId: string): Promise<YnabReference> {
+  return get<YnabReference>(
+    `/ynab/reference?planId=${encodeURIComponent(planId)}`,
+  );
+}

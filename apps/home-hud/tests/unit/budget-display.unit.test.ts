@@ -5,6 +5,9 @@ import type {
 } from '../../src/app/budget/lib/budget-api';
 import {
   describeRun,
+  formatUnits,
+  milliunitsToUnits,
+  unitsToMilliunits,
   formatBytes,
   groupCursorsByPlan,
   planLabel,
@@ -215,5 +218,22 @@ describe('syncJobType', () => {
     expect(type('ynab_transform', { rebuild: true })).toBe(
       'transform (rebuild)',
     );
+  });
+});
+
+describe('amount helpers', () => {
+  it('converts between typed units and milliunits', () => {
+    expect(unitsToMilliunits('-2,500.50')).toBe(-2500500);
+    expect(unitsToMilliunits('  ')).toBeNull();
+    expect(unitsToMilliunits('abc')).toBeNaN();
+    expect(milliunitsToUnits(-2500500)).toBe('-2500.5');
+    expect(milliunitsToUnits(null)).toBe('');
+    expect(formatUnits('-12.3')).toBe('-12.30');
+  });
+
+  it('labels apply jobs for the sync page', () => {
+    expect(
+      syncJobType({ operation: 'apply_filter_selections', parameters: {} }),
+    ).toBe('apply rules');
   });
 });

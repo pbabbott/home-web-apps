@@ -8,11 +8,12 @@ Express.js API for the budget feature. It accepts job requests and stores them d
 
 - `GET /healthz` — liveness (from `@abbottland/express`).
 - `GET /readyz` — readiness; `200` if Postgres is reachable and the schema is current, `503` otherwise.
-- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Operations: `hello` (`parameters: { name? }`), `ynab_sync` (see [YNAB ingestion](../../docs/budget/ynab-ingestion.md)) and `ynab_transform` (see [YNAB typed tables](../../docs/budget/ynab-tables.md)).
+- `POST /jobs` — create a job. Body is `{ operation, parameters }`, discriminated on `operation` (`src/schemas/jobs.ts`). Operations: `hello` (`parameters: { name? }`), `ynab_sync` (see [YNAB ingestion](../../docs/budget/ynab-ingestion.md)) `ynab_transform` (see [YNAB typed tables](../../docs/budget/ynab-tables.md)) and `apply_filter_selections` (no parameters).
 - `GET /jobs?status=<pending|processing|completed|failed>` — list jobs, newest first (max 100).
 - `GET /jobs/:id` — fetch one job.
 - `GET /ynab/sync-state` — YNAB delta cursor per plan/endpoint.
 - `GET /ynab/sync-runs`, `GET /ynab/plans`, `GET /ynab/raw-responses` — metadata for the home-hud YNAB page (never raw payloads).
+- `GET|POST /filter-selections`, `GET|PUT|DELETE /filter-selections/:id`, `POST /filter-selections/preview`, `GET /filter-selections/audit`, `GET /ynab/reference` — filter rules, live preview, audit log and picker data; see [Filter rules](../../docs/budget/filter-selections.md).
 - `GET /docs` — Swagger UI, generated from the Zod schemas (`src/openapi.ts`).
 
 Schema and migrations live in `@abbottland/budget-db` (`packages/budget-db`), shared with `budget-worker`. The app applies pending migrations itself at startup under an advisory lock; see [Postgres & Drizzle](../../docs/dev-guide-postgres-drizzle.md).

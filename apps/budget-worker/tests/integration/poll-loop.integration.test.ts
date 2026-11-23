@@ -45,4 +45,26 @@ describe('claim -> process round trip', () => {
     expect(job?.status).toBe('failed');
     expect(job?.error).toContain('unsupported operation');
   });
+
+  // Guard for CI: the real YNAB token is loaded into .env there, and the
+  // integration setup must keep it unusable unless a test mocks ynabGet.
+  it('fails a ynab_sync job without calling YNAB when no test configured it', async () => {
+    const fetchSpy = jest.spyOn(global, 'fetch');
+    const created = await createBudgetJob(db, {
+      operation: 'ynab_sync',
+      parameters: {},
+    });
+
+    const claimed = await claimNextBudgetJob(db, 'test-worker');
+    expect(claimed?.id).toBe(created.id);
+
+    jest.spyOn(console, 'error').mockImplementation();
+    await processJob(claimed!);
+
+    const job = await getBudgetJobById(db, created.id);
+
+    expect(job?.status).toBe('failed');
+    expect(job?.error).toContain('YNAB_API_TOKEN is not configured');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
 });

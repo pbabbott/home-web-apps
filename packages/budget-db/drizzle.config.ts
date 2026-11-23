@@ -14,6 +14,7 @@ export default defineConfig({
     './src/schema/ynab-transactions.ts',
     './src/schema/ynab-months.ts',
     './src/schema/ynab-transform-state.ts',
+    './src/schema/budget-filter-selections.ts',
     './src/schema/views/ynab-transactions-enriched.ts',
   ],
   out: './drizzle/migrations',

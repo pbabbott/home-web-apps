@@ -73,6 +73,11 @@ const ynabTransformJobSchema = z.object({
     .default({}),
 });
 
+const applyFilterSelectionsJobSchema = z.object({
+  operation: z.literal('apply_filter_selections'),
+  parameters: z.object({}).default({}),
+});
+
 /**
  * Discriminated on `operation` so each job type declares its own
  * `parameters` shape. Adding a new operation means adding a branch here
@@ -82,6 +87,7 @@ export const createJobSchema = z.discriminatedUnion('operation', [
   helloJobSchema,
   ynabSyncJobSchema,
   ynabTransformJobSchema,
+  applyFilterSelectionsJobSchema,
 ]);
 
 export type CreateJobBody = z.infer<typeof createJobSchema>;

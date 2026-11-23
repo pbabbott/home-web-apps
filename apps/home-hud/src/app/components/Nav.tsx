@@ -46,6 +46,8 @@ const NAV_ITEMS: ConnectedNavItem[] = [
     label: 'Budget',
     children: [
       { id: '/budget', label: 'Dashboard' },
+      { id: '/budget/filters', label: 'Filter Rules' },
+      { id: '/budget/audit', label: 'Audit' },
       { id: '/budget/sync', label: 'Sync' },
     ],
   },

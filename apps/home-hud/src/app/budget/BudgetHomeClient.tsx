@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import {
   Badge,
   Panel,
+  StatusIndicator,
   TransparentPanel,
   Typography,
 } from '@abbottland/fui-components';
@@ -71,114 +71,114 @@ export function BudgetHomeClient({
             >
               System Status
             </Typography>
-            <Badge color={reachable ? 'success' : 'error'}>
-              budget-api: {reachable ? 'Reachable' : 'Unreachable'}
-            </Badge>
+            <ul className="m-0 w-full max-w-xs list-none p-0">
+              <StatusIndicator
+                color={reachable ? 'success' : 'error'}
+                // A pulsing red dot would read as "alive".
+                pulse={reachable}
+                aria-label={`budget-api: ${reachable ? 'reachable' : 'unreachable'}`}
+              >
+                budget-api
+              </StatusIndicator>
+            </ul>
           </TransparentPanel>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Link href="/budget/sync" className="block">
-              <Panel color="primary" className="flex h-full flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <Typography variant="h5" component="h2">
-                    Jobs
-                  </Typography>
-                  <Typography variant="h3" component="span">
-                    {jobs?.length ?? '—'}
+            <Panel color="primary" className="flex h-full flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <Typography variant="h5" component="h2">
+                  Jobs
+                </Typography>
+                <Typography variant="h3" component="span">
+                  {jobs?.length ?? '—'}
+                </Typography>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <Typography
+                  variant="h4"
+                  component="span"
+                  className="w-16 shrink-0 text-right"
+                >
+                  {stats.successRate === null
+                    ? '—'
+                    : `${Math.round(stats.successRate)}%`}
+                </Typography>
+                <div className="flex items-center gap-2">
+                  <Badge color="success">{stats.successCount} ok</Badge>
+                  <Badge color="error">{stats.failedCount} failed</Badge>
+                  <Typography variant="caption" className="text-neutral-400">
+                    last {stats.sampleSize}
                   </Typography>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-4">
-                  <Typography
-                    variant="h4"
-                    component="span"
-                    className="w-16 shrink-0 text-right"
-                  >
-                    {stats.successRate === null
-                      ? '—'
-                      : `${Math.round(stats.successRate)}%`}
-                  </Typography>
-                  <div className="flex items-center gap-2">
-                    <Badge color="success">{stats.successCount} ok</Badge>
-                    <Badge color="error">{stats.failedCount} failed</Badge>
-                    <Typography variant="caption" className="text-neutral-400">
-                      last {stats.sampleSize}
-                    </Typography>
-                  </div>
-                </div>
-
-                <div className="mt-auto flex flex-col gap-1 border-t border-neutral-50/20 pt-3">
-                  <Typography variant="small" className="text-neutral-300">
-                    Last YNAB Sync
-                  </Typography>
-                  {lastSync ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <Badge color={jobStatusColor[lastSync.status]}>
-                          {lastSync.status}
-                        </Badge>
-                        <Typography
-                          variant="caption"
-                          className="text-neutral-300"
-                        >
-                          <LocalDate iso={lastSync.createdAt} />
-                        </Typography>
-                      </div>
-                      <Typography variant="body2" className="truncate">
-                        {lastSync.error ?? lastSync.message ?? '—'}
+              <div className="mt-auto flex flex-col gap-1 border-t border-neutral-50/20 pt-3">
+                <Typography variant="small" className="text-neutral-300">
+                  Last YNAB Sync
+                </Typography>
+                {lastSync ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Badge color={jobStatusColor[lastSync.status]}>
+                        {lastSync.status}
+                      </Badge>
+                      <Typography
+                        variant="caption"
+                        className="text-neutral-300"
+                      >
+                        <LocalDate iso={lastSync.createdAt} />
                       </Typography>
-                    </>
-                  ) : (
-                    <Typography variant="body2" className="text-neutral-300">
-                      No {operationLabels.ynab_sync} jobs yet
+                    </div>
+                    <Typography variant="body2" className="truncate">
+                      {lastSync.error ?? lastSync.message ?? '—'}
                     </Typography>
-                  )}
-                </div>
-              </Panel>
-            </Link>
+                  </>
+                ) : (
+                  <Typography variant="body2" className="text-neutral-300">
+                    No {operationLabels.ynab_sync} jobs yet
+                  </Typography>
+                )}
+              </div>
+            </Panel>
 
-            <Link href="/budget/sync" className="block">
-              <Panel
-                color="accent-falcon"
-                className="flex h-full flex-col gap-4"
-              >
-                <div className="flex items-center justify-between">
-                  <Typography variant="h5" component="h2">
-                    YNAB Data
-                  </Typography>
-                  <Typography variant="h3" component="span">
-                    {syncRuns?.length ?? '—'}
-                  </Typography>
-                </div>
+            <Panel color="accent-falcon" className="flex h-full flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <Typography variant="h5" component="h2">
+                  YNAB Data
+                </Typography>
+                <Typography variant="h3" component="span">
+                  {syncRuns?.length ?? '—'}
+                </Typography>
+              </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {syncedPlans.map((p) => (
-                    <Badge key={p.planId} color="dark">
-                      {planLabel(plans, p.planId)}
-                    </Badge>
-                  ))}
-                  {latestRun && (
-                    <Badge color="dark">
-                      latest run {formatBytes(latestRun.totalBytes)}
-                    </Badge>
-                  )}
-                </div>
+              <div className="flex flex-wrap gap-2">
+                {syncedPlans.map((p) => (
+                  <Badge key={p.planId} color="dark">
+                    {planLabel(plans, p.planId)}
+                  </Badge>
+                ))}
+                {latestRun && (
+                  <Badge color="dark">
+                    latest run {formatBytes(latestRun.totalBytes)}
+                  </Badge>
+                )}
+              </div>
 
-                <div className="mt-auto flex flex-col gap-1 border-t border-neutral-50/20 pt-3">
-                  <Typography variant="small" className="text-neutral-300">
-                    Last Synced
+              <div className="mt-auto flex flex-col gap-1 border-t border-neutral-50/20 pt-3">
+                <Typography variant="small" className="text-neutral-300">
+                  Last Synced
+                </Typography>
+                <Typography variant="body2">
+                  {lastSyncedAt ? <LocalDate iso={lastSyncedAt} /> : 'Never'}
+                </Typography>
+                {latestRun && (
+                  <Typography variant="caption" className="text-neutral-300">
+                    {describeRun(latestRun)}
                   </Typography>
-                  <Typography variant="body2">
-                    {lastSyncedAt ? <LocalDate iso={lastSyncedAt} /> : 'Never'}
-                  </Typography>
-                  {latestRun && (
-                    <Typography variant="caption" className="text-neutral-300">
-                      {describeRun(latestRun)}
-                    </Typography>
-                  )}
-                </div>
-              </Panel>
-            </Link>
+                )}
+              </div>
+            </Panel>
           </div>
         </div>
       </div>

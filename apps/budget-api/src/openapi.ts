@@ -10,6 +10,13 @@ import {
   listJobsQuerySchema,
   listRawResponsesQuerySchema,
 } from './schemas/jobs';
+import {
+  filterSelectionBodySchema,
+  filterSelectionIdParamsSchema,
+  listAuditQuerySchema,
+  previewBodySchema,
+  referenceQuerySchema,
+} from './schemas/filter-selections';
 
 const validationErrorSchema = z.object({
   message: z.string().meta({ example: 'Invalid request body' }),
@@ -220,6 +227,95 @@ export const openApiSpec = createDocument({
               },
             },
           },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/filter-selections': {
+      get: {
+        summary: 'List filter selections (rules)',
+        responses: {
+          '200': {
+            description:
+              'All rules, by name, each with auditEntryCount (all audit rows) and auditAppliedCount (status applied)',
+          },
+        },
+      },
+      post: {
+        summary: 'Create a filter selection',
+        requestBody: {
+          content: {
+            'application/json': { schema: filterSelectionBodySchema },
+          },
+        },
+        responses: {
+          '201': { description: 'Created rule' },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/filter-selections/preview': {
+      post: {
+        summary: 'Preview the transactions a set of filters matches',
+        description:
+          'Returns up to 200 matching transactions (any approval state) plus total matched and how many are unapproved plain transactions the nightly job would act on now.',
+        requestBody: {
+          content: { 'application/json': { schema: previewBodySchema } },
+        },
+        responses: {
+          '200': { description: 'Matches and counts' },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/filter-selections/audit': {
+      get: {
+        summary: 'Audit log of automatic actions, newest first',
+        requestParams: { query: listAuditQuerySchema },
+        responses: {
+          '200': { description: 'Audit entries' },
+          '400': validationErrorResponse,
+        },
+      },
+    },
+    '/filter-selections/{id}': {
+      get: {
+        summary: 'Fetch a filter selection',
+        requestParams: { path: filterSelectionIdParamsSchema },
+        responses: {
+          '200': { description: 'The rule' },
+          '404': { description: 'No rule with that id' },
+        },
+      },
+      put: {
+        summary: 'Replace a filter selection',
+        requestParams: { path: filterSelectionIdParamsSchema },
+        requestBody: {
+          content: {
+            'application/json': { schema: filterSelectionBodySchema },
+          },
+        },
+        responses: {
+          '200': { description: 'Updated rule' },
+          '400': validationErrorResponse,
+          '404': { description: 'No rule with that id' },
+        },
+      },
+      delete: {
+        summary: 'Delete a filter selection (audit history is kept)',
+        requestParams: { path: filterSelectionIdParamsSchema },
+        responses: {
+          '204': { description: 'Deleted' },
+          '404': { description: 'No rule with that id' },
+        },
+      },
+    },
+    '/ynab/reference': {
+      get: {
+        summary: 'Accounts, payees and categories for pickers',
+        requestParams: { query: referenceQuerySchema },
+        responses: {
+          '200': { description: 'Live accounts, payees, categories' },
           '400': validationErrorResponse,
         },
       },
