@@ -59,6 +59,7 @@ export type FilterAuditAction = (typeof FILTER_AUDIT_ACTIONS)[number];
 export const FILTER_AUDIT_STATUSES = [
   'applied',
   'skipped_conflict',
+  'unchanged',
   'failed',
 ] as const;
 export type FilterAuditStatus = (typeof FILTER_AUDIT_STATUSES)[number];

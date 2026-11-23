@@ -1,30 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Badge,
-  type BadgeColor,
-  OutlinedButton,
-  ScrollableTable,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-  Td,
-  Th,
-  Typography,
-} from '@abbottland/fui-components';
-import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { OutlinedButton, Typography } from '@abbottland/fui-components';
 import { useRouter } from 'next/navigation';
-import { LocalDate } from '../lib/LocalDate';
 import type { FilterAuditEntry } from '../lib/budget-api';
-import { formatUnits } from '../lib/budget-display';
-
-const statusColor: Record<FilterAuditEntry['status'], BadgeColor> = {
-  applied: 'success',
-  skipped_conflict: 'warning',
-  failed: 'error',
-};
+import { AuditCard } from './AuditCard';
+import { groupAuditEntries } from './group-audit-entries';
 
 const PAGE_SIZE = 25;
 
@@ -39,129 +20,79 @@ export function AuditClient({
   const existingRules = new Set(ruleIds ?? []);
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil((entries?.length ?? 0) / PAGE_SIZE));
-  const rows = entries?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const groups = useMemo(
+    () => (entries ? groupAuditEntries(entries) : null),
+    [entries],
+  );
+  const totalPages = Math.max(1, Math.ceil((groups?.length ?? 0) / PAGE_SIZE));
+  const rows = groups?.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <main className="flex min-h-screen flex-col gap-8 bg-neutral-800 p-8">
-      <Typography variant="h1" component="h1">
-        Audit Log
-      </Typography>
-
-      <Typography variant="body2" className="max-w-3xl text-neutral-400">
-        Every automatic action taken by a filter rule, newest first. The rule
-        text is frozen as it was when the action happened, so editing or
-        deleting a rule later never changes this history.
-      </Typography>
-
-      <div>
-        <OutlinedButton size="small" onClick={() => router.refresh()}>
-          Refresh
-        </OutlinedButton>
-      </div>
-
-      {rows === undefined || entries === null ? (
-        <Typography variant="body2" className="text-red-400">
-          Could not load the audit log from budget-api.
+    <main className="flex min-h-screen flex-col items-center bg-neutral-800 p-8">
+      <div className="flex w-full max-w-2xl flex-col gap-8">
+        <Typography variant="h1" component="h1">
+          Audit Log
         </Typography>
-      ) : entries.length === 0 ? (
-        <Typography variant="body2" className="text-neutral-400">
-          Nothing has been applied yet.
+
+        <Typography variant="body2" className="max-w-3xl text-neutral-400">
+          Every automatic action taken by a filter rule, newest first. The rule
+          text is frozen as it was when the action happened, so editing or
+          deleting a rule later never changes this history.
         </Typography>
-      ) : (
-        <>
-          <ScrollableTable>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <Th>When</Th>
-                  <Th>Transaction</Th>
-                  <Th>Change</Th>
-                  <Th>Rule</Th>
-                  <Th>Why (rule at the time)</Th>
-                  <Th>Status</Th>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((e) => (
-                  <TableRow key={e.id}>
-                    <Td>
-                      <LocalDate iso={e.appliedAt} />
-                    </Td>
-                    <Td>
-                      {e.transactionDate} · {e.payeeName ?? '—'} ·{' '}
-                      {formatUnits(e.transactionAmount / 1000)}
-                      <br />
-                      <span className="text-neutral-400">
-                        {e.accountName ?? ''}
-                      </span>
-                    </Td>
-                    <Td>
-                      {e.fromValue ?? '—'} → {e.toValue ?? '—'}
-                    </Td>
-                    <Td>
-                      {e.filterSelectionId &&
-                      existingRules.has(e.filterSelectionId) ? (
-                        <Link
-                          href={`/budget/filters/${e.filterSelectionId}`}
-                          className="text-primary-500 underline"
-                        >
-                          {e.ruleName}
-                        </Link>
-                      ) : (
-                        <>
-                          {e.ruleName}
-                          {e.filterSelectionId && ruleIds !== null && (
-                            <>
-                              <br />
-                              <span className="text-neutral-400">deleted</span>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </Td>
-                    <Td>
-                      {e.ruleDescription}
-                      {e.error && (
-                        <>
-                          <br />
-                          <span className="text-red-400">{e.error}</span>
-                        </>
-                      )}
-                    </Td>
-                    <Td>
-                      <Badge color={statusColor[e.status]}>
-                        {e.status.replace('_', ' ')}
-                      </Badge>
-                    </Td>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollableTable>
-          {totalPages > 1 && (
-            <div className="flex items-center gap-3">
-              <OutlinedButton
-                size="small"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Previous
-              </OutlinedButton>
-              <Typography variant="body2">
-                Page {page} of {totalPages}
-              </Typography>
-              <OutlinedButton
-                size="small"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </OutlinedButton>
+
+        <div>
+          <OutlinedButton size="small" onClick={() => router.refresh()}>
+            Refresh
+          </OutlinedButton>
+        </div>
+
+        {rows === undefined || entries === null ? (
+          <Typography variant="body2" className="text-red-400">
+            Could not load the audit log from budget-api.
+          </Typography>
+        ) : entries.length === 0 ? (
+          <Typography variant="body2" className="text-neutral-400">
+            Nothing has been applied yet.
+          </Typography>
+        ) : (
+          <>
+            <div className="flex flex-col gap-4">
+              {rows.map((g) => (
+                <AuditCard
+                  key={g.key}
+                  group={g}
+                  ruleExists={
+                    !!g.base.filterSelectionId &&
+                    existingRules.has(g.base.filterSelectionId)
+                  }
+                  rulesLoaded={ruleIds !== null}
+                />
+              ))}
             </div>
-          )}
-        </>
-      )}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-3">
+                <OutlinedButton
+                  size="small"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  Previous
+                </OutlinedButton>
+                <Typography variant="body2">
+                  Page {page} of {totalPages}
+                </Typography>
+                <OutlinedButton
+                  size="small"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </OutlinedButton>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </main>
   );
 }

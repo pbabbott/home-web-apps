@@ -117,7 +117,7 @@ export interface FilterSelection {
   updatedAt: string;
 }
 
-/** A rule as listed: with how many audit entries point at it. */
+/** A rule as listed: with how many audited transactions point at it. */
 export interface FilterSelectionListItem extends FilterSelection {
   auditEntryCount: number;
   auditAppliedCount: number;
@@ -176,7 +176,7 @@ export interface FilterAuditEntry {
   action: 'categorize' | 'approve';
   fromValue: string | null;
   toValue: string | null;
-  status: 'applied' | 'skipped_conflict' | 'failed';
+  status: 'applied' | 'skipped_conflict' | 'unchanged' | 'failed';
   error: string | null;
 }
 

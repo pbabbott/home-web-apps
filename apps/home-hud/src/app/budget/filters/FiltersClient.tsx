@@ -162,7 +162,7 @@ export function FiltersClient({
                 <Th>Name</Th>
                 <Th>When</Th>
                 <Th>Then</Th>
-                <Th>Audit entries</Th>
+                <Th>Transactions</Th>
                 <Th>Updated</Th>
               </TableRow>
             </TableHead>

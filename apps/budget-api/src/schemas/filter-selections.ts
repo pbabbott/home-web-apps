@@ -82,7 +82,9 @@ export const filterSelectionIdParamsSchema = z.object({
 
 export const listAuditQuerySchema = z.object({
   filterSelectionId: z.uuid().optional(),
-  status: z.enum(['applied', 'skipped_conflict', 'failed']).optional(),
+  status: z
+    .enum(['applied', 'skipped_conflict', 'unchanged', 'failed'])
+    .optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });
