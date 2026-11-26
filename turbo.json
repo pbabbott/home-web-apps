@@ -51,7 +51,7 @@
         "package.json"
       ],
       "outputs": ["dist/**"],
-      "dependsOn": []
+      "dependsOn": ["@abbottland/fui-icons#build:npm"]
     },
     "@abbottland/fui-components#build": {
       "inputs": [
