@@ -1,4 +1,6 @@
 const BUDGET_API_URL = process.env.BUDGET_API_URL ?? 'http://localhost:4005';
+const BUDGET_WORKER_URL =
+  process.env.BUDGET_WORKER_URL ?? 'http://localhost:4006';
 
 export type BudgetJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -254,4 +256,19 @@ export async function getCandidates(
     `/candidates?${query.toString()}`,
   );
   return data.candidates;
+}
+
+/** True when budget-worker answers `/readyz` (HTTP up, database reachable). */
+export async function getWorkerReady(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BUDGET_WORKER_URL}/readyz`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+
+    return res.ok;
+  } catch (err) {
+    console.error('budget-worker readiness check failed:', err);
+    return false;
+  }
 }

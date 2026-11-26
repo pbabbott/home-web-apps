@@ -31,6 +31,7 @@ interface BudgetHomeClientProps {
   plans: YnabPlan[] | null;
   syncRuns: YnabSyncRun[] | null;
   syncState: YnabSyncState[] | null;
+  workerReady: boolean;
 }
 
 export function BudgetHomeClient({
@@ -38,6 +39,7 @@ export function BudgetHomeClient({
   plans,
   syncRuns,
   syncState,
+  workerReady,
 }: BudgetHomeClientProps) {
   const reachable = jobs !== null;
   const stats = recentJobStats(jobs);
@@ -79,6 +81,13 @@ export function BudgetHomeClient({
                 aria-label={`budget-api: ${reachable ? 'reachable' : 'unreachable'}`}
               >
                 budget-api
+              </StatusIndicator>
+              <StatusIndicator
+                color={workerReady ? 'success' : 'error'}
+                pulse={workerReady}
+                aria-label={`budget-worker: ${workerReady ? 'ready' : 'unreachable'}`}
+              >
+                budget-worker
               </StatusIndicator>
             </ul>
           </TransparentPanel>

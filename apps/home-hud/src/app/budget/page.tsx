@@ -4,6 +4,7 @@ import {
   getPlans,
   getSyncRuns,
   getSyncState,
+  getWorkerReady,
   type BudgetJob,
   type YnabPlan,
   type YnabSyncRun,
@@ -40,12 +41,15 @@ export default async function BudgetHome() {
     console.error('Failed to load sync state from budget-api:', err);
   }
 
+  const workerReady = await getWorkerReady();
+
   return (
     <BudgetHomeClient
       jobs={jobs}
       plans={plans}
       syncRuns={syncRuns}
       syncState={syncState}
+      workerReady={workerReady}
     />
   );
 }
