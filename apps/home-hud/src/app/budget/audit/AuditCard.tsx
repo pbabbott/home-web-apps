@@ -10,7 +10,7 @@ import type { FilterAuditEntry } from '../lib/budget-api';
 import { formatUnits } from '../lib/budget-display';
 import type { AuditGroup } from './group-audit-entries';
 
-const cardColor = {
+const statusColor = {
   applied: 'success',
   unchanged: 'success',
   skipped_conflict: 'warning',
@@ -85,7 +85,7 @@ export function AuditCard({
   const amount = base.transactionAmount / 1000;
 
   return (
-    <Card color={cardColor[status]} className="flex flex-col gap-3 !p-4">
+    <Card color="primary" className="flex flex-col gap-3 !p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col">
           <Typography variant="h5" component="h2" className="truncate">
@@ -139,9 +139,7 @@ export function AuditCard({
           </Typography>
         </div>
         <div className="flex items-center gap-3">
-          {status !== 'applied' && status !== 'unchanged' && (
-            <Badge color={cardColor[status]}>{statusLabel[status]}</Badge>
-          )}
+          <Badge color={statusColor[status]}>{statusLabel[status]}</Badge>
           <Typography variant="caption" className="text-neutral-400">
             <LocalDate iso={group.appliedAt} />
           </Typography>
