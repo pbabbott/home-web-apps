@@ -49,6 +49,15 @@ interface Props {
   planId: string | null;
   reference: YnabReference | null;
   loadError: string | null;
+  /** Prefill for a new rule (from the candidates page). */
+  initial?: RuleInitial | null;
+}
+
+export interface RuleInitial {
+  name: string;
+  payeeId: string | null;
+  payeeMatchType: PayeeMatchType | null;
+  payeePattern: string | null;
 }
 
 interface CategorySuggestion {
@@ -107,19 +116,32 @@ function usualCategory(rows: FilterMatchRow[]): CategorySuggestion | null {
   return best;
 }
 
-export function FilterEditor({ rule, planId, reference, loadError }: Props) {
+export function FilterEditor({
+  rule,
+  planId,
+  reference,
+  loadError,
+  initial = null,
+}: Props) {
+  const seed = rule ? null : initial;
   const router = useRouter();
-  const [name, setName] = useState(rule?.name ?? '');
+  const [name, setName] = useState(rule?.name ?? seed?.name ?? '');
   const [enabled, setEnabled] = useState(rule?.enabled ?? true);
   const [accountId, setAccountId] = useState<string | null>(
     rule?.accountId ?? null,
   );
-  const [payeeId, setPayeeId] = useState<string | null>(rule?.payeeId ?? null);
+  const [payeeId, setPayeeId] = useState<string | null>(
+    rule?.payeeId ?? seed?.payeeId ?? null,
+  );
   // Text matching on the payee name instead of one exact payee.
-  const [patternMode, setPatternMode] = useState(rule?.payeePattern != null);
-  const [payeePattern, setPayeePattern] = useState(rule?.payeePattern ?? '');
+  const [patternMode, setPatternMode] = useState(
+    (rule?.payeePattern ?? seed?.payeePattern ?? null) != null,
+  );
+  const [payeePattern, setPayeePattern] = useState(
+    rule?.payeePattern ?? seed?.payeePattern ?? '',
+  );
   const [payeeMatchType, setPayeeMatchType] = useState<PayeeMatchType>(
-    rule?.payeeMatchType ?? 'starts_with',
+    rule?.payeeMatchType ?? seed?.payeeMatchType ?? 'starts_with',
   );
   const [min, setMin] = useState(
     milliunitsToUnits(rule?.amountMinMilliunits ?? null),
@@ -290,6 +312,27 @@ export function FilterEditor({ rule, planId, reference, loadError }: Props) {
       payeePattern: null,
     });
   }
+
+  // A prefilled new rule gets its usual category and amounts once on open.
+  useEffect(() => {
+    if (!seed || !planId) return;
+
+    const timer = setTimeout(() => {
+      void suggestFromPayee(
+        seed.payeePattern
+          ? {
+              payeeId: null,
+              payeeMatchType: seed.payeeMatchType,
+              payeePattern: seed.payeePattern,
+            }
+          : { payeeId: seed.payeeId, payeeMatchType: null, payeePattern: null },
+      );
+    }, 0);
+
+    return () => clearTimeout(timer);
+    // Runs once on mount (and when the plan arrives).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId]);
 
   // Pattern mode: suggest as the user types, debounced like the preview.
   const patternSuggestKey = patternMode

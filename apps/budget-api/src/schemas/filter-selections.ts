@@ -96,3 +96,16 @@ export const referenceQuerySchema = z.object({
 });
 
 export type ReferenceQuery = z.infer<typeof referenceQuerySchema>;
+
+const booleanQuery = z
+  .enum(['true', 'false'])
+  .optional()
+  .transform((v) => v === 'true');
+
+export const listCandidatesQuerySchema = z.object({
+  planId: z.string().min(1),
+  unapprovedOnly: booleanQuery,
+  includeCovered: booleanQuery,
+});
+
+export type ListCandidatesQuery = z.infer<typeof listCandidatesQuerySchema>;

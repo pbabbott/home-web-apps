@@ -10,6 +10,7 @@ import {
   validateQuery,
 } from '@abbottland/express';
 import { config } from './config';
+import { getCandidates } from './controllers/candidates';
 import {
   getReference,
   getSelection,
@@ -33,6 +34,7 @@ import {
   filterSelectionBodySchema,
   filterSelectionIdParamsSchema,
   listAuditQuerySchema,
+  listCandidatesQuerySchema,
   previewBodySchema,
   referenceQuerySchema,
 } from './schemas/filter-selections';
@@ -91,6 +93,7 @@ export const createServer = (): Express => {
       validateParams(filterSelectionIdParamsSchema),
       removeSelection,
     )
+    .get('/candidates', validateQuery(listCandidatesQuerySchema), getCandidates)
     .get('/ynab/reference', validateQuery(referenceQuerySchema), getReference)
     .get('/ynab/plans', listPlans)
     .get('/ynab/sync-runs', listSyncRuns)

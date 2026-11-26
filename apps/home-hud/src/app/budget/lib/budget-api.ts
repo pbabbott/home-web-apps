@@ -216,3 +216,42 @@ export async function getYnabReference(planId: string): Promise<YnabReference> {
     `/ynab/reference?planId=${encodeURIComponent(planId)}`,
   );
 }
+
+export type CandidateConfidence = 'high' | 'medium' | 'low';
+
+export interface Candidate {
+  key: string;
+  payeeName: string;
+  payeeNames: string[];
+  /** Set only when the group is a single YNAB payee. */
+  payeeId: string | null;
+  commonPrefix: string;
+  score: number;
+  confidence: CandidateConfidence;
+  transactionCount: number;
+  unapprovedCount: number;
+  lastDate: string;
+  schedule: string;
+  amountMin: number;
+  amountMax: number;
+  amountMean: number;
+  amountCv: number;
+  usualCategory: string | null;
+  coveredByRule: boolean;
+  reasons: string[];
+}
+
+export async function getCandidates(
+  planId: string,
+  options: { unapprovedOnly: boolean; includeCovered: boolean },
+): Promise<Candidate[]> {
+  const query = new URLSearchParams({
+    planId,
+    unapprovedOnly: String(options.unapprovedOnly),
+    includeCovered: String(options.includeCovered),
+  });
+  const data = await get<{ candidates: Candidate[] }>(
+    `/candidates?${query.toString()}`,
+  );
+  return data.candidates;
+}

@@ -27,3 +27,15 @@ Chain: `ynab_sync` -> `ynab_transform` (enqueues apply when it applied new raw r
 ## Adding a filter type (for example date ranges)
 
 Add the column to `budget_filter_selections` (+ migration), a condition in `filterConditions`, the clause in `describeRule` (`src/filter-selection-rules.ts`), the field in budget-api's `filterSelectionBodySchema` / `previewBodySchema`, and the control in home-hud's `FilterEditor`.
+
+## Rule candidates (`/budget/candidates`)
+
+A discovery page that ranks payees likely to make good rules. `GET /candidates?planId=&unapprovedOnly=&includeCovered=` in `budget-api` calls `listCandidates` (`packages/budget-db/src/queries/candidates.ts`), which reads the last 12 months from `ynab_transactions_enriched` (transfers and splits excluded) and scores them with the pure functions in `packages/budget-db/src/candidate-scoring.ts` (unit tested).
+
+- **Grouping**: `normalizePayee` strips `PPD ID: …`, `CK-WTH`/`SAV-WTH`, `#123` and long digit runs so spelling variants share one group. Groups need at least 3 transactions.
+- **Date score (0-1)**: share of transactions within ±3 days of the best-fit day of month (absorbs weekend slides), times a cadence factor (months with a transaction / months spanned, and one per month).
+- **Amount score (0-1)**: `exp(-8 × CV)` where CV is the standard deviation of absolute amounts over their mean. Identical amounts score 1, a few cents of drift ~0.99, 40/60/90 ~0.1.
+- **Volume score**: `min(1, count / 6)`.
+- **Score** = 100 × (0.4 date + 0.4 amount + 0.2 volume). **Confidence**: high ≥ 75, medium ≥ 50, else low. Each row lists the reasons behind its score.
+- `unapprovedOnly` (default on) only filters which payees are listed; scoring always uses the full history. Payees an enabled rule already matches (by payee id or payee text pattern) are hidden unless `includeCovered`.
+- "Create rule" opens `/budget/filters/new?payeeId=…` (single payee) or `?matchType=starts_with&pattern=…` (merged spellings) and the editor prefills the usual category and amount range.
