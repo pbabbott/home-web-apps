@@ -123,3 +123,7 @@ export type {
   ListFilterAuditOptions,
   YnabReference,
 } from './queries/filter-selections';
+
+export * from './candidate-scoring';
+export { listCandidates, CANDIDATE_HISTORY_MONTHS } from './queries/candidates';
+export type { ListCandidatesOptions } from './queries/candidates';

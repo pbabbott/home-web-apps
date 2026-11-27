@@ -1,4 +1,6 @@
 const BUDGET_API_URL = process.env.BUDGET_API_URL ?? 'http://localhost:4005';
+const BUDGET_WORKER_URL =
+  process.env.BUDGET_WORKER_URL ?? 'http://localhost:4006';
 
 export type BudgetJobStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -215,4 +217,58 @@ export async function getYnabReference(planId: string): Promise<YnabReference> {
   return get<YnabReference>(
     `/ynab/reference?planId=${encodeURIComponent(planId)}`,
   );
+}
+
+export type CandidateConfidence = 'high' | 'medium' | 'low';
+
+export interface Candidate {
+  key: string;
+  payeeName: string;
+  payeeNames: string[];
+  /** Set only when the group is a single YNAB payee. */
+  payeeId: string | null;
+  commonPrefix: string;
+  score: number;
+  confidence: CandidateConfidence;
+  transactionCount: number;
+  unapprovedCount: number;
+  lastDate: string;
+  schedule: string;
+  amountMin: number;
+  amountMax: number;
+  amountMean: number;
+  amountCv: number;
+  usualCategory: string | null;
+  coveredByRule: boolean;
+  reasons: string[];
+}
+
+export async function getCandidates(
+  planId: string,
+  options: { unapprovedOnly: boolean; includeCovered: boolean },
+): Promise<Candidate[]> {
+  const query = new URLSearchParams({
+    planId,
+    unapprovedOnly: String(options.unapprovedOnly),
+    includeCovered: String(options.includeCovered),
+  });
+  const data = await get<{ candidates: Candidate[] }>(
+    `/candidates?${query.toString()}`,
+  );
+  return data.candidates;
+}
+
+/** True when budget-worker answers `/readyz` (HTTP up, database reachable). */
+export async function getWorkerReady(): Promise<boolean> {
+  try {
+    const res = await fetch(`${BUDGET_WORKER_URL}/readyz`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    });
+
+    return res.ok;
+  } catch (err) {
+    console.error('budget-worker readiness check failed:', err);
+    return false;
+  }
 }

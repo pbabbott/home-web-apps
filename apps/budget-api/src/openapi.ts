@@ -15,6 +15,7 @@ import {
   filterSelectionIdParamsSchema,
   listAuditQuerySchema,
   previewBodySchema,
+  listCandidatesQuerySchema,
   referenceQuerySchema,
 } from './schemas/filter-selections';
 
@@ -307,6 +308,17 @@ export const openApiSpec = createDocument({
         responses: {
           '204': { description: 'Deleted' },
           '404': { description: 'No rule with that id' },
+        },
+      },
+    },
+    '/candidates': {
+      get: {
+        summary:
+          'Payees ranked as filter-rule candidates (recurring date and amount score)',
+        requestParams: { query: listCandidatesQuerySchema },
+        responses: {
+          '200': { description: 'Scored candidates, best first' },
+          '400': validationErrorResponse,
         },
       },
     },
